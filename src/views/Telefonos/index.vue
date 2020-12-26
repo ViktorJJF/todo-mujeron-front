@@ -61,7 +61,7 @@
                               />
                             </v-col>
 
-                            <v-col cols="12" sm="12" md="12">
+                            <v-col cols="12" sm="6" md="12">
                               <p class="body-1 font-weight-bold">
                                 Google Contact Email
                               </p>
@@ -95,7 +95,6 @@
                                 </template>
                               </v-select>
                             </v-col>
-                            <v-divider></v-divider>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
                                 Client ID
@@ -116,53 +115,41 @@
                                 label="ID secreto del cliente"
                               />
                             </v-col>
-                            <v-col cols="12" sm="12">
-                              <v-dialog v-model="dialog2" width="500">
-                                <template v-slot:activator="{ on: dialog2 }">
-                                  <v-tooltip bottom>
-                                    <template
-                                      v-slot:activator="{ on: tooltip }"
-                                    >
-                                      <v-btn
-                                        color="error"
-                                        dark
-                                        v-on="{ ...tooltip, ...dialog2 }"
-                                        :to="
-                                          '/telefonos/' +
-                                            editedItem._id +
-                                            '/' +
-                                            editedItem.credenciales.clientId +
-                                            '/' +
-                                            editedItem.credenciales.clientSecret
-                                        "
-                                        >Generar credenciales</v-btn
-                                      >
-                                    </template>
-                                    <span>Credenciales</span>
-                                  </v-tooltip>
-                                </template>
-                                <v-card>
-                                  <v-toolbar color="tertiary" dark>
-                                    <v-toolbar-title
-                                      >Credenciales</v-toolbar-title
-                                    >
-                                  </v-toolbar>
-                                  <v-container
-                                    >Lorem ipsum dolor sit amet, consectetur
-                                    adipiscing elit
-                                  </v-container>
-                                  <v-divider></v-divider>
-                                  <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                      color="primary"
-                                      text
-                                      @click="dialog = false"
-                                      >De acuerdo</v-btn
-                                    >
-                                  </v-card-actions>
-                                </v-card>
-                              </v-dialog>
+                            <v-col>
+                              <v-btn
+                                color="error"
+                                dark
+                                @click="
+                                  $router.push({
+                                    name: 'Telefonos-googleContact',
+                                    params: {
+                                      id: editedItem._id,
+                                      clientId:
+                                        editedItem.credenciales.clientId,
+                                      clientSecret:
+                                        editedItem.credenciales.clientSecret,
+                                    },
+                                  })
+                                "
+                                >Generar credenciales</v-btn
+                              >
+                            </v-col>
+                            <v-col>
+                              <v-btn
+                                color="#251B4A"
+                                dark
+                                @click="
+                                  $router.push({
+                                    name: 'Telefonos-contactos',
+                                    params: { id: editedItem._id },
+                                  });
+                                  $store.commit(
+                                    'setSelectedTelefono',
+                                    editedItem
+                                  );
+                                "
+                                >Exportar contactos</v-btn
+                              >
                             </v-col>
                             <!-- <v-col cols="12" sm="12" md="12">
                             <span class="font-weight-bold">Estado</span>

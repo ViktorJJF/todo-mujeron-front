@@ -18,6 +18,8 @@
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -36,7 +38,7 @@
                     outlined
                   ></v-text-field>
                   <v-combobox
-                    @change="initialize"
+                    @change="initialize(page, filters)"
                     v-model="telefonoId"
                     :items="telefonos"
                     :search-input.sync="search2"
@@ -59,13 +61,13 @@
                     <template v-slot:selection="{ item }">
                       <span
                         >{{ item.agenteId.nombre }}
-                        {{ item.agenteId.apellido }}</span
+                        {{ item.agenteId.apellido }} ({{ item.numero }})</span
                       >
                     </template>
                     <template v-slot:item="{ item }">
                       <span
                         >{{ item.agenteId.nombre }}
-                        {{ item.agenteId.apellido }}</span
+                        {{ item.agenteId.apellido }} ({{ item.numero }})</span
                       >
                     </template>
                   </v-combobox>
@@ -171,6 +173,14 @@
                   </v-dialog>
                 </v-col>
               </v-row>
+              <div class="text-center pt-2">
+                <v-pagination
+                  v-model="page"
+                  @input="initialize(page, filters)"
+                  :length="totalPages"
+                  total-visible="15"
+                ></v-pagination>
+              </div>
             </v-container>
           </template>
           <template v-slot:[`item.agente`]="{ item }">
@@ -186,8 +196,17 @@
             >
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true"
-              >Aún no cuentas con contactos</v-alert
+            <v-alert
+              v-show="telefonoId && contactosReady"
+              type="error"
+              :value="true"
+              >Este agente no cuenta con contactos</v-alert
+            >
+            <v-alert
+              v-show="!telefonoId && !contactosReady"
+              type="error"
+              :value="true"
+              >Por favor, selecciona algún agente</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -210,7 +229,12 @@
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            v-model="page"
+            @input="initialize(page, filters)"
+            :length="totalPages"
+            total-visible="15"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -222,6 +246,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Contactos from "@/classes/Contactos";
+import { buildPayloadPagination } from "@/utils/utils.js";
 export default {
   components: {
     MaterialCard,
@@ -239,6 +264,10 @@ export default {
     search: "",
     dialog: false,
     paises: ["Peru", "Chile", "Colombia"],
+    itemsPerPage: 10,
+    isDataReady: false,
+    selectedOrder: 0,
+    pagination: {},
     headers: [
       {
         text: "Nombres",
@@ -273,15 +302,23 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     contactos: [],
+    contactosReady: false,
     editedIndex: -1,
     editedItem: Contactos(),
     defaultItem: Contactos(),
     telefonos: [],
     search2: "",
     telefonoId: null,
+    filters: {},
   }),
 
   computed: {
+    totalItems() {
+      return this.$store.state.contactosModule.totalSales;
+    },
+    totalPages() {
+      return this.$store.state.contactosModule.totalPages;
+    },
     formTitle() {
       return this.editedIndex === -1 ? "Nueva locación" : "Editar locación";
     },
@@ -298,15 +335,28 @@ export default {
   },
 
   methods: {
-    async initialize() {
-      // if (this.telefonoId) {
-      // console.log("el id: ", this.telefonoId._id);
-      this.contactos = await Promise.all([
-        this.$store.dispatch("contactosModule/list"),
-      ]);
-      console.log("los contactos: ", this.contactos);
-      // }
-      // this.telefonos = this.$store.state.telefonosModule.telefonos;
+    async initialize(currentPage, filters) {
+      if (this.telefonoId) {
+        console.log("el id: ", this.telefonoId._id);
+        this.$store.commit("loadingModule/showLoading", true);
+        currentPage = currentPage || 1;
+        await Promise.all([
+          this.$store.dispatch("contactosModule/list", {
+            telefonoId: this.telefonoId._id,
+            ...filters,
+            ...buildPayloadPagination({
+              page: currentPage,
+              itemsPerPage: this.$store.state.itemsPerPage,
+            }),
+          }),
+        ]);
+        this.$store.commit("loadingModule/showLoading", false);
+
+        this.contactos = this.$store.state.contactosModule.contactos;
+        console.log("los contactos: ", this.contactos);
+        this.contactosReady = true;
+      }
+      this.telefonos = this.$store.state.telefonosModule.telefonos;
     },
     editItem(item) {
       this.editedIndex = this.contactos.indexOf(item);

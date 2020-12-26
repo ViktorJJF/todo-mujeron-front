@@ -13,7 +13,7 @@
                 class="fadeIn first circular"
                 aspect-ratio="2"
                 contain
-                src="/images/logo/fixtec.png"
+                src="https://scontent.faqp1-1.fna.fbcdn.net/v/t1.0-9/126168591_667903303784907_162111263870559860_o.jpg?_nc_cat=105&ccb=2&_nc_sid=09cbfe&_nc_eui2=AeGyU1V0XbYF5ovFmazdfP4wZWrnUXJNQellaudRck1B6S3b6VdOpihLB3Ei98sLxJxvKvB8WZok9X1KatKqdU49&_nc_ohc=19uYDoBF_NsAX9EMG5S&_nc_ht=scontent.faqp1-1.fna&oh=7d95a12ae4aec34c838ad66d3a4e965d&oe=600E46C2"
               ></v-img>
             </div>
 
@@ -45,7 +45,8 @@
               lass="fadeIn fourth"
               value="Ingresar"
               @click="passes(login)"
-            >Ingresar</v-btn>
+              >Ingresar</v-btn
+            >
           </v-form>
         </ValidationObserver>
       </div>

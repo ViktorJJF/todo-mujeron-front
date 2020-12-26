@@ -5,6 +5,8 @@ const module = {
   namespaced: true,
   state: {
     contactos: [],
+    total: 0,
+    totalPages: 0,
   },
   actions: {
     list({ commit }, query) {
@@ -13,6 +15,8 @@ const module = {
           .list(query)
           .then((response) => {
             commit("list", response.data.payload);
+            commit("totalItems", response.data.totalDocs);
+            commit("totalPages", response.data.totalPages);
             resolve(response.data.payload);
           })
           .catch((error) => {
@@ -73,6 +77,12 @@ const module = {
     list(state, data) {
       state.contactos = data;
     },
+    totalItems(state, data) {
+      state.total = data;
+    },
+    totalPages(state, data) {
+      state.totalPages = data;
+    },
     create(state, data) {
       state.contactos.push(data);
     },
@@ -89,6 +99,7 @@ const module = {
         (member) => member._id == id
       );
       state.contactos.splice(indexToDelete, 1);
+      state.total -= 1;
     },
   },
   getters: {},

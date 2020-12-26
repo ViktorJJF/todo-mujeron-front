@@ -20,18 +20,28 @@ export default new Vuex.Store({
     overlay: {
       active: false,
     },
-    commerce: [
-      "VENTA DE ACCESORIOS",
-      "VENTA DE REPUESTOS",
-      "CELULARES",
-      "SOFTWARE",
-      "HARDWARE",
-    ],
-    stockAlert: [],
+    selectedTelefono: {
+      numero: "",
+      googleContactEmail: "",
+      credenciales: {
+        clientId: "",
+        clientSecret: "",
+        access_token: "",
+        refresh_token: "",
+        scope: "",
+        token_type: "",
+        id_token: "",
+        expiry_date: "",
+      },
+      agenteId: "",
+    },
   },
   mutations: {
     showOverlay(state, active) {
       state.overlay.active = active;
+    },
+    setSelectedTelefono(state, payload) {
+      state.selectedTelefono = payload;
     },
   },
   actions: {

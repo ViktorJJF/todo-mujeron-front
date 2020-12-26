@@ -1,14 +1,15 @@
 import Vue from "vue";
 import Router from "vue-router";
+import store from "./store";
 
 Vue.use(Router);
 
 let routes = [
-  // {
-  //   path: "/login",
-  //   name: "login",
-  //   component: () => import("./views/authPages/login.vue"),
-  // },
+  {
+    path: "/login",
+    name: "login",
+    component: () => import("./views/Login.vue"),
+  },
   {
     path: "/",
     component: () => import("@/layouts/Admin.vue"),
@@ -16,9 +17,9 @@ let routes = [
       requiresAuth: true,
     },
     name: "dashboard",
-    // redirect: {
-    //   name: "statistics",
-    // },
+    redirect: {
+      name: "EquipoDeVentas",
+    },
     children: [
       // {
       //   path: "/colores",
@@ -38,7 +39,7 @@ let routes = [
       {
         path: "/telefonos",
         name: "Telefonos",
-        component: () => import("@/views/Telefonos.vue"),
+        component: () => import("@/views/Telefonos"),
       },
       {
         path: "/contactos",
@@ -51,8 +52,19 @@ let routes = [
         component: () => import("@/views/Agentes.vue"),
       },
       {
-        path: "/telefonos/:id/:clientId/:clientSecret",
+        path: "/telefonos/googlepeople/:id/:clientId/:clientSecret",
+        name: "Telefonos-googleContact",
         component: () => import("@/components/GooglePeopleCredenciales.vue"),
+      },
+      {
+        path: "/telefonos/contactos/:id",
+        name: "Telefonos-contactos",
+        component: () => import("@/views/Telefonos/PeopleContacts"),
+      },
+      {
+        path: "/perfil",
+        name: "UserProfile",
+        component: () => import("@/views/UserProfile.vue"),
       },
     ],
   },
@@ -67,17 +79,17 @@ const router = new Router({
   mode: "history",
 });
 
-// router.beforeEach((to, from, next) => {
-//   // checkForUpdates();
-//   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-//   const isTokenSet = store.getters["authModule/isTokenSet"];
-//   if (requiresAuth && !isTokenSet) {
-//     return next({ name: "login" });
-//   }
-//   // checkIfTokenNeedsRefresh();
-//   // store.commit("successModule/success", null);
-//   // store.commit("errorModule/error", null);
-//   return next();
-// });
+router.beforeEach((to, from, next) => {
+  // checkForUpdates();
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const isTokenSet = store.getters["authModule/isTokenSet"];
+  if (requiresAuth && !isTokenSet) {
+    return next({ name: "login" });
+  }
+  // checkIfTokenNeedsRefresh();
+  // store.commit("successModule/success", null);
+  // store.commit("errorModule/error", null);
+  return next();
+});
 
 export default router;
