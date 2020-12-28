@@ -51,7 +51,7 @@
                           v-model="user.country"
                           label="Selecciona país"
                           itemText="name"
-                          itemValue="id"
+                          itemValue="_id"
                         />
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
@@ -62,7 +62,7 @@
                           v-model="user.city"
                           label="Selecciona una ciudad"
                           itemText="name"
-                          itemValue="id"
+                          itemValue="_id"
                         />
                       </v-col>
                     </v-row>
@@ -116,6 +116,7 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
 import api from "@/services/api/auth";
+import { handleError } from "@/utils/utils.js";
 export default {
   components: {
     MaterialCard,
@@ -134,26 +135,31 @@ export default {
   methods: {
     initialData() {
       this.user = this.$deepCopy(this.$store.state.authModule.user);
+      console.log("lo inicial: ", this.user);
       console.log("el user: ", this.user);
     },
     updateUser() {
       this.$store.dispatch("authModule/editUser", {
-        id: this.user.id,
+        id: this.user._id,
         data: this.user,
       });
     },
     updatePassword() {
-      this.$store.commit("loadingModule/showLoading");
-      api
-        .updatePassword(this.user.id, this.newPassword)
-        .then((res) => {
-          let msg = res.data.message;
-          this.$store.commit("successModule/showSuccess", msg);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => this.$store.commit("loadingModule/showLoading", false));
+      return new Promise((resolve, reject) => {
+        this.$store.commit("loadingModule/showLoading");
+        api
+          .updatePassword(this.user._id, this.newPassword)
+          .then((res) => {
+            let msg = res.data.message;
+            this.$store.commit("successModule/showSuccess", msg);
+          })
+          .catch((err) => {
+            handleError(err, this.$store.commit, reject);
+          })
+          .finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+      });
     },
   },
   computed: {

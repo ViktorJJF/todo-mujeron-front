@@ -9,8 +9,8 @@
         text="Tabla resumen de contactos"
       >
         <v-data-table
+          :loading="dataTableLoading"
           no-results-text="No se encontraron resultados"
-          :search="search"
           hide-default-footer
           :headers="headers"
           :items="contactos"
@@ -23,22 +23,13 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por nombre o teléfono: {{ search }}</span
-              >
+              <span class="font-weight-bold">Selecciona al agente</span>
               <v-row>
                 <v-col cols="12" sm="6">
-                  <v-text-field
-                    dense
-                    hide-details
-                    v-model="search"
-                    append-icon="search"
-                    placeholder="Escribe el contacto"
-                    single-line
-                    outlined
-                  ></v-text-field>
                   <v-combobox
-                    @change="initialize(page, filters)"
+                    @change="
+                      initialize(buildPayloadPagination(null, buildSearch()))
+                    "
                     v-model="telefonoId"
                     :items="telefonos"
                     :search-input.sync="search2"
@@ -72,6 +63,23 @@
                     </template>
                   </v-combobox>
                 </v-col>
+              </v-row>
+              <span class="font-weight-bold"
+                >Filtrar por nombre/apellido/teléfono: {{ search }}</span
+              >
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    dense
+                    hide-details
+                    v-model="search"
+                    append-icon="search"
+                    placeholder="Escribe los nombres/apellidos/telefonos del contacto"
+                    single-line
+                    outlined
+                    clearable
+                  ></v-text-field>
+                </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
@@ -89,9 +97,19 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Nombres Completos
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.displayName"
+                                label="Nombres completos"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Nombres</p>
                               <VTextFieldWithValidation
-                                rules="required"
+                                rules=""
                                 v-model="editedItem.nombre"
                                 label="Nombres"
                               />
@@ -99,7 +117,7 @@
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Apellidos</p>
                               <VTextFieldWithValidation
-                                rules="required"
+                                rules=""
                                 v-model="editedItem.apellido"
                                 label="Apellidos"
                               />
@@ -107,7 +125,7 @@
                             <v-col cols="12" sm="6" md="6">
                               <p class="body-1 font-weight-bold">Celular</p>
                               <VTextFieldWithValidation
-                                rules="required"
+                                rules=""
                                 v-model="editedItem.celular"
                                 label="Celular"
                               />
@@ -115,7 +133,7 @@
                             <v-col cols="12" sm="6" md="6">
                               <p class="body-1 font-weight-bold">Teléfono</p>
                               <VTextFieldWithValidation
-                                rules="required"
+                                rules=""
                                 v-model="editedItem.telefono"
                                 label="Teléfono"
                               />
@@ -123,17 +141,18 @@
                             <v-col cols="12" sm="6" md="6">
                               <p class="body-1 font-weight-bold">Email</p>
                               <VTextFieldWithValidation
-                                rules="required"
+                                rules=""
                                 v-model="editedItem.email"
                                 label="Email"
                               />
                             </v-col>
 
                             <v-col cols="12" sm="6">
-                              <span class="font-weight-bold"
-                                >Teléfono de tienda</span
-                              >
+                              <p class="body-1 font-weight-bold">
+                                Teléfono de la tienda
+                              </p>
                               <v-select
+                                dense
                                 hide-details
                                 placeholder="Selecciona una locación"
                                 outlined
@@ -173,10 +192,23 @@
                   </v-dialog>
                 </v-col>
               </v-row>
+              <v-col cols="12" sm="12">
+                <span>
+                  <strong>Mostrando:</strong>
+                  {{
+                    $store.state.itemsPerPage > contactos.length
+                      ? contactos.length
+                      : $store.state.itemsPerPage
+                  }}
+                  de {{ $store.state.contactosModule.total }} registros
+                </span>
+              </v-col>
               <div class="text-center pt-2">
                 <v-pagination
                   v-model="page"
-                  @input="initialize(page, filters)"
+                  @input="
+                    initialize(buildPayloadPagination(page, buildSearch()))
+                  "
                   :length="totalPages"
                   total-visible="15"
                 ></v-pagination>
@@ -225,13 +257,13 @@
                 ? contactos.length
                 : $store.state.itemsPerPage
             }}
-            de {{ contactos.length }} registros
+            de {{ $store.state.contactosModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
           <v-pagination
             v-model="page"
-            @input="initialize(page, filters)"
+            @input="initialize(buildPayloadPagination(page, buildSearch()))"
             :length="totalPages"
             total-visible="15"
           ></v-pagination>
@@ -258,6 +290,7 @@ export default {
     },
   },
   data: () => ({
+    dataTableLoading: true,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -269,6 +302,12 @@ export default {
     selectedOrder: 0,
     pagination: {},
     headers: [
+      {
+        text: "Nombres Completos",
+        align: "left",
+        sortable: false,
+        value: "displayName",
+      },
       {
         text: "Nombres",
         align: "left",
@@ -309,7 +348,8 @@ export default {
     telefonos: [],
     search2: "",
     telefonoId: null,
-    filters: {},
+    delayTimer: null,
+    fieldsToSearch: ["nombre", "apellido", "celular", "displayName"],
   }),
 
   computed: {
@@ -328,40 +368,85 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    async search() {
+      clearTimeout(this.delayTimer);
+      console.log("haciendo busqueda...: ", this.search);
+      this.delayTimer = setTimeout(() => {
+        this.doSearch();
+      }, 400);
+    },
   },
 
   mounted() {
-    this.initialize();
+    this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
   },
 
   methods: {
-    async initialize(currentPage, filters) {
+    async initialize(paginationPayload) {
+      console.log("el telefonoid: ", this.telefonoId);
       if (this.telefonoId) {
-        console.log("el id: ", this.telefonoId._id);
         this.$store.commit("loadingModule/showLoading", true);
-        currentPage = currentPage || 1;
         await Promise.all([
           this.$store.dispatch("contactosModule/list", {
             telefonoId: this.telefonoId._id,
-            ...filters,
-            ...buildPayloadPagination({
-              page: currentPage,
-              itemsPerPage: this.$store.state.itemsPerPage,
-            }),
+            ...paginationPayload,
           }),
         ]);
         this.$store.commit("loadingModule/showLoading", false);
 
         this.contactos = this.$store.state.contactosModule.contactos;
-        console.log("los contactos: ", this.contactos);
         this.contactosReady = true;
       }
       this.telefonos = this.$store.state.telefonosModule.telefonos;
+      this.dataTableLoading = false;
+    },
+    buildPayloadPagination(page, searchPayload) {
+      return buildPayloadPagination(
+        {
+          page: page || 1,
+          itemsPerPage: this.$store.state.itemsPerPage,
+        },
+        searchPayload
+      );
     },
     editItem(item) {
       this.editedIndex = this.contactos.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+    },
+    async doSearch() {
+      try {
+        this.dataTableLoading = true;
+        console.log("paginando..");
+        console.log(
+          "el paginado: ",
+          buildPayloadPagination(
+            {
+              page: 1,
+              itemsPerPage: this.$store.state.itemsPerPage,
+            },
+            this.buildSearch()
+          )
+        );
+        await this.initialize(
+          buildPayloadPagination(
+            {
+              page: 1,
+              itemsPerPage: this.$store.state.itemsPerPage,
+            },
+            this.buildSearch()
+          )
+        );
+        this.dataTableLoading = false;
+        // eslint-disable-next-line no-unused-vars
+      } catch (error) {
+        this.dataTableLoading = false;
+      }
+    },
+    buildSearch() {
+      return this.search
+        ? { query: this.search, fields: this.fieldsToSearch.join(",") }
+        : {};
     },
 
     async deleteItem(item) {

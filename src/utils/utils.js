@@ -73,7 +73,10 @@ export const formatErrorMessages = (translationParent, msg) => {
   return null;
 };
 
-export const buildPayloadPagination = (pagination, search) => {
+export const buildPayloadPagination = (
+  pagination = { page: 1, itemsPerPage: 20 },
+  search
+) => {
   const { page, itemsPerPage } = pagination;
   let { sortDesc, sortBy } = pagination;
 

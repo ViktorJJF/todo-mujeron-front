@@ -15,9 +15,6 @@ import "./plugins/vee-validate";
 
 Vue.config.productionTip = false;
 
-import Chartist from "chartist";
-Vue.prototype.$Chartist = Chartist;
-
 //plugins
 import "@/plugins/deepCopy";
 import "@/plugins/vee-validate";
@@ -49,9 +46,6 @@ Vue.mixin({
 new Vue({
   vuetify,
   router,
-  data: {
-    Chartist: Chartist,
-  },
   store,
   created() {
     console.log(store.getters["authModule/isTokenSet"]);
