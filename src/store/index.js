@@ -8,7 +8,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   modules: modules,
   state: {
-    itemsPerPage: 20,
+    itemsPerPage: 30,
     snackbar: {
       text: "",
       active: false,

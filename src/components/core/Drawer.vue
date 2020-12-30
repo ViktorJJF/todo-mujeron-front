@@ -101,6 +101,11 @@ export default {
           text: "Contactos",
           to: "Contactos",
         },
+        {
+          icon: "mdi-format-list-bulleted",
+          text: "Leads",
+          to: "Leads",
+        },
         // { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         // { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
         // { icon: "mdi-format-color-fill", text: "Colores", to: "colors" },

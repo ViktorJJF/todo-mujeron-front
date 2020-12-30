@@ -52,6 +52,11 @@ let routes = [
         component: () => import("@/views/Agentes.vue"),
       },
       {
+        path: "/leads",
+        name: "Leads",
+        component: () => import("@/views/Leads.vue"),
+      },
+      {
         path: "/telefonos/googlepeople/:id/:clientId/:clientSecret",
         name: "Telefonos-googleContact",
         component: () => import("@/components/GooglePeopleCredenciales.vue"),

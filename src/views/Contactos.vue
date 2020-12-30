@@ -27,9 +27,6 @@
               <v-row>
                 <v-col cols="12" sm="6">
                   <v-combobox
-                    @change="
-                      initialize(buildPayloadPagination(null, buildSearch()))
-                    "
                     v-model="telefonoId"
                     :items="telefonos"
                     :search-input.sync="search2"
@@ -39,6 +36,7 @@
                     outlined
                     dense
                     class="mt-2"
+                    clearable
                   >
                     <template v-slot:no-data>
                       <v-list-item>
@@ -154,7 +152,7 @@
                               <v-select
                                 dense
                                 hide-details
-                                placeholder="Selecciona una locación"
+                                placeholder="Teléfono"
                                 outlined
                                 :items="telefonos"
                                 item-text="numero"
@@ -220,10 +218,14 @@
             {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn
+              class="mr-3 mb-1"
+              small
+              color="secondary"
+              @click="editItem(item)"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
               >Eliminar</v-btn
             >
           </template>
@@ -360,7 +362,7 @@ export default {
       return this.$store.state.contactosModule.totalPages;
     },
     formTitle() {
-      return this.editedIndex === -1 ? "Nueva locación" : "Editar locación";
+      return this.editedIndex === -1 ? "Nuevo contacto" : "Editar contacto";
     },
   },
 
@@ -370,10 +372,12 @@ export default {
     },
     async search() {
       clearTimeout(this.delayTimer);
-      console.log("haciendo busqueda...: ", this.search);
       this.delayTimer = setTimeout(() => {
         this.doSearch();
       }, 400);
+    },
+    telefonoId() {
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
 
@@ -383,20 +387,16 @@ export default {
 
   methods: {
     async initialize(paginationPayload) {
-      console.log("el telefonoid: ", this.telefonoId);
-      if (this.telefonoId) {
-        this.$store.commit("loadingModule/showLoading", true);
-        await Promise.all([
-          this.$store.dispatch("contactosModule/list", {
-            telefonoId: this.telefonoId._id,
-            ...paginationPayload,
-          }),
-        ]);
-        this.$store.commit("loadingModule/showLoading", false);
+      this.$store.commit("loadingModule/showLoading", true);
+      let body = {
+        ...paginationPayload,
+      };
+      if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
+      await Promise.all([this.$store.dispatch("contactosModule/list", body)]);
+      this.$store.commit("loadingModule/showLoading", false);
 
-        this.contactos = this.$store.state.contactosModule.contactos;
-        this.contactosReady = true;
-      }
+      this.contactos = this.$store.state.contactosModule.contactos;
+      this.contactosReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos;
       this.dataTableLoading = false;
     },
@@ -417,17 +417,6 @@ export default {
     async doSearch() {
       try {
         this.dataTableLoading = true;
-        console.log("paginando..");
-        console.log(
-          "el paginado: ",
-          buildPayloadPagination(
-            {
-              page: 1,
-              itemsPerPage: this.$store.state.itemsPerPage,
-            },
-            this.buildSearch()
-          )
-        );
         await this.initialize(
           buildPayloadPagination(
             {
