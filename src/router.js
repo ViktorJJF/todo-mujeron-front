@@ -52,6 +52,46 @@ let routes = [
         component: () => import("@/views/Agentes.vue"),
       },
       {
+        path: "/usuarios",
+        name: "Usuarios",
+        component: () => import("@/views/Usuarios.vue"),
+      },
+      {
+        path: "/facebook",
+        name: "Facebook",
+        component: () => import("@/views/Facebook.vue"),
+      },
+      {
+        path: "/dialogflow",
+        name: "Dialogflow",
+        component: () => import("@/views/Dialogflow.vue"),
+      },
+      {
+        path: "/mailchimp",
+        name: "Mailchimp",
+        component: () => import("@/views/Mailchimp.vue"),
+      },
+      {
+        path: "/woocommerce",
+        name: "Woocommerce",
+        component: () => import("@/views/Woocommerce.vue"),
+      },
+      {
+        path: "/whatsapp",
+        name: "Whatsapp",
+        component: () => import("@/views/Whatsapp.vue"),
+      },
+      {
+        path: "/genial",
+        name: "Genial",
+        component: () => import("@/views/Genial.vue"),
+      },
+      {
+        path: "/drive",
+        name: "Drive",
+        component: () => import("@/views/Drive.vue"),
+      },
+      {
         path: "/leads",
         name: "Leads",
         component: () => import("@/views/Leads.vue"),

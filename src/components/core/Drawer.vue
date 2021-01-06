@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer color="#040505" dark v-model="drawer" app width="260">
+  <v-navigation-drawer color="#040505" dark v-model="drawer" app width="300">
     <v-list>
       <v-list-item>
         <v-img
@@ -38,29 +38,181 @@
         </v-list-item>
       </template>
       <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
         color="white"
-        v-for="item in expansionItems"
-        :key="item.title"
-        v-model="item.active"
-        :prepend-icon="item.icon"
+      >
+        <template v-slot:activator>
+          <v-list-item-title>Configuración</v-list-item-title>
+        </template>
+        <v-list-group color="white" :value="false" no-action sub-group>
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>TODO-FULL</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'Usuarios' }"
+          >
+            <v-list-item-content>
+              Usuarios
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'EquipoDeVentas' }"
+          >
+            <v-list-item-content>
+              Equipo de ventas
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item active-class="primary custom2" :to="{ name: 'Agentes' }">
+            <v-list-item-content>
+              Agentes
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'Locaciones' }"
+          >
+            <v-list-item-content>
+              Ubicaciones
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-group color="white" :value="false" no-action sub-group>
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Propiedades</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <v-list-item
+            v-for="propiedad in propiedades"
+            :key="propiedad.id"
+            active-class="primary custom2"
+            :to="{ name: propiedad.to }"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ propiedad.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              {{ propiedad.text }}
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+      </v-list-group>
+      <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
       >
         <template v-slot:activator>
           <v-list-item-content>
-            <v-list-item-title v-text="item.title"></v-list-item-title>
+            <v-list-item-title>Google Contact</v-list-item-title>
           </v-list-item-content>
         </template>
         <v-list-item
-          active-class="primary"
-          :to="{ name: subItem.to }"
-          v-for="subItem in item.items"
-          :key="subItem.title"
+          v-for="googleContact in googleContacts"
+          :key="googleContact.id"
+          active-class="primary custom2"
+          :to="{ name: googleContact.to }"
         >
           <v-list-item-icon>
-            <v-icon>{{ subItem.icon }}</v-icon>
+            <v-icon>{{ googleContact.icon }}</v-icon>
           </v-list-item-icon>
-          {{ subItem.title }}
+          <v-list-item-content>
+            {{ googleContact.text }}
+          </v-list-item-content>
         </v-list-item>
       </v-list-group>
+      <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
+      >
+        <template v-slot:activator>
+          <v-list-item-content>
+            <v-list-item-title>Chatbot</v-list-item-title>
+          </v-list-item-content>
+        </template>
+        <v-list-group
+          prepend-icon="mdi-check"
+          color="white"
+          :value="false"
+          no-action
+          sub-group
+          active-class="primary custom2"
+          @click="$router.push({ name: 'Leads' })"
+        >
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Contactos</v-list-item-title>
+            </v-list-item-content>
+          </template>
+        </v-list-group>
+        <v-list-group color="white" :value="false" no-action sub-group>
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>MSN Facebook</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <v-list-group color="white" :value="false" no-action sub-group>
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Etiquetas</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'Usuarios' }"
+            >
+              <v-list-item-content>
+                FB Messenger
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EquipoDeVentas' }"
+            >
+              <v-list-item-content>
+                FB Ads
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
+          <v-list-group color="white" :value="false" no-action sub-group>
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Publicaciones</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-group color="white" :value="false" no-action sub-group>
+              <template v-slot:activator>
+                <v-list-item-content>
+                  <v-list-item-title>Comentarios</v-list-item-title>
+                </v-list-item-content>
+              </template>
+              <v-list-item
+                active-class="primary custom2"
+                :to="{ name: 'Usuarios' }"
+              >
+                <v-list-item-content>
+                  Defecto
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item
+                active-class="primary custom2"
+                :to="{ name: 'EquipoDeVentas' }"
+              >
+                <v-list-item-content>
+                  Programado
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-group>
+          </v-list-group>
+        </v-list-group>
+      </v-list-group>
+
       <v-divider class="mx-3 mb-3"></v-divider>
     </v-list>
   </v-navigation-drawer>
@@ -70,47 +222,90 @@
 export default {
   data() {
     return {
-      items: [
-        // {
-        //   icon: "mdi-format-list-checks",
-        //   text: "Colores",
-        //   to: "Colors",
-        // },
+      active2: false,
+      propiedades: [
         {
-          icon: "mdi-format-list-bulleted",
-          text: "Equipo De Ventas",
-          to: "EquipoDeVentas",
-        },
-        {
-          icon: "mdi-format-list-bulleted",
-          text: "Locaciones",
-          to: "Locaciones",
-        },
-        {
-          icon: "mdi-format-list-bulleted",
-          text: "Agentes",
-          to: "Agentes",
-        },
-        {
-          icon: "mdi-format-list-bulleted",
-          text: "Teléfonos",
+          icon: "mdi-check",
+          text: "Google Contact",
           to: "Telefonos",
         },
         {
-          icon: "mdi-format-list-bulleted",
-          text: "Contactos",
-          to: "Contactos",
+          icon: "mdi-check",
+          text: "Facebook",
+          to: "Facebook",
         },
         {
-          icon: "mdi-format-list-bulleted",
-          text: "Leads",
-          to: "Leads",
+          icon: "mdi-check",
+          text: "Dialogflow",
+          to: "Dialogflow",
+        },
+        {
+          icon: "mdi-check",
+          text: "Mailchimp",
+          to: "Mailchimp",
+        },
+        {
+          icon: "mdi-check",
+          text: "Woocommerce",
+          to: "Woocommerce",
+        },
+        {
+          icon: "mdi-check",
+          text: "Whatsapp",
+          to: "Whatsapp",
+        },
+        {
+          icon: "mdi-check",
+          text: "Genial",
+          to: "Genial",
+        },
+        {
+          icon: "mdi-check",
+          text: "Drive",
+          to: "Drive",
         },
         // { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         // { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
         // { icon: "mdi-format-color-fill", text: "Colores", to: "colors" },
       ],
-      expansionItems: [],
+      googleContacts: [
+        {
+          icon: "mdi-check",
+          text: "Contactos",
+          to: "Contactos",
+        },
+      ],
+      etiquetas: [
+        {
+          icon: "mdi-check",
+          text: "FB Messenger",
+          to: "",
+        },
+        {
+          icon: "mdi-check",
+          text: "FB Ads",
+          to: "FB Ads",
+        },
+      ],
+      expansionItems: [
+        {
+          title: "Configuración",
+          active: false,
+          icon: "mdi-format-list-bulleted",
+          items: [
+            {
+              icon: "mdi-format-list-bulleted",
+              text: "Todo-Full",
+              to: "EquipoDeVentas",
+            },
+            {
+              icon: "mdi-format-list-bulleted",
+              text: "Locaciones",
+              to: "Locaciones",
+            },
+          ],
+        },
+      ],
     };
   },
   computed: {
@@ -134,4 +329,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.custom2 {
+  color: white;
+}
+</style>
