@@ -27,16 +27,6 @@
 
     <v-divider class="mx-3 mb-3"></v-divider>
     <v-list nav flat>
-      <template v-for="(item, i) in items">
-        <v-list-item active-class="primary" :key="i" :to="{ name: item.to }">
-          <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title v-text="item.text" />
-          </v-list-item-content>
-        </v-list-item>
-      </template>
       <v-list-group
         :value="false"
         prepend-icon="mdi-format-list-bulleted"

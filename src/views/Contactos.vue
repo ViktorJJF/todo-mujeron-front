@@ -94,22 +94,40 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
+                            <v-col
+                              cols="12"
+                              sm="12"
+                              md="12"
+                              v-show="formTitle === 'Editar contacto'"
+                            >
                               <p class="body-1 font-weight-bold">
-                                Nombres Completos
+                                Nombres Completos (Generado por Google Contact)
                               </p>
                               <VTextFieldWithValidation
+                                disabled
                                 rules=""
                                 v-model="editedItem.displayName"
                                 label="Nombres completos"
                               />
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
+                              <p class="body-1 font-weight-bold">
+                                Primer nombre
+                              </p>
                               <VTextFieldWithValidation
                                 rules=""
                                 v-model="editedItem.nombre"
                                 label="Nombres"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Segundo nombre
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.segundoNombre"
+                                label="Segundo nombre"
                               />
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
@@ -311,10 +329,16 @@ export default {
         value: "displayName",
       },
       {
-        text: "Nombres",
+        text: "Primer Nombre",
         align: "left",
         sortable: false,
         value: "nombre",
+      },
+      {
+        text: "Segundo Nombre",
+        align: "left",
+        sortable: false,
+        value: "segundoNombre",
       },
       {
         text: "Apellidos",
@@ -442,7 +466,13 @@ export default {
       const index = this.contactos.indexOf(item);
       let itemId = this.contactos[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("contactosModule/delete", itemId);
+        await this.$store.dispatch("contactosModule/delete", {
+          id: itemId,
+          data: {
+            telefonoId: this.contactos[index].telefonoId._id,
+            resourceName: this.contactos[index].resourceName,
+          },
+        });
         this.contactos.splice(index, 1);
       }
     },

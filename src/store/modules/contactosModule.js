@@ -57,10 +57,10 @@ const module = {
           });
       });
     },
-    delete({ commit }, id) {
+    delete({ commit }, { id, data }) {
       return new Promise((resolve, reject) => {
         api
-          .delete(id)
+          .delete(id, data)
           .then(() => {
             commit("loadingModule/showLoading", true, { root: true });
             buildSuccess("Registro eliminado con éxito", commit);

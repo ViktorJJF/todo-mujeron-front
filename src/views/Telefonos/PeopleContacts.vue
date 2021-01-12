@@ -121,11 +121,20 @@
               class="white--text"
               color="error"
               depressed
-              :disabled="bucle"
+              :disabled="percentage.percentage == 100"
             >
               Exportar
             </v-btn>
           </v-badge>
+          <v-btn
+            :disabled="percentage.percentage === 0"
+            @click="restartContacts"
+            class="white--text ml-2"
+            color="error"
+            depressed
+          >
+            Reiniciar contactos
+          </v-btn>
           <v-progress-linear
             disabled
             class="mt-3"
@@ -223,6 +232,7 @@ export default {
             ...this.selectedTelefono.credenciales,
           });
           this.percentage = res.data.payload;
+          console.log("el porcentaje: ", this.percentage);
           if (this.percentage.error) throw Error("error");
           await this.timeout(2000);
         } catch (error) {
@@ -235,6 +245,19 @@ export default {
       return new Promise((resolve) => {
         setTimeout(resolve, millis);
       });
+    },
+    restartContacts() {
+      axios
+        .delete(
+          "/api/contactos/deletes-by-telefonoid/" + this.selectedTelefono._id
+        )
+        .then(() => {
+          this.percentage.percentage = 0;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+      console.log("reiniciando...");
     },
   },
 };

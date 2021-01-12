@@ -9,7 +9,7 @@ export default {
   create(payload) {
     return axios.post("/api/contactos", payload);
   },
-  delete(id) {
-    return axios.delete(`/api/contactos/${id}`);
+  delete(id, payload) {
+    return axios.delete(`/api/contactos/${id}`, { data: payload });
   },
 };
