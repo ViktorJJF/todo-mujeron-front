@@ -202,6 +202,32 @@
           </v-list-group>
         </v-list-group>
       </v-list-group>
+      <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
+      >
+        <template v-slot:activator>
+          <v-list-item-content>
+            <v-list-item-title>Facebook</v-list-item-title>
+          </v-list-item-content>
+        </template>
+        <v-list-group
+          prepend-icon="mdi-check"
+          color="white"
+          :value="false"
+          no-action
+          sub-group
+          active-class="primary custom2"
+          @click="$router.push({ name: 'CommentToMSN' })"
+        >
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Comentarios</v-list-item-title>
+            </v-list-item-content>
+          </template>
+        </v-list-group>
+      </v-list-group>
 
       <v-divider class="mx-3 mb-3"></v-divider>
     </v-list>

@@ -35,6 +35,7 @@ export default new Vuex.Store({
       },
       agenteId: "",
     },
+    selectedCommentFacebook: {},
   },
   mutations: {
     showOverlay(state, active) {

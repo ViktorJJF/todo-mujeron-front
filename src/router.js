@@ -111,6 +111,21 @@ let routes = [
         name: "UserProfile",
         component: () => import("@/views/UserProfile.vue"),
       },
+      {
+        path: "/perfil",
+        name: "UserProfile",
+        component: () => import("@/views/UserProfile.vue"),
+      },
+      {
+        path: "/comment-to-msn",
+        name: "CommentToMSN",
+        component: () => import("@/views/CommentToMSN"),
+      },
+      {
+        path: "/comment-to-msn/:id",
+        name: "CommentToMSNUpdate",
+        component: () => import("@/views/CommentToMSNUpdate"),
+      },
     ],
   },
   {

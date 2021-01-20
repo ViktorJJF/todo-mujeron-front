@@ -5,15 +5,15 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Agentes"
-        text="Tabla resumen de agentes"
+        title="Facebook"
+        text="Resumen de Bots"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="agentes"
+          :items="bots"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -40,7 +40,7 @@
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on"
-                        >Agregar agente</v-btn
+                        >Agregar bot</v-btn
                       >
                     </template>
                     <v-card>
@@ -52,54 +52,166 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.nombre"
-                                label="Ingresa el nombre"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Apellidos</p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.apellido"
-                                label="Ingresa el apellido"
-                              />
-                            </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Correo</p>
+                              <h3 class="mt-1">Datos de Facebook</h3>
+                            </v-col>
+                          </v-row>
+
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation
                                 rules="required"
-                                v-model="editedItem.email"
-                                label="Ingresa el correo"
+                                v-model="editedItem.name"
+                                label="Ingresa el nombre del bot"
                               />
                             </v-col>
-
+                          </v-row>
+                          <v-row dense>
                             <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">Locación</span>
+                              <span class="font-weight-bold">País</span>
                               <v-select
+                                dense
                                 hide-details
-                                placeholder="Selecciona una locación"
+                                placeholder="Ingresa una descripción"
                                 outlined
-                                :items="locaciones"
-                                item-text="nombre"
-                                item-value="_id"
-                                v-model="editedItem.locacionId"
+                                :items="paises"
+                                v-model="editedItem.country"
                               ></v-select>
                             </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Url Webhook</p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.webhookUrl"
+                                label="Ingresa el nombre del bot"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Nombre Fanpage
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fanpageName"
+                                label="Ingresa el nombre de la Fanpage"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">URL Fanpage</p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fanpageUrl"
+                                label="Ingresa la url de la fanpage"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Fanpage ID</p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fanpageId"
+                                label="Ingresa el ID de la Fanpage"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Fanpage Token
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fbPageToken"
+                                label="Ingresa el token de la Fanpage"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Token de Verificación
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fbVerifyToken"
+                                label="Ingresa el token (ejmp: BOTSMUJERON)"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Facebook App Secret
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.fbAppSecret"
+                                label="Ingresa el FB App Secret"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-divider></v-divider>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <h3 class="mt-3">Credenciales de Dialogflow</h3>
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Dialogflow Google Project ID
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.googleProjectId"
+                                label="Ingresa el Google Project Id"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Dialogflow Google Email
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.googleClientEmail"
+                                label="Ingresa el Google Email"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Dialogflow Google Private Key
+                              </p>
+                              <v-textarea
+                                hide-details="auto"
+                                outlined
+                                placeholder="Ingresa el Google Private Key"
+                                v-model="editedItem.googlePrivateKey"
+                              ></v-textarea>
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Dialogflow Código Idioma
+                              </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.dialogflowLanguageCode"
+                                label="Ingresa el código Idioma (ejmp: es)"
+                              />
+                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -131,7 +243,7 @@
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
-              >Aún no cuentas con agentes</v-alert
+              >Aún no cuentas con bots</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -146,11 +258,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > agentes.length
-                ? agentes.length
+              $store.state.itemsPerPage > bots.length
+                ? bots.length
                 : $store.state.itemsPerPage
             }}
-            de {{ agentes.length }} registros
+            de {{ bots.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -165,7 +277,7 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Agentes from "@/classes/Agentes";
+import Bots from "@/classes/Bots";
 export default {
   components: {
     MaterialCard,
@@ -182,50 +294,31 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
-        text: "Nombres",
+        text: "Nombre Bot",
         align: "left",
         sortable: false,
-        value: "nombre",
+        value: "name",
       },
       {
-        text: "Apellidos",
+        text: "Última Actualización",
         align: "left",
         sortable: false,
-        value: "apellido",
-      },
-      {
-        text: "Email",
-        align: "left",
-        sortable: true,
-        value: "email",
-      },
-      {
-        text: "Locación",
-        align: "left",
-        sortable: true,
-        value: "locacionId.nombre",
-      },
-      {
-        text: "Agregado",
-        align: "left",
-        sortable: true,
         value: "createdAt",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    agentes: [],
+    bots: [],
     editedIndex: -1,
-    editedItem: Agentes(),
-    defaultItem: Agentes(),
-    locaciones: [],
+    editedItem: Bots(),
+    defaultItem: Bots(),
+    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo agente" : "Editar agente";
+      return this.editedIndex === -1 ? "Nuevo bot" : "Editar bot";
     },
   },
 
@@ -240,22 +333,23 @@ export default {
   },
 
   methods: {
-    initialize() {
-      this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
+    async initialize() {
+      await Promise.all([this.$store.dispatch("botsModule/list")]);
+      this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
-      this.editedIndex = this.agentes.indexOf(item);
+      this.editedIndex = this.bots.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.agentes.indexOf(item);
-      let itemId = this.agentes[index]._id;
+      const index = this.bots.indexOf(item);
+      let itemId = this.bots[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("agentesModule/delete", itemId);
-        this.agentes.splice(index, 1);
+        await this.$store.dispatch("botsModule/delete", itemId);
+        this.bots.splice(index, 1);
       }
     },
 
@@ -270,13 +364,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.agentes[this.editedIndex]._id;
+        let itemId = this.bots[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("agentesModule/update", {
+          await this.$store.dispatch("botsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
+          Object.assign(this.bots[this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -285,10 +379,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "agentesModule/create",
+            "botsModule/create",
             this.editedItem
           );
-          this.agentes.push(newItem);
+          this.bots.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;

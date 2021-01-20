@@ -127,7 +127,6 @@
             </v-btn>
           </v-badge>
           <v-btn
-            :disabled="percentage.percentage === 0"
             @click="restartContacts"
             class="white--text ml-2"
             color="error"
