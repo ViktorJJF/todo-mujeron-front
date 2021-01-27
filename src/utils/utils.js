@@ -1,3 +1,6 @@
+import { isPast, format } from "date-fns";
+import store from "@/store";
+
 export const addCustomScript = (src) => {
   let recaptchaScript = document.createElement("script");
   recaptchaScript.setAttribute("src", src);
@@ -5,9 +8,11 @@ export const addCustomScript = (src) => {
   document.head.appendChild(recaptchaScript);
 };
 
-import { isPast, format } from "date-fns";
-import store from "@/store";
-
+export function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 // export let msToTime = (duration) => {
 //   //   var milliseconds = parseInt((duration % 1000) / 100),
 //   (seconds = Math.floor((duration / 1000) % 60)),

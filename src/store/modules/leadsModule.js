@@ -84,7 +84,7 @@ const module = {
       state.totalPages = data;
     },
     create(state, data) {
-      state.leads.push(data);
+      state.leads.unshift(data);
     },
     update(state, { id, data }) {
       let indexToUpdate = state.leads.findIndex((member) => member._id == id);

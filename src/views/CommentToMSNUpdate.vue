@@ -52,9 +52,7 @@
                     @click="select"
                     @click:close="remove(item)"
                   >
-                    <strong>{{ item }}</strong
-                    >&nbsp;
-                    <span>(interest)</span>
+                    <strong>{{ item }}</strong>
                   </v-chip>
                 </template>
               </v-combobox>
@@ -150,12 +148,7 @@ export default {
     loadingButton: false,
     commentsFacebook: [],
     commentFacebook: null,
-    chips: [
-      "Programming",
-      "Playing video games",
-      "Watching movies",
-      "Sleeping",
-    ],
+    chips: ["Producto 1", "Producto 2", "Producto 3", "Producto 4"],
     items: ["Respuesta 1", "Respuesta 2", "Respuesta 3"],
     tab: null,
     postPicture: "",

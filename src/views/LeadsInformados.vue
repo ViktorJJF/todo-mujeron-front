@@ -4,8 +4,8 @@
       width="100%"
       icon="mdi-cellphone-dock"
       color="primary"
-      title="Leads"
-      text="Tabla resumen de leads"
+      title="Leads - Informados al agente"
+      text="Tabla resumen de leads Informados"
     >
       <v-data-table
         dense
@@ -56,15 +56,14 @@
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row dense>
-                          <v-col cols="12" sm="6" md="6">
-                            <p class="body-1 font-weight-bold">
-                              ID de Contacto
+                          <v-col cols="12" sm="12" md="12">
+                            <p class="body-1 font-weight-bold">Agente</p>
+                            <p>
+                              {{ telefono.agenteId.nombre }}
+                              {{ telefono.agenteId.apellido }} ({{
+                                telefono.numero
+                              }})
                             </p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.contactId"
-                              label="ID de Contacto"
-                            />
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Nombres</p>
@@ -77,7 +76,7 @@
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Teléfono</p>
                             <VTextFieldWithValidation
-                              rules="required"
+                              rules=""
                               v-model="editedItem.telefono"
                               label="Teléfono"
                             />
@@ -106,15 +105,36 @@
                               label="Fuente"
                             />
                           </v-col>
-
                           <v-col cols="12" sm="12" md="12">
-                            <p class="body-1 font-weight-bold">Asunto</p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.msnActivaDefault"
-                              label="Asunto"
-                            />
+                            <p class="body-1 font-weight-bold">Nota</p>
+                            <v-textarea
+                              label="Notas referentes a este lead..."
+                              v-model="editedItem.nota"
+                              outlined
+                              hide-details="auto"
+                            ></v-textarea>
                           </v-col>
+                          <v-col cols="12" sm="12" md="12">
+                            <span class="body-1 font-weight-bold mr-3">
+                              Cambiar estado a Informado al agente:
+                            </span>
+                            <v-switch
+                              style="width:20px;"
+                              v-model="cambiarAInformadoAgente"
+                            ></v-switch>
+                          </v-col>
+
+                          <!-- <v-col cols="12" sm="12" md="12">
+                            <span class="font-weight-bold">Estado</span>
+                            <v-select
+                              hide-details
+                              v-model="editedItem.status"
+                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
+                              item-text="name"
+                              item-value="value"
+                              outlined
+                            ></v-select>
+                            </v-col>-->
                         </v-row>
                       </v-container>
                       <v-card-actions rd-actions>
@@ -155,29 +175,12 @@
             </div>
           </v-container>
         </template>
-        <template v-slot:[`item.telefonoId`]="{ item }">
-          <v-chip
-            v-show="!item.telefonoId"
-            class="ma-2"
-            color="red"
-            text-color="white"
-          >
-            Sin Asignar
-          </v-chip>
-          <span v-show="item.telefonoId"
-            >{{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
-            {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
-            ({{ item.telefonoId ? item.telefonoId.numero : " " }})</span
-          >
+        <template v-slot:[`item.agente`]="{ item }">
+          {{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
+          {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn
-            class="mr-3 mb-1"
-            small
-            color="secondary"
-            @click="editItem(item)"
-            >Editar</v-btn
-          >
+          <v-switch @change="updateState(item)" style="width:20px;"></v-switch>
         </template>
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
@@ -214,12 +217,11 @@
 </template>
 
 <script>
-import axios from "axios";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
-import { getRandomInt, buildPayloadPagination } from "@/utils/utils.js";
+import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -271,18 +273,12 @@ export default {
         value: "telefono",
       },
       {
-        text: "Agente",
-        align: "left",
-        sortable: false,
-        value: "telefonoId",
-      },
-      {
         text: "Estado",
         align: "left",
         sortable: false,
         value: "estado",
       },
-      { text: "Acciones", value: "action", sortable: false },
+      { text: "¿Contactado?", value: "action", sortable: false },
     ],
     leads: [],
     leadsReady: false,
@@ -294,6 +290,8 @@ export default {
     telefonoId: null,
     delayTimer: null,
     fieldsToSearch: ["nombre", "apellido", "celular", "displayName"],
+    telefono: {},
+    cambiarAInformadoAgente: false,
   }),
 
   computed: {
@@ -328,13 +326,14 @@ export default {
   methods: {
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
-      await Promise.all([
-        this.$store.dispatch("leadsModule/list", paginationPayload),
-      ]);
+      let body = {
+        ...paginationPayload,
+      };
+      body["estado"] = "INFORMADO AL AGENTE";
+      await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.leadsModule.leads;
-      console.log("los leads: ", this.leads);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos;
       this.dataTableLoading = false;
@@ -352,6 +351,10 @@ export default {
       this.editedIndex = this.leads.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+      //buscando agente
+      this.telefono = this.telefonos.find(
+        (telefono) => telefono._id == this.editedItem.telefonoId._id
+      );
     },
     async doSearch() {
       try {
@@ -408,6 +411,9 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
+        //verificando si se cambió el estado
+        if (this.cambiarAInformadoAgente)
+          this.editedItem.estado = "INFORMADO AL AGENTE";
         let itemId = this.leads[this.editedIndex]._id;
         try {
           await this.$store.dispatch("leadsModule/update", {
@@ -415,6 +421,10 @@ export default {
             data: this.editedItem,
           });
           Object.assign(this.leads[this.editedIndex], this.editedItem);
+          //refrescando pagina
+          this.initialize(
+            this.buildPayloadPagination(null, this.buildSearch())
+          );
           this.close();
         } finally {
           this.loadingButton = false;
@@ -422,36 +432,26 @@ export default {
       } else {
         //create item
         try {
-          //buscando telefono en contactos de Agentes
-          let contactos = (
-            await axios.get(
-              "/api/contactos?celular=" + this.editedItem.telefono
-            )
-          ).data.payload;
-          if (contactos.length > 0) {
-            //asignando agente random
-            let randomContact =
-              contactos[getRandomInt(0, contactos.length - 1)];
-            this.editedItem.telefonoId = randomContact.telefonoId._id;
-            this.editedItem.msnActivaDefault = this.editedItem.msnActivaDefault
-              ? this.editedItem.msnActivaDefault
-              : "SIN CONSULTA";
-            //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con telefono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
-            this.editedItem.estado = "RE-CONECTAR";
-          } else {
-            //Generando nota
-            this.editedItem.estado = "SIN ASIGNAR";
-          }
-          //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.pais = this.editedItem.pais || "PERU";
-          await this.$store.dispatch("leadsModule/create", this.editedItem);
-          // this.leads.push(newItem);
+          let newItem = await this.$store.dispatch(
+            "leadsModule/create",
+            this.editedItem
+          );
+          this.leads.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
         }
       }
+    },
+    async updateState(item) {
+      //cambiando estado a contactado
+      item.estado = "CONTACTADO";
+      await this.$store.dispatch("leadsModule/update", {
+        id: item._id,
+        data: item,
+      });
+      //refrescando pagina
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
 };

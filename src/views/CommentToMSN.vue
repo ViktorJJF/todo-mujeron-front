@@ -22,7 +22,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
+                >Filtrar por URL: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -102,10 +102,26 @@
             >
           </template>
           <template v-slot:[`item.postUrl`]="{ item }">
-            <a :href="item.postUrl" target="_blank">{{
-              item.postUrl
-            }}</a></template
-          >
+            <a :href="item.postUrl" target="_blank">{{ item.postUrl }}</a>
+          </template>
+          <template v-slot:[`item.responses`]="{ item }">
+            <v-chip
+              v-show="item.responses.some((response) => response === '')"
+              class="ma-2"
+              color="red"
+              text-color="white"
+            >
+              Faltan Respuestas
+            </v-chip>
+            <v-chip
+              v-show="!item.responses.some((response) => response === '')"
+              class="ma-2"
+              color="success"
+              text-color="white"
+            >
+              OK
+            </v-chip>
+          </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
@@ -164,6 +180,12 @@ export default {
         align: "left",
         sortable: false,
         value: "createdAt",
+      },
+      {
+        text: "Estado de respuestas",
+        align: "left",
+        sortable: false,
+        value: "responses",
       },
       {
         text: "URL",

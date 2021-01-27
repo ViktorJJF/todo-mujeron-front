@@ -97,6 +97,21 @@ let routes = [
         component: () => import("@/views/Leads.vue"),
       },
       {
+        path: "/leads-sin-asignar",
+        name: "LeadsNuevos",
+        component: () => import("@/views/LeadsNuevos.vue"),
+      },
+      {
+        path: "/leads-re-conectar",
+        name: "LeadsReconectar",
+        component: () => import("@/views/LeadsReconectar.vue"),
+      },
+      {
+        path: "/leads-informado-al-agente",
+        name: "LeadsInformados",
+        component: () => import("@/views/LeadsInformados.vue"),
+      },
+      {
         path: "/telefonos/googlepeople/:id/:clientId/:clientSecret",
         name: "Telefonos-googleContact",
         component: () => import("@/components/GooglePeopleCredenciales.vue"),

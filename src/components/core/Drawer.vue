@@ -127,7 +127,6 @@
           </v-list-item-content>
         </template>
         <v-list-group
-          prepend-icon="mdi-check"
           color="white"
           :value="false"
           no-action
@@ -140,6 +139,30 @@
               <v-list-item-title>Contactos</v-list-item-title>
             </v-list-item-content>
           </template>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'LeadsNuevos' }"
+          >
+            <v-list-item-content>
+              Sin asignar
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'LeadsReconectar' }"
+          >
+            <v-list-item-content>
+              Re-conectar
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'LeadsInformados' }"
+          >
+            <v-list-item-content>
+              Informados
+            </v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group color="white" :value="false" no-action sub-group>
           <template v-slot:activator>
