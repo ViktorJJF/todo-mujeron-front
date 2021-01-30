@@ -69,6 +69,7 @@
                               dense
                               class="mt-2"
                               clearable
+                              @change="generateNotes"
                             >
                               <template v-slot:no-data>
                                 <v-list-item>
@@ -226,6 +227,11 @@
           <v-chip v-if="item.status" color="success">Activo</v-chip>
           <v-chip v-else color="error">Inactivo</v-chip>
         </template>
+        <template v-slot:[`item.estado`]="{ item }">
+          <v-chip class="ma-2" color="red" text-color="white">
+            {{ item.estado }}
+          </v-chip>
+        </template>
       </v-data-table>
       <v-col cols="12" sm="12">
         <span>
@@ -367,7 +373,9 @@ export default {
 
       this.leads = this.$store.state.leadsModule.leads;
       this.leadsReady = true;
-      this.telefonos = this.$store.state.telefonosModule.telefonos;
+      this.telefonos = this.$store.state.telefonosModule.telefonos.filter(
+        (telefono) => telefono.active == true
+      );
       this.dataTableLoading = false;
     },
     buildPayloadPagination(page, searchPayload) {
@@ -438,7 +446,7 @@ export default {
             (telefono) => telefono._id == this.editedItem.telefonoId
           );
           //Generando mensaje para el agente
-          this.editedItem.nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.nombre} que nos ha dicho en el chat: ${this.editedItem.msnActivaDefault} con telefono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
+          this.editedItem.nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.nombre} que nos ha dicho en el chat: ${this.editedItem.msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
           //cambiando estado del LEAD
           this.editedItem.estado = "INFORMADO AL AGENTE";
           await this.$store.dispatch("leadsModule/update", {
@@ -467,6 +475,11 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    generateNotes(telefonoId) {
+      let agent = this.telefonos.find((telefono) => telefono._id == telefonoId);
+      //Generando mensaje para el agente
+      this.editedItem.nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.nombre} que nos ha dicho en el chat: ${this.editedItem.msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
     },
   },
 };

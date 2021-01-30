@@ -98,15 +98,23 @@
                               label="Ciudad"
                             />
                           </v-col>
+
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Fuente</p>
-                            <VTextFieldWithValidation
-                              rules=""
+                            <v-select
                               v-model="editedItem.fuente"
-                              label="Fuente"
-                            />
+                              :items="sourceSelectList"
+                              hide-selected
+                              item-value="_id"
+                              item-text="name"
+                              placeholder="Selecciona la fuente"
+                              outlined
+                              dense
+                              class="mt-2"
+                              clearable
+                            >
+                            </v-select>
                           </v-col>
-
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Asunto</p>
                             <VTextFieldWithValidation
@@ -114,6 +122,20 @@
                               v-model="editedItem.msnActivaDefault"
                               label="Asunto"
                             />
+                          </v-col>
+                          <v-col
+                            v-show="editedIndex > -1"
+                            cols="12"
+                            sm="12"
+                            md="12"
+                          >
+                            <p class="body-1 font-weight-bold">Nota</p>
+                            <v-textarea
+                              label="Notas referentes a este lead..."
+                              v-model="editedItem.nota"
+                              outlined
+                              hide-details="auto"
+                            ></v-textarea>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -157,6 +179,7 @@
         </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
           <v-chip
+            small
             v-show="!item.telefonoId"
             class="ma-2"
             color="red"
@@ -188,6 +211,23 @@
         <template v-slot:[`item.status`]="{ item }">
           <v-chip v-if="item.status" color="success">Activo</v-chip>
           <v-chip v-else color="error">Inactivo</v-chip>
+        </template>
+        <template v-slot:[`item.estado`]="{ item }">
+          <v-chip
+            class="ma-2"
+            :color="
+              item.estado == 'SIN ASIGNAR'
+                ? 'red'
+                : item.estado == 'INFORMADO AL AGENTE'
+                ? 'deep-purple accent-4'
+                : item.estado == 'RE-CONECTAR'
+                ? 'pink'
+                : 'green'
+            "
+            text-color="white"
+          >
+            {{ item.estado }}
+          </v-chip>
         </template>
       </v-data-table>
       <v-col cols="12" sm="12">
@@ -247,7 +287,7 @@ export default {
     pagination: {},
     headers: [
       {
-        text: "Creado",
+        text: "Última actualización",
         align: "left",
         sortable: false,
         value: "createdAt",
@@ -306,6 +346,20 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo lead" : "Editar lead";
     },
+    sourceSelectList() {
+      return [
+        ...this.$store.state.botsModule.bots.map((bot) => ({
+          _id: bot._id,
+          name: bot.name,
+        })),
+        ...this.$store.state.woocommercesModule.woocommerces.map(
+          (woocommerce) => ({
+            _id: woocommerce._id,
+            name: woocommerce.domain,
+          })
+        ),
+      ];
+    },
   },
 
   watch: {
@@ -314,7 +368,6 @@ export default {
     },
     async search() {
       clearTimeout(this.delayTimer);
-      console.log("haciendo busqueda...: ", this.search);
       this.delayTimer = setTimeout(() => {
         this.doSearch();
       }, 400);
@@ -334,7 +387,6 @@ export default {
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.leadsModule.leads;
-      console.log("los leads: ", this.leads);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos;
       this.dataTableLoading = false;
@@ -356,17 +408,6 @@ export default {
     async doSearch() {
       try {
         this.dataTableLoading = true;
-        console.log("paginando..");
-        console.log(
-          "el paginado: ",
-          buildPayloadPagination(
-            {
-              page: 1,
-              itemsPerPage: this.$store.state.itemsPerPage,
-            },
-            this.buildSearch()
-          )
-        );
         await this.initialize(
           buildPayloadPagination(
             {
@@ -425,7 +466,9 @@ export default {
           //buscando telefono en contactos de Agentes
           let contactos = (
             await axios.get(
-              "/api/contactos?celular=" + this.editedItem.telefono
+              "/api/contactos?filter=" +
+                this.editedItem.telefono +
+                "&fields=celular"
             )
           ).data.payload;
           if (contactos.length > 0) {
@@ -437,7 +480,7 @@ export default {
               ? this.editedItem.msnActivaDefault
               : "SIN CONSULTA";
             //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con telefono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
             this.editedItem.estado = "RE-CONECTAR";
           } else {
             //Generando nota
@@ -446,7 +489,10 @@ export default {
           //ASIGNANDO PAIS POR DEFECTO
           this.editedItem.pais = this.editedItem.pais || "PERU";
           await this.$store.dispatch("leadsModule/create", this.editedItem);
-          // this.leads.push(newItem);
+          //refrescar tabla
+          this.initialize(
+            this.buildPayloadPagination(null, this.buildSearch())
+          );
           this.close();
         } finally {
           this.loadingButton = false;

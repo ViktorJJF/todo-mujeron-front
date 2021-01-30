@@ -1,7 +1,6 @@
 import axios from "axios";
 export default {
   list(query = { sort: "createdAt", order: "1" }) {
-    console.log("el query: ", query);
     if (query.telefonoId === null) query.telefonoId = "";
     return axios.get("/api/leads", { params: query });
   },

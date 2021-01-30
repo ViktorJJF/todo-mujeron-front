@@ -206,7 +206,6 @@ export default {
       this.equipoDeVentas = this.$deepCopy(
         this.$store.state.equipoDeVentasModule.equipoDeVentas
       );
-      console.log("el resultado: ", this.equipoDeVentas);
     },
     editItem(item) {
       this.editedIndex = this.equipoDeVentas.indexOf(item);

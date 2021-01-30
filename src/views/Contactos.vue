@@ -5,7 +5,7 @@
         width="95%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Contactos"
+        title="Total de Contactos"
         text="Tabla resumen de contactos"
       >
         <v-data-table
@@ -48,16 +48,10 @@
                       </v-list-item>
                     </template>
                     <template v-slot:selection="{ item }">
-                      <span
-                        >{{ item.agenteId.nombre }}
-                        {{ item.agenteId.apellido }} ({{ item.numero }})</span
-                      >
+                      <span>{{ item.fullname }} ({{ item.cellphone }})</span>
                     </template>
                     <template v-slot:item="{ item }">
-                      <span
-                        >{{ item.agenteId.nombre }}
-                        {{ item.agenteId.apellido }} ({{ item.numero }})</span
-                      >
+                      <span>{{ item.fullname }} ({{ item.cellphone }})</span>
                     </template>
                   </v-combobox>
                 </v-col>
@@ -79,7 +73,7 @@
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="500px">
+                  <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on"
                         >Agregar contacto</v-btn
@@ -165,15 +159,15 @@
 
                             <v-col cols="12" sm="6">
                               <p class="body-1 font-weight-bold">
-                                Teléfono de la tienda
+                                Agente
                               </p>
                               <v-select
                                 dense
                                 hide-details
-                                placeholder="Teléfono"
+                                placeholder="Agente"
                                 outlined
-                                :items="telefonos"
-                                item-text="numero"
+                                :items="filteredAgents"
+                                item-text="agent"
                                 item-value="_id"
                                 v-model="editedItem.telefonoId"
                               ></v-select>
@@ -208,17 +202,19 @@
                   </v-dialog>
                 </v-col>
               </v-row>
-              <v-col cols="12" sm="12">
-                <span>
-                  <strong>Mostrando:</strong>
-                  {{
-                    $store.state.itemsPerPage > contactos.length
-                      ? contactos.length
-                      : $store.state.itemsPerPage
-                  }}
-                  de {{ $store.state.contactosModule.total }} registros
-                </span>
-              </v-col>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <span>
+                    <strong>Mostrando:</strong>
+                    {{
+                      $store.state.itemsPerPage > contactos.length
+                        ? contactos.length
+                        : $store.state.itemsPerPage
+                    }}
+                    de {{ $store.state.contactosModule.total }} registros
+                  </span>
+                </v-col>
+              </v-row>
               <div class="text-center pt-2">
                 <v-pagination
                   v-model="page"
@@ -388,6 +384,9 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo contacto" : "Editar contacto";
     },
+    filteredAgents() {
+      return this.telefonos.filter((telefono) => telefono.active);
+    },
   },
 
   watch: {
@@ -421,7 +420,15 @@ export default {
 
       this.contactos = this.$store.state.contactosModule.contactos;
       this.contactosReady = true;
-      this.telefonos = this.$store.state.telefonosModule.telefonos;
+      this.telefonos = this.$store.state.telefonosModule.telefonos.map(
+        (telefono) => ({
+          _id: telefono._id,
+          agent: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido} (${telefono.numero})`,
+          fullname: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido}`,
+          cellphone: `${telefono.numero}`,
+          active: telefono.active,
+        })
+      );
       this.dataTableLoading = false;
     },
     buildPayloadPagination(page, searchPayload) {
@@ -488,12 +495,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.contactos[this.editedIndex]._id;
+        // let itemId = this.contactos[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("contactosModule/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
+          console.log("el item a actualizar: ", this.editedItem);
+          // await this.$store.dispatch("contactosModule/update", {
+          //   id: itemId,
+          //   data: this.editedItem,
+          // });
           Object.assign(this.contactos[this.editedIndex], this.editedItem);
           this.close();
         } finally {

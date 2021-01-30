@@ -47,10 +47,14 @@ export default {
   methods: {
     async initialData() {
       this.$store.dispatch("showOverlay");
-      await Promise.all([this.$store.dispatch("equipoDeVentasModule/list")]);
-      await Promise.all([this.$store.dispatch("locacionesModule/list")]);
-      await Promise.all([this.$store.dispatch("agentesModule/list")]);
-      await Promise.all([this.$store.dispatch("telefonosModule/list")]);
+      await Promise.all([
+        this.$store.dispatch("equipoDeVentasModule/list"),
+        this.$store.dispatch("locacionesModule/list"),
+        this.$store.dispatch("agentesModule/list"),
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("woocommercesModule/list"),
+      ]);
       //   //count orders
       //   await this.$store.dispatch("countOrders");
       //   //count purchases

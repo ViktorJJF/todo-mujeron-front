@@ -5,15 +5,15 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Agentes"
-        text="Tabla resumen de agentes"
+        title="Woocommerces"
+        text="Tabla resumen de woocommerces"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="agentes"
+          :items="woocommerces"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el dominio"
                     single-line
                     outlined
                   ></v-text-field>
@@ -40,7 +40,7 @@
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on"
-                        >Agregar agente</v-btn
+                        >Agregar dominio</v-btn
                       >
                     </template>
                     <v-card>
@@ -52,42 +52,13 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.nombre"
-                                label="Ingresa el nombre"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Apellidos</p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.apellido"
-                                label="Ingresa el apellido"
-                              />
-                            </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Correo</p>
+                              <p class="body-1 font-weight-bold">Dominio</p>
                               <VTextFieldWithValidation
                                 rules="required"
-                                v-model="editedItem.email"
-                                label="Ingresa el correo"
+                                v-model="editedItem.domain"
+                                label="Ingresa el dominio"
                               />
-                            </v-col>
-
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">Locación</span>
-                              <v-select
-                                hide-details
-                                placeholder="Selecciona una locación"
-                                outlined
-                                :items="locaciones"
-                                item-text="nombre"
-                                item-value="_id"
-                                v-model="editedItem.locacionId"
-                              ></v-select>
                             </v-col>
                             <!-- <v-col cols="12" sm="12" md="12">
                             <span class="font-weight-bold">Estado</span>
@@ -131,7 +102,7 @@
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
-              >Aún no cuentas con agentes</v-alert
+              >Aún no cuentas con woocommerces</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -146,11 +117,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > agentes.length
-                ? agentes.length
+              $store.state.itemsPerPage > woocommerces.length
+                ? woocommerces.length
                 : $store.state.itemsPerPage
             }}
-            de {{ agentes.length }} registros
+            de {{ woocommerces.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -165,7 +136,8 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Agentes from "@/classes/Agentes";
+import Woocommerces from "@/classes/Woocommerces";
+import { es } from "date-fns/locale";
 export default {
   components: {
     MaterialCard,
@@ -173,7 +145,9 @@ export default {
   },
   filters: {
     formatDate: function(value) {
-      return format(new Date(value), "dd/MM/yyyy");
+      return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
+        locale: es,
+      });
     },
   },
   data: () => ({
@@ -182,50 +156,31 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
-      {
-        text: "Nombres",
-        align: "left",
-        sortable: false,
-        value: "nombre",
-      },
-      {
-        text: "Apellidos",
-        align: "left",
-        sortable: false,
-        value: "apellido",
-      },
-      {
-        text: "Email",
-        align: "left",
-        sortable: true,
-        value: "email",
-      },
-      {
-        text: "Locación",
-        align: "left",
-        sortable: true,
-        value: "locacionId.nombre",
-      },
       {
         text: "Agregado",
         align: "left",
         sortable: true,
         value: "createdAt",
       },
+      {
+        text: "Dominio",
+        align: "left",
+        sortable: false,
+        value: "domain",
+      },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    agentes: [],
+    woocommerces: [],
     editedIndex: -1,
-    editedItem: Agentes(),
-    defaultItem: Agentes(),
+    editedItem: Woocommerces(),
+    defaultItem: Woocommerces(),
     locaciones: [],
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo agente" : "Editar agente";
+      return this.editedIndex === -1 ? "Nuevo dominio" : "Editar dominio";
     },
   },
 
@@ -241,21 +196,23 @@ export default {
 
   methods: {
     initialize() {
-      this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
+      this.woocommerces = this.$deepCopy(
+        this.$store.state.woocommercesModule.woocommerces
+      );
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
-      this.editedIndex = this.agentes.indexOf(item);
+      this.editedIndex = this.woocommerces.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.agentes.indexOf(item);
-      let itemId = this.agentes[index]._id;
+      const index = this.woocommerces.indexOf(item);
+      let itemId = this.woocommerces[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("agentesModule/delete", itemId);
-        this.agentes.splice(index, 1);
+        await this.$store.dispatch("woocommercesModule/delete", itemId);
+        this.woocommerces.splice(index, 1);
       }
     },
 
@@ -270,13 +227,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.agentes[this.editedIndex]._id;
+        let itemId = this.woocommerces[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("agentesModule/update", {
+          await this.$store.dispatch("woocommercesModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
+          Object.assign(this.woocommerces[this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -285,10 +242,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "agentesModule/create",
+            "woocommercesModule/create",
             this.editedItem
           );
-          this.agentes.push(newItem);
+          this.woocommerces.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;

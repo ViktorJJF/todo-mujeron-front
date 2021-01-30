@@ -5,8 +5,8 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Telefonos"
-        text="Tabla resumen de telefonos"
+        title="Agentes y Teléfonos"
+        text="Tabla resumen de telefonos y agentes (Con credenciales)"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
@@ -184,7 +184,11 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn
+              class="mr-3 mb-2"
+              small
+              color="secondary"
+              @click="editItem(item)"
               >Editar</v-btn
             >
             <v-btn small color="error" @click="deleteItem(item)"
@@ -202,6 +206,13 @@
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
+          <template v-slot:[`item.active`]="{ item }"
+            ><v-switch
+              v-model="item.active"
+              @change="updateActive(item)"
+              style="width:20px;"
+            ></v-switch
+          ></template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -267,6 +278,12 @@ export default {
         align: "left",
         sortable: true,
         value: "agenteId",
+      },
+      {
+        text: "¿Activo?",
+        align: "left",
+        sortable: true,
+        value: "active",
       },
       {
         text: "Agregado",
@@ -356,6 +373,13 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    async updateActive(item) {
+      //cambiando estado a contactado
+      await this.$store.dispatch("telefonosModule/update", {
+        id: item._id,
+        data: item,
+      });
     },
   },
 };

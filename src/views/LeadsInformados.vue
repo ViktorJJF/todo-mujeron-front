@@ -175,9 +175,10 @@
             </div>
           </v-container>
         </template>
-        <template v-slot:[`item.agente`]="{ item }">
-          {{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
-          {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
+        <template v-slot:[`item.estado`]="{ item }">
+          <v-chip class="ma-2" color="deep-purple accent-4" text-color="white">
+            {{ item.estado }}
+          </v-chip>
         </template>
         <template v-slot:[`item.action`]="{ item }">
           <v-switch @change="updateState(item)" style="width:20px;"></v-switch>
@@ -185,9 +186,12 @@
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
         </template>
-        <template v-slot:[`item.createdAt`]="{ item }">{{
-          item.createdAt | formatDate
-        }}</template>
+        <template v-slot:[`item.agente`]="{ item }">
+          {{ item.telefonoId.agenteId.nombre }} ({{ item.telefonoId.numero }})
+        </template>
+        <template v-slot:[`item.createdAt`]="{ item }">
+          {{ item.createdAt | formatDate }}</template
+        >
         <template v-slot:[`item.status`]="{ item }">
           <v-chip v-if="item.status" color="success">Activo</v-chip>
           <v-chip v-else color="error">Inactivo</v-chip>
@@ -255,10 +259,10 @@ export default {
         value: "createdAt",
       },
       {
-        text: "Fuente",
+        text: "Agente",
         align: "left",
         sortable: false,
-        value: "fuente",
+        value: "agente",
       },
       {
         text: "Nombre",

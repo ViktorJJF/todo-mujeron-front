@@ -201,6 +201,11 @@
           <v-chip v-if="item.status" color="success">Activo</v-chip>
           <v-chip v-else color="error">Inactivo</v-chip>
         </template>
+        <template v-slot:[`item.estado`]="{ item }">
+          <v-chip class="ma-2" color="pink" text-color="white">
+            {{ item.estado }}
+          </v-chip>
+        </template>
       </v-data-table>
       <v-col cols="12" sm="12">
         <span>

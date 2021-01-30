@@ -18,7 +18,7 @@ let routes = [
     },
     name: "dashboard",
     redirect: {
-      name: "EquipoDeVentas",
+      name: "Contactos",
     },
     children: [
       // {
@@ -92,22 +92,22 @@ let routes = [
         component: () => import("@/views/Drive.vue"),
       },
       {
-        path: "/leads",
+        path: "/resumen-leads",
         name: "Leads",
         component: () => import("@/views/Leads.vue"),
       },
       {
-        path: "/leads-sin-asignar",
+        path: "/lead/sin-asignar",
         name: "LeadsNuevos",
         component: () => import("@/views/LeadsNuevos.vue"),
       },
       {
-        path: "/leads-re-conectar",
+        path: "/lead/re-conectar",
         name: "LeadsReconectar",
         component: () => import("@/views/LeadsReconectar.vue"),
       },
       {
-        path: "/leads-informado-al-agente",
+        path: "/lead/informado-al-agente",
         name: "LeadsInformados",
         component: () => import("@/views/LeadsInformados.vue"),
       },
