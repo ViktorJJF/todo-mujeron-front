@@ -2,18 +2,18 @@
   <v-container>
     <v-row justify="center">
       <material-card
-        width="90%"
+        width="1500px"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Comments To MSN"
-        text="Tabla resumen de comments to MSN"
+        :title="$t(entity + '.TITLE')"
+        :text="$t(entity + '.SUBTITLE')"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="filteredCommentsFacebook"
+          :items="items"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -22,7 +22,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por URL: {{ search }}</span
+                >Filtrar por nombre: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -31,22 +31,17 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe la url"
+                    placeholder="Escribe el nombre de la categoría"
                     single-line
                     outlined
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="800px">
+                  <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn
-                        @click="clearResponses"
-                        color="primary"
-                        dark
-                        class="mb-2"
-                        v-on="on"
-                        >Agregar publicación</v-btn
-                      >
+                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
+                        $t(entity + ".NEW_ITEM")
+                      }}</v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -58,13 +53,11 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                URL de publicación
-                              </p>
+                              <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation
                                 rules="required"
-                                v-model="editedItem.postUrl"
-                                label="Ingresa la URL"
+                                v-model="editedItem.name"
+                                label="Nombre de la categoría"
                               />
                             </v-col>
                           </v-row>
@@ -85,69 +78,45 @@
                     </v-card>
                   </v-dialog>
                 </v-col>
+              </v-row>
+              <!-- <span class="font-weight-bold">Ordenar por</span
+              ><v-row>
                 <v-col cols="12" sm="6">
-                  <span class="font-weight-bold">Filtrar por Fanpage</span>
                   <v-select
-                    clearable
-                    dense
-                    hide-details
-                    placeholder="Selecciona la fanpage"
                     outlined
-                    :items="$store.state.botsModule.bots"
-                    item-text="fanpageName"
-                    item-value="_id"
-                    v-model="filterByFanpage"
+                    dense
+                    :items="headers"
+                    name="text"
                   ></v-select>
                 </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12" sm="12">
-                  <span>
-                    <strong>Mostrando:</strong>
-                    {{ filteredCommentsFacebook.length }} registros
-                  </span>
-                </v-col>
-              </v-row>
+              </v-row> -->
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
-              class="mr-3 mb-1"
+              class="mr-1 mb-1"
+              color="primary"
+              fab
               small
-              color="secondary"
+              dark
               @click="editItem(item)"
-              >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
-              >Eliminar</v-btn
-            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn color="error" fab small dark @click="deleteItem(item)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true"
-              >Aún no cuentas con commentsFacebook</v-alert
-            >
+            <v-alert type="error" :value="true">{{
+              $t("users.NO_DATA")
+            }}</v-alert>
           </template>
-          <template v-slot:[`item.postUrl`]="{ item }">
-            <a :href="item.postUrl" target="_blank">{{ item.postUrl }}</a>
-          </template>
-          <template v-slot:[`item.responses`]="{ item }">
-            <v-chip
-              v-show="item.responses.some((response) => response === '')"
-              class="ma-2"
-              color="red"
-              text-color="white"
-            >
-              Faltan Respuestas
-            </v-chip>
-            <v-chip
-              v-show="!item.responses.some((response) => response === '')"
-              class="ma-2"
-              color="success"
-              text-color="white"
-            >
-              OK
-            </v-chip>
-          </template>
+          <template v-slot:[`item.description`]="{ item }"
+            ><span class="format-breaklines">
+              {{ item.description }}
+            </span></template
+          >
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
@@ -160,11 +129,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > commentsFacebook.length
-                ? commentsFacebook.length
+              $store.state.itemsPerPage > items.length
+                ? items.length
                 : $store.state.itemsPerPage
             }}
-            de {{ commentsFacebook.length }} registros
+            de {{ items.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -176,10 +145,14 @@
 </template>
 
 <script>
+//Nota: Modifica los campos de la tabla
+const ENTITY = "categories"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const CLASS_ITEMS = () =>
+  import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
+// const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import CommentsFacebook from "@/classes/CommentsFacebook";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -194,92 +167,77 @@ export default {
     },
   },
   data: () => ({
-    filterByFanpage: null,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
-        text: "Fecha",
+        text: "Agregado",
         align: "left",
         sortable: false,
         value: "createdAt",
       },
       {
-        text: "Estado de respuestas",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "responses",
-      },
-      {
-        text: "URL",
-        align: "left",
-        sortable: false,
-        value: "postUrl",
+        value: "name",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    commentsFacebook: [],
+    [ENTITY]: [],
+    advisors: [],
     editedIndex: -1,
-    editedItem: CommentsFacebook(),
-    defaultItem: CommentsFacebook(),
+    editedItem: CLASS_ITEMS(),
+    defaultItem: CLASS_ITEMS(),
+    menu1: false,
+    menu2: false,
   }),
-
   computed: {
     formTitle() {
       return this.editedIndex === -1
-        ? "Nuevas respuestas para publicación"
-        : "Editar respuestas de publicación";
+        ? this.$t(this.entity + ".NEW_ITEM")
+        : this.$t(this.entity + ".EDIT_ITEM");
     },
-    filteredCommentsFacebook() {
-      return this.filterByFanpage
-        ? this.commentsFacebook.filter(
-            (comment) => comment.botId._id == this.filterByFanpage
-          )
-        : this.commentsFacebook;
+    items() {
+      return this[ENTITY];
+    },
+    entity() {
+      return ENTITY;
     },
   },
-
   watch: {
     dialog(val) {
       val || this.close();
     },
   },
-
   mounted() {
     this.initialize();
   },
-
   methods: {
     async initialize() {
-      await Promise.all([
-        this.$store.dispatch("commentsFacebookModule/list", { limit: 9999 }),
-      ]);
-      this.commentsFacebook = this.$deepCopy(
-        this.$store.state.commentsFacebookModule.commentsFacebook
+      //llamada asincrona de items
+      // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      //asignar al data del componente
+      this[ENTITY] = this.$deepCopy(
+        this.$store.state[ENTITY + "Module"][ENTITY]
       );
     },
     editItem(item) {
-      this.editedIndex = this.commentsFacebook.indexOf(item);
+      this.editedIndex = this[ENTITY].indexOf(item);
       this.editedItem = Object.assign({}, item);
-      this.$router.push({
-        name: "CommentToMSNUpdate",
-        params: { id: item._id },
-      });
+      this.dialog = true;
     },
-
     async deleteItem(item) {
-      const index = this.commentsFacebook.indexOf(item);
-      let itemId = this.commentsFacebook[index]._id;
+      const index = this[ENTITY].indexOf(item);
+      let itemId = this[ENTITY][index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("commentsFacebookModule/delete", itemId);
-        this.commentsFacebook.splice(index, 1);
+        await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
+        this[ENTITY].splice(index, 1);
       }
     },
-
     close() {
       this.dialog = false;
       setTimeout(() => {
@@ -287,20 +245,16 @@ export default {
         this.editedIndex = -1;
       }, 300);
     },
-
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.commentsFacebook[this.editedIndex]._id;
+        let itemId = this[ENTITY][this.editedIndex]._id;
         try {
-          await this.$store.dispatch("commentsFacebookModule/update", {
+          await this.$store.dispatch(ENTITY + "Module/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(
-            this.commentsFacebook[this.editedIndex],
-            this.editedItem
-          );
+          Object.assign(this[ENTITY][this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -309,19 +263,14 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "commentsFacebookModule/create",
+            ENTITY + "Module/create",
             this.editedItem
           );
-          this.commentsFacebook.unshift(newItem);
+          this[ENTITY].push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
         }
-      }
-    },
-    clearResponses() {
-      if (this.editedIndex == -1) {
-        this.responses = ["", "", ""];
       }
     },
   },

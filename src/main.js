@@ -10,6 +10,9 @@ import "@/assets/css/customStyles.css";
 // styles
 import "./styles/styles.scss";
 
+//i18n
+import i18n from "@/plugins/i18n";
+
 //vee validate
 import "./plugins/vee-validate";
 
@@ -47,6 +50,7 @@ new Vue({
   vuetify,
   router,
   store,
+  i18n,
   created() {
     console.log(store.getters["authModule/isTokenSet"]);
     if (store.getters["authModule/isTokenSet"]) {

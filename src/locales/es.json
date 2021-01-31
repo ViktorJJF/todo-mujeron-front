@@ -1,0 +1,34 @@
+{
+    "users": {
+        "TITLE": "Usuarios",
+        "SUBTITLE": "Listado de usuarios",
+        "NEW_ITEM": "Nueva usuario",
+        "EDIT_ITEM": "Editar usuario",
+        "NO_DATA": "Aún no cuentas con usuarios",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "products": {
+        "TITLE": "Productos",
+        "SUBTITLE": "Listado de productos",
+        "NEW_ITEM": "Nuevo producto",
+        "EDIT_ITEM": "Editar producto",
+        "NO_DATA": "Aún no cuentas con productos",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "categories": {
+        "TITLE": "Categorías",
+        "SUBTITLE": "Listado de categorías",
+        "NEW_ITEM": "Nueva categoría",
+        "EDIT_ITEM": "Editar categoría",
+        "NO_DATA": "Aún no cuentas con categorías",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "brands": {
+        "TITLE": "Marcas",
+        "SUBTITLE": "Listado de marcas",
+        "NEW_ITEM": "Nueva marca",
+        "EDIT_ITEM": "Editar marca",
+        "NO_DATA": "Aún no cuentas con marcas",
+        "NO_RESULTS": "No hay resultados"
+    }
+}

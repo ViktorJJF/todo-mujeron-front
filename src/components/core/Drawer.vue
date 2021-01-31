@@ -90,6 +90,37 @@
               {{ propiedad.text }}
             </v-list-item-content>
           </v-list-item>
+          <v-list-group color="white" :value="false" no-action sub-group>
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Genial</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'Products' }"
+            >
+              <v-list-item-content>
+                Productos
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'Categories' }"
+            >
+              <v-list-item-content>
+                Categorías
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'Brands' }"
+            >
+              <v-list-item-content>
+                Marcas
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
         </v-list-group>
       </v-list-group>
       <v-list-group
@@ -236,7 +267,6 @@
           </v-list-item-content>
         </template>
         <v-list-group
-          prepend-icon="mdi-check"
           color="white"
           :value="false"
           no-action
@@ -292,11 +322,6 @@ export default {
           icon: "mdi-check",
           text: "Whatsapp",
           to: "Whatsapp",
-        },
-        {
-          icon: "mdi-check",
-          text: "Genial",
-          to: "Genial",
         },
         {
           icon: "mdi-check",

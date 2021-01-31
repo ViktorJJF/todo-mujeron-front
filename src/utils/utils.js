@@ -187,3 +187,21 @@ export const checkIfTokenNeedsRefresh = () => {
     }
   }
 };
+
+export const buildQueryWithPagination = (query) => {
+  let queryWithPagination = {};
+  if (query && query.page) {
+    let { page, search, fieldsToSearch } = query;
+    queryWithPagination = buildPayloadPagination(
+      {
+        page,
+        itemsPerPage: store.state.itemsPerPage,
+      },
+      search ? { query: search, fields: fieldsToSearch.join(",") } : {}
+    );
+    delete query["page"];
+    delete query["fieldsToSearch"];
+    delete query["search"];
+  }
+  return { ...queryWithPagination, ...query };
+};

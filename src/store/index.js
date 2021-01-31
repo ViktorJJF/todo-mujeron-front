@@ -36,6 +36,7 @@ export default new Vuex.Store({
       agenteId: "",
     },
     selectedCommentFacebook: {},
+    countries: ["Peru", "Chile", "Colombia"],
   },
   mutations: {
     showOverlay(state, active) {

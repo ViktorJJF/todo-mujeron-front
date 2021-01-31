@@ -141,6 +141,21 @@ let routes = [
         name: "CommentToMSNUpdate",
         component: () => import("@/views/CommentToMSNUpdate"),
       },
+      {
+        path: "/productos",
+        name: "Products",
+        component: () => import("@/views/Products"),
+      },
+      {
+        path: "/marcas",
+        name: "Brands",
+        component: () => import("@/views/Brands"),
+      },
+      {
+        path: "/categorias",
+        name: "Categories",
+        component: () => import("@/views/Categories"),
+      },
     ],
   },
   {
