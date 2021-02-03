@@ -498,7 +498,7 @@ export default {
             this.editedItem.estado = "SIN ASIGNAR";
           }
           //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.pais = this.editedItem.pais || "PERU";
+          this.editedItem.pais = this.editedItem.pais || "Peru";
           await this.$store.dispatch("leadsModule/create", this.editedItem);
           //refrescar tabla
           this.initialize(
