@@ -342,6 +342,8 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
+        sort: "createdAt",
+        order: "desc",
       };
       body["estado"] = "RE-CONECTAR";
       await Promise.all([this.$store.dispatch("leadsModule/list", body)]);

@@ -332,6 +332,8 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
+        sort: "createdAt",
+        order: "desc",
       };
       body["estado"] = "INFORMADO AL AGENTE";
       await Promise.all([this.$store.dispatch("leadsModule/list", body)]);

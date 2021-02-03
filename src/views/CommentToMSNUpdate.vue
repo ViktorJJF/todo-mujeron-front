@@ -161,6 +161,7 @@ export default {
     postPicture: "",
     searchProduct: "",
     products: [],
+    originalCommentFacebook: [],
   }),
 
   computed: {},
@@ -176,6 +177,59 @@ export default {
         this.getProducts(1);
       }, 600);
     },
+    "commentFacebook.products": function(newVal) {
+      let searchProduct;
+      if (newVal.length === 1) {
+        let fanpageName = this.commentFacebook.botId.fanpageName;
+        let productInfo = {
+          country: "",
+          url: "",
+          price: "",
+        };
+        if (fanpageName === "@MujeronPeru") {
+          console.log("buscando: ", this.commentFacebook.products[0].details);
+          searchProduct = this.commentFacebook.products[0].details.find(
+            (product) => product.country === "Peru"
+          );
+        }
+        if (fanpageName === "@MujeronJeans") {
+          searchProduct = this.commentFacebook.products[0].details.find(
+            (product) => product.country === "Chile"
+          );
+        }
+        if (fanpageName === "@TiendasMujeron") {
+          searchProduct = this.commentFacebook.products[0].details.find(
+            (product) => product.country === "Colombia"
+          );
+        }
+        //si se encontró el producto, se sustituye productInfo
+        if (searchProduct) {
+          productInfo.country = searchProduct.country;
+          productInfo.url =
+            searchProduct.urls.length > 0 ? searchProduct.urls[0] : "";
+          productInfo.price = searchProduct.price;
+        }
+        let generatedMsg = `En el siguiente vinculo encontraras toda la info: ${
+          productInfo.url
+        }, su valor es ${
+          productInfo.country == "Peru"
+            ? "S/."
+            : productInfo.country == "Chile"
+            ? "$"
+            : productInfo.country == "Colombia"
+            ? "$"
+            : ""
+        }${productInfo.price}`;
+        this.commentFacebook.responses[0] = generatedMsg;
+        this.commentFacebook.responses[1] = generatedMsg;
+        this.commentFacebook.responses[2] = generatedMsg;
+      } else {
+        this.commentFacebook.responses[0] = this.originalCommentFacebook[0];
+        this.commentFacebook.responses[1] = this.originalCommentFacebook[1];
+        this.commentFacebook.responses[2] = this.originalCommentFacebook[2];
+      }
+    },
+    deep: true,
   },
 
   methods: {
@@ -188,6 +242,9 @@ export default {
       );
       this.commentFacebook = this.commentsFacebook.find(
         (commentFacebook) => commentFacebook._id === this.$route.params.id
+      );
+      this.originalCommentFacebook = JSON.parse(
+        JSON.stringify(this.commentFacebook.responses)
       );
     },
     async getPostImage() {

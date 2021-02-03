@@ -140,8 +140,9 @@
                                 Token de Verificación
                               </p>
                               <VTextFieldWithValidation
+                                disabled
                                 rules=""
-                                v-model="editedItem.fbVerifyToken"
+                                value="MUJERON"
                                 label="Ingresa el token (ejmp: BOTSMUJERON)"
                               />
                             </v-col>

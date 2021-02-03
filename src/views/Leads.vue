@@ -202,6 +202,13 @@
             >Editar</v-btn
           >
         </template>
+        <template v-slot:[`item.fuente`]="{ item }">
+          {{
+            sourceSelectList.find((el) => el._id === item.fuente)
+              ? sourceSelectList.find((el) => el._id === item.fuente).name
+              : item.fuente
+          }}
+        </template>
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
         </template>
@@ -333,7 +340,7 @@ export default {
     search2: "",
     telefonoId: null,
     delayTimer: null,
-    fieldsToSearch: ["nombre", "apellido", "celular", "displayName"],
+    fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
   }),
 
   computed: {
@@ -382,7 +389,11 @@ export default {
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       await Promise.all([
-        this.$store.dispatch("leadsModule/list", paginationPayload),
+        this.$store.dispatch("leadsModule/list", {
+          ...paginationPayload,
+          sort: "createdAt",
+          order: "desc",
+        }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);
 

@@ -134,11 +134,19 @@
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Fuente</p>
-                            <VTextFieldWithValidation
-                              rules=""
+                            <v-select
                               v-model="editedItem.fuente"
-                              label="Fuente"
-                            />
+                              :items="sourceSelectList"
+                              hide-selected
+                              item-value="_id"
+                              item-text="name"
+                              placeholder="Selecciona la fuente"
+                              outlined
+                              dense
+                              class="mt-2"
+                              clearable
+                            >
+                            </v-select>
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Resultado</p>
@@ -211,6 +219,13 @@
         <template v-slot:[`item.agente`]="{ item }">
           {{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
           {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
+        </template>
+        <template v-slot:[`item.fuente`]="{ item }">
+          {{
+            sourceSelectList.find((el) => el._id === item.fuente)
+              ? sourceSelectList.find((el) => el._id === item.fuente).name
+              : item.fuente
+          }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
           <v-btn class="mb-1 mr-2" small color="primary" @click="editItem(item)"
@@ -342,6 +357,20 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo lead" : "Editar lead";
     },
+    sourceSelectList() {
+      return [
+        ...this.$store.state.botsModule.bots.map((bot) => ({
+          _id: bot._id,
+          name: bot.name,
+        })),
+        ...this.$store.state.woocommercesModule.woocommerces.map(
+          (woocommerce) => ({
+            _id: woocommerce._id,
+            name: woocommerce.domain,
+          })
+        ),
+      ];
+    },
   },
 
   watch: {
@@ -366,8 +395,10 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
+        sort: "createdAt",
+        order: "desc",
       };
-      body["telefonoId"] = null;
+      body["estado"] = "SIN ASIGNAR";
       await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
