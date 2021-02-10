@@ -1,3 +1,4 @@
+import Woocommerces from '@/classes/Woocommerces';
 <template>
   <v-navigation-drawer color="#040505" dark v-model="drawer" app width="300">
     <v-list>
@@ -90,6 +91,43 @@
               {{ propiedad.text }}
             </v-list-item-content>
           </v-list-item>
+          <v-list-group
+            color="white"
+            :value="false"
+            no-action
+            sub-group
+            @click="$router.push({ name: 'Woocommerce' })"
+          >
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Woocommerce</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceProducts' }"
+            >
+              <v-list-item-content>
+                Productos
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceCategories' }"
+            >
+              <v-list-item-content>
+                Categorías
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceLabels' }"
+            >
+              <v-list-item-content>
+                Etiquetas
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
           <v-list-group color="white" :value="false" no-action sub-group>
             <template v-slot:activator>
               <v-list-item-content>
@@ -313,11 +351,11 @@ export default {
           text: "Mailchimp",
           to: "Mailchimp",
         },
-        {
-          icon: "mdi-check",
-          text: "Woocommerce",
-          to: "Woocommerce",
-        },
+        // {
+        //   icon: "mdi-check",
+        //   text: "Woocommerce",
+        //   to: "Woocommerce",
+        // },
         {
           icon: "mdi-check",
           text: "Whatsapp",

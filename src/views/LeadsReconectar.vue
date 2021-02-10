@@ -318,7 +318,7 @@ export default {
     search2: "",
     telefonoId: null,
     delayTimer: null,
-    fieldsToSearch: ["nombre", "apellido", "celular", "displayName"],
+    fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
     telefono: {},
     cambiarAInformadoAgente: false,
   }),
@@ -355,7 +355,6 @@ export default {
     },
     async search() {
       clearTimeout(this.delayTimer);
-      console.log("haciendo busqueda...: ", this.search);
       this.delayTimer = setTimeout(() => {
         this.doSearch();
       }, 400);

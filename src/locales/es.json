@@ -30,5 +30,13 @@
         "EDIT_ITEM": "Editar marca",
         "NO_DATA": "Aún no cuentas con marcas",
         "NO_RESULTS": "No hay resultados"
+    },
+    "ecommerces": {
+        "TITLE": "Productos",
+        "SUBTITLE": "Listado de Productos",
+        "NEW_ITEM": "Nuevo producto",
+        "EDIT_ITEM": "Editar producto",
+        "NO_DATA": "Aún no cuentas con Productos",
+        "NO_RESULTS": "No hay resultados"
     }
 }

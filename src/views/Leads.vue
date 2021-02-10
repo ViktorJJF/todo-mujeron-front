@@ -201,6 +201,9 @@
             @click="editItem(item)"
             >Editar</v-btn
           >
+          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+            >Eliminar</v-btn
+          >
         </template>
         <template v-slot:[`item.fuente`]="{ item }">
           {{

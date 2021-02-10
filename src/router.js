@@ -156,6 +156,21 @@ let routes = [
         name: "Categories",
         component: () => import("@/views/Categories"),
       },
+      {
+        path: "/ecommerce/categorias",
+        name: "EcommerceCategories",
+        component: () => import("@/views/EcommerceCategories"),
+      },
+      {
+        path: "/ecommerce/etiquetas",
+        name: "EcommerceLabels",
+        component: () => import("@/views/EcommerceLabels"),
+      },
+      {
+        path: "/ecommerce/productos",
+        name: "EcommerceProducts",
+        component: () => import("@/views/EcommerceProducts"),
+      },
     ],
   },
   {

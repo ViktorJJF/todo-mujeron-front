@@ -2,18 +2,18 @@
   <v-container>
     <v-row justify="center">
       <material-card
-        width="90%"
+        width="98%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Woocommerces"
-        text="Tabla resumen de woocommerces"
+        :title="$t(entity + '.TITLE')"
+        :text="$t(entity + '.SUBTITLE')"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="woocommerces"
+          :items="items"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -31,17 +31,17 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el dominio"
+                    placeholder="Escribe el nombre de producto"
                     single-line
                     outlined
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="500px">
+                  <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
-                        >Agregar dominio</v-btn
-                      >
+                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
+                        $t(entity + ".NEW_ITEM")
+                      }}</v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -52,47 +52,24 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="12" md="12" class="mb-3">
-                              <p class="body-1 font-weight-bold ma-0">
-                                Dominio
-                              </p>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Nombres</p>
                               <VTextFieldWithValidation
                                 rules="required"
-                                v-model="editedItem.domain"
-                                label="Ingresa el dominio"
+                                v-model="editedItem.name"
+                                label="Nombre del marca"
                               />
                             </v-col>
-                            <v-col cols="12" sm="12" md="12" class="mb-3">
-                              <p class="body-1 font-weight-bold ma-0">
-                                ConsumerKey
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.consumerKey"
-                                label="Ingresa la llave de cliente"
-                              />
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Nombres</p>
+                              <v-textarea
+                                placeholder="descripcion"
+                                outlined
+                                v-model="editedItem.description"
+                              ></v-textarea>
                             </v-col>
-                            <v-col cols="12" sm="12" md="12" class="mb-3">
-                              <p class="body-1 font-weight-bold ma-0">
-                                ConsumerSecret
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.consumerSecret"
-                                label="Ingresa la llave secreta"
-                              />
-                            </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -115,21 +92,56 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
-              >Editar</v-btn
+            <v-btn
+              class="mr-1 mb-1"
+              color="primary"
+              fab
+              small
+              dark
+              @click="editItem(item)"
             >
-            <v-btn small color="error" @click="deleteItem(item)"
-              >Eliminar</v-btn
-            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn color="error" fab small dark @click="deleteItem(item)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true"
-              >Aún no cuentas con woocommerces</v-alert
-            >
+            <v-alert type="error" :value="true">{{
+              $t("users.NO_DATA")
+            }}</v-alert>
           </template>
-          <template v-slot:[`item.createdAt`]="{ item }">{{
-            item.createdAt | formatDate
+          <template v-slot:[`item.description`]="{ item }"
+            ><span class="format-breaklines">
+              {{ item.description }}
+            </span></template
+          >
+          <template v-slot:[`item.date_modified`]="{ item }">{{
+            item.date_modified | formatDate
           }}</template>
+          <template v-slot:[`item.permalink`]="{ item }">
+            <a :href="item.permalink" target="_blank"
+              ><v-btn color="primary" small>Visitar</v-btn>
+            </a>
+          </template>
+          <template v-slot:[`item.attributes`]="{ item }">
+            <ul
+              v-for="(attribute, attIndex) in item.attributes"
+              :key="attIndex"
+            >
+              <li>
+                <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
+              </li>
+            </ul>
+          </template>
+          <template v-slot:[`item.categories`]="{ item }">
+            <ul
+              v-for="(category, cattIndex) in item.categories"
+              :key="cattIndex"
+            >
+              <li>{{ category.name }}</li>
+            </ul>
+          </template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -139,11 +151,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > woocommerces.length
-                ? woocommerces.length
+              $store.state.itemsPerPage > items.length
+                ? items.length
                 : $store.state.itemsPerPage
             }}
-            de {{ woocommerces.length }} registros
+            de {{ items.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -155,10 +167,14 @@
 </template>
 
 <script>
+//Nota: Modifica los campos de la tabla
+const ENTITY = "ecommerces"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const CLASS_ITEMS = () =>
+  import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
+// const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Woocommerces from "@/classes/Woocommerces";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -167,9 +183,13 @@ export default {
   },
   filters: {
     formatDate: function(value) {
-      return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
-        locale: es,
-      });
+      return format(
+        new Date(value),
+        "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
+        {
+          locale: es,
+        }
+      );
     },
   },
   data: () => ({
@@ -180,64 +200,94 @@ export default {
     dialog: false,
     headers: [
       {
-        text: "Agregado",
-        align: "left",
-        sortable: true,
-        value: "createdAt",
-      },
-      {
-        text: "Dominio",
+        text: "Última modificación",
         align: "left",
         sortable: false,
-        value: "domain",
+        value: "date_modified",
+      },
+      {
+        text: "Nombre",
+        align: "left",
+        sortable: false,
+        value: "name",
+      },
+      {
+        text: "Atributos",
+        align: "left",
+        sortable: false,
+        value: "attributes",
+      },
+      {
+        text: "Categorías",
+        align: "left",
+        sortable: false,
+        value: "categories",
+      },
+      {
+        text: "País",
+        align: "left",
+        sortable: false,
+        value: "country",
+      },
+      {
+        text: "Link",
+        align: "left",
+        sortable: false,
+        value: "permalink",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    woocommerces: [],
+    [ENTITY]: [],
+    advisors: [],
     editedIndex: -1,
-    editedItem: Woocommerces(),
-    defaultItem: Woocommerces(),
-    locaciones: [],
+    editedItem: CLASS_ITEMS(),
+    defaultItem: CLASS_ITEMS(),
+    menu1: false,
+    menu2: false,
   }),
-
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo dominio" : "Editar dominio";
+      return this.editedIndex === -1
+        ? this.$t(this.entity + ".NEW_ITEM")
+        : this.$t(this.entity + ".EDIT_ITEM");
+    },
+    items() {
+      return this[ENTITY];
+    },
+    entity() {
+      return ENTITY;
     },
   },
-
   watch: {
     dialog(val) {
       val || this.close();
     },
   },
-
   mounted() {
     this.initialize();
   },
-
   methods: {
-    initialize() {
-      this.woocommerces = this.$deepCopy(
-        this.$store.state.woocommercesModule.woocommerces
+    async initialize() {
+      //llamada asincrona de items
+      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      //asignar al data del componente
+      this[ENTITY] = this.$deepCopy(
+        this.$store.state[ENTITY + "Module"][ENTITY]
       );
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
-      this.editedIndex = this.woocommerces.indexOf(item);
+      this.editedIndex = this[ENTITY].indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
-
     async deleteItem(item) {
-      const index = this.woocommerces.indexOf(item);
-      let itemId = this.woocommerces[index]._id;
+      const index = this[ENTITY].indexOf(item);
+      let itemId = this[ENTITY][index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("woocommercesModule/delete", itemId);
-        this.woocommerces.splice(index, 1);
+        await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
+        this[ENTITY].splice(index, 1);
       }
     },
-
     close() {
       this.dialog = false;
       setTimeout(() => {
@@ -245,17 +295,16 @@ export default {
         this.editedIndex = -1;
       }, 300);
     },
-
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.woocommerces[this.editedIndex]._id;
+        let itemId = this[ENTITY][this.editedIndex]._id;
         try {
-          await this.$store.dispatch("woocommercesModule/update", {
+          await this.$store.dispatch(ENTITY + "Module/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.woocommerces[this.editedIndex], this.editedItem);
+          Object.assign(this[ENTITY][this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -264,10 +313,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "woocommercesModule/create",
+            ENTITY + "Module/create",
             this.editedItem
           );
-          this.woocommerces.push(newItem);
+          this[ENTITY].push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
