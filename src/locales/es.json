@@ -38,5 +38,21 @@
         "EDIT_ITEM": "Editar producto",
         "NO_DATA": "Aún no cuentas con Productos",
         "NO_RESULTS": "No hay resultados"
+    },
+    "ecommercesCategories": {
+        "TITLE": "Categorías",
+        "SUBTITLE": "Listado de Categorías",
+        "NEW_ITEM": "Nueva categoría",
+        "EDIT_ITEM": "Editar categoría",
+        "NO_DATA": "Aún no cuentas con Categorías",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "ecommercesTags": {
+        "TITLE": "Etiquetas",
+        "SUBTITLE": "Listado de Etiquetas",
+        "NEW_ITEM": "Nueva etiqueta",
+        "EDIT_ITEM": "Editar etiqueta",
+        "NO_DATA": "Aún no cuentas con Etiquetas",
+        "NO_RESULTS": "No hay resultados"
     }
 }

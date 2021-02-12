@@ -163,8 +163,8 @@ let routes = [
       },
       {
         path: "/ecommerce/etiquetas",
-        name: "EcommerceLabels",
-        component: () => import("@/views/EcommerceLabels"),
+        name: "EcommerceTags",
+        component: () => import("@/views/EcommerceTags"),
       },
       {
         path: "/ecommerce/productos",

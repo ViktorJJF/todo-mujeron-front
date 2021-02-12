@@ -121,7 +121,7 @@ import Woocommerces from '@/classes/Woocommerces';
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
-              :to="{ name: 'EcommerceLabels' }"
+              :to="{ name: 'EcommerceTags' }"
             >
               <v-list-item-content>
                 Etiquetas

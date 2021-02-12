@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de la categoría"
+                    placeholder="Escribe el nombre de la etiqueta"
                     single-line
                     outlined
                   ></v-text-field>
@@ -181,7 +181,7 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
-const ENTITY = "ecommercesCategories"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "ecommercesTags"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -222,7 +222,7 @@ export default {
         text: "ID",
         align: "left",
         sortable: false,
-        value: "idCategory",
+        value: "idTag",
       },
       {
         text: "Nombre",
@@ -237,16 +237,16 @@ export default {
         value: "slug",
       },
       {
-        text: "Padre",
+        text: "Cantidad",
         align: "left",
         sortable: false,
-        value: "parent",
+        value: "count",
       },
       {
-        text: "Menu Order",
+        text: "Página",
         align: "left",
         sortable: false,
-        value: "menu_order",
+        value: "webpage",
       },
       {
         text: "País",

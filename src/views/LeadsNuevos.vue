@@ -149,11 +149,11 @@
                             </v-select>
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
-                            <p class="body-1 font-weight-bold">Resultado</p>
+                            <p class="body-1 font-weight-bold">Asunto</p>
                             <VTextFieldWithValidation
                               rules=""
-                              v-model="editedItem.resultado"
-                              label="Resultado"
+                              v-model="editedItem.msnActivaDefault"
+                              label="Asunto"
                             />
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
@@ -230,6 +230,9 @@
         <template v-slot:[`item.action`]="{ item }">
           <v-btn class="mb-1 mr-2" small color="primary" @click="editItem(item)"
             >Asignar o editar</v-btn
+          >
+          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+            >Eliminar</v-btn
           >
         </template>
         <template v-slot:no-data>
@@ -327,12 +330,6 @@ export default {
         align: "left",
         sortable: false,
         value: "telefono",
-      },
-      {
-        text: "Estado",
-        align: "left",
-        sortable: false,
-        value: "estado",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -510,6 +507,14 @@ export default {
       let agent = this.telefonos.find((telefono) => telefono._id == telefonoId);
       //Generando mensaje para el agente
       this.editedItem.nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.nombre} que nos ha dicho en el chat: ${this.editedItem.msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
+    },
+    async deleteItem(item) {
+      const index = this.leads.indexOf(item);
+      let itemId = this.leads[index]._id;
+      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+        await this.$store.dispatch("leadsModule/delete", itemId);
+        this.leads.splice(index, 1);
+      }
     },
   },
 };

@@ -38,11 +38,11 @@
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <template v-slot:activator="{ on }">
+                    <!-- <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
-                    </template>
+                    </template> -->
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -89,10 +89,23 @@
                   </v-dialog>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <span>
+                    <strong>Mostrando:</strong>
+                    {{
+                      $store.state.itemsPerPage > items.length
+                        ? items.length
+                        : $store.state.itemsPerPage
+                    }}
+                    de {{ items.length }} registros
+                  </span>
+                </v-col>
+              </v-row>
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn
+            <!-- <v-btn
               class="mr-1 mb-1"
               color="primary"
               fab
@@ -101,14 +114,14 @@
               @click="editItem(item)"
             >
               <v-icon>mdi-pencil</v-icon>
-            </v-btn>
+            </v-btn> -->
             <v-btn color="error" fab small dark @click="deleteItem(item)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">{{
-              $t("users.NO_DATA")
+              $t(entity + ".NO_DATA")
             }}</v-alert>
           </template>
           <template v-slot:[`item.description`]="{ item }"
