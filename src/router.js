@@ -171,6 +171,16 @@ let routes = [
         name: "EcommerceProducts",
         component: () => import("@/views/EcommerceProducts"),
       },
+      {
+        path: "/etiquetas-facebook",
+        name: "FacebookLabels",
+        component: () => import("@/views/FacebookLabels"),
+      },
+      {
+        path: "/etiquetas-todofull",
+        name: "TodofullLabels",
+        component: () => import("@/views/TodofullLabels"),
+      },
     ],
   },
   {

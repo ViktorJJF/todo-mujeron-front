@@ -24,6 +24,31 @@
       >
         <template v-slot:top>
           <v-container>
+            <span class="font-weight-bold">Selecciona el País</span>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-sheet class="mx-auto" max-width="700">
+                  <v-slide-group v-model="filterCountries" multiple show-arrows>
+                    <v-slide-item
+                      v-for="country in $store.state.countries"
+                      :key="country"
+                      v-slot="{ active, toggle }"
+                    >
+                      <v-btn
+                        class="mx-2"
+                        :input-value="active"
+                        active-class="purple white--text"
+                        depressed
+                        rounded
+                        @click="toggle"
+                      >
+                        {{ country }}
+                      </v-btn>
+                    </v-slide-item>
+                  </v-slide-group>
+                </v-sheet>
+              </v-col>
+            </v-row>
             <span class="font-weight-bold"
               >Filtrar por nombre/apellido/teléfono: {{ search }}</span
             >
@@ -294,6 +319,7 @@ export default {
     },
   },
   data: () => ({
+    filterCountries: [],
     telefonos: [],
     dataTableLoading: true,
     page: 1,
@@ -380,6 +406,12 @@ export default {
         this.doSearch();
       }, 400);
     },
+    telefonoId() {
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    },
+    filterCountries() {
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    },
   },
 
   mounted() {
@@ -395,6 +427,8 @@ export default {
         order: "desc",
       };
       body["estado"] = "SIN ASIGNAR";
+      if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
+      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 

@@ -71,6 +71,14 @@ import Woocommerces from '@/classes/Woocommerces';
               Ubicaciones
             </v-list-item-content>
           </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'TodofullLabels' }"
+          >
+            <v-list-item-content>
+              Nombres de etiquetas
+            </v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group color="white" :value="false" no-action sub-group>
           <template v-slot:activator>
@@ -304,7 +312,7 @@ import Woocommerces from '@/classes/Woocommerces';
             <v-list-item-title>Facebook</v-list-item-title>
           </v-list-item-content>
         </template>
-        <v-list-group
+        <!-- <v-list-group
           color="white"
           :value="false"
           no-action
@@ -317,7 +325,29 @@ import Woocommerces from '@/classes/Woocommerces';
               <v-list-item-title>Comentarios</v-list-item-title>
             </v-list-item-content>
           </template>
-        </v-list-group>
+        </v-list-group> -->
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'CommentToMSN' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Comentarios
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'FacebookLabels' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Etiquetas
+          </v-list-item-content>
+        </v-list-item>
       </v-list-group>
 
       <v-divider class="mx-3 mb-3"></v-divider>

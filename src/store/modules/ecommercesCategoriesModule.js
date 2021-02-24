@@ -9,11 +9,13 @@ const module = {
   },
   actions: {
     list({ commit }, query) {
+      commit("loadingModule/showLoading", true, { root: true });
       return new Promise((resolve, reject) => {
         api
           .list(query)
           .then((response) => {
             commit("list", response.data.payload);
+            commit("loadingModule/showLoading", false, { root: true });
             resolve(response.data.payload);
           })
           .catch((error) => {

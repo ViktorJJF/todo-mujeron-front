@@ -1,11 +1,11 @@
 //usar esto para consultar en base de datos sin paginacion del server
-import api from "@/services/api/ecommerces";
+import api from "@/services/api/todofullLabels";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
   state: {
-    ecommerces: [],
+    todofullLabels: [],
   },
   actions: {
     list({ commit }, query) {
@@ -74,24 +74,24 @@ const module = {
   },
   mutations: {
     list(state, data) {
-      state.ecommerces = data;
+      state.todofullLabels = data;
     },
     create(state, data) {
-      state.ecommerces.unshift(data);
+      state.todofullLabels.unshift(data);
     },
     update(state, { id, data }) {
-      let indexToUpdate = state.ecommerces.findIndex(
+      let indexToUpdate = state.todofullLabels.findIndex(
         (member) => member._id == id
       );
-      state.ecommerces.splice(indexToUpdate, 1, {
+      state.todofullLabels.splice(indexToUpdate, 1, {
         ...data,
       });
     },
     delete(state, id) {
-      let indexToDelete = state.ecommerces.findIndex(
+      let indexToDelete = state.todofullLabels.findIndex(
         (member) => member._id == id
       );
-      state.ecommerces.splice(indexToDelete, 1);
+      state.todofullLabels.splice(indexToDelete, 1);
     },
   },
   getters: {},

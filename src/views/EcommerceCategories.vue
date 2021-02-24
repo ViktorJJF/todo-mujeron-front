@@ -8,171 +8,92 @@
         :title="$t(entity + '.TITLE')"
         :text="$t(entity + '.SUBTITLE')"
       >
-        <v-data-table
-          no-results-text="No se encontraron resultados"
-          :search="search"
-          hide-default-footer
-          :headers="headers"
-          :items="items"
-          sort-by="calories"
-          @page-count="pageCount = $event"
-          :page.sync="page"
-          :items-per-page="$store.state.itemsPerPage"
-        >
-          <template v-slot:top>
-            <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
-              >
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    dense
-                    hide-details
-                    v-model="search"
-                    append-icon="search"
-                    placeholder="Escribe el nombre de la categoría"
-                    single-line
-                    outlined
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
-                    <v-card>
-                      <v-card-title>
-                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-                        <span class="headline">{{ formTitle }}</span>
-                      </v-card-title>
-                      <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Nombre del marca"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <v-textarea
-                                placeholder="descripcion"
-                                outlined
-                                v-model="editedItem.description"
-                              ></v-textarea>
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12" sm="12">
-                  <span>
-                    <strong>Mostrando:</strong>
-                    {{
-                      $store.state.itemsPerPage > items.length
-                        ? items.length
-                        : $store.state.itemsPerPage
-                    }}
-                    de {{ items.length }} registros
-                  </span>
-                </v-col>
-              </v-row>
-            </v-container>
-          </template>
-          <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
-              class="mr-1 mb-1"
-              color="primary"
-              fab
-              small
-              dark
-              @click="editItem(item)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </template>
-          <template v-slot:no-data>
-            <v-alert type="error" :value="true">{{
-              $t(entity + ".NO_DATA")
-            }}</v-alert>
-          </template>
-          <template v-slot:[`item.description`]="{ item }"
-            ><span class="format-breaklines">
-              {{ item.description }}
-            </span></template
+        <!-- <span>Filtrar por nombre</span>
+        <v-text-field
+          dense
+          hide-details
+          v-model="search"
+          append-icon="search"
+          placeholder="Escribe el nombre de producto"
+          single-line
+          outlined
+        ></v-text-field> -->
+        <!-- NIVEL 1 -->
+        <div v-for="item in fatherItems" :key="item._id">
+          <p @click="item.show = !item.show">
+            <v-icon
+              v-if="getChildrens(item.idCategory, item.country).length > 0"
+              >mdi-menu-down</v-icon
+            ><v-icon v-else>mdi-check</v-icon> <b>Nombre: </b>{{ item.name }} -
+            {{ item.slug }} <b>País: </b> {{ item.country }}
+            <a :href="item.url" target="_blank">Visitar </a>
+          </p>
+          <!-- NIVEL 2 -->
+          <div
+            style="margin-left:20px;"
+            v-show="
+              getChildrens(item.idCategory, item.country).length > 0 &&
+                item.show
+            "
+            v-for="children in getChildrens(item.idCategory, item.country)"
+            :key="children._id"
           >
-          <template v-slot:[`item.updatedAt`]="{ item }">{{
-            item.updatedAt | formatDate
-          }}</template>
-          <template v-slot:[`item.url`]="{ item }">
-            <a :href="item.url" target="_blank"
-              ><v-btn color="primary" small>Visitar</v-btn>
-            </a>
-          </template>
-          <template v-slot:[`item.attributes`]="{ item }">
-            <ul
-              v-for="(attribute, attIndex) in item.attributes"
-              :key="attIndex"
-            >
-              <li>
-                <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
-              </li>
-            </ul>
-          </template>
-          <template v-slot:[`item.categories`]="{ item }">
-            <ul
-              v-for="(category, cattIndex) in item.categories"
-              :key="cattIndex"
-            >
-              <li>{{ category.name }}</li>
-            </ul>
-          </template>
-          <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status" color="success">Activo</v-chip>
-            <v-chip v-else color="error">Inactivo</v-chip>
-          </template>
-        </v-data-table>
-        <v-col cols="12" sm="12">
-          <span>
-            <strong>Mostrando:</strong>
-            {{
-              $store.state.itemsPerPage > items.length
-                ? items.length
-                : $store.state.itemsPerPage
-            }}
-            de {{ items.length }} registros
-          </span>
-        </v-col>
-        <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+            <div>
+              <p @click="children.show = !children.show">
+                <v-icon
+                  v-if="
+                    getChildrens(children.idCategory, children.country).length >
+                      0
+                  "
+                  >mdi-menu-down</v-icon
+                ><v-icon v-else>mdi-check</v-icon> <b>Nombre: </b>
+                {{ children.name }} - {{ children.slug }}
+              </p>
+              <!-- NIVEL 3 -->
+              <div
+                style="margin-left:20px;"
+                v-show="children.show"
+                v-for="children2 in getChildrens(
+                  children.idCategory,
+                  children.country
+                )"
+                :key="children2._id"
+              >
+                <p @click="children2.show = !children2.show">
+                  <v-icon
+                    v-if="
+                      getChildrens(children2.idCategory, children2.country)
+                        .length > 0
+                    "
+                    >mdi-menu-down</v-icon
+                  ><v-icon v-else>mdi-check</v-icon> <b>Nombre: </b>
+                  {{ children2.name }} - {{ children2.slug }}
+                </p>
+                <!-- NIVEL 4 -->
+                <div
+                  style="margin-left:20px;"
+                  v-show="children2.show"
+                  v-for="children3 in getChildrens(
+                    children2.idCategory,
+                    children2.country
+                  )"
+                  :key="children3._id"
+                >
+                  <p @click="children3.show = !children3.show">
+                    <v-icon
+                      v-if="
+                        getChildrens(children3.idCategory, children3.country)
+                          .length > 0
+                      "
+                      >mdi-menu-down</v-icon
+                    ><v-icon v-else>mdi-check</v-icon> <b>Nombre: </b>
+                    {{ children3.name }} - {{ children3.slug }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <v-divider></v-divider>
         </div>
       </material-card>
     </v-row>
@@ -186,13 +107,13 @@ const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+// import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 export default {
   components: {
     MaterialCard,
-    VTextFieldWithValidation,
+    // VTextFieldWithValidation,
   },
   filters: {
     formatDate: function(value) {
@@ -282,14 +203,39 @@ export default {
     entity() {
       return ENTITY;
     },
+    fatherItems() {
+      return this[ENTITY].filter((item) => item.parent == 0);
+    },
   },
   watch: {
     dialog(val) {
       val || this.close();
     },
   },
-  mounted() {
-    this.initialize();
+  async mounted() {
+    await this.initialize();
+    // let newItems = [];
+    for (const category of this[ENTITY]) {
+      console.log(`1---->${category.idCategory}`);
+      for (const children of this.getChildrens(
+        category.idCategory,
+        category.country
+      )) {
+        console.log(`⠀⠀2---->${children.idCategory}`);
+        for (const children2 of this.getChildrens(
+          children.idCategory,
+          children.country
+        )) {
+          console.log(`⠀⠀⠀⠀3---->${children2.idCategory}`);
+          for (const children3 of this.getChildrens(
+            children2.idCategory,
+            children2.country
+          )) {
+            console.log(`⠀⠀⠀⠀⠀⠀4---->${children3.idCategory}`);
+          }
+        }
+      }
+    }
   },
   methods: {
     async initialize() {
@@ -298,7 +244,7 @@ export default {
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
-      );
+      ).map((item) => ({ ...item, show: false }));
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -348,8 +294,31 @@ export default {
         }
       }
     },
+    getChildrens(id, country) {
+      return this.ecommercesCategories.filter((category) => {
+        if (category.parent === id && category.country === country) {
+          this.updateState(category._id);
+          return true;
+        } else return false;
+      });
+    },
+    updateState(id) {
+      let index = this.ecommercesCategories.findIndex(
+        (category) => category._id == id
+      );
+      this.ecommercesCategories[index]["isTaken"] = true;
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+p {
+  font-size: 1.3em;
+  color: #000000;
+  border-bottom: 1px;
+  cursor: pointer;
+  margin: 0px;
+  height: 45px;
+}
+</style>

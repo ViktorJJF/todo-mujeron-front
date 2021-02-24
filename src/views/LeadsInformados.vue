@@ -24,6 +24,61 @@
       >
         <template v-slot:top>
           <v-container>
+            <span class="font-weight-bold">Selecciona al agente</span>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-combobox
+                  v-model="telefonoId"
+                  :items="telefonos"
+                  :search-input.sync="search2"
+                  hide-selected
+                  item-value="_id"
+                  placeholder="Selecciona el agente"
+                  outlined
+                  dense
+                  class="mt-2"
+                  clearable
+                >
+                  <template v-slot:no-data>
+                    <v-list-item>
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          No se encontraron resultados
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ item }">
+                    <span>{{ item.fullname }} ({{ item.cellphone }})</span>
+                  </template>
+                  <template v-slot:item="{ item }">
+                    <span>{{ item.fullname }} ({{ item.cellphone }})</span>
+                  </template>
+                </v-combobox>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-sheet class="mx-auto" max-width="700">
+                  <v-slide-group v-model="filterCountries" multiple show-arrows>
+                    <v-slide-item
+                      v-for="country in $store.state.countries"
+                      :key="country"
+                      v-slot="{ active, toggle }"
+                    >
+                      <v-btn
+                        class="mx-2"
+                        :input-value="active"
+                        active-class="purple white--text"
+                        depressed
+                        rounded
+                        @click="toggle"
+                      >
+                        {{ country }}
+                      </v-btn>
+                    </v-slide-item>
+                  </v-slide-group>
+                </v-sheet>
+              </v-col>
+            </v-row>
             <span class="font-weight-bold"
               >Filtrar por nombre/apellido/teléfono: {{ search }}</span
             >
@@ -187,7 +242,8 @@
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
         </template>
         <template v-slot:[`item.agente`]="{ item }">
-          {{ item.telefonoId.agenteId.nombre }} ({{ item.telefonoId.numero }})
+          {{ item.telefonoId.agenteId.nombre }}
+          {{ item.telefonoId.agenteId.apellido }} ({{ item.telefonoId.numero }})
         </template>
         <template v-slot:[`item.createdAt`]="{ item }">
           {{ item.createdAt | formatDate }}</template
@@ -240,6 +296,7 @@ export default {
     },
   },
   data: () => ({
+    filterCountries: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
@@ -320,6 +377,12 @@ export default {
         this.doSearch();
       }, 400);
     },
+    telefonoId() {
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    },
+    filterCountries() {
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    },
   },
 
   mounted() {
@@ -335,12 +398,22 @@ export default {
         order: "desc",
       };
       body["estado"] = "INFORMADO AL AGENTE";
+      if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
+      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.leadsModule.leads;
       this.leadsReady = true;
-      this.telefonos = this.$store.state.telefonosModule.telefonos;
+      this.telefonos = this.$store.state.telefonosModule.telefonos.map(
+        (telefono) => ({
+          _id: telefono._id,
+          agent: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido} (${telefono.numero})`,
+          fullname: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido}`,
+          cellphone: `${telefono.numero}`,
+          active: telefono.active,
+        })
+      );
       this.dataTableLoading = false;
     },
     buildPayloadPagination(page, searchPayload) {

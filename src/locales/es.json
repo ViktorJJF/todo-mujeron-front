@@ -54,5 +54,21 @@
         "EDIT_ITEM": "Editar etiqueta",
         "NO_DATA": "Aún no cuentas con Etiquetas",
         "NO_RESULTS": "No hay resultados"
+    },
+    "facebookLabels": {
+        "TITLE": "Etiquetas de Facebook",
+        "SUBTITLE": "Listado de Etiquetas de Facebook",
+        "NEW_ITEM": "Nueva etiqueta",
+        "EDIT_ITEM": "Editar etiqueta",
+        "NO_DATA": "Aún no cuentas con Etiquetas",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "todofullLabels": {
+        "TITLE": "Etiquetas de Todofull",
+        "SUBTITLE": "Listado de Etiquetas de Todofull",
+        "NEW_ITEM": "Nueva etiqueta",
+        "EDIT_ITEM": "Editar etiqueta",
+        "NO_DATA": "Aún no cuentas con Etiquetas",
+        "NO_RESULTS": "No hay resultados"
     }
 }
