@@ -1,9 +1,7 @@
 import axios from "axios";
 export default {
   list(query) {
-    if (query && !query.sort && !query.order) {
-      (query.sort = "updatedAt"), (query.order = -1);
-    }
+    console.log("el query: ", query);
     return axios.get("/api/facebook-labels", { params: query });
   },
   update(id, payload) {

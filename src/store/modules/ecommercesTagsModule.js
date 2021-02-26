@@ -10,10 +10,12 @@ const module = {
   actions: {
     list({ commit }, query) {
       return new Promise((resolve, reject) => {
+        commit("loadingModule/showLoading", true, { root: true });
         api
           .list(query)
           .then((response) => {
             commit("list", response.data.payload);
+            commit("loadingModule/showLoading", false, { root: true });
             resolve(response.data.payload);
           })
           .catch((error) => {

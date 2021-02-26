@@ -135,6 +135,56 @@
           </template>
           <template v-slot:[`item.todofullLabelId`]="{ item }">
             <v-select
+              v-show="showSelect == 0 && !item.customName"
+              v-model="selectedOption"
+              :items="[
+                'Todofull',
+                'Categorías',
+                'Etiquetas Woocommerce',
+                'Atributos',
+              ]"
+              @change="
+                showSelect = 1;
+                fetchOptionData(selectedOption);
+              "
+              hide-selected
+              placeholder="Selecciona una opción"
+              outlined
+              dense
+              class="mt-2"
+              clearable
+            >
+            </v-select>
+            <v-select
+              v-show="showSelect == 1"
+              v-model="item.customName"
+              :items="[...labelsNames, 'Volver Atrás']"
+              @change="updateFacebookLabel(item)"
+              hide-selected
+              placeholder="Selecciona una opción"
+              outlined
+              dense
+              class="mt-2"
+              clearable
+            ></v-select>
+            <v-select
+              v-if="item.customName && showSelect != 1"
+              v-model="item.customName"
+              :items="[item.customName, 'Editar Selección']"
+              @change="
+                item.customName == 'Editar Selección'
+                  ? (item.customName = null)
+                  : null
+              "
+              hide-selected
+              placeholder="Selecciona una opción"
+              outlined
+              dense
+              class="mt-2"
+              clearable
+            >
+            </v-select>
+            <!-- <v-select
               v-model="item.todofullLabelId"
               :items="todofullLabels"
               @change="updateFacebookLabel(item)"
@@ -147,7 +197,7 @@
               class="mt-2"
               clearable
             >
-            </v-select>
+            </v-select> -->
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <!-- <v-btn
@@ -251,6 +301,8 @@ export default {
     },
   },
   data: () => ({
+    showSelect: 0,
+    selectedOption: null,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -320,6 +372,28 @@ export default {
         })),
       ];
     },
+    labelsNames() {
+      switch (this.selectedOption) {
+        case "Todofull":
+          this.$store.state.todofullLabelsModule;
+          return this.todofullLabels.map((el) => el.name);
+        case "Categorías":
+          return this.$store.state.ecommercesCategoriesModule.ecommercesCategories.map(
+            (el) => el.name
+          );
+        case "Etiquetas Woocommerce":
+          return this.$store.state.ecommercesTagsModule.ecommercesTags.map(
+            (el) => el.name
+          );
+        default:
+          return [
+            "Todofull",
+            "Categorías",
+            "Etiquetas Woocommerce",
+            "Atributos",
+          ];
+      }
+    },
   },
   watch: {
     dialog(val) {
@@ -335,9 +409,12 @@ export default {
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "name",
-          order: "asc",
+          order: 1,
         }),
-        this.$store.dispatch("todofullLabelsModule/list"),
+        this.$store.dispatch("todofullLabelsModule/list", {
+          sort: "name",
+          order: 1,
+        }),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
@@ -394,14 +471,58 @@ export default {
       }
     },
     async updateFacebookLabel(newItem) {
-      console.log("el nuevo: ", newItem);
-      try {
-        await this.$store.dispatch(ENTITY + "Module/update", {
-          id: newItem._id,
-          data: newItem,
-        });
-      } finally {
-        this.loadingButton = false;
+      if (newItem.customName === "Volver Atrás") {
+        //volver atras en el menu
+        this.selectedOption = null;
+        newItem.customName = null;
+        this.showSelect = 0;
+      } else {
+        try {
+          await this.$store.dispatch(ENTITY + "Module/update", {
+            id: newItem._id,
+            data: newItem,
+          });
+        } finally {
+          this.loadingButton = false;
+        }
+      }
+    },
+    generateLabels(selectedOption, id) {
+      console.log(selectedOption, id);
+      // switch (key) {
+
+      //   case value:
+      //     break;
+
+      //   default:
+      //     break;
+      // }
+    },
+    fetchOptionData(selectedOption) {
+      console.log("la opcion: ", selectedOption);
+      switch (selectedOption) {
+        case "Todofull":
+          // this.$store.state.todofullLabelsModule;
+          break;
+        case "Categorías":
+          this.$store.dispatch("ecommercesCategoriesModule/list", {
+            sort: "name",
+            order: 1,
+          });
+          break;
+        case "Etiquetas Woocommerce":
+          this.$store.dispatch("ecommercesTagsModule/list", {
+            sort: "name",
+            order: 1,
+          });
+          break;
+        default:
+          return [
+            "Todofull",
+            "Categorías",
+            "Etiquetas Woocommerce",
+            // "Atributos",
+          ];
       }
     },
   },

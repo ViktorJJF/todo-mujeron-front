@@ -3,4 +3,5 @@ export default () => ({
   name: "",
   todofullLabelId: "",
   fanpageId: "",
+  customName: "",
 });
