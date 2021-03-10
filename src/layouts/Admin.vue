@@ -56,6 +56,9 @@ export default {
         this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch("brandsModule/list"),
         this.$store.dispatch("categoriesModule/list"),
+        this.$store.dispatch("ecommercesCategoriesModule/list"),
+        this.$store.dispatch("ecommercesTagsModule/list"),
+        this.$store.dispatch("todofullLabelsModule/list"),
       ]);
       //   //count orders
       //   await this.$store.dispatch("countOrders");

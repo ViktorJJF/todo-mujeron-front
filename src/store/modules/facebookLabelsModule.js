@@ -1,6 +1,7 @@
 //usar esto para consultar en base de datos sin paginacion del server
 import api from "@/services/api/facebookLabels";
 import { buildSuccess, handleError } from "@/utils/utils.js";
+import store from "@/store";
 
 const module = {
   namespaced: true,
@@ -83,6 +84,16 @@ const module = {
       let indexToUpdate = state.facebookLabels.findIndex(
         (member) => member._id == id
       );
+      function searchLabelsInfoById(id) {
+        //buscar info en fuentes de datos categorias/etiquetas/todofull
+        let data = [
+          ...store.state.ecommercesCategoriesModule.ecommercesCategories,
+          ...store.state.ecommercesTagsModule.ecommercesTags,
+          ...store.state.todofullLabelsModule.todofullLabels,
+        ];
+        return data.find((el) => el._id == id);
+      }
+      data.foreignLabelId = searchLabelsInfoById(data.foreignLabelId);
       state.facebookLabels.splice(indexToUpdate, 1, {
         ...data,
       });

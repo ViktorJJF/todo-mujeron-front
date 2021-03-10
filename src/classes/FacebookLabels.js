@@ -4,4 +4,6 @@ export default () => ({
   todofullLabelId: "",
   fanpageId: "",
   customName: "",
+  foreignLabelId: "",
+  source: "",
 });

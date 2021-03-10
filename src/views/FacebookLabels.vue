@@ -54,18 +54,6 @@
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
-                                ID de etiqueta en FB
-                              </p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.idLabel"
-                                label="ID de la etiqueta de FB"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
                                 Nombre de etiqueta en FB
                               </p>
                               <VTextFieldWithValidation
@@ -135,7 +123,7 @@
           </template>
           <template v-slot:[`item.todofullLabelId`]="{ item }">
             <v-select
-              v-show="showSelect == 0 && !item.customName"
+              v-show="item.showSelect == 0 && !item.foreignLabelId"
               v-model="selectedOption"
               :items="[
                 'Todofull',
@@ -144,7 +132,7 @@
                 'Atributos',
               ]"
               @change="
-                showSelect = 1;
+                item.showSelect = 1;
                 fetchOptionData(selectedOption);
               "
               hide-selected
@@ -152,28 +140,28 @@
               outlined
               dense
               class="mt-2"
-              clearable
             >
             </v-select>
             <v-select
-              v-show="showSelect == 1"
-              v-model="item.customName"
-              :items="[...labelsNames, 'Volver Atrás']"
+              v-show="item.showSelect == 1"
+              v-model="item.foreignLabelId"
+              :items="[...labelsNames, { nameWithCountry: 'Volver Atrás' }]"
+              item-text="nameWithCountry"
+              return-object
               @change="updateFacebookLabel(item)"
               hide-selected
               placeholder="Selecciona una opción"
               outlined
               dense
               class="mt-2"
-              clearable
             ></v-select>
             <v-select
-              v-if="item.customName && showSelect != 1"
-              v-model="item.customName"
-              :items="[item.customName, 'Editar Selección']"
+              v-if="item.foreignLabelId && item.showSelect != 1"
+              v-model="item.foreignLabelId.name"
+              :items="[item.foreignLabelId.name, 'Editar Selección']"
               @change="
-                item.customName == 'Editar Selección'
-                  ? (item.customName = null)
+                item.foreignLabelId.name == 'Editar Selección'
+                  ? (item.foreignLabelId = null)
                   : null
               "
               hide-selected
@@ -181,7 +169,6 @@
               outlined
               dense
               class="mt-2"
-              clearable
             >
             </v-select>
             <!-- <v-select
@@ -284,6 +271,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
+import graphApi from "@/services/api/graphApi";
 export default {
   components: {
     MaterialCard,
@@ -362,11 +350,21 @@ export default {
       return ENTITY;
     },
     filteredLabels() {
-      return this[ENTITY].filter((el) => !el.name.includes("ad_id."));
+      return this[ENTITY].filter((el) => !el.name.includes("ad_id.")).map(
+        (el) =>
+          el.foreignLabelId
+            ? {
+                ...el,
+                foreignLabelId: this.searchLabelsInfoById(el.foreignLabelId),
+                showSelect: 0,
+              }
+            : { ...el, showSelect: 0 }
+      );
     },
     sourceSelectList() {
       return [
         ...this.$store.state.botsModule.bots.map((bot) => ({
+          _id: bot._id,
           fanpageId: bot.fanpageId,
           name: bot.name,
         })),
@@ -376,14 +374,32 @@ export default {
       switch (this.selectedOption) {
         case "Todofull":
           this.$store.state.todofullLabelsModule;
-          return this.todofullLabels.map((el) => el.name);
+          return this.todofullLabels.map((el) => ({
+            name: el.name,
+            _id: el._id,
+            country: el.country,
+            nameWithCountry: el.name + (el.country ? ` (${el.country})` : ""),
+            source: "TodofullLabels",
+          }));
         case "Categorías":
           return this.$store.state.ecommercesCategoriesModule.ecommercesCategories.map(
-            (el) => el.name
+            (el) => ({
+              name: el.name,
+              _id: el._id,
+              country: el.country,
+              nameWithCountry: el.name + (el.country ? ` (${el.country})` : ""),
+              source: "EcommercesCategories",
+            })
           );
         case "Etiquetas Woocommerce":
           return this.$store.state.ecommercesTagsModule.ecommercesTags.map(
-            (el) => el.name
+            (el) => ({
+              name: el.name,
+              _id: el._id,
+              country: el.country,
+              nameWithCountry: el.name + (el.country ? ` (${el.country})` : ""),
+              source: "EcommercesTags",
+            })
           );
         default:
           return [
@@ -417,9 +433,8 @@ export default {
         }),
       ]);
       //asignar al data del componente
-      this[ENTITY] = this.$deepCopy(
-        this.$store.state[ENTITY + "Module"][ENTITY]
-      );
+      this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
+
       this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
     },
     editItem(item) {
@@ -430,9 +445,18 @@ export default {
     async deleteItem(item) {
       const index = this[ENTITY].indexOf(item);
       let itemId = this[ENTITY][index]._id;
+      let fbLabelId = this[ENTITY][index].idLabel;
+      let fanpageId = this[ENTITY][index].fanpageId;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch(ENTITY + "Module/delete", itemId);
-        this[ENTITY].splice(index, 1);
+        //eliminando de fb
+        try {
+          await graphApi.deleteLabel(fbLabelId, fanpageId);
+          //eliminando de todofull
+          await this.$store.dispatch(ENTITY + "Module/delete", itemId);
+          this[ENTITY].splice(index, 1);
+        } catch (error) {
+          console.log(error);
+        }
       }
     },
     close() {
@@ -459,11 +483,22 @@ export default {
       } else {
         //create item
         try {
+          //creando etiqueta en fb
+          let facebookLabelId = (
+            await graphApi.createLabel({
+              fanpageId: this.editedItem.fanpageId,
+              name: this.editedItem.name,
+            })
+          ).data.payload.label.id;
+          //agregando id de etiqueta creada de fb
+          this.editedItem["idLabel"] = facebookLabelId;
+          //creando etiqueta en todofull
+
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
           );
-          this[ENTITY].push(newItem);
+          this[ENTITY].unshift(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -471,17 +506,27 @@ export default {
       }
     },
     async updateFacebookLabel(newItem) {
-      if (newItem.customName === "Volver Atrás") {
+      console.log(newItem);
+      if (newItem.foreignLabelId.nameWithCountry == "Volver Atrás") {
         //volver atras en el menu
         this.selectedOption = null;
-        newItem.customName = null;
+        newItem.foreignLabelId = null;
         this.showSelect = 0;
       } else {
+        //colocando id y fuente
+        newItem.source = newItem.foreignLabelId.source;
+        newItem.foreignLabelId = newItem.foreignLabelId._id;
         try {
           await this.$store.dispatch(ENTITY + "Module/update", {
             id: newItem._id,
             data: newItem,
           });
+          //actializando localmente
+          setTimeout(async () => {
+            await this.initialize();
+            this.showSelect = 0;
+            this.selectedOption = null;
+          }, 0);
         } finally {
           this.loadingButton = false;
         }
@@ -505,16 +550,16 @@ export default {
           // this.$store.state.todofullLabelsModule;
           break;
         case "Categorías":
-          this.$store.dispatch("ecommercesCategoriesModule/list", {
-            sort: "name",
-            order: 1,
-          });
+          // this.$store.dispatch("ecommercesCategoriesModule/list", {
+          //   sort: "name",
+          //   order: 1,
+          // });
           break;
         case "Etiquetas Woocommerce":
-          this.$store.dispatch("ecommercesTagsModule/list", {
-            sort: "name",
-            order: 1,
-          });
+          // this.$store.dispatch("ecommercesTagsModule/list", {
+          //   sort: "name",
+          //   order: 1,
+          // });
           break;
         default:
           return [
@@ -524,6 +569,15 @@ export default {
             // "Atributos",
           ];
       }
+    },
+    searchLabelsInfoById(id) {
+      //buscar info en fuentes de datos categorias/etiquetas/todofull
+      let data = [
+        ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
+        ...this.$store.state.ecommercesTagsModule.ecommercesTags,
+        ...this.$store.state.todofullLabelsModule.todofullLabels,
+      ];
+      return data.find((el) => el._id == id);
     },
   },
 };

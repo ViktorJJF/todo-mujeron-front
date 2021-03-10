@@ -247,11 +247,11 @@ export default {
   methods: {
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
-      console.log(
-        "el resultado: ",
-        await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
-      );
+      // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      // console.log(
+      //   "el resultado: ",
+      //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
+      // );
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]

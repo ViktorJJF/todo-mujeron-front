@@ -215,32 +215,11 @@ export default {
   async mounted() {
     await this.initialize();
     // let newItems = [];
-    for (const category of this[ENTITY]) {
-      console.log(`1---->${category.idCategory}`);
-      for (const children of this.getChildrens(
-        category.idCategory,
-        category.country
-      )) {
-        console.log(`⠀⠀2---->${children.idCategory}`);
-        for (const children2 of this.getChildrens(
-          children.idCategory,
-          children.country
-        )) {
-          console.log(`⠀⠀⠀⠀3---->${children2.idCategory}`);
-          for (const children3 of this.getChildrens(
-            children2.idCategory,
-            children2.country
-          )) {
-            console.log(`⠀⠀⠀⠀⠀⠀4---->${children3.idCategory}`);
-          }
-        }
-      }
-    }
   },
   methods: {
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]

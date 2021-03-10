@@ -80,6 +80,19 @@
                     <v-divider></v-divider>
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
+                        <v-row dense>
+                          <v-col cols="12" sm="12" md="12">
+                            <v-chip
+                              dark
+                              class="mb-1 mr-1"
+                              color="pink"
+                              v-for="label in editedItem.labels"
+                              :key="label._id"
+                            >
+                              {{ label.labelId.name }}
+                            </v-chip>
+                          </v-col>
+                        </v-row>
                         <span class="font-weight-bold">Agente Asignado</span>
                         <v-row dense>
                           <v-col cols="12" sm="12">
