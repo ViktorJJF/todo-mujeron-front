@@ -36,6 +36,41 @@
             </v-col>
           </v-row>
           <v-row dense>
+            <v-col class="mt-3" cols="12" sm="12" md="12">
+              <p class="body-1 font-weight-bold">
+                Etiquetas
+              </p>
+              <v-combobox
+                item-text="name"
+                :search-input.sync="searchFacebookLabel"
+                v-model="commentFacebook.labels"
+                :items="facebookLabels"
+                chips
+                clearable
+                label="Busca las etiquetas de Facebook"
+                multiple
+                prepend-icon="mdi-filter-variant"
+                no-data-text="No se encontraron productos"
+                no-filter
+                solo
+                :return-object="true"
+                @change="deleteCurrentSearch"
+              >
+                <template v-slot:selection="{ attrs, item, select, selected }">
+                  <v-chip
+                    v-bind="attrs"
+                    :input-value="selected"
+                    close
+                    @click="select"
+                    @click:close="remove(item)"
+                    color="deep-purple accent-4"
+                    outlined
+                  >
+                    <strong>{{ item.name }}</strong>
+                  </v-chip>
+                </template>
+              </v-combobox>
+            </v-col>
             <v-col cols="12" sm="12" md="12">
               <p class="body-1 font-weight-bold">
                 Productos
@@ -160,7 +195,9 @@ export default {
     tab: null,
     postPicture: "",
     searchProduct: "",
+    searchFacebookLabel: "",
     products: [],
+    facebookLabels: [],
     originalCommentFacebook: [],
   }),
 
@@ -177,6 +214,15 @@ export default {
         this.getProducts(1);
       }, 600);
     },
+    async searchFacebookLabel() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.getFacebookLabels(1);
+      }, 600);
+    },
+    // "commentFacebook.labels": function(newVal) {
+    //   console.log("el nuevo valor: ", newVal);
+    // },
     "commentFacebook.products": function(newVal) {
       let searchProduct;
       if (newVal.length === 1) {
@@ -236,6 +282,8 @@ export default {
     async initialize() {
       await Promise.all([
         this.$store.dispatch("commentsFacebookModule/list", { limit: 9999 }),
+        this.$store.dispatch("facebookLabelsModule/list"),
+        { limit: 9999 },
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
@@ -245,6 +293,9 @@ export default {
       );
       this.originalCommentFacebook = JSON.parse(
         JSON.stringify(this.commentFacebook.responses)
+      );
+      this.facebookLabels = this.$store.state.facebookLabelsModule.facebookLabels.filter(
+        (el) => !el.name.includes("ad_id.")
       );
     },
     async getPostImage() {
@@ -297,6 +348,22 @@ export default {
       ]);
       //asignar al data del componente
       this.products = this.$deepCopy(this.$store.state.productsModule.products);
+    },
+    async getFacebookLabels(page = 1) {
+      if (!this.searchFacebookLabel) return;
+      //llamada asincrona de items
+      await Promise.all([
+        this.$store.dispatch("facebookLabelsModule/list", {
+          sort: "name",
+          page,
+          search: this.searchFacebookLabel,
+          fieldsToSearch: ["name"],
+        }),
+      ]);
+      //asignar al data del componente
+      this.facebookLabels = this.$deepCopy(
+        this.$store.state.facebookLabelsModule.facebookLabels
+      );
     },
     deleteCurrentSearch() {
       this.searchProduct = "";

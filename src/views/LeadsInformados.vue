@@ -57,7 +57,7 @@
                 </v-combobox>
               </v-col>
               <v-col cols="12" sm="6">
-                <v-sheet class="mx-auto" max-width="700">
+                <v-sheet max-width="700">
                   <v-slide-group v-model="filterCountries" multiple show-arrows>
                     <v-slide-item
                       v-for="country in $store.state.countries"

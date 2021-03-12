@@ -123,6 +123,7 @@
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <v-chip
+                              large
                               dark
                               class="mb-1 mr-1"
                               color="pink"
@@ -298,11 +299,13 @@
                 ? 'deep-purple accent-4'
                 : item.estado == 'RE-CONECTAR'
                 ? 'pink'
-                : 'green'
+                : item.estado == 'CONTACTADO'
+                ? 'green'
+                : 'lime'
             "
             text-color="white"
           >
-            {{ item.estado }}
+            {{ item.estado ? item.estado : "SIN DATOS" }}
           </v-chip>
         </template>
       </v-data-table>
@@ -345,6 +348,11 @@ export default {
   filters: {
     formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
+        locale: es,
+      });
+    },
+    formatDateChips: function(value) {
+      return format(new Date(value), "dd'-'MM'-'yyyy", {
         locale: es,
       });
     },
@@ -477,7 +485,7 @@ export default {
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
+      await Promise.all([this.$store.dispatch("leadsModule/listAll", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.leadsModule.leads;

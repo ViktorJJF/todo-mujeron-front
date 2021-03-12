@@ -57,7 +57,7 @@
                 </v-combobox>
               </v-col>
               <v-col cols="12" sm="6">
-                <v-sheet class="mx-auto" max-width="700">
+                <v-sheet max-width="700">
                   <v-slide-group v-model="filterCountries" multiple show-arrows>
                     <v-slide-item
                       v-for="country in $store.state.countries"
@@ -110,6 +110,19 @@
                     <v-divider></v-divider>
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
+                        <v-row dense>
+                          <v-col cols="12" sm="12" md="12">
+                            <v-chip
+                              dark
+                              class="mb-1 mr-1"
+                              color="pink"
+                              v-for="label in editedItem.labels"
+                              :key="label._id"
+                            >
+                              {{ label.labelId.name }}
+                            </v-chip>
+                          </v-col>
+                        </v-row>
                         <v-row dense>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Agente</p>

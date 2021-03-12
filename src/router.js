@@ -112,6 +112,11 @@ let routes = [
         component: () => import("@/views/LeadsInformados.vue"),
       },
       {
+        path: "/lead/todos",
+        name: "LeadsTodos",
+        component: () => import("@/views/LeadsTodos.vue"),
+      },
+      {
         path: "/telefonos/googlepeople/:id/:clientId/:clientSecret",
         name: "Telefonos-googleContact",
         component: () => import("@/components/GooglePeopleCredenciales.vue"),

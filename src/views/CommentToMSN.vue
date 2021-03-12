@@ -107,6 +107,12 @@
                     {{ filteredCommentsFacebook.length }} registros
                   </span>
                 </v-col>
+                <div class="text-center pt-2">
+                  <v-pagination
+                    v-model="page"
+                    :length="pageCount"
+                  ></v-pagination>
+                </div>
               </v-row>
             </v-container>
           </template>
