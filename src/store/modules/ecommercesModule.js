@@ -1,6 +1,10 @@
 //usar esto para consultar en base de datos sin paginacion del server
 import api from "@/services/api/ecommerces";
-import { buildSuccess, handleError } from "@/utils/utils.js";
+import {
+  buildSuccess,
+  handleError,
+  buildQueryWithPagination,
+} from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
@@ -9,10 +13,11 @@ const module = {
   },
   actions: {
     list({ commit }, query) {
+      let finalQuery = buildQueryWithPagination(query);
       commit("loadingModule/showLoading", true, { root: true });
       return new Promise((resolve, reject) => {
         api
-          .list(query)
+          .list(finalQuery)
           .then((response) => {
             commit("list", response.data.payload);
             commit("loadingModule/showLoading", false, { root: true });
@@ -40,10 +45,11 @@ const module = {
     },
     update({ commit }, { id, data }) {
       return new Promise((resolve, reject) => {
+        commit("loadingModule/showLoading", true, { root: true });
         api
           .update(id, data)
           .then((res) => {
-            commit("loadingModule/showLoading", true, { root: true });
+            commit("loadingModule/showLoading", false, { root: true });
             buildSuccess("Registro actualizado con éxito", commit);
             commit("update", {
               id,

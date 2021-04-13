@@ -155,6 +155,16 @@
               <li>{{ category.name }}</li>
             </ul>
           </template>
+          <template v-slot:[`item.ref`]="{ item }">
+            <v-text-field
+              :hint="item.ref"
+              v-model="item.ref"
+              append-outer-icon="mdi mdi-checkbox-marked-circle"
+              placeholder="Referencia"
+              @click:append-outer="updateRef(item._id, item)"
+              @keyup.enter="updateRef(item._id, item)"
+            ></v-text-field>
+          </template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -185,6 +195,7 @@ const ENTITY = "ecommerces"; // nombre de la entidad en minusculas (se repite en
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
+// import { getProductRef } from "@/utils/utils";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
@@ -195,7 +206,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -217,12 +228,19 @@ export default {
         align: "left",
         sortable: false,
         value: "date_modified",
+        width: "10",
       },
       {
         text: "Nombre",
         align: "left",
         sortable: false,
         value: "name",
+      },
+      {
+        text: "Referencia",
+        align: "left",
+        sortable: false,
+        value: "ref",
       },
       {
         text: "Atributos",
@@ -282,7 +300,12 @@ export default {
   methods: {
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      await Promise.all([
+        this.$store.dispatch(ENTITY + "Module/list", {
+          sort: "date_modified",
+          order: -1,
+        }),
+      ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -335,6 +358,15 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    // getProductReference(productName) {
+    //   return getProductRef(productName);
+    // },
+    async updateRef(id, item) {
+      await this.$store.dispatch(ENTITY + "Module/update", {
+        id: id,
+        data: item,
+      });
     },
   },
 };

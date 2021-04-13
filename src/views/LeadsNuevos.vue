@@ -80,15 +80,37 @@
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row dense>
-                          <v-col cols="12" sm="12" md="12">
+                          <v-col
+                            v-if="editedItem.labels"
+                            cols="12"
+                            sm="12"
+                            md="12"
+                          >
                             <v-chip
                               dark
                               class="mb-1 mr-1"
                               color="pink"
-                              v-for="label in editedItem.labels"
+                              v-for="label in editedItem.labels.reduce(
+                                (unique, o) => {
+                                  if (
+                                    !unique.some(
+                                      (obj) =>
+                                        obj.labelId.name === o.labelId.name
+                                    )
+                                  ) {
+                                    unique.push(o);
+                                  }
+                                  return unique;
+                                },
+                                []
+                              )"
                               :key="label._id"
                             >
-                              {{ label.labelId.name }}
+                              {{
+                                label.labelId
+                                  ? label.labelId.name
+                                  : "Sin etiqueta"
+                              }}
                             </v-chip>
                           </v-col>
                         </v-row>
@@ -324,7 +346,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });

@@ -15,6 +15,10 @@ import i18n from "@/plugins/i18n";
 
 //vee validate
 import "./plugins/vee-validate";
+//sweet alert
+import VueSweetalert2 from "vue-sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+Vue.use(VueSweetalert2);
 
 Vue.config.productionTip = false;
 

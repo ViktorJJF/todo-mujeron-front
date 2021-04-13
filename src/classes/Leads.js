@@ -10,4 +10,5 @@ export default () => ({
   resultado: "",
   nota: "",
   pais: "",
+  labels: [],
 });

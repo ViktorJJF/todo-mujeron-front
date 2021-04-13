@@ -278,7 +278,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -443,10 +443,10 @@ export default {
       this.dialog = true;
     },
     async deleteItem(item) {
-      const index = this[ENTITY].indexOf(item);
-      let itemId = this[ENTITY][index]._id;
-      let fbLabelId = this[ENTITY][index].idLabel;
-      let fanpageId = this[ENTITY][index].fanpageId;
+      let index = this[ENTITY].findIndex((entity) => entity._id == item._id);
+      let itemId = item._id;
+      let fbLabelId = item.idLabel;
+      let fanpageId = item.fanpageId;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
         //eliminando de fb
         try {
@@ -494,11 +494,8 @@ export default {
           this.editedItem["idLabel"] = facebookLabelId;
           //creando etiqueta en todofull
 
-          let newItem = await this.$store.dispatch(
-            ENTITY + "Module/create",
-            this.editedItem
-          );
-          this[ENTITY].unshift(newItem);
+          await this.$store.dispatch(ENTITY + "Module/create", this.editedItem);
+          // this[ENTITY].unshift(newItem);
           this.close();
         } finally {
           this.loadingButton = false;

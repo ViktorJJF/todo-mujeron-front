@@ -67,6 +67,24 @@
                                 label="Ingresa la URL"
                               />
                             </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Selecciona la Fanpage
+                              </p>
+                              <v-select
+                                v-model="editedItem.botId"
+                                :items="$store.state.botsModule.bots"
+                                hide-selected
+                                item-value="_id"
+                                item-text="fanpageName"
+                                placeholder="Selecciona la fanpage"
+                                outlined
+                                dense
+                                class="mt-2"
+                                clearable
+                              >
+                              </v-select>
+                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -154,8 +172,8 @@
               OK
             </v-chip>
           </template>
-          <template v-slot:[`item.createdAt`]="{ item }">{{
-            item.createdAt | formatDate
+          <template v-slot:[`item.updatedAt`]="{ item }">{{
+            item.updatedAt | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
@@ -193,7 +211,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -212,19 +230,25 @@ export default {
         text: "Fecha",
         align: "left",
         sortable: false,
-        value: "createdAt",
+        value: "updatedAt",
       },
-      {
-        text: "Estado de respuestas",
-        align: "left",
-        sortable: false,
-        value: "responses",
-      },
+      // {
+      //   text: "Estado de respuestas",
+      //   align: "left",
+      //   sortable: false,
+      //   value: "responses",
+      // },
       {
         text: "URL",
         align: "left",
         sortable: false,
         value: "postUrl",
+      },
+      {
+        text: "País",
+        align: "left",
+        sortable: true,
+        value: "botId.country",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -263,6 +287,7 @@ export default {
     async initialize() {
       await Promise.all([
         this.$store.dispatch("commentsFacebookModule/list", { limit: 9999 }),
+        this.$store.dispatch("facebookLabelsModule/list"),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook

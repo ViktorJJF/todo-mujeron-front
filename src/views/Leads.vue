@@ -121,12 +121,30 @@
                               label="ID de Contacto"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" md="6">
+                          <v-col
+                            v-if="editedItem.labels"
+                            cols="12"
+                            sm="6"
+                            md="6"
+                          >
                             <v-chip
                               dark
                               class="mb-1 mr-1"
                               color="pink"
-                              v-for="label in editedItem.labels"
+                              v-for="label in editedItem.labels.reduce(
+                                (unique, o) => {
+                                  if (
+                                    !unique.some(
+                                      (obj) =>
+                                        obj.labelId.name === o.labelId.name
+                                    )
+                                  ) {
+                                    unique.push(o);
+                                  }
+                                  return unique;
+                                },
+                                []
+                              )"
                               :key="label._id"
                             >
                               {{ label.labelId.name }}
@@ -343,7 +361,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -416,7 +434,13 @@ export default {
     search2: "",
     telefonoId: null,
     delayTimer: null,
-    fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
+    fieldsToSearch: [
+      "nombre",
+      "apellido",
+      "telefono",
+      "displayName",
+      "appName",
+    ],
   }),
 
   computed: {
