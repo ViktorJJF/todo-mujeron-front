@@ -37,6 +37,7 @@ export default new Vuex.Store({
     },
     selectedCommentFacebook: {},
     countries: ["Peru", "Chile", "Colombia"],
+    maxPaginationButtons: 16,
   },
   mutations: {
     showOverlay(state, active) {

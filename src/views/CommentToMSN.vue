@@ -2,7 +2,7 @@
   <v-container>
     <v-row justify="center">
       <material-card
-        width="90%"
+        width="100%"
         icon="mdi-cellphone-dock"
         color="primary"
         title="Comments To MSN"
@@ -45,7 +45,9 @@
                         dark
                         class="mb-2"
                         v-on="on"
-                        >Agregar publicación</v-btn
+                        >{{
+                          isCommentView ? "Agregar publicación" : "Agregar Ad"
+                        }}</v-btn
                       >
                     </template>
                     <v-card>
@@ -58,9 +60,7 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                URL de publicación
-                              </p>
+                              <p class="body-1 font-weight-bold">URL</p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.postUrl"
@@ -256,26 +256,37 @@ export default {
     editedIndex: -1,
     editedItem: CommentsFacebook(),
     defaultItem: CommentsFacebook(),
+    type: "comment",
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1
-        ? "Nuevas respuestas para publicación"
+        ? "Nuevo URL"
         : "Editar respuestas de publicación";
     },
     filteredCommentsFacebook() {
       return this.filterByFanpage
-        ? this.commentsFacebook.filter(
-            (comment) => comment.botId._id == this.filterByFanpage
-          )
-        : this.commentsFacebook;
+        ? this.commentsFacebook
+            .filter((comment) => comment.botId._id == this.filterByFanpage)
+            .filter((el) => el.type == this.type)
+        : this.commentsFacebook.filter(
+            (el) =>
+              el.type == (this.$route.name == "CommentToMSN" ? "comment" : "ad")
+          );
+    },
+    isCommentView() {
+      return this.$route.name == "CommentToMSN";
     },
   },
 
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    "$route.name": function () {
+      let isCommentView = this.$route.name == "CommentToMSN";
+      this.type = isCommentView ? "comment" : "ad";
     },
   },
 
@@ -286,18 +297,22 @@ export default {
   methods: {
     async initialize() {
       await Promise.all([
-        this.$store.dispatch("commentsFacebookModule/list", { limit: 9999 }),
-        this.$store.dispatch("facebookLabelsModule/list"),
+        this.$store.dispatch("commentsFacebookModule/list", {
+          limit: 9999,
+        }),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
       );
     },
+    initializeAds() {
+      console.log("iniciando...");
+    },
     editItem(item) {
       this.editedIndex = this.commentsFacebook.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.$router.push({
-        name: "CommentToMSNUpdate",
+        name: this.isCommentView ? "CommentToMSNUpdate" : "AdToMSNUpdate",
         params: { id: item._id },
       });
     },
@@ -339,6 +354,8 @@ export default {
       } else {
         //create item
         try {
+          //agregando tipo comment/add
+          this.editedItem.type = this.isCommentView ? "comment" : "ad";
           let newItem = await this.$store.dispatch(
             "commentsFacebookModule/create",
             this.editedItem

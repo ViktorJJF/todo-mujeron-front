@@ -70,5 +70,13 @@
         "EDIT_ITEM": "Editar etiqueta",
         "NO_DATA": "Aún no cuentas con Etiquetas",
         "NO_RESULTS": "No hay resultados"
+    },
+    "ecommercesContacts": {
+        "TITLE": "Contactos de Woocommerce",
+        "SUBTITLE": "Listado de contactos Woocommerce",
+        "NEW_ITEM": "Nuevo contacto",
+        "EDIT_ITEM": "Editar contacto",
+        "NO_DATA": "Aún no cuentas con Contactos de Woocommerce",
+        "NO_RESULTS": "No hay resultados"
     }
 }

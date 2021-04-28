@@ -142,8 +142,18 @@ let routes = [
         component: () => import("@/views/CommentToMSN"),
       },
       {
+        path: "/ads-messenger",
+        name: "AdsMessenger",
+        component: () => import("@/views/CommentToMSN"),
+      },
+      {
         path: "/comment-to-msn/:id",
         name: "CommentToMSNUpdate",
+        component: () => import("@/views/CommentToMSNUpdate"),
+      },
+      {
+        path: "/ads-messenger/:id",
+        name: "AdToMSNUpdate",
         component: () => import("@/views/CommentToMSNUpdate"),
       },
       {
@@ -165,6 +175,16 @@ let routes = [
         path: "/ecommerce/categorias",
         name: "EcommerceCategories",
         component: () => import("@/views/EcommerceCategories"),
+      },
+      {
+        path: "/ecommerce/contactos",
+        name: "EcommerceContacts",
+        component: () => import("@/views/EcommerceContacts"),
+      },
+      {
+        path: "/ecommerce/ordenes",
+        name: "EcommerceOrders",
+        component: () => import("@/views/EcommerceOrders"),
       },
       {
         path: "/ecommerce/etiquetas",

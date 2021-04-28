@@ -46,38 +46,28 @@ import Woocommerces from '@/classes/Woocommerces';
             active-class="primary custom2"
             :to="{ name: 'Usuarios' }"
           >
-            <v-list-item-content>
-              Usuarios
-            </v-list-item-content>
+            <v-list-item-content> Usuarios </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'EquipoDeVentas' }"
           >
-            <v-list-item-content>
-              Equipo de ventas
-            </v-list-item-content>
+            <v-list-item-content> Equipo de ventas </v-list-item-content>
           </v-list-item>
           <v-list-item active-class="primary custom2" :to="{ name: 'Agentes' }">
-            <v-list-item-content>
-              Agentes
-            </v-list-item-content>
+            <v-list-item-content> Agentes </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'Locaciones' }"
           >
-            <v-list-item-content>
-              Ubicaciones
-            </v-list-item-content>
+            <v-list-item-content> Ubicaciones </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'TodofullLabels' }"
           >
-            <v-list-item-content>
-              Nombres de etiquetas
-            </v-list-item-content>
+            <v-list-item-content> Nombres de etiquetas </v-list-item-content>
           </v-list-item>
         </v-list-group>
         <v-list-group color="white" :value="false" no-action sub-group>
@@ -115,25 +105,31 @@ import Woocommerces from '@/classes/Woocommerces';
               active-class="primary custom2"
               :to="{ name: 'EcommerceProducts' }"
             >
-              <v-list-item-content>
-                Productos
-              </v-list-item-content>
+              <v-list-item-content> Productos </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceCategories' }"
             >
-              <v-list-item-content>
-                Categorías
-              </v-list-item-content>
+              <v-list-item-content> Categorías </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceTags' }"
             >
-              <v-list-item-content>
-                Etiquetas
-              </v-list-item-content>
+              <v-list-item-content> Etiquetas </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceContacts' }"
+            >
+              <v-list-item-content> Contactos </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceOrders' }"
+            >
+              <v-list-item-content> Órdenes </v-list-item-content>
             </v-list-item>
           </v-list-group>
           <v-list-group color="white" :value="false" no-action sub-group>
@@ -146,25 +142,19 @@ import Woocommerces from '@/classes/Woocommerces';
               active-class="primary custom2"
               :to="{ name: 'Products' }"
             >
-              <v-list-item-content>
-                Productos
-              </v-list-item-content>
+              <v-list-item-content> Productos </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'Categories' }"
             >
-              <v-list-item-content>
-                Categorías
-              </v-list-item-content>
+              <v-list-item-content> Categorías </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'Brands' }"
             >
-              <v-list-item-content>
-                Marcas
-              </v-list-item-content>
+              <v-list-item-content> Marcas </v-list-item-content>
             </v-list-item>
           </v-list-group>
         </v-list-group>
@@ -220,33 +210,25 @@ import Woocommerces from '@/classes/Woocommerces';
             active-class="primary custom2"
             :to="{ name: 'LeadsNuevos' }"
           >
-            <v-list-item-content>
-              Sin asignar
-            </v-list-item-content>
+            <v-list-item-content> Sin asignar </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'LeadsReconectar' }"
           >
-            <v-list-item-content>
-              Re-conectar
-            </v-list-item-content>
+            <v-list-item-content> Re-conectar </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'LeadsInformados' }"
           >
-            <v-list-item-content>
-              Informados
-            </v-list-item-content>
+            <v-list-item-content> Informados </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'LeadsTodos' }"
           >
-            <v-list-item-content>
-              Lista Completa
-            </v-list-item-content>
+            <v-list-item-content> Lista Completa </v-list-item-content>
           </v-list-item>
         </v-list-group>
         <v-list-group color="white" :value="false" no-action sub-group>
@@ -265,17 +247,13 @@ import Woocommerces from '@/classes/Woocommerces';
               active-class="primary custom2"
               :to="{ name: 'Usuarios' }"
             >
-              <v-list-item-content>
-                FB Messenger
-              </v-list-item-content>
+              <v-list-item-content> FB Messenger </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EquipoDeVentas' }"
             >
-              <v-list-item-content>
-                FB Ads
-              </v-list-item-content>
+              <v-list-item-content> FB Ads </v-list-item-content>
             </v-list-item>
           </v-list-group>
           <v-list-group color="white" :value="false" no-action sub-group>
@@ -294,17 +272,13 @@ import Woocommerces from '@/classes/Woocommerces';
                 active-class="primary custom2"
                 :to="{ name: 'Usuarios' }"
               >
-                <v-list-item-content>
-                  Defecto
-                </v-list-item-content>
+                <v-list-item-content> Defecto </v-list-item-content>
               </v-list-item>
               <v-list-item
                 active-class="primary custom2"
                 :to="{ name: 'EquipoDeVentas' }"
               >
-                <v-list-item-content>
-                  Programado
-                </v-list-item-content>
+                <v-list-item-content> Programado </v-list-item-content>
               </v-list-item>
             </v-list-group>
           </v-list-group>
@@ -341,9 +315,16 @@ import Woocommerces from '@/classes/Woocommerces';
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
-            Comentarios
-          </v-list-item-content>
+          <v-list-item-content> Comentarios </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'AdsMessenger' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>Ads Messenger</v-list-item-content>
         </v-list-item>
         <v-list-item
           active-class="primary custom2"
@@ -352,9 +333,7 @@ import Woocommerces from '@/classes/Woocommerces';
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
-            Etiquetas
-          </v-list-item-content>
+          <v-list-item-content> Etiquetas </v-list-item-content>
         </v-list-item>
       </v-list-group>
 

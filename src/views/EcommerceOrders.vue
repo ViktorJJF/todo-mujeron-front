@@ -24,7 +24,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
+                >Filtrar por estado: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -40,11 +40,11 @@
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <template v-slot:activator="{ on }">
+                    <!-- <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
-                    </template>
+                    </template> -->
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -227,17 +227,34 @@
               >Aún no cuentas con brands</v-alert
             >
           </template>
-          <template v-slot:[`item.description`]="{ item }"
-            ><span class="format-breaklines">
-              {{ item.description }}
-            </span></template
-          >
-          <template v-slot:[`item.createdAt`]="{ item }">{{
-            item.createdAt | formatDate
+          <template v-slot:[`item.total`]="{ item }">
+            {{ item.line_items.reduce((a, b) => a + parseFloat(b.total), 0) }}
+          </template>
+          <template v-slot:[`item.date_modified`]="{ item }">{{
+            item.date_modified | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status" color="success">Activo</v-chip>
-            <v-chip v-else color="error">Inactivo</v-chip>
+            <v-chip dark v-if="item.status == 'cancelled'" color="error"
+              >Cancelado</v-chip
+            >
+            <v-chip dark v-if="item.status == 'completed'" color="success"
+              >Completado</v-chip
+            >
+            <v-chip dark v-if="item.status == 'pending'" color="lime"
+              >Pendiente</v-chip
+            >
+            <v-chip dark v-if="item.status == 'processing'" color="blue"
+              >Procesando</v-chip
+            >
+            <v-chip dark v-if="item.status == 'failed'" color="amber"
+              >Fallido</v-chip
+            >
+            <v-chip
+              dark
+              v-if="item.status == 'on-hold'"
+              color="orange lighten-3"
+              >En Espera</v-chip
+            >
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -265,7 +282,7 @@
 </template>
 
 <script>
-const ENTITY = "products";
+const ENTITY = "ecommercesOrders";
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -287,21 +304,51 @@ export default {
   },
   data: () => ({
     //datos del componente
-    fieldsToSearch: ["name"],
+    fieldsToSearch: ["status"],
     headers: [
       {
-        text: "Agregado",
+        text: "Última modificación",
         align: "left",
-        sortable: true,
-        value: "createdAt",
+        sortable: false,
+        value: "date_modified",
       },
       {
-        text: "Nombre",
+        text: "N°Orden",
         align: "left",
-        sortable: true,
-        value: "name",
+        sortable: false,
+        value: "idOrder",
       },
-      { text: "Acciones", value: "action", sortable: false },
+      {
+        text: "Fuente",
+        align: "left",
+        sortable: false,
+        value: "url",
+      },
+      {
+        text: "Estado",
+        align: "left",
+        sortable: false,
+        value: "status",
+      },
+      {
+        text: "Customer Id",
+        align: "left",
+        sortable: false,
+        value: "customer_id",
+      },
+      {
+        text: "Teléfonos",
+        align: "left",
+        sortable: false,
+        value: "phone",
+      },
+      {
+        text: "Total",
+        align: "left",
+        sortable: false,
+        value: "total",
+      },
+      // { text: "Acciones", value: "action", sortable: false },
     ],
     delayTimer: null,
     [ENTITY]: [],
@@ -359,7 +406,8 @@ export default {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", {
-          sort: "name",
+          sort: "date_modified",
+          order: -1,
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,

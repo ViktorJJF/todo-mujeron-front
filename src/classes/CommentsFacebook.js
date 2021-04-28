@@ -4,4 +4,7 @@ export default () => ({
   productId: "",
   etiquetaId: "",
   fanpageId: "",
+  type: "",
+  postImgUrl: "",
+  selectedUrl: "",
 });

@@ -2,7 +2,7 @@
   <v-container>
     <v-row justify="center">
       <material-card
-        width="98%"
+        width="1500px"
         icon="mdi-cellphone-dock"
         color="primary"
         :title="$t(entity + '.TITLE')"
@@ -18,6 +18,8 @@
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -31,18 +33,18 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de producto"
+                    placeholder="Escribe el nombre del producto"
                     single-line
                     outlined
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
+                    <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
-                    </template> -->
+                    </template>
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -53,24 +55,117 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
+                              <p class="body-1 font-weight-bold ma-0">
+                                Nombres
+                              </p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
                                 label="Nombre del marca"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <v-textarea
-                                placeholder="descripcion"
+                              /> </v-col
+                            ><v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold ma-0">
+                                Categoría
+                              </p>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Categoría"
                                 outlined
-                                v-model="editedItem.description"
-                              ></v-textarea>
+                                :items="
+                                  $store.state.categoriesModule.categories
+                                "
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.categoryId"
+                              ></v-select>
                             </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold ma-0">Marca</p>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Marca"
+                                outlined
+                                :items="$store.state.brandsModule.brands"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.brandId"
+                              ></v-select>
+                            </v-col>
+                            <v-divider class="mx-3 my-3"></v-divider>
+                            <v-row
+                              dense
+                              v-for="(
+                                detail, detailIndex
+                              ) in editedItem.details"
+                              :key="detailIndex"
+                            >
+                              <v-col cols="12" sm="6" md="6">
+                                <p class="body-1 font-weight-bold ma-0">
+                                  Precio
+                                </p>
+                                <VTextFieldWithValidation
+                                  :prefix="
+                                    detail.country == 'Peru' ? 'S/.' : '$'
+                                  "
+                                  rules=""
+                                  v-model="detail.price"
+                                  label="Precio"
+                                />
+                              </v-col>
+                              <v-col cols="12" sm="6" md="6">
+                                <p class="body-1 font-weight-bold ma-0">País</p>
+                                <v-select
+                                  dense
+                                  hide-details
+                                  placeholder="País"
+                                  outlined
+                                  :items="$store.state.countries"
+                                  v-model="detail.country"
+                                ></v-select>
+                              </v-col>
+
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold ma-0">Url</p>
+                                <v-combobox
+                                  dense
+                                  v-model="detail.urls"
+                                  chips
+                                  clearable
+                                  multiple
+                                  outlined
+                                  append-icon=""
+                                >
+                                  <template
+                                    v-slot:selection="{
+                                      attrs,
+                                      item,
+                                      select,
+                                      selected,
+                                    }"
+                                  >
+                                    <v-chip
+                                      small
+                                      v-bind="attrs"
+                                      :input-value="selected"
+                                      close
+                                      @click="select"
+                                      @click:close="remove(detail.urls, item)"
+                                    >
+                                      {{ item }}
+                                    </v-chip>
+                                  </template>
+                                </v-combobox>
+                              </v-col>
+                            </v-row>
                           </v-row>
+                          <v-btn
+                            color="primary"
+                            text
+                            @click="addDetail(editedItem.details)"
+                            >Agregar nuevo precio/pais</v-btn
+                          >
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -98,14 +193,22 @@
                         ? items.length
                         : $store.state.itemsPerPage
                     }}
-                    de {{ items.length }} registros
+                    de {{ totalItems }} registros
                   </span>
                 </v-col>
               </v-row>
+              <div class="text-center pt-2">
+                <v-pagination
+                  @input="initialize(page)"
+                  v-model="page"
+                  :length="pageCount"
+                  :total-visible="$store.state.maxPaginationButtons"
+                ></v-pagination>
+              </div>
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
+            <v-btn
               class="mr-1 mb-1"
               color="primary"
               fab
@@ -114,15 +217,15 @@
               @click="editItem(item)"
             >
               <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
+            </v-btn>
             <v-btn color="error" fab small dark @click="deleteItem(item)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true">{{
-              $t(entity + ".NO_DATA")
-            }}</v-alert>
+            <v-alert type="error" :value="true"
+              >Aún no cuentas con brands</v-alert
+            >
           </template>
           <template v-slot:[`item.description`]="{ item }"
             ><span class="format-breaklines">
@@ -132,39 +235,6 @@
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
-          <template v-slot:[`item.permalink`]="{ item }">
-            <a :href="item.permalink" target="_blank"
-              ><v-btn color="primary" small>Visitar</v-btn>
-            </a>
-          </template>
-          <template v-slot:[`item.attributes`]="{ item }">
-            <ul
-              v-for="(attribute, attIndex) in item.attributes"
-              :key="attIndex"
-            >
-              <li>
-                <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
-              </li>
-            </ul>
-          </template>
-          <template v-slot:[`item.categories`]="{ item }">
-            <ul
-              v-for="(category, cattIndex) in item.categories"
-              :key="cattIndex"
-            >
-              <li>{{ category.name }}</li>
-            </ul>
-          </template>
-          <template v-slot:[`item.ref`]="{ item }">
-            <v-text-field
-              :hint="item.ref"
-              v-model="item.ref"
-              append-outer-icon="mdi mdi-checkbox-marked-circle"
-              placeholder="Referencia"
-              @click:append-outer="updateRef(item._id, item)"
-              @keyup.enter="updateRef(item._id, item)"
-            ></v-text-field>
-          </template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -178,11 +248,16 @@
                 ? items.length
                 : $store.state.itemsPerPage
             }}
-            de {{ items.length }} registros
+            de {{ totalItems }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            @input="initialize(page)"
+            v-model="page"
+            :length="pageCount"
+            :total-visible="$store.state.maxPaginationButtons"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -190,17 +265,14 @@
 </template>
 
 <script>
-//Nota: Modifica los campos de la tabla
-const ENTITY = "ecommerces"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "ecommercesContacts";
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
-// import { getProductRef } from "@/utils/utils";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
-import dialogflow from "@/services/api/dialogflow";
 export default {
   components: {
     MaterialCard,
@@ -214,66 +286,74 @@ export default {
     },
   },
   data: () => ({
-    page: 1,
-    pageCount: 0,
-    loadingButton: false,
-    search: "",
-    dialog: false,
+    //datos del componente
+    fieldsToSearch: ["first_name", "last_name", "phone", "email"],
     headers: [
       {
         text: "Última modificación",
         align: "left",
         sortable: false,
         value: "date_modified",
-        width: "10",
       },
       {
-        text: "Nombre",
+        text: "Fuente",
         align: "left",
         sortable: false,
-        value: "name",
+        value: "url",
       },
       {
-        text: "Referencia",
+        text: "Nombres",
         align: "left",
         sortable: false,
-        value: "ref",
+        value: "first_name",
       },
       {
-        text: "Atributos",
+        text: "Apellidos",
         align: "left",
         sortable: false,
-        value: "attributes",
+        value: "last_name",
       },
       {
-        text: "Categorías",
+        text: "Teléfonos",
         align: "left",
         sortable: false,
-        value: "categories",
+        value: "phone",
       },
       {
-        text: "País",
+        text: "Email",
         align: "left",
         sortable: false,
-        value: "country",
+        value: "email",
       },
       {
-        text: "Link",
+        text: "Ciudad",
         align: "left",
         sortable: false,
-        value: "permalink",
+        value: "city",
       },
-      { text: "Acciones", value: "action", sortable: false },
+      // { text: "Acciones", value: "action", sortable: false },
     ],
+    delayTimer: null,
     [ENTITY]: [],
-    advisors: [],
     editedIndex: -1,
     editedItem: CLASS_ITEMS(),
     defaultItem: CLASS_ITEMS(),
-    menu1: false,
-    menu2: false,
+    //configuracion de la tabla
+    pagination: {},
+    dataTableLoading: true,
+    page: 1,
+    pageCount: 0,
+    loadingButton: false,
+    search: "",
+    dialog: false,
   }),
   computed: {
+    totalItems() {
+      return this.$store.state[ENTITY + "Module"].total;
+    },
+    totalPages() {
+      return this.$store.state[ENTITY + "Module"].totalPages;
+    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
@@ -290,24 +370,36 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
+    },
+    telefonoId() {
+      //buscar con algun campo en particular?
+      this.initialize(1);
+    },
   },
   mounted() {
     this.initialize();
   },
   methods: {
-    async initialize() {
+    async initialize(page = 1) {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "date_modified",
           order: -1,
+          page,
+          search: this.search,
+          fieldsToSearch: this.fieldsToSearch,
         }),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
-      ).map((el) => ({ ...el, originalRef: el.ref }));
-      //se agrego el campo ref original
+      );
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -318,7 +410,7 @@ export default {
       const index = this[ENTITY].indexOf(item);
       let itemId = this[ENTITY][index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
+        await this.$store.dispatch("brandsModule/delete", itemId);
         this[ENTITY].splice(index, 1);
       }
     },
@@ -352,28 +444,22 @@ export default {
           );
           this[ENTITY].push(newItem);
           this.close();
+          this.initialize();
         } finally {
           this.loadingButton = false;
         }
       }
     },
-    // getProductReference(productName) {
-    //   return getProductRef(productName);
-    // },
-    async updateRef(id, item) {
-      //actualizando nombre corto en entidad dialogflow
-      await dialogflow.updateEntityValue({
-        country: item.country,
-        value: item.originalRef,
-        newValue: item.ref,
+    addDetail(details) {
+      details.push({
+        price: "",
+        country: "",
+        url: "",
       });
-      //actualizando originalRef
-      item.originalRef = item.ref;
-      // actualizando el nombre corto en bd
-      await this.$store.dispatch(ENTITY + "Module/update", {
-        id: id,
-        data: item,
-      });
+    },
+    remove(urls, url) {
+      let index = urls.indexOf(url);
+      urls.splice(index, 1);
     },
   },
 };

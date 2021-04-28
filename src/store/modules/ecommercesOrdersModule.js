@@ -1,5 +1,5 @@
 //usar esto para paginacion con servidor
-import api from "@/services/api/ecommercesContacts";
+import api from "@/services/api/ecommercesOrders";
 import {
   buildSuccess,
   handleError,
@@ -9,7 +9,7 @@ import {
 const module = {
   namespaced: true,
   state: {
-    ecommercesContacts: [],
+    ecommercesOrders: [],
     total: 0,
     totalPages: 0,
   },
@@ -83,7 +83,7 @@ const module = {
   },
   mutations: {
     list(state, data) {
-      state.ecommercesContacts = data;
+      state.ecommercesOrders = data;
     },
     totalItems(state, data) {
       state.total = data;
@@ -92,21 +92,21 @@ const module = {
       state.totalPages = data;
     },
     create(state, data) {
-      state.ecommercesContacts.unshift(data);
+      state.ecommercesOrders.unshift(data);
     },
     update(state, { id, data }) {
-      let indexToUpdate = state.ecommercesContacts.findIndex(
+      let indexToUpdate = state.ecommercesOrders.findIndex(
         (member) => member._id == id
       );
-      state.ecommercesContacts.splice(indexToUpdate, 1, {
+      state.ecommercesOrders.splice(indexToUpdate, 1, {
         ...data,
       });
     },
     delete(state, id) {
-      let indexToDelete = state.ecommercesContacts.findIndex(
+      let indexToDelete = state.ecommercesOrders.findIndex(
         (member) => member._id == id
       );
-      state.ecommercesContacts.splice(indexToDelete, 1);
+      state.ecommercesOrders.splice(indexToDelete, 1);
     },
   },
   getters: {},
