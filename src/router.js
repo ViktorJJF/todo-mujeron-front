@@ -182,6 +182,11 @@ let routes = [
         component: () => import("@/views/EcommerceContacts"),
       },
       {
+        path: "/ecommerce/atributos",
+        name: "EcommerceAttributes",
+        component: () => import("@/views/EcommerceAttributes"),
+      },
+      {
         path: "/ecommerce/ordenes",
         name: "EcommerceOrders",
         component: () => import("@/views/EcommerceOrders"),

@@ -613,6 +613,13 @@ export default {
       this.commentFacebook.products = this.commentFacebook.products.slice();
     },
     getFilteredLabels(categoryId) {
+      console.log("el id de categoria: ", categoryId);
+      console.log(
+        "el retorno: ",
+        this.facebookLabels.filter(
+          (label) => label.foreignLabelId == categoryId
+        )
+      );
       return this.facebookLabels.filter(
         (label) => label.foreignLabelId == categoryId
       );
@@ -627,7 +634,7 @@ export default {
           quickReplies.push({
             content_type: "text",
             title: `Precio ${product.ref}`,
-            payload: `${category.categoryName}-${product.variations[0].regular_price}-${product.ref}-${this.commentFacebook.selectedUrl}`,
+            payload: `${category.categoryName}-${product.variations[0].regular_price}-${product.ref}-${product.permalink}`,
           });
       }
       let code = {

@@ -131,6 +131,12 @@ import Woocommerces from '@/classes/Woocommerces';
             >
               <v-list-item-content> Órdenes </v-list-item-content>
             </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'EcommerceAttributes' }"
+            >
+              <v-list-item-content> Atributos </v-list-item-content>
+            </v-list-item>
           </v-list-group>
           <v-list-group color="white" :value="false" no-action sub-group>
             <template v-slot:activator>

@@ -158,9 +158,7 @@
                             </v-col>
 
                             <v-col cols="12" sm="6">
-                              <p class="body-1 font-weight-bold">
-                                Agente
-                              </p>
+                              <p class="body-1 font-weight-bold">Agente</p>
                               <v-select
                                 dense
                                 hide-details
@@ -228,8 +226,16 @@
             </v-container>
           </template>
           <template v-slot:[`item.agente`]="{ item }">
-            {{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
-            {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
+            {{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.nombre
+                : " "
+            }}
+            {{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.apellido
+                : " "
+            }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
@@ -301,7 +307,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },

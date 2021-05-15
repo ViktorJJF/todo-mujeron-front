@@ -24,7 +24,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por estado: {{ search }}</span
+                >Filtrar por nombre: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -40,11 +40,11 @@
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
+                    <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
-                    </template> -->
+                    </template>
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -227,52 +227,26 @@
               >Aún no cuentas con brands</v-alert
             >
           </template>
-          <template v-slot:[`item.total`]="{ item }">
-            {{ item.line_items.reduce((a, b) => a + parseFloat(b.total), 0) }}
-          </template>
+          <template v-slot:[`item.terms`]="{ item }"
+            ><span class="format-breaklines">
+              <ul>
+                <li v-for="term in item.terms" :key="term.idTerm">
+                  {{ term.name }}
+                </li>
+              </ul>
+            </span></template
+          >
+          <template v-slot:[`item.woocommerceId`]="{ item }"
+            ><span class="format-breaklines">
+              {{ item.woocommerceId.domain }}
+            </span></template
+          >
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
-          <template v-slot:[`item.client`]="{ item }">
-            {{
-              item.ecommercesContactId
-                ? item.ecommercesContactId.first_name
-                : ""
-            }}
-            {{
-              item.ecommercesContactId ? item.ecommercesContactId.last_name : ""
-            }}
-          </template>
-          <template v-slot:[`item.phone`]="{ item }">{{
-            item.ecommercesContactId
-              ? item.ecommercesContactId.phone
-              : "Sin número"
-          }}</template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip dark v-if="item.status == 'cancelled'" color="error"
-              >Cancelado</v-chip
-            >
-            <v-chip dark v-if="item.status == 'completed'" color="success"
-              >Completado</v-chip
-            >
-            <v-chip dark v-if="item.status == 'pending'" color="lime"
-              >Pendiente</v-chip
-            >
-            <v-chip dark v-if="item.status == 'processing'" color="blue"
-              >Procesando</v-chip
-            >
-            <v-chip dark v-if="item.status == 'failed'" color="amber"
-              >Fallido</v-chip
-            >
-            <v-chip
-              dark
-              v-if="item.status == 'on-hold'"
-              color="orange lighten-3"
-              >En Espera</v-chip
-            >
-            <v-chip dark v-if="item.status == 'trash'" color="orange lighten-1"
-              >Trash</v-chip
-            >
+            <v-chip v-if="item.status" color="success">Activo</v-chip>
+            <v-chip v-else color="error">Inactivo</v-chip>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -300,7 +274,7 @@
 </template>
 
 <script>
-const ENTITY = "ecommercesOrders";
+const ENTITY = "ecommercesAttributes";
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -322,51 +296,38 @@ export default {
   },
   data: () => ({
     //datos del componente
-    fieldsToSearch: ["ecommercesContactId.first_name"],
+    fieldsToSearch: ["first_name", "last_name", "phone", "email"],
     headers: [
+      // {
+      //   text: "Última modificación",
+      //   align: "left",
+      //   sortable: false,
+      //   value: "updated_at",
+      // },
       {
-        text: "Última modificación",
+        text: "Id",
         align: "left",
         sortable: false,
-        value: "date_modified",
+        value: "idAttribute",
       },
       {
-        text: "N°Orden",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "idOrder",
+        value: "name",
       },
       {
-        text: "Fuente",
+        text: "Términos",
         align: "left",
         sortable: false,
-        value: "url",
+        value: "terms",
       },
       {
-        text: "Estado",
+        text: "Página",
         align: "left",
         sortable: false,
-        value: "status",
+        value: "woocommerceId",
       },
-      {
-        text: "Cliente",
-        align: "left",
-        sortable: false,
-        value: "client",
-      },
-      {
-        text: "Teléfonos",
-        align: "left",
-        sortable: false,
-        value: "phone",
-      },
-      {
-        text: "Total",
-        align: "left",
-        sortable: false,
-        value: "total",
-      },
-      // { text: "Acciones", value: "action", sortable: false },
     ],
     delayTimer: null,
     [ENTITY]: [],
