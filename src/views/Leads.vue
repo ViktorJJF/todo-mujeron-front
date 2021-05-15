@@ -248,7 +248,7 @@
                     ? leads.length
                     : $store.state.itemsPerPage
                 }}
-                de {{ $store.state.leadsModule.total }} registros
+                de {{ $store.state.cleanLeadsModule.total }} registros
               </span>
             </v-col>
             <div class="text-center pt-2">
@@ -332,7 +332,7 @@
               ? leads.length
               : $store.state.itemsPerPage
           }}
-          de {{ $store.state.leadsModule.total }} registros
+          de {{ $store.state.cleanLeadsModule.total }} registros
         </span>
       </v-col>
       <div class="text-center pt-2">
@@ -445,10 +445,10 @@ export default {
 
   computed: {
     totalItems() {
-      return this.$store.state.leadsModule.total;
+      return this.$store.state.cleanLeadsModule.total;
     },
     totalPages() {
-      return this.$store.state.leadsModule.totalPages;
+      return this.$store.state.cleanLeadsModule.totalPages;
     },
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo lead" : "Editar lead";
@@ -496,15 +496,36 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
-        sort: "createdAt",
+        sort: "updatedAt",
         order: "desc",
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
+      await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
-
-      this.leads = this.$store.state.leadsModule.leads;
+      this.leads = [];
+      let preLeads = this.$store.state.cleanLeadsModule.cleanLeads;
+      for (const preLead of preLeads) {
+        for (const detail of preLead.details) {
+          this.leads.push({
+            appName: detail.appName,
+            ciudad: detail.ciudad,
+            contactId: detail.contactId,
+            createdAt: preLead.createdAt,
+            email: detail.email,
+            estado: preLead.estado,
+            fuente: detail.fuente,
+            labels: detail.labels,
+            msnActivaDefault: detail.msnActivaDefault,
+            nombre: detail.nombre,
+            pais: detail.pais,
+            telefono: preLead.telefono,
+            telefonoId: preLead.telefonoId,
+            updatedAt: preLead.updatedAt,
+            _id: preLead._id,
+          });
+        }
+      }
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
@@ -559,7 +580,7 @@ export default {
       const index = this.leads.indexOf(item);
       let itemId = this.leads[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("leadsModule/delete", itemId);
+        await this.$store.dispatch("cleanLeadsModule/delete", itemId);
         this.leads.splice(index, 1);
       }
     },
@@ -577,7 +598,7 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this.leads[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("leadsModule/update", {
+          await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
@@ -628,7 +649,10 @@ export default {
             fuente == "www.annchery.cl"
               ? "Chile"
               : "Peru";
-          await this.$store.dispatch("leadsModule/create", this.editedItem);
+          await this.$store.dispatch(
+            "cleanLeadsModule/create",
+            this.editedItem
+          );
           //refrescar tabla
           this.initialize(
             this.buildPayloadPagination(null, this.buildSearch())
