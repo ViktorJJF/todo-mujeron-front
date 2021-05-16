@@ -131,14 +131,6 @@
                             </p>
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
-                            <p class="body-1 font-weight-bold">Nombres</p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.nombre"
-                              label="Nombres"
-                            />
-                          </v-col>
-                          <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Teléfono</p>
                             <VTextFieldWithValidation
                               rules=""
@@ -146,32 +138,33 @@
                               label="Teléfono"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" md="6">
-                            <p class="body-1 font-weight-bold">Email</p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.email"
-                              label="Email"
-                            />
-                          </v-col>
-                          <v-col cols="12" sm="6" md="6">
-                            <p class="body-1 font-weight-bold">Ciudad</p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.ciudad"
-                              label="Ciudad"
-                            />
+                        </v-row>
+                        <v-row
+                          v-for="(detail, detailIndex) in editedItem.details"
+                          :key="detail._id"
+                        >
+                          <v-col
+                            v-show="editedItem.details.length > 1"
+                            cols="12"
+                            sm="12"
+                          >
+                            <div class="striped-border">
+                              <p class="body-1 font-weight-bold">
+                                Origen N° {{ detailIndex + 1 }}
+                              </p>
+                            </div>
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Fuente</p>
                             <v-select
-                              v-model="editedItem.fuente"
+                              v-model="detail.fuente"
                               :items="sourceSelectList"
                               hide-selected
                               item-value="_id"
                               item-text="name"
                               placeholder="Selecciona la fuente"
                               outlined
+                              hide-details
                               dense
                               class="mt-2"
                               clearable
@@ -179,25 +172,50 @@
                             </v-select>
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
+                            <p class="body-1 font-weight-bold">Nombres</p>
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.nombre"
+                              label="Nombres"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6" md="6">
+                            <p class="body-1 font-weight-bold">Email</p>
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.email"
+                              label="Email"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6" md="6">
+                            <p class="body-1 font-weight-bold">Ciudad</p>
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.ciudad"
+                              label="Ciudad"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Nota</p>
                             <v-textarea
                               label="Notas referentes a este lead..."
-                              v-model="editedItem.nota"
+                              v-model="detail.nota"
                               outlined
                               hide-details="auto"
                             ></v-textarea>
                           </v-col>
-                          <v-col cols="12" sm="12" md="12">
-                            <span class="body-1 font-weight-bold mr-3">
-                              Cambiar estado a Informado al agente:
-                            </span>
-                            <v-switch
-                              style="display:inline-block;"
-                              v-model="cambiarAInformadoAgente"
-                            ></v-switch>
-                          </v-col>
+                        </v-row>
+                        <v-col cols="12" sm="12" md="12">
+                          <span class="body-1 font-weight-bold mr-3">
+                            Cambiar estado a Informado al agente:
+                          </span>
+                          <v-switch
+                            style="display: inline-block"
+                            v-model="cambiarAInformadoAgente"
+                          ></v-switch>
+                        </v-col>
 
-                          <!-- <v-col cols="12" sm="12" md="12">
+                        <!-- <v-col cols="12" sm="12" md="12">
                             <span class="font-weight-bold">Estado</span>
                             <v-select
                               hide-details
@@ -208,7 +226,6 @@
                               outlined
                             ></v-select>
                             </v-col>-->
-                        </v-row>
                       </v-container>
                       <v-card-actions rd-actions>
                         <div class="flex-grow-1"></div>
@@ -235,7 +252,7 @@
                     ? leads.length
                     : $store.state.itemsPerPage
                 }}
-                de {{ $store.state.leadsModule.total }} registros
+                de {{ $store.state.cleanLeadsModule.total }} registros
               </span>
             </v-col>
             <div class="text-center pt-2">
@@ -252,13 +269,6 @@
           {{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
           {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
         </template> -->
-        <template v-slot:[`item.fuente`]="{ item }">
-          {{
-            sourceSelectList.find((el) => el._id === item.fuente)
-              ? sourceSelectList.find((el) => el._id === item.fuente).name
-              : item.fuente
-          }}
-        </template>
         <template v-slot:[`item.action`]="{ item }">
           <v-btn
             class="mr-3 mb-1"
@@ -278,12 +288,40 @@
           {{ item.telefonoId.agenteId.nombre }}
           {{ item.telefonoId.agenteId.apellido }} ({{ item.telefonoId.numero }})
         </template>
-        <template v-slot:[`item.createdAt`]="{ item }">{{
-          item.createdAt | formatDate
+        <template v-slot:[`item.updatedAt`]="{ item }">{{
+          item.updatedAt | formatDate
         }}</template>
         <template v-slot:[`item.status`]="{ item }">
           <v-chip v-if="item.status" color="success">Activo</v-chip>
           <v-chip v-else color="error">Inactivo</v-chip>
+        </template>
+        <template v-slot:[`item.fuente`]="{ item }">
+          <v-simple-table dense class="pa-6">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">Fuente</th>
+                  <th class="text-left">Nombre Facebook</th>
+                  <th class="text-left">Nombre</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="detail in item.details" :key="detail._id">
+                  <td>
+                    {{
+                      sourceSelectList.find((el) => el._id === detail.fuente)
+                        ? sourceSelectList.find(
+                            (el) => el._id === detail.fuente
+                          ).name
+                        : detail.fuente
+                    }}
+                  </td>
+                  <td>{{ detail.appName }}</td>
+                  <td>{{ detail.nombre }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
         </template>
         <template v-slot:[`item.estado`]="{ item }">
           <v-chip class="ma-2" color="pink" text-color="white">
@@ -299,7 +337,7 @@
               ? leads.length
               : $store.state.itemsPerPage
           }}
-          de {{ $store.state.leadsModule.total }} registros
+          de {{ $store.state.cleanLeadsModule.total }} registros
         </span>
       </v-col>
       <div class="text-center pt-2">
@@ -327,7 +365,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -348,10 +386,10 @@ export default {
     pagination: {},
     headers: [
       {
-        text: "Creado",
+        text: "Última Actualización",
         align: "left",
         sortable: false,
-        value: "createdAt",
+        value: "updatedAt",
       },
       {
         text: "Agente",
@@ -360,10 +398,10 @@ export default {
         value: "agente",
       },
       {
-        text: "Nombre",
+        text: "Detalle del lead",
         align: "left",
         sortable: false,
-        value: "nombre",
+        value: "fuente",
       },
       {
         text: "Teléfono",
@@ -395,10 +433,10 @@ export default {
 
   computed: {
     totalItems() {
-      return this.$store.state.leadsModule.total;
+      return this.$store.state.cleanLeadsModule.total;
     },
     totalPages() {
-      return this.$store.state.leadsModule.totalPages;
+      return this.$store.state.cleanLeadsModule.totalPages;
     },
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo lead" : "Editar lead";
@@ -446,16 +484,17 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
-        sort: "createdAt",
+        sort: "updatedAt",
         order: "desc",
       };
       body["estado"] = "RE-CONECTAR";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
+      await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
-      this.leads = this.$store.state.leadsModule.leads;
+      this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
+      console.log("los leads: ", this.leads);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
@@ -525,7 +564,7 @@ export default {
       const index = this.leads.indexOf(item);
       let itemId = this.leads[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("leadsModule/delete", itemId);
+        await this.$store.dispatch("cleanLeadsModule/delete", itemId);
         this.leads.splice(index, 1);
       }
     },
@@ -546,7 +585,7 @@ export default {
           this.editedItem.estado = "INFORMADO AL AGENTE";
         let itemId = this.leads[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("leadsModule/update", {
+          await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
@@ -563,7 +602,7 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "leadsModule/create",
+            "cleanLeadsModule/create",
             this.editedItem
           );
           this.leads.push(newItem);

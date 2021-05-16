@@ -111,16 +111,6 @@
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row dense>
-                          <v-col cols="12" sm="6" md="6">
-                            <p class="body-1 font-weight-bold">
-                              ID de Contacto
-                            </p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.contactId"
-                              label="ID de Contacto"
-                            />
-                          </v-col>
                           <v-col
                             v-if="editedItem.labels"
                             cols="12"
@@ -150,14 +140,6 @@
                               {{ label.labelId.name }}
                             </v-chip>
                           </v-col>
-                          <v-col cols="12" sm="12" md="12">
-                            <p class="body-1 font-weight-bold">Nombres</p>
-                            <VTextFieldWithValidation
-                              rules=""
-                              v-model="editedItem.nombre"
-                              label="Nombres"
-                            />
-                          </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Teléfono</p>
                             <VTextFieldWithValidation
@@ -166,11 +148,63 @@
                               label="Teléfono"
                             />
                           </v-col>
+                        </v-row>
+                        <v-row
+                          v-for="(detail, detailIndex) in editedItem.details"
+                          :key="detail._id"
+                        >
+                          <v-col
+                            v-show="editedItem.details.length > 1"
+                            cols="12"
+                            sm="12"
+                          >
+                            <div class="striped-border">
+                              <p class="body-1 font-weight-bold">
+                                Origen N° {{ detailIndex + 1 }}
+                              </p>
+                            </div>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="6">
+                            <p class="body-1 font-weight-bold">Fuente</p>
+                            <v-select
+                              v-model="detail.fuente"
+                              :items="sourceSelectList"
+                              hide-selected
+                              item-value="_id"
+                              item-text="name"
+                              placeholder="Selecciona la fuente"
+                              outlined
+                              hide-details
+                              dense
+                              class="mt-2"
+                              clearable
+                            >
+                            </v-select>
+                          </v-col>
+                          <v-col cols="12" sm="6"> </v-col>
+                          <v-col cols="12" sm="6" md="6">
+                            <p class="body-1 font-weight-bold">
+                              ID de Contacto
+                            </p>
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.contactId"
+                              label="ID de Contacto"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="12" md="12">
+                            <p class="body-1 font-weight-bold">Nombres</p>
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.nombre"
+                              label="Nombres"
+                            />
+                          </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Email</p>
                             <VTextFieldWithValidation
                               rules=""
-                              v-model="editedItem.email"
+                              v-model="detail.email"
                               label="Email"
                             />
                           </v-col>
@@ -178,32 +212,15 @@
                             <p class="body-1 font-weight-bold">Ciudad</p>
                             <VTextFieldWithValidation
                               rules=""
-                              v-model="editedItem.ciudad"
+                              v-model="detail.ciudad"
                               label="Ciudad"
                             />
-                          </v-col>
-
-                          <v-col cols="12" sm="6" md="6">
-                            <p class="body-1 font-weight-bold">Fuente</p>
-                            <v-select
-                              v-model="editedItem.fuente"
-                              :items="sourceSelectList"
-                              hide-selected
-                              item-value="_id"
-                              item-text="name"
-                              placeholder="Selecciona la fuente"
-                              outlined
-                              dense
-                              class="mt-2"
-                              clearable
-                            >
-                            </v-select>
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Asunto</p>
                             <VTextFieldWithValidation
                               rules=""
-                              v-model="editedItem.msnActivaDefault"
+                              v-model="detail.msnActivaDefault"
                               label="Asunto"
                             />
                           </v-col>
@@ -216,7 +233,7 @@
                             <p class="body-1 font-weight-bold">Nota</p>
                             <v-textarea
                               label="Notas referentes a este lead..."
-                              v-model="editedItem.nota"
+                              v-model="detail.nota"
                               outlined
                               hide-details="auto"
                             ></v-textarea>
@@ -290,17 +307,38 @@
           >
         </template>
         <template v-slot:[`item.fuente`]="{ item }">
-          {{
-            sourceSelectList.find((el) => el._id === item.fuente)
-              ? sourceSelectList.find((el) => el._id === item.fuente).name
-              : item.fuente
-          }}
+          <v-simple-table dense class="pa-6">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">Fuente</th>
+                  <th class="text-left">Nombre Facebook</th>
+                  <th class="text-left">Nombre</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="detail in item.details" :key="detail._id">
+                  <td>
+                    {{
+                      sourceSelectList.find((el) => el._id === detail.fuente)
+                        ? sourceSelectList.find(
+                            (el) => el._id === detail.fuente
+                          ).name
+                        : detail.fuente
+                    }}
+                  </td>
+                  <td>{{ detail.appName }}</td>
+                  <td>{{ detail.nombre }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
         </template>
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
         </template>
-        <template v-slot:[`item.createdAt`]="{ item }">{{
-          item.createdAt | formatDate
+        <template v-slot:[`item.updatedAt`]="{ item }">{{
+          item.updatedAt | formatDate
         }}</template>
         <template v-slot:[`item.status`]="{ item }">
           <v-chip v-if="item.status" color="success">Activo</v-chip>
@@ -352,7 +390,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Leads from "@/classes/Leads";
+import Leads from "@/classes/CleanLeads";
 import { getRandomInt, buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
@@ -385,25 +423,13 @@ export default {
         text: "Última actualización",
         align: "left",
         sortable: false,
-        value: "createdAt",
+        value: "updatedAt",
       },
       {
-        text: "Fuente",
+        text: "Detalle del lead",
         align: "left",
         sortable: false,
         value: "fuente",
-      },
-      {
-        text: "Nombre FB",
-        align: "left",
-        sortable: false,
-        value: "appName",
-      },
-      {
-        text: "Nombre",
-        align: "left",
-        sortable: false,
-        value: "nombre",
       },
       {
         text: "Teléfono",
@@ -503,29 +529,8 @@ export default {
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
-      this.leads = [];
-      let preLeads = this.$store.state.cleanLeadsModule.cleanLeads;
-      for (const preLead of preLeads) {
-        for (const detail of preLead.details) {
-          this.leads.push({
-            appName: detail.appName,
-            ciudad: detail.ciudad,
-            contactId: detail.contactId,
-            createdAt: preLead.createdAt,
-            email: detail.email,
-            estado: preLead.estado,
-            fuente: detail.fuente,
-            labels: detail.labels,
-            msnActivaDefault: detail.msnActivaDefault,
-            nombre: detail.nombre,
-            pais: detail.pais,
-            telefono: preLead.telefono,
-            telefonoId: preLead.telefonoId,
-            updatedAt: preLead.updatedAt,
-            _id: preLead._id,
-          });
-        }
-      }
+
+      this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
@@ -623,32 +628,33 @@ export default {
             let randomContact =
               contactos[getRandomInt(0, contactos.length - 1)];
             this.editedItem.telefonoId = randomContact.telefonoId._id;
-            this.editedItem.msnActivaDefault = this.editedItem.msnActivaDefault
-              ? this.editedItem.msnActivaDefault
+            this.editedItem.details[0].msnActivaDefault = this.editedItem
+              .details[0].msnActivaDefault
+              ? this.editedItem.details[0].msnActivaDefault
               : "SIN CONSULTA";
             //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            this.editedItem.details[0].nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.details[0].nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.details[0].msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
             this.editedItem.estado = "RE-CONECTAR";
           } else {
             //Generando nota
             this.editedItem.estado = "SIN ASIGNAR";
           }
           //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.pais = this.editedItem.pais || "Peru";
+          this.editedItem.details[0].pais =
+            this.editedItem.details[0].pais || "Peru";
           let fuente = this.sourceSelectList.find(
-            (el) => el._id === this.editedItem.fuente
+            (el) => el._id === this.editedItem.details[0].fuente
           )
             ? this.sourceSelectList.find(
-                (el) => el._id === this.editedItem.fuente
+                (el) => el._id === this.editedItem.details[0].fuente
               ).name
-            : this.editedItem.fuente;
-          this.editedItem.pais =
-            fuente == "www.mujeron.cl" ||
-            fuente == "www.pushup.cl" ||
-            fuente == "www.fajassalome.cl" ||
-            fuente == "www.annchery.cl"
-              ? "Chile"
-              : "Peru";
+            : this.editedItem.details[0].fuente;
+          this.editedItem.details[0].pais = fuente.includes(".cl")
+            ? "Chile"
+            : fuente.includes(".co")
+            ? "Colombia"
+            : "Peru";
+          this.editedItem.details[0].type = "PAGINA"; //pagina por defecto
           await this.$store.dispatch(
             "cleanLeadsModule/create",
             this.editedItem

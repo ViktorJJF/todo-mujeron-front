@@ -14,6 +14,12 @@ const module = {
         api
           .list(query)
           .then((response) => {
+            let cleanLeads = response.data.payload;
+            for (const cleanLead of cleanLeads) {
+              cleanLead.details = cleanLead.details.sort(function(a, b) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+              });
+            }
             commit("list", response.data.payload);
             commit("totalItems", response.data.totalDocs);
             commit("totalPages", response.data.totalPages);

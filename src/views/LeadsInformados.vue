@@ -174,7 +174,7 @@
                               Cambiar estado a Informado al agente:
                             </span>
                             <v-switch
-                              style="width:20px;"
+                              style="width: 20px"
                               v-model="cambiarAInformadoAgente"
                             ></v-switch>
                           </v-col>
@@ -217,7 +217,7 @@
                     ? leads.length
                     : $store.state.itemsPerPage
                 }}
-                de {{ $store.state.leadsModule.total }} registros
+                de {{ $store.state.cleanLeadsModule.total }} registros
               </span>
             </v-col>
             <div class="text-center pt-2">
@@ -236,7 +236,7 @@
           </v-chip>
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-switch @change="updateState(item)" style="width:20px;"></v-switch>
+          <v-switch @change="updateState(item)" style="width: 20px"></v-switch>
         </template>
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
@@ -245,8 +245,37 @@
           {{ item.telefonoId.agenteId.nombre }}
           {{ item.telefonoId.agenteId.apellido }} ({{ item.telefonoId.numero }})
         </template>
-        <template v-slot:[`item.createdAt`]="{ item }">
-          {{ item.createdAt | formatDate }}</template
+        <template v-slot:[`item.fuente`]="{ item }">
+          <v-simple-table dense class="pa-6">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">Fuente</th>
+                  <th class="text-left">Nombre Facebook</th>
+                  <th class="text-left">Nombre</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="detail in item.details" :key="detail._id">
+                  <td>
+                    {{
+                      sourceSelectList.find((el) => el._id === detail.fuente)
+                        ? sourceSelectList.find(
+                            (el) => el._id === detail.fuente
+                          ).name
+                        : detail.fuente
+                    }}
+                  </td>
+                  <td>{{ detail.appName }}</td>
+                  <td>{{ detail.nombre }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </template>
+
+        <template v-slot:[`item.updatedAt`]="{ item }">
+          {{ item.updatedAt | formatDate }}</template
         >
         <template v-slot:[`item.status`]="{ item }">
           <v-chip v-if="item.status" color="success">Activo</v-chip>
@@ -261,7 +290,7 @@
               ? leads.length
               : $store.state.itemsPerPage
           }}
-          de {{ $store.state.leadsModule.total }} registros
+          de {{ $store.state.cleanLeadsModule.total }} registros
         </span>
       </v-col>
       <div class="text-center pt-2">
@@ -289,7 +318,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -310,10 +339,10 @@ export default {
     pagination: {},
     headers: [
       {
-        text: "Creado",
+        text: "Última Actualización",
         align: "left",
         sortable: false,
-        value: "createdAt",
+        value: "updatedAt",
       },
       {
         text: "Agente",
@@ -322,10 +351,10 @@ export default {
         value: "agente",
       },
       {
-        text: "Nombre",
+        text: "Detalle del lead",
         align: "left",
         sortable: false,
-        value: "nombre",
+        value: "fuente",
       },
       {
         text: "Teléfono",
@@ -357,13 +386,27 @@ export default {
 
   computed: {
     totalItems() {
-      return this.$store.state.leadsModule.total;
+      return this.$store.state.cleanLeadsModule.total;
     },
     totalPages() {
-      return this.$store.state.leadsModule.totalPages;
+      return this.$store.state.cleanLeadsModule.totalPages;
     },
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo lead" : "Editar lead";
+    },
+    sourceSelectList() {
+      return [
+        ...this.$store.state.botsModule.bots.map((bot) => ({
+          _id: bot._id,
+          name: bot.name,
+        })),
+        ...this.$store.state.woocommercesModule.woocommerces.map(
+          (woocommerce) => ({
+            _id: woocommerce._id,
+            name: woocommerce.domain,
+          })
+        ),
+      ];
     },
   },
 
@@ -394,16 +437,16 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
-        sort: "createdAt",
+        sort: "updatedAt",
         order: "desc",
       };
       body["estado"] = "INFORMADO AL AGENTE";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("leadsModule/list", body)]);
+      await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
-      this.leads = this.$store.state.leadsModule.leads;
+      this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
@@ -473,7 +516,7 @@ export default {
       const index = this.leads.indexOf(item);
       let itemId = this.leads[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("leadsModule/delete", itemId);
+        await this.$store.dispatch("cleanLeadsModule/delete", itemId);
         this.leads.splice(index, 1);
       }
     },
@@ -494,7 +537,7 @@ export default {
           this.editedItem.estado = "INFORMADO AL AGENTE";
         let itemId = this.leads[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("leadsModule/update", {
+          await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
@@ -511,7 +554,7 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "leadsModule/create",
+            "cleanLeadsModule/create",
             this.editedItem
           );
           this.leads.push(newItem);
@@ -524,7 +567,7 @@ export default {
     async updateState(item) {
       //cambiando estado a contactado
       item.estado = "CONTACTADO";
-      await this.$store.dispatch("leadsModule/update", {
+      await this.$store.dispatch("cleanLeadsModule/update", {
         id: item._id,
         data: item,
       });
