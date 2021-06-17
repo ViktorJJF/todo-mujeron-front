@@ -24,7 +24,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por estado: {{ search }}</span
+                >Filtrar por N°Orden o Cliente: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -33,7 +33,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre del producto"
+                    placeholder="Búsqueda por N°Orden o Cliente"
                     single-line
                     outlined
                   ></v-text-field>
@@ -264,6 +264,9 @@
             <v-chip dark v-if="item.status == 'failed'" color="amber"
               >Fallido</v-chip
             >
+            <v-chip dark v-if="item.status == 're-intento'" color="yellow"
+              >Re intentó</v-chip
+            >
             <v-chip
               dark
               v-if="item.status == 'on-hold'"
@@ -322,7 +325,13 @@ export default {
   },
   data: () => ({
     //datos del componente
-    fieldsToSearch: ["ecommercesContactId.first_name"],
+    fieldsToSearch: [
+      "foreign_first_name",
+      "foreign_last_name",
+      "status",
+      "number_idOrder",
+      "foreign_phone",
+    ],
     headers: [
       {
         text: "Última modificación",

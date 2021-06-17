@@ -67,23 +67,60 @@
                                 label="Ingresa la URL"
                               />
                             </v-col>
+                            <v-row
+                              v-show="getBotId(editedItem.postUrl)"
+                              class="mb-2"
+                            >
+                              <v-col cols="12" sm="6">
+                                <b>País: </b>
+                                {{
+                                  getBotId(editedItem.postUrl)
+                                    ? getBotId(editedItem.postUrl).country
+                                    : ""
+                                }}
+                              </v-col>
+                            </v-row>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
-                                Selecciona la Fanpage
+                                Selecciona una plantilla
                               </p>
-                              <v-select
-                                v-model="editedItem.botId"
-                                :items="$store.state.botsModule.bots"
-                                hide-selected
+                              <v-autocomplete
+                                :disabled="!getBotId(editedItem.postUrl)"
+                                item-text="nameWithCountry"
                                 item-value="_id"
-                                item-text="fanpageName"
-                                placeholder="Selecciona la fanpage"
-                                outlined
-                                dense
-                                class="mt-2"
+                                :search-input.sync="searchProduct"
+                                v-model="selectedProducts"
+                                :items="products"
+                                chips
                                 clearable
+                                label="Busca los productos"
+                                prepend-icon="mdi-filter-variant"
+                                no-data-text="No se encontraron productos"
+                                no-filter
+                                solo
+                                @change="deleteCurrentSearch"
                               >
-                              </v-select>
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="remove(item)"
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.name }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-autocomplete>
                             </v-col>
                           </v-row>
                         </v-container>
@@ -96,7 +133,7 @@
                             :loading="loadingButton"
                             color="success"
                             @click="passes(save)"
-                            >Guardar</v-btn
+                            >Crear</v-btn
                           >
                         </v-card-actions>
                       </ValidationObserver>
@@ -218,6 +255,9 @@ export default {
     },
   },
   data: () => ({
+    selectedProducts: null,
+    products: [],
+    searchProduct: "",
     filterByFanpage: null,
     page: 1,
     pageCount: 0,
@@ -281,6 +321,12 @@ export default {
   },
 
   watch: {
+    async searchProduct() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.getProducts(1);
+      }, 600);
+    },
     dialog(val) {
       val || this.close();
     },
@@ -330,12 +376,15 @@ export default {
       this.dialog = false;
       setTimeout(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
+        this.selectedProducts = null;
+        this.products = [];
         this.editedIndex = -1;
       }, 300);
     },
 
     async save() {
       this.loadingButton = true;
+      this.editedItem.botId = this.getBotId(this.editedItem.postUrl)._id;
       if (this.editedIndex > -1) {
         let itemId = this.commentsFacebook[this.editedIndex]._id;
         try {
@@ -356,6 +405,31 @@ export default {
         try {
           //agregando tipo comment/add
           this.editedItem.type = this.isCommentView ? "comment" : "ad";
+          // verificando si se agrego plantilla
+          if (this.selectedProducts) {
+            // agregando plantilla
+            console.log("el selected: ", this.selectedProducts);
+            let templates = await this.$store.dispatch(
+              "commentsFacebookModule/list",
+              {
+                ecommerceId: this.selectedProducts,
+              }
+            );
+            console.log("plantilla agregada...");
+            if (templates.length > 0) {
+              this.editedItem.postImgUrl = templates[0].postImgUrl;
+              this.editedItem.products = templates[0].products;
+              this.editedItem.selectedCategories =
+                templates[0].selectedCategories;
+              this.editedItem.responses = templates[0].responses;
+              this.editedItem.selectedLabel = templates[0].selectedLabel;
+              this.editedItem.selectedLabelIndex =
+                templates[0].selectedLabelIndex;
+              this.editedItem.selectedUrl = templates[0].selectedUrl;
+              this.editedItem.selectedUrlIndex = templates[0].selectedUrlIndex;
+              console.log("plantilla agregada...");
+            }
+          }
           let newItem = await this.$store.dispatch(
             "commentsFacebookModule/create",
             this.editedItem
@@ -367,10 +441,55 @@ export default {
         }
       }
     },
+    async getProducts(page = 1) {
+      if (!this.searchProduct) return;
+      //llamada asincrona de items
+      await Promise.all([
+        this.$store.dispatch("ecommercesModule/list", {
+          country: this.getCountryByPostLink(this.editedItem.postUrl),
+          sort: "name",
+          page,
+          search: this.searchProduct,
+          fieldsToSearch: ["name"],
+          listType: "All",
+        }),
+      ]);
+      //asignar al data del componente
+      console.log(
+        "los productos: ",
+        this.$store.state.ecommercesModule.ecommerces
+      );
+      this.products = this.$deepCopy(
+        this.$store.state.ecommercesModule.ecommerces
+      ).map((el) => ({ ...el, nameWithCountry: el.name + ` (${el.country})` }));
+    },
+    deleteCurrentSearch() {
+      this.searchProduct = "";
+    },
     clearResponses() {
       if (this.editedIndex == -1) {
         this.responses = ["", "", ""];
       }
+    },
+    getBotId(link) {
+      if (link.trim().length > 0)
+        return this.$store.state.botsModule.bots.find(
+          (bot) =>
+            bot.country == this.getCountryByPostLink(link) ||
+            link.includes(bot.fanpageId)
+        );
+    },
+    getCountryByPostLink(link) {
+      return link.toLowerCase().includes("mujeronperu")
+        ? "Peru"
+        : link.toLowerCase().includes("mujeronjeans")
+        ? "Chile"
+        : "Colombia";
+    },
+    remove(item) {
+      this.products.splice(this.products.indexOf(item), 1);
+      this.products = [...this.products];
+      this.selectedProducts = null;
     },
   },
 };

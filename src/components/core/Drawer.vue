@@ -220,6 +220,18 @@ import Woocommerces from '@/classes/Woocommerces';
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
+            :to="{ name: 'LeadsCompraRealizada' }"
+          >
+            <v-list-item-content> Compra Realizada </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'LeadsCompraFallida' }"
+          >
+            <v-list-item-content> Compra Fallida </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
             :to="{ name: 'LeadsReconectar' }"
           >
             <v-list-item-content> Re-conectar </v-list-item-content>

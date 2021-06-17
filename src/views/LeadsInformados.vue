@@ -250,6 +250,7 @@
             <template v-slot:default>
               <thead>
                 <tr>
+                  <th class="text-left">Tipo</th>
                   <th class="text-left">Fuente</th>
                   <th class="text-left">Nombre Facebook</th>
                   <th class="text-left">Nombre</th>
@@ -257,6 +258,7 @@
               </thead>
               <tbody>
                 <tr v-for="detail in item.details" :key="detail._id">
+                  <td>{{ detail.type }}</td>
                   <td>
                     {{
                       sourceSelectList.find((el) => el._id === detail.fuente)

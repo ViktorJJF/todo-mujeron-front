@@ -2,8 +2,8 @@
   <div>
     <v-divider></v-divider>
     <ValidationObserver ref="obs" v-slot="{ passes }">
-      <v-container class="pa-1 ma-2" v-if="commentFacebook">
-        <v-row dense>
+      <v-container class="pa-1 ma-2" v-if="commentFacebook || isTemplate">
+        <v-row dense v-if="!isTemplate">
           <v-col cols="12" sm="12" md="12" class="mb-2">
             <p class="body-1 font-weight-bold">URL de publicación</p>
             <!-- <VTextFieldWithValidation
@@ -111,7 +111,11 @@
                     <td>{{ product.name }}</td>
                     <td>
                       <span>
-                        {{ product.country == "Peru" ? "S/." : "$" }}
+                        {{
+                          product.country == "Peru" || country == "Peru"
+                            ? "S/."
+                            : "$"
+                        }}
                         {{
                           product.variations.length > 0
                             ? product.variations[0].regular_price
@@ -257,7 +261,7 @@
               </v-card>
             </v-col> -->
         </v-row>
-        <v-row align="center">
+        <v-row align="center" v-if="!isTemplate">
           <v-col cols="12" sm="4" class="text-center">
             <h3 class="mb-3">Vista previa</h3>
             <v-row justify="center">
@@ -278,8 +282,15 @@
                     outlined
                     color="primary"
                     @click="openLink"
-                    >Ver en mujeron.cl</v-btn
-                  >
+                    >Ver en
+                    {{
+                      commentFacebook.botId.country == "Chile"
+                        ? "mujeron.cl"
+                        : commentFacebook.botId.country == "Colombia"
+                        ? "mujeron.co"
+                        : "mujeron.pe"
+                    }}
+                  </v-btn>
                   <v-btn
                     small
                     class="wrapText mb-2"
@@ -305,7 +316,10 @@
         </v-row>
       </v-container>
       <v-card-actions rd-actions>
-        <v-btn color="primary" @click="$router.push({ name: 'CommentToMSN' })"
+        <v-btn
+          v-if="!isTemplate"
+          color="primary"
+          @click="$router.push({ name: 'CommentToMSN' })"
           >Volver Atrás</v-btn
         >
         <div class="flex-grow-1"></div>
@@ -326,6 +340,18 @@ import { es } from "date-fns/locale";
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
 export default {
+  props: {
+    isTemplate: {
+      type: Boolean,
+      default: false,
+    },
+    country: {
+      type: String,
+    },
+    productId: {
+      type: String,
+    },
+  },
   components: {
     // MaterialCard,
     VTextFieldWithValidation,
@@ -360,6 +386,7 @@ export default {
     selectedLabel: null,
     filteredLabels: [],
     customUrl: "",
+    isReady: false,
   }),
 
   computed: {
@@ -391,10 +418,27 @@ export default {
         : this.postPicture;
     },
   },
-
+  created() {
+    this.commentFacebook = {
+      responses: ["", "", ""],
+      products: [],
+      labels: [],
+      selectedCategories: [],
+      type: "template",
+      postUrl: "",
+      postImgUrl: "",
+      selectedUrl: "",
+      botId: null,
+    };
+  },
   async mounted() {
-    await this.initialize();
-    this.getPostImage();
+    if (!this.isTemplate) {
+      await this.initialize();
+      this.getPostImage();
+    } else {
+      this.initialize();
+    }
+    console.log("los active: ", this.activeProducts);
   },
   watch: {
     async searchProduct() {
@@ -416,7 +460,6 @@ export default {
       this.generateCode();
     },
     "commentFacebook.products": function (products) {
-      console.log("products: ", products);
       let urls = [];
       this.filteredLabels = [];
       for (const product of products) {
@@ -455,27 +498,44 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([
-        this.$store.dispatch("commentsFacebookModule/list", {
-          limit: 9999,
-          _id: this.$route.params.id,
-        }),
-        this.$store.dispatch("facebookLabelsModule/list"),
-        { limit: 9999 },
-      ]);
-      this.commentsFacebook = this.$deepCopy(
-        this.$store.state.commentsFacebookModule.commentsFacebook
-      );
-      console.log("asignando...");
-      this.commentFacebook = this.commentsFacebook.find(
-        (commentFacebook) => commentFacebook._id === this.$route.params.id
-      );
+      if (!this.isTemplate) {
+        await Promise.all([
+          this.$store.dispatch("commentsFacebookModule/list", {
+            limit: 9999,
+            _id: this.$route.params.id,
+          }),
+          this.$store.dispatch("facebookLabelsModule/list"),
+          { limit: 9999 },
+        ]);
+        this.commentsFacebook = this.$deepCopy(
+          this.$store.state.commentsFacebookModule.commentsFacebook
+        );
+        this.commentFacebook = this.commentsFacebook.find(
+          (commentFacebook) => commentFacebook._id === this.$route.params.id
+        );
+      } else {
+        await Promise.all([
+          this.$store.dispatch("facebookLabelsModule/list"),
+          { limit: 9999 },
+        ]);
+        // buscando si existe plantilla asociada a producto
+        let commentsFacebok = await this.$store.dispatch(
+          "commentsFacebookModule/list",
+          {
+            ecommerceId: this.productId,
+          }
+        );
+        if (commentsFacebok.length > 0) {
+          this.commentFacebook = commentsFacebok[0];
+        }
+      }
       this.originalCommentFacebook = JSON.parse(
         JSON.stringify(this.commentFacebook.responses)
       );
-      this.facebookLabels = this.$store.state.facebookLabelsModule.facebookLabels.filter(
-        (el) => !el.name.includes("ad_id.")
-      );
+      this.facebookLabels =
+        this.$store.state.facebookLabelsModule.facebookLabels.filter(
+          (el) => !el.name.includes("ad_id.")
+        );
       //inicializando URL seleccionados
       if (
         !this.commentFacebook.selectedUrlIndex &&
@@ -484,6 +544,7 @@ export default {
         this.customUrl = this.commentFacebook.selectedUrl;
       //inicializando categorias seleccionadas
       this.selectedCategories = this.commentFacebook.selectedCategories;
+      this.isReady = true;
     },
     async getPostImage() {
       let postId = this.commentFacebook.postUrl.match(/\d+/g)[0];
@@ -512,24 +573,39 @@ export default {
         this.commentFacebook.selectedCategories = this.selectedCategories;
         //aca se sobreescribe la url seleccionada por la custom (si hubiera)
         this.commentFacebook.selectedUrl = this.getCurrentUrl();
-        this.commentFacebook.selectedLabel = this.filteredLabels[
-          parseInt(this.commentFacebook.selectedLabelIndex)
-        ]._id;
-        console.log("guardare: ", this.commentFacebook);
-        await this.$store.dispatch("commentsFacebookModule/update", {
-          id: this.commentFacebook._id,
-          data: this.commentFacebook,
-        });
+        this.commentFacebook.selectedLabel =
+          this.filteredLabels[
+            parseInt(this.commentFacebook.selectedLabelIndex)
+          ]._id;
+        if (
+          this.isTemplate &&
+          this.commentFacebook.postImgUrl.trim().length == 0
+        )
+          throw new Error("Falta imagen personalizada");
+        if (!this.isTemplate || this.commentFacebook._id) {
+          await this.$store.dispatch("commentsFacebookModule/update", {
+            id: this.commentFacebook._id,
+            data: this.commentFacebook,
+          });
+        } else {
+          //agregando tipo template
+          this.commentFacebook.type = "template";
+          this.commentFacebook.ecommerceId = this.productId;
+          await this.$store.dispatch(
+            "commentsFacebookModule/create",
+            this.commentFacebook
+          );
+        }
       } catch (error) {
         console.log(error);
         this.$swal({
           icon: "error",
           title: "Es probable que se diera alguno de estos errores",
-          html:
-            "<ul>Falta seleccionar una etiqueta<ul>Falta seleccionar una categoría<br>Falta seleccionar una URL o completar URL personalizada</ul>",
+          html: "<ul>Falta colocar imagen personalizada (si es plantilla)<ul><ul>Falta seleccionar una etiqueta<ul>Falta seleccionar una categoría<br>Falta seleccionar una URL o completar URL personalizada</ul>",
         });
       } finally {
         this.loadingButton = false;
+        this.$emit("saved");
       }
     },
     getCurrentUrl() {
@@ -556,11 +632,14 @@ export default {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
-          country: this.commentFacebook.botId.country,
+          country: !this.isTemplate
+            ? this.commentFacebook.botId.country
+            : this.country,
           sort: "name",
           page,
           search: this.searchProduct,
           fieldsToSearch: ["name"],
+          listType: "All",
         }),
       ]);
       //asignar al data del componente
@@ -609,17 +688,9 @@ export default {
       }));
       this.commentFacebook.selectedCategories = this.selectedCategories;
       // .filter((el) => !!el);
-      console.log("categorias seleccionadas: ", this.selectedCategories);
       this.commentFacebook.products = this.commentFacebook.products.slice();
     },
     getFilteredLabels(categoryId) {
-      console.log("el id de categoria: ", categoryId);
-      console.log(
-        "el retorno: ",
-        this.facebookLabels.filter(
-          (label) => label.foreignLabelId == categoryId
-        )
-      );
       return this.facebookLabels.filter(
         (label) => label.foreignLabelId == categoryId
       );
@@ -634,7 +705,11 @@ export default {
           quickReplies.push({
             content_type: "text",
             title: `Precio ${product.ref}`,
-            payload: `${category.categoryName}-${product.variations[0].regular_price}-${product.ref}-${product.permalink}`,
+            payload: `${category.categoryName}-${
+              product.variations.length > 0
+                ? product.variations[0].regular_price
+                : "sin precio"
+            }-${product.ref}-${product.permalink}`,
           });
       }
       let code = {
@@ -652,7 +727,13 @@ export default {
                     {
                       type: "web_url",
                       url: this.getCurrentUrl(),
-                      title: "Ver en mujeron.cl",
+                      title: `Ver en ${
+                        this.commentFacebook.botId.country == "Chile"
+                          ? "mujeron.cl"
+                          : this.commentFacebook.botId.country == "Colombia"
+                          ? "mujeron.co"
+                          : "mujeron.pe"
+                      } `,
                     },
                     {
                       type: "postback",

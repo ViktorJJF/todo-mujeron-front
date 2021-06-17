@@ -37,6 +37,20 @@
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
+                  <v-btn
+                    color="success"
+                    @click="
+                      filterWithoutRef = !filterWithoutRef;
+                      filterWithoutRefMethods();
+                    "
+                    >{{
+                      filterWithoutRef
+                        ? "Ver todos los productos"
+                        : "Filtrar productos sin referencia"
+                    }}</v-btn
+                  >
+                </v-col>
+                <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <!-- <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">{{
@@ -134,8 +148,20 @@
           }}</template>
           <template v-slot:[`item.permalink`]="{ item }">
             <a :href="item.permalink" target="_blank"
-              ><v-btn color="primary" small>Visitar</v-btn>
+              ><v-btn class="mt-3" color="primary" small>Visitar</v-btn>
             </a>
+            <v-btn
+              class="mt-1"
+              color="info"
+              dark
+              @click.stop="
+                dialogTemplate = true;
+                templateCountry = item.country;
+                productId = item._id;
+              "
+            >
+              Comment to MSN
+            </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
             <ul
@@ -186,6 +212,20 @@
         </div>
       </material-card>
     </v-row>
+
+    <v-dialog v-model="dialogTemplate" max-width="890">
+      <v-card class="pa-5">
+        <CommentToMSNUpdate
+          :key="keyNumber"
+          @click="keyNumber += 1"
+          v-if="templateCountry && productId && dialogTemplate"
+          :isTemplate="true"
+          :country="templateCountry"
+          :productId="productId"
+          @saved="dialogTemplate = false"
+        ></CommentToMSNUpdate>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -199,12 +239,14 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    CommentToMSNUpdate,
   },
   filters: {
     formatDate: function (value) {
@@ -214,6 +256,10 @@ export default {
     },
   },
   data: () => ({
+    keyNumber: 0,
+    productId: null,
+    templateCountry: null,
+    dialogTemplate: false,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -272,6 +318,7 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    filterWithoutRef: false,
   }),
   computed: {
     formTitle() {
@@ -295,6 +342,16 @@ export default {
     this.initialize();
   },
   methods: {
+    filterWithoutRefMethods() {
+      if (this.filterWithoutRef) {
+        this[ENTITY] = this[ENTITY].filter(
+          (el) => el.ref == "" || !el.ref || el.ref == " "
+        );
+      } else
+        this[ENTITY] = JSON.parse(
+          JSON.stringify(this.$store.state.ecommercesModule.ecommerces)
+        );
+    },
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
@@ -332,6 +389,7 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
+        console.log("actualizando: ", this.editedItem);
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
           await this.$store.dispatch(ENTITY + "Module/update", {
@@ -345,6 +403,7 @@ export default {
         }
       } else {
         //create item
+        console.log("creando...", this.editedItem);
         try {
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",

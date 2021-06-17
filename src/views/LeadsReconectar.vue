@@ -111,16 +111,36 @@
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row dense>
-                          <v-col cols="12" sm="12" md="12">
-                            <v-chip
-                              dark
-                              class="mb-1 mr-1"
-                              color="pink"
-                              v-for="label in editedItem.labels"
-                              :key="label._id"
-                            >
-                              {{ label.labelId.name }}
-                            </v-chip>
+                          <v-col
+                            v-for="detail in editedItem.details"
+                            :key="detail._id"
+                            cols="12"
+                            sm="12"
+                            md="12"
+                          >
+                            <div v-if="detail.labels">
+                              <v-chip
+                                dark
+                                class="mb-1 mr-1"
+                                color="pink"
+                                v-for="label in detail.labels
+                                  .filter((el) => el.labelId)
+                                  .reduce((unique, o) => {
+                                    if (
+                                      !unique.some(
+                                        (obj) =>
+                                          obj.labelId.name === o.labelId.name
+                                      )
+                                    ) {
+                                      unique.push(o);
+                                    }
+                                    return unique;
+                                  }, [])"
+                                :key="label._id"
+                              >
+                                {{ label.labelId.name }}
+                              </v-chip>
+                            </div>
                           </v-col>
                         </v-row>
                         <v-row dense>
@@ -300,6 +320,7 @@
             <template v-slot:default>
               <thead>
                 <tr>
+                  <th class="text-left">Tipo</th>
                   <th class="text-left">Fuente</th>
                   <th class="text-left">Nombre Facebook</th>
                   <th class="text-left">Nombre</th>
@@ -307,6 +328,7 @@
               </thead>
               <tbody>
                 <tr v-for="detail in item.details" :key="detail._id">
+                  <td>{{ detail.type }}</td>
                   <td>
                     {{
                       sourceSelectList.find((el) => el._id === detail.fuente)

@@ -501,13 +501,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        // let itemId = this.contactos[this.editedIndex]._id;
+        let itemId = this.contactos[this.editedIndex]._id;
         try {
           console.log("el item a actualizar: ", this.editedItem);
-          // await this.$store.dispatch("contactosModule/update", {
-          //   id: itemId,
-          //   data: this.editedItem,
-          // });
+          await this.$store.dispatch("contactosModule/update", {
+            id: itemId,
+            data: this.editedItem,
+          });
           Object.assign(this.contactos[this.editedIndex], this.editedItem);
           this.close();
         } finally {

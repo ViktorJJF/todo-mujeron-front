@@ -78,5 +78,13 @@
         "EDIT_ITEM": "Editar contacto",
         "NO_DATA": "Aún no cuentas con Contactos de Woocommerce",
         "NO_RESULTS": "No hay resultados"
+    },
+    "ecommercesOrders": {
+        "TITLE": "Órdenes de Woocommerce",
+        "SUBTITLE": "Listado de órdenes Woocommerce",
+        "NEW_ITEM": "Nueva contacto",
+        "EDIT_ITEM": "Editar contacto",
+        "NO_DATA": "Aún no cuentas con Órdenes de Woocommerce",
+        "NO_RESULTS": "No hay resultados"
     }
 }

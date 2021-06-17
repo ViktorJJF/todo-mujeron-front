@@ -112,6 +112,16 @@ let routes = [
         component: () => import("@/views/LeadsInformados.vue"),
       },
       {
+        path: "/lead/compra-realizada",
+        name: "LeadsCompraRealizada",
+        component: () => import("@/views/LeadsCompraRealizada.vue"),
+      },
+      {
+        path: "/lead/compra-fallida",
+        name: "LeadsCompraFallida",
+        component: () => import("@/views/LeadsCompraFallida.vue"),
+      },
+      {
         path: "/lead/todos",
         name: "LeadsTodos",
         component: () => import("@/views/LeadsTodos.vue"),

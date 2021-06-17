@@ -401,6 +401,10 @@ export default {
               source: "EcommercesTags",
             })
           );
+        case "Atributos":
+          return this.getAttributesWithValues(
+            this.$store.state.ecommercesAttributesModule.ecommercesAttributes
+          );
         default:
           return [
             "Todofull",
@@ -503,7 +507,6 @@ export default {
       }
     },
     async updateFacebookLabel(newItem) {
-      console.log(newItem);
       if (newItem.foreignLabelId.nameWithCountry == "Volver Atrás") {
         //volver atras en el menu
         this.selectedOption = null;
@@ -573,8 +576,39 @@ export default {
         ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
         ...this.$store.state.ecommercesTagsModule.ecommercesTags,
         ...this.$store.state.todofullLabelsModule.todofullLabels,
+        ...this.getAttributesWithValues(
+          this.$store.state.ecommercesAttributesModule.ecommercesAttributes
+        ),
       ];
       return data.find((el) => el._id == id);
+    },
+    getAttributesWithValues(attributes) {
+      let attributesWithValues = [];
+      for (const attribute of attributes) {
+        for (const term of attribute.terms) {
+          attributesWithValues.push({
+            name: attribute.name + " " + term.name,
+            _id: term._id,
+            country: attribute.woocommerceId.country,
+            nameWithCountry:
+              attribute.name +
+              " " +
+              term.name +
+              (attribute.woocommerceId.country
+                ? ` (${attribute.woocommerceId.country})`
+                : ""),
+            source: "EcommercesAttributes",
+          });
+        }
+      }
+      return attributesWithValues.sort((a, b) =>
+        this.sortAlphabetically(a, b, "nameWithCountry")
+      );
+    },
+    sortAlphabetically(a, b, attribute) {
+      var textA = a[attribute].toUpperCase();
+      var textB = b[attribute].toUpperCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
     },
   },
 };

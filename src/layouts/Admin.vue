@@ -57,6 +57,7 @@ export default {
         this.$store.dispatch("brandsModule/list"),
         this.$store.dispatch("categoriesModule/list"),
         this.$store.dispatch("ecommercesCategoriesModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list"),
         this.$store.dispatch("ecommercesTagsModule/list"),
         this.$store.dispatch("todofullLabelsModule/list"),
       ]);
