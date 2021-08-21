@@ -3,11 +3,11 @@
     <v-row>
       <v-col cols="12" sm="12">
         <v-img
-          v-if="this.isWhatsappRestarted"
           class="fadeIn first circular mt-3"
           aspect-ratio="4"
           contain
-          :src="whatsappQr"
+          :src="whatsappQrFullSource"
+          :key="refreshImage"
         ></v-img>
       </v-col>
       <v-col cols="12" sm="12" class="text-center">
@@ -17,7 +17,11 @@
           color="error"
           >Reiniciar sesión</v-btn
         >
-        <v-btn class="ml-2" @click="refresh" color="secondary"
+        <v-btn
+          v-show="this.isWhatsappRestarted"
+          class="ml-2"
+          @click="refresh"
+          color="secondary"
           >Refrescar QR</v-btn
         >
       </v-col>
@@ -37,6 +41,7 @@ export default {
     },
   },
   data: () => ({
+    refreshImage: 0,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -82,12 +87,16 @@ export default {
     defaultItem: Agentes(),
     locaciones: [],
     isWhatsappRestarted: true,
-    whatsappQr: "",
+    whatsappQr: "https://todo-full.digital/whatsappqr.png",
+    dummy: Date.now(),
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo agente" : "Editar agente";
+    },
+    whatsappQrFullSource() {
+      return this.whatsappQr + "?dummy=" + this.dummy;
     },
   },
 
@@ -117,21 +126,19 @@ export default {
       });
     },
     async refresh() {
-      this.isWhatsappRestarted = false;
-      await this.timeout(50);
-      this.isWhatsappRestarted = true;
+      console.log("refrescando...");
+      this.dummy = Date.now();
+      this.refreshImage += 1;
     },
     async restartWhatsappSession() {
       this.isWhatsappRestarted = false;
       await whatsapp.restartWhatsapp();
       this.isWhatsappRestarted = true;
-      await this.timeout(500);
       this.refresh();
     },
     initialize() {
       // inicializando qr whatsapp
       // this.whatsappQr = "http://localhost:3000/whatsappqr.png";
-      this.whatsappQr = "http://todo-full.digital/whatsappqr.png";
     },
     editItem(item) {
       this.editedIndex = this.agentes.indexOf(item);
