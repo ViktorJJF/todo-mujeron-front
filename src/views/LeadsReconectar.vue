@@ -305,8 +305,11 @@
           <v-alert type="error" :value="true">Aún no cuentas con leads</v-alert>
         </template>
         <template v-slot:[`item.agente`]="{ item }">
-          {{ item.telefonoId.agenteId.nombre }}
-          {{ item.telefonoId.agenteId.apellido }} ({{ item.telefonoId.numero }})
+          {{ item.telefonoId ? item.telefonoId.agenteId.nombre : "SIN AGENTE" }}
+          {{
+            item.telefonoId ? item.telefonoId.agenteId.apellido : "SIN AGENTE"
+          }}
+          ({{ item.telefonoId ? item.telefonoId.numero : "SIN NUMERO" }})
         </template>
         <template v-slot:[`item.updatedAt`]="{ item }">{{
           item.updatedAt | formatDate
@@ -515,7 +518,9 @@ export default {
       await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
-      this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
+      this.leads = this.$store.state.cleanLeadsModule.cleanLeads.filter(
+        (lead) => lead.telefonoId
+      );
       console.log("los leads: ", this.leads);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(

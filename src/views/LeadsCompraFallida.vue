@@ -515,7 +515,9 @@ export default {
       await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
       this.$store.commit("loadingModule/showLoading", false);
 
-      this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
+      this.leads = this.$store.state.cleanLeadsModule.cleanLeads.filter(
+        (lead) => lead.telefonoId
+      );
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
