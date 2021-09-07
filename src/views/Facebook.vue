@@ -53,7 +53,7 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <h3 class="mt-1">Datos de Facebook</h3>
+                              <h3 class="mt-1">Datos generales</h3>
                             </v-col>
                           </v-row>
 
@@ -64,6 +64,19 @@
                                 rules="required"
                                 v-model="editedItem.name"
                                 label="Ingresa el nombre del bot"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Plataforma</p>
+                              <v-select
+                                :items="platforms"
+                                v-model="editedItem.platform"
+                                dense
+                                hide-details
+                                placeholder="Seleccione la plataforma"
+                                outlined
                               />
                             </v-col>
                           </v-row>
@@ -86,79 +99,82 @@
                               <VTextFieldWithValidation
                                 rules=""
                                 v-model="editedItem.webhookUrl"
-                                label="Ingresa el nombre del bot"
+                                label="Ingresa el url"
                               />
                             </v-col>
                           </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Nombre Fanpage
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.fanpageName"
-                                label="Ingresa el nombre de la Fanpage"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">URL Fanpage</p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.fanpageUrl"
-                                label="Ingresa la url de la fanpage"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Fanpage ID</p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.fanpageId"
-                                label="Ingresa el ID de la Fanpage"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Fanpage Token
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.fbPageToken"
-                                label="Ingresa el token de la Fanpage"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Token de Verificación
-                              </p>
-                              <VTextFieldWithValidation
-                                disabled
-                                rules=""
-                                value="MUJERON"
-                                label="Ingresa el token (ejmp: BOTSMUJERON)"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Facebook App Secret
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.fbAppSecret"
-                                label="Ingresa el FB App Secret"
-                              />
-                            </v-col>
-                          </v-row>
+                          <template v-if="editedItem.platform === 'facebook'">
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Nombre Fanpage
+                                </p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.fanpageName"
+                                  label="Ingresa el nombre de la Fanpage"
+                                />
+                              </v-col>
+                            </v-row>
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">URL Fanpage</p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.fanpageUrl"
+                                  label="Ingresa la url de la fanpage"
+                                />
+                              </v-col>
+                            </v-row>
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">Fanpage ID</p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.fanpageId"
+                                  label="Ingresa el ID de la Fanpage"
+                                />
+                              </v-col>
+                            </v-row>
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Fanpage Token
+                                </p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.fbPageToken"
+                                  label="Ingresa el token de la Fanpage"
+                                />
+                              </v-col>
+                            </v-row>
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Token de Verificación
+                                </p>
+                                <VTextFieldWithValidation
+                                  disabled
+                                  rules=""
+                                  value="MUJERON"
+                                  label="Ingresa el token (ejmp: BOTSMUJERON)"
+                                />
+                              </v-col>
+                            </v-row>
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Facebook App Secret
+                                </p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.fbAppSecret"
+                                  label="Ingresa el FB App Secret"
+                                />
+                              </v-col>
+                            </v-row>
+                          </template>
+
                           <v-divider></v-divider>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
@@ -295,6 +311,10 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
+    platforms: [
+      {text: 'Facebook', value: 'facebook'},
+      {text: 'Telegram', value: 'telegram'}
+    ],
     headers: [
       {
         text: "Nombre Bot",
