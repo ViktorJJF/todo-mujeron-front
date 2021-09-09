@@ -68,19 +68,6 @@
                             </v-col>
                           </v-row>
                           <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Plataforma</p>
-                              <v-select
-                                :items="platforms"
-                                v-model="editedItem.platform"
-                                dense
-                                hide-details
-                                placeholder="Seleccione la plataforma"
-                                outlined
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
                             <v-col cols="12" sm="12">
                               <span class="font-weight-bold">País</span>
                               <v-select
@@ -102,7 +89,34 @@
                                 label="Ingresa el url"
                               />
                             </v-col>
+                          </v-row>                   
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Plataforma</p>
+                              <v-select
+                                :items="platforms"
+                                v-model="editedItem.platform"
+                                dense
+                                hide-details
+                                placeholder="Seleccione la plataforma"
+                                outlined
+                              />
+                            </v-col>
                           </v-row>
+                          <template v-if="editedItem.platform === 'telegram'">
+                            <v-row dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Telegram HTTP Api
+                                </p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.tgApi"
+                                  label="Ingresa el API"
+                                />
+                              </v-col>
+                            </v-row>                            
+                          </template>
                           <template v-if="editedItem.platform === 'facebook'">
                             <v-row dense>
                               <v-col cols="12" sm="12" md="12">

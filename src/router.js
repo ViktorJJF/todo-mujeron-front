@@ -42,6 +42,11 @@ let routes = [
         component: () => import("@/views/Telefonos"),
       },
       {
+        path: "/bots",
+        name: 'Bots',
+        component: () => import("@/views/Facebook.vue"),
+      },
+      {
         path: "/contactos",
         name: "Contactos",
         component: () => import("@/views/Contactos.vue"),
@@ -244,7 +249,7 @@ let routes = [
       {
         path: "/test",
         component: () => import("@/views/test"),
-      },
+      }
     ],
   },
   {
