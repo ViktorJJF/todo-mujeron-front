@@ -130,18 +130,13 @@ export default {
       let filteredProducts = [...this.products];
       if(this.filter.categories.length) {
         let categories = this.filter.categories.map(catIndex => this.rootCategories[catIndex]._id)
-        console.log(this.filter.categories.map(index => this.rootCategories[index]))
+
         filteredProducts = filteredProducts.filter(product => {
           return product.categories.find(pc => categories.includes(pc._id))
         })
       }
 
       return filteredProducts;
-    }
-  },
-  watch: {
-    productsSource: function(newVals) {
-      console.log(newVals)
     }
   },
   methods: {
