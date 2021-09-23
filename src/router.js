@@ -11,6 +11,11 @@ let routes = [
     component: () => import("./views/Login.vue"),
   },
   {
+    path: "/ecommerce/viewer",
+    name: "EcommerceViewer",
+    component: () => import("@/views/EcommerceViewer"),
+  },
+  {
     path: "/",
     component: () => import("@/layouts/Admin.vue"),
     meta: {
@@ -40,6 +45,11 @@ let routes = [
         path: "/telefonos",
         name: "Telefonos",
         component: () => import("@/views/Telefonos"),
+      },
+      {
+        path: "/bots",
+        name: 'Bots',
+        component: () => import("@/views/Facebook.vue"),
       },
       {
         path: "/contactos",
@@ -244,7 +254,7 @@ let routes = [
       {
         path: "/test",
         component: () => import("@/views/test"),
-      },
+      }
     ],
   },
   {

@@ -1,6 +1,8 @@
 export default () => ({
   name: "",
   webhookUrl: "",
+  platfoform: "",
+  tgApi: "",
   fanpageName: "",
   fanpageUrl: "",
   fanpageId: "",
