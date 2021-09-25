@@ -11,11 +11,23 @@
         ></v-img>
       </v-col>
       <v-col cols="12" sm="12" class="text-center">
+        <v-chip :color="getWhatsappStatusColor">{{
+          whatsappStatus.state
+        }}</v-chip>
+      </v-col>
+      <v-col cols="12" sm="12" class="text-center">
         <v-btn
           @click="restartWhatsappSession"
           :loading="!this.isWhatsappRestarted"
           color="error"
           >Reiniciar sesión</v-btn
+        >
+        <v-btn
+          @click="restartSoftWhatsapp"
+          :loading="!this.isWhatsappRestarted"
+          class="ml-2"
+          color="warning"
+          >Actualizar Whatsapp Web</v-btn
         >
         <v-btn
           v-show="this.isWhatsappRestarted"
@@ -89,6 +101,10 @@ export default {
     isWhatsappRestarted: true,
     whatsappQr: "https://todo-full.digital/whatsappqr.png",
     dummy: Date.now(),
+    whatsappStatus: {
+      state: "",
+      status: "",
+    },
   }),
 
   computed: {
@@ -97,6 +113,15 @@ export default {
     },
     whatsappQrFullSource() {
       return this.whatsappQr + "?dummy=" + this.dummy;
+    },
+    getWhatsappStatusColor() {
+      return this.whatsappStatus.state === "DISCONNECTED"
+        ? "error"
+        : this.whatsappStatus.state === "TIMEOUT"
+        ? "warning"
+        : this.whatsappStatus.state === "CONNECTED"
+        ? "success"
+        : "white";
     },
   },
 
@@ -108,13 +133,6 @@ export default {
 
   async mounted() {
     this.initialize();
-    // consultando qr whatsapp x seg
-    // let whatsapp = true;
-    // while (whatsapp) {
-    //   this.isWhatsappRestarted = false;
-    //   await this.timeout(500);
-    //   this.isWhatsappRestarted = true;
-    // }
   },
 
   methods: {
@@ -130,15 +148,34 @@ export default {
       this.dummy = Date.now();
       this.refreshImage += 1;
     },
+    /**
+     * @description Esto elimina el qr y reinicia whatsapp completamente
+     */
     async restartWhatsappSession() {
       this.isWhatsappRestarted = false;
       await whatsapp.restartWhatsapp();
       this.isWhatsappRestarted = true;
       this.refresh();
+      this.getStatus();
+    },
+    /**
+     * @description Esto solo actualiza la pagina de whatsapp web
+     */
+    async restartSoftWhatsapp() {
+      await whatsapp.restartSoftWhatsapp();
+      this.getStatus();
+    },
+    async getStatus() {
+      this.whatsappStatus = (await whatsapp.getStatus()).data.payload;
+      setTimeout(async () => {
+        this.whatsappStatus = (await whatsapp.getStatus()).data.payload;
+      }, 5 * 1000);
     },
     initialize() {
-      // inicializando qr whatsapp
-      // this.whatsappQr = "http://localhost:3000/whatsappqr.png";
+      this.getStatus();
+      setInterval(() => {
+        this.getStatus();
+      }, 9 * 1000);
     },
     editItem(item) {
       this.editedIndex = this.agentes.indexOf(item);
