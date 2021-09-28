@@ -22,8 +22,6 @@ export default {
       countries: [
         {text: 'Chile', value: 'Chile'},
         {text: 'Perú', value: 'Peru'},
-        // {text: 'Colombia', value: 'Colombia'},
-        // {text: 'Argentina', value: 'Argentina'},
       ]
     }
   },

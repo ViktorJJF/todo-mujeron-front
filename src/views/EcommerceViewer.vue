@@ -23,16 +23,7 @@
             open-all
           ></v-treeview>
         </v-list-item>
-
-        <v-subheader>Filtrar por tallas</v-subheader>
-        <v-list-item v-for="talla of tallas" :key="talla.name">
-          <v-list-item-action>
-            <v-checkbox></v-checkbox>
-          </v-list-item-action>
-          <v-list-item-content>
-              <v-list-item-title>{{talla.name}}</v-list-item-title>
-            </v-list-item-content>
-        </v-list-item>
+        
       </v-list>
     </v-navigation-drawer>
 
@@ -43,6 +34,7 @@
       clipped-left
     >
       <country-select v-model="country" style="max-width: 200px;"/>
+
       <v-spacer />
       <div class="d-flex align-center">
         <v-btn
@@ -74,8 +66,13 @@
         </v-btn>
       </div>
       <v-spacer />
-      <div>
-      </div>
+      
+      <tallas-select
+        style="max-width: 250px;"
+        v-model="filter.tallas"
+        :tallas="tallas"
+      />
+
     </v-app-bar>
 
     <v-main class="grey lighten-3">
@@ -118,12 +115,13 @@
 import Flipbook from 'flipbook-vue'
 import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
-import CountrySelect from '@/components/CountrySelect'
+import CountrySelect from '@/components/ecommerceViewer/CountrySelect'
+import TallasSelect from '@/components/ecommerceViewer/TallasSelect'
 
 const DEFAULT_COUNTRY = 'Chile'
 
 export default {
-  components: { Flipbook, CountrySelect },
+  components: { Flipbook, CountrySelect, TallasSelect },
   data() {
      return {
        country: DEFAULT_COUNTRY,
@@ -154,6 +152,17 @@ export default {
       }))
     },
     productsSource() {
+      let filteredProducts = [...this.productsByCategory];
+
+      if(this.filter.tallas.length) {
+        filteredProducts = filteredProducts.filter(product => {
+          return this.hasSomeTalla(product, this.filter.tallas)
+        })
+      }
+
+      return filteredProducts;
+    },
+    productsByCategory() {
       let filteredProducts = [...this.products];
       
       if(this.filter.categories.length) {
@@ -167,7 +176,7 @@ export default {
       return filteredProducts;
     },
     tallas() {
-      let res = this.productsSource.reduce((tallas, product) => {
+      let res = this.productsByCategory.reduce((tallas, product) => {
         const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
         const tallasAvailable = tallaAttr && tallaAttr.options.length
         if(!tallasAvailable) {
@@ -177,30 +186,22 @@ export default {
         for(const [index, talla] of tallaAttr.options.entries()) {
           const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
           if(inStock) {
-            const alreadyDefined = tallas[talla];
-            if(alreadyDefined) {
-              tallas[talla].products.push(product._id)
-            }else {
-              tallas[talla] = {name: talla, products: [product]}
-            }
+            tallas[talla] = true
           }
         }
 
         return tallas;
       }, {})
 
-      return Object.values(res)
+      return Object.keys(res)
     }
   },
   watch: {
     'country': function() {
       this.getByCountry()
     },
-    'filter.categories': function(val) {
-      console.log(val)
-    },
-    'tallas': function(val) {
-      console.log(val)
+    'filter.categories': function() {
+      this.filter.tallas = []
     }
   },
   methods: {
@@ -225,6 +226,29 @@ export default {
         
         return imageAvailable && tallasAvailables;
       })
+    },
+    // Return true if has some of the talla from the array
+    hasSomeTalla(product, tallas) {
+      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
+      const tallasAvailable = tallaAttr && tallaAttr.options.length
+      if(!tallasAvailable) {
+        return false;
+      }
+
+      for(const talla of tallas) {
+        const tallaIndex = tallaAttr.options.indexOf(talla)
+        if(tallaIndex === -1) {
+          continue;
+        }
+
+        const inStock = product.variations[tallaIndex]?.status==="publish" && product.variations[tallaIndex]?.stock_status==="instock"
+        if(inStock) {
+          return true;
+        }
+      }
+
+
+      return false;
     },
     flipPage(direction) {
       this.$refs.flipbook[`flip${direction}`]()
