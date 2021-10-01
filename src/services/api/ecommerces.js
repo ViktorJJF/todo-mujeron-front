@@ -15,4 +15,10 @@ export default {
   delete(id) {
     return axios.delete(`/api/ecommerces/${id}`);
   },
+  syncAll() {
+    return axios.post(`/api/ecommerces/sync-all`);
+  },
+  syncSelected() {
+    return axios.post(`/api/ecommerces/sync-selected`);
+  },
 };
