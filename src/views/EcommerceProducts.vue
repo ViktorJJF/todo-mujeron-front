@@ -171,7 +171,7 @@
                   >
                     <strong>
                       {{ countProductSyncSelected }} de
-                      {{ selectedProductIds.length }} ({{
+                      {{ selectedProductsSize }} ({{
                         Math.ceil(countProductSyncPercentageSelected) || 0
                       }}%)</strong
                     >
@@ -456,6 +456,7 @@ export default {
     countProductSync: 0,
     syncStartedSelected: false,
     countProductSyncSelected: 0,
+    selectedProductsSize: 1,
   }),
   computed: {
     formTitle() {
@@ -473,9 +474,7 @@ export default {
       return (this.countProductSync / this.items.length) * 100;
     },
     countProductSyncPercentageSelected() {
-      return (
-        (this.countProductSyncSelected / this.selectedProductIds.length) * 100
-      );
+      return (this.countProductSyncSelected / this.selectedProductsSize) * 100;
     },
   },
   watch: {
@@ -641,6 +640,7 @@ export default {
           productIds: this.selectedProductIds,
           isInit: true,
         });
+        this.selectedProductsSize = this.selectedProductIds.length;
         this.syncStartedSelected = true;
         let isReady = false;
         while (!isReady) {
