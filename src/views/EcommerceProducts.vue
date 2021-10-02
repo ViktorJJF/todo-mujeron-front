@@ -136,6 +136,7 @@
                 <v-col cols="12" sm="12">
                   <strong>Acciones:</strong>
                   <v-btn
+                    v-show="selectedProductIds.length === 0"
                     class="mb-1 ml-1"
                     small
                     color="primary"
@@ -143,7 +144,7 @@
                     >Sincronizar todo</v-btn
                   >
                   <v-btn
-                    v-show="selectedProducts.length > 0"
+                    v-show="selectedProductIds.length > 0"
                     class="mb-1 ml-1"
                     small
                     color="secondary"
@@ -159,6 +160,19 @@
                     <strong>
                       {{ countProductSync }} de {{ items.length }} ({{
                         Math.ceil(countProductSyncPercentage) || 0
+                      }}%)</strong
+                    >
+                  </v-progress-linear>
+                  <v-progress-linear
+                    v-if="syncStartedSelected"
+                    v-model="countProductSyncPercentageSelected"
+                    color="blue-grey"
+                    height="25"
+                  >
+                    <strong>
+                      {{ countProductSyncSelected }} de
+                      {{ selectedProductIds.length }} ({{
+                        Math.ceil(countProductSyncPercentageSelected) || 0
                       }}%)</strong
                     >
                   </v-progress-linear>
@@ -260,7 +274,7 @@
           </template>
           <template v-slot:[`item.checkbox`]="{ item }">
             <v-checkbox
-              v-model="selectedProducts"
+              v-model="selectedProductIds"
               :value="item._id"
             ></v-checkbox>
           </template>
@@ -365,7 +379,7 @@ export default {
     },
   },
   data: () => ({
-    selectedProducts: [],
+    selectedProductIds: [],
     dialogImage: false,
     currentProduct: null,
     keyNumber: 0,
@@ -440,6 +454,8 @@ export default {
     filterWithoutImage: false,
     syncStarted: false,
     countProductSync: 0,
+    syncStartedSelected: false,
+    countProductSyncSelected: 0,
   }),
   computed: {
     formTitle() {
@@ -455,6 +471,11 @@ export default {
     },
     countProductSyncPercentage() {
       return (this.countProductSync / this.items.length) * 100;
+    },
+    countProductSyncPercentageSelected() {
+      return (
+        (this.countProductSyncSelected / this.selectedProductIds.length) * 100
+      );
     },
   },
   watch: {
@@ -616,7 +637,35 @@ export default {
     async syncSelected() {
       console.log("sincronizando...");
       try {
-        // await ecommercesApi.syncAll();
+        await ecommercesApi.syncSelected({
+          productIds: this.selectedProductIds,
+          isInit: true,
+        });
+        this.syncStartedSelected = true;
+        let isReady = false;
+        while (!isReady) {
+          try {
+            await timeout(4000);
+            this.countProductSyncSelected = (
+              await ecommercesApi.syncSelected({
+                productIds: this.selectedProductIds,
+              })
+            ).data.payload.countProductSyncSelected;
+            // si se llega al límite, terminar
+            if (
+              this.countProductSyncSelected == this.selectedProductIds.length
+            ) {
+              isReady = true;
+              setTimeout(() => {
+                this.syncStartedSelected = false;
+                this.countProductSyncSelected = 0;
+              }, 15 * 1000);
+              this.selectedProductIds = [];
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
       } catch (error) {
         console.log(error);
       }

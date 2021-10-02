@@ -18,7 +18,7 @@ export default {
   syncAll() {
     return axios.post(`/api/ecommerces/sync-all`);
   },
-  syncSelected() {
-    return axios.post(`/api/ecommerces/sync-selected`);
+  syncSelected(payload) {
+    return axios.post(`/api/ecommerces/sync-selected`, payload);
   },
 };
