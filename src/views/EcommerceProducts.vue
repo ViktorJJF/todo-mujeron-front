@@ -276,6 +276,7 @@
             <v-checkbox
               v-model="selectedProductIds"
               :value="item._id"
+              :key="updateCheckbox"
             ></v-checkbox>
           </template>
         </v-data-table>
@@ -457,6 +458,7 @@ export default {
     syncStartedSelected: false,
     countProductSyncSelected: 0,
     selectedProductsSize: 1,
+    updateCheckbox: 0,
   }),
   computed: {
     formTitle() {
@@ -480,6 +482,9 @@ export default {
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    search() {
+      this.updateCheckbox += 1;
     },
   },
   mounted() {
