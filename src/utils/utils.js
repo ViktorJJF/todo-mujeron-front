@@ -206,6 +206,12 @@ export const buildQueryWithPagination = (query) => {
   return { ...queryWithPagination, ...query };
 };
 
+export const timeout = (millis) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, millis);
+  });
+};
+
 export const getProductRef = (productName) => {
   console.log("el match: ", productName.match(/-*([0-9]-*){1,}/g));
   let numberRefs = productName.match(/-*([0-9]-*){1,}/g) || [];

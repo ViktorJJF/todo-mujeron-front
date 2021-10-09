@@ -502,6 +502,7 @@ export default {
             country: woocommerce.country,
           })
         ),
+        { name: "WHATSAPP" },
       ];
     },
   },

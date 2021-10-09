@@ -132,6 +132,52 @@
                   </span>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="12" sm="12">
+                  <strong>Acciones:</strong>
+                  <v-btn
+                    v-show="selectedProductIds.length === 0"
+                    class="mb-1 ml-1"
+                    small
+                    color="primary"
+                    @click="syncAll"
+                    >Sincronizar todo</v-btn
+                  >
+                  <v-btn
+                    v-show="selectedProductIds.length > 0"
+                    class="mb-1 ml-1"
+                    small
+                    color="secondary"
+                    @click="syncSelected"
+                    >Sincronizar Seleccionados</v-btn
+                  >
+                  <v-progress-linear
+                    v-if="syncStarted"
+                    v-model="countProductSyncPercentage"
+                    color="blue-grey"
+                    height="25"
+                  >
+                    <strong>
+                      {{ countProductSync }} de {{ items.length }} ({{
+                        Math.ceil(countProductSyncPercentage) || 0
+                      }}%)</strong
+                    >
+                  </v-progress-linear>
+                  <v-progress-linear
+                    v-if="syncStartedSelected"
+                    v-model="countProductSyncPercentageSelected"
+                    color="blue-grey"
+                    height="25"
+                  >
+                    <strong>
+                      {{ countProductSyncSelected }} de
+                      {{ selectedProductsSize }} ({{
+                        Math.ceil(countProductSyncPercentageSelected) || 0
+                      }}%)</strong
+                    >
+                  </v-progress-linear>
+                </v-col>
+              </v-row>
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
@@ -226,6 +272,13 @@
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
+          <template v-slot:[`item.checkbox`]="{ item }">
+            <v-checkbox
+              v-model="selectedProductIds"
+              :value="item._id"
+              :key="updateCheckbox"
+            ></v-checkbox>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -311,6 +364,8 @@ import MaterialCard from "@/components/material/Card";
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
+import ecommercesApi from "@/services/api/ecommerces";
+import { timeout } from "@/utils/utils";
 export default {
   components: {
     MaterialCard,
@@ -325,6 +380,7 @@ export default {
     },
   },
   data: () => ({
+    selectedProductIds: [],
     dialogImage: false,
     currentProduct: null,
     keyNumber: 0,
@@ -337,6 +393,12 @@ export default {
     search: "",
     dialog: false,
     headers: [
+      {
+        text: "",
+        align: "left",
+        sortable: false,
+        value: "checkbox",
+      },
       {
         text: "Última modificación",
         align: "left",
@@ -391,6 +453,12 @@ export default {
     menu2: false,
     filterWithoutRef: false,
     filterWithoutImage: false,
+    syncStarted: false,
+    countProductSync: 0,
+    syncStartedSelected: false,
+    countProductSyncSelected: 0,
+    selectedProductsSize: 1,
+    updateCheckbox: 0,
   }),
   computed: {
     formTitle() {
@@ -404,14 +472,27 @@ export default {
     entity() {
       return ENTITY;
     },
+    countProductSyncPercentage() {
+      return (this.countProductSync / this.items.length) * 100;
+    },
+    countProductSyncPercentageSelected() {
+      return (this.countProductSyncSelected / this.selectedProductsSize) * 100;
+    },
   },
   watch: {
     dialog(val) {
       val || this.close();
     },
+    search() {
+      this.updateCheckbox += 1;
+    },
   },
   mounted() {
     this.initialize();
+    // se verifica si se estuvo sincronizando
+    if (localStorage.getItem("syncStarted")) {
+      this.syncAll();
+    }
   },
   methods: {
     filterWithoutRefMethods() {
@@ -528,6 +609,71 @@ export default {
         this[ENTITY] = JSON.parse(
           JSON.stringify(this.$store.state.ecommercesModule.ecommerces)
         );
+    },
+    /**
+     * @description Se sincronizan todos los productos desde Woocommerce
+     */
+    async syncAll() {
+      try {
+        await ecommercesApi.syncAll();
+        this.syncStarted = true;
+        localStorage.setItem("syncStarted", true);
+        // si todo fue bien, activar el endpoint empezara a retornar la cantidad de productos sincronizados
+        await timeout(3000);
+        while (this.syncStarted) {
+          try {
+            await timeout(4000);
+            this.countProductSync = (
+              await ecommercesApi.syncAll()
+            ).data.payload.countProductSync;
+            // si se llega al límite, eliminar de localStorage
+            if (this.countProductSync >= this.items.length) {
+              localStorage.removeItem("syncStarted");
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async syncSelected() {
+      console.log("sincronizando...");
+      try {
+        await ecommercesApi.syncSelected({
+          productIds: this.selectedProductIds,
+          isInit: true,
+        });
+        this.selectedProductsSize = this.selectedProductIds.length;
+        this.syncStartedSelected = true;
+        let isReady = false;
+        while (!isReady) {
+          try {
+            await timeout(4000);
+            this.countProductSyncSelected = (
+              await ecommercesApi.syncSelected({
+                productIds: this.selectedProductIds,
+              })
+            ).data.payload.countProductSyncSelected;
+            // si se llega al límite, terminar
+            if (
+              this.countProductSyncSelected == this.selectedProductIds.length
+            ) {
+              isReady = true;
+              setTimeout(() => {
+                this.syncStartedSelected = false;
+                this.countProductSyncSelected = 0;
+              }, 15 * 1000);
+              this.selectedProductIds = [];
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };
