@@ -41,9 +41,6 @@ export default {
       required: true
     }
   },
-  mounted() {
-    console.log(this.products)
-  },
   methods: {
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
