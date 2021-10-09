@@ -45,6 +45,32 @@
         >
           <v-icon>mdi-filter-outline</v-icon>
         </v-btn>
+        <v-menu
+          open-on-hover
+          close-delay="200"
+          offset-y
+          v-if="productsSource.length < 60"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              class="mr-1"
+              icon
+              color="grey-darken-4"
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon>mdi-arrow-collapse-down</v-icon>
+            </v-btn>
+          </template>
+        <v-list>
+          <v-list-item @click="downloadPdf">
+            <v-list-item-title>Descargar normal</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="downloadWsPdf">
+            <v-list-item-title>Descargar para whatsapp</v-list-item-title>
+          </v-list-item>
+        </v-list>
+        </v-menu>   
         <v-btn
           class="mr-1"
           icon
@@ -106,6 +132,22 @@
             </flipbook>
           </v-col>
         </v-row>
+        <vue-html2pdf
+          ref="html2Pdf"
+          :show-layout="false"
+          float-layout
+          :html-to-pdf-options="htmlToPdfOptions"
+          :preview-modal="false"
+          :enable-download="true"
+          :manual-pagination="true"
+          @hasDownloaded="hasDownloaded"
+        >
+         <pdf-content
+          slot="pdf-content"
+          :products="productsToDownload"
+          :country="country"
+        />
+        </vue-html2pdf>
       </v-container>
     </v-main>
   </v-app>
@@ -117,30 +159,53 @@ import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import CountrySelect from '@/components/ecommerceViewer/CountrySelect'
 import TallasSelect from '@/components/ecommerceViewer/TallasSelect'
+import PdfContent from '@/components/ecommerceViewer/PdfContent'
+import VueHtml2pdf from 'vue-html2pdf'
+import _ from 'lodash'
 
 const DEFAULT_COUNTRY = 'Chile'
 
 export default {
-  components: { Flipbook, CountrySelect, TallasSelect },
+  components: { Flipbook, VueHtml2pdf, CountrySelect, TallasSelect, PdfContent },
   data() {
-     return {
-       country: DEFAULT_COUNTRY,
-       drawerFilter: true,
-       products: [],
-       categories: [],
-       filter: {
-         categories: [],
-         tallas: [],
-       },
-       currentPage: 0,
-     }
+    return {
+      country: DEFAULT_COUNTRY,
+      drawerFilter: true,
+      products: [],
+      categories: [],
+      filter: {
+        categories: [],
+        tallas: [],
+      },
+      currentPage: 0,
+      productsToDownload: [],
+      productsToDownloadQueue: [],
+      htmlToPdfOptions: {
+        margin: 0,
+        filename: `${Date.now()}.pdf`,
+        image: {
+          type: "jpeg",
+          quality: 0.98,
+        },
+        enableLinks: true,
+        html2canvas: {
+          scale: 1,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: {
+          unit: "mm",
+          format: 'a4',
+        },
+      }
+    }
   },
   created() {
     this.getByCountry()
   },
   computed: {
     pages() {
-      return this.productsSource.map(product => product.customImage)
+      return this.productsSource.map(product => `/api/wp-image?url=${product.customImage}`)
     },
     rootCategories() {
       return this.categories.filter(cat => cat.parent===0)
@@ -205,6 +270,34 @@ export default {
     }
   },
   methods: {
+    async downloadPdf() {
+      if(this.productsSource.length) {
+        this.productsToDownload = this.productsSource;
+        this.$refs.html2Pdf.generatePdf();
+      }
+    },
+    async downloadWsPdf() {
+      if(this.productsSource.length) {
+        let productsChunk = _.chunk(this.productsSource, 70)
+        
+        this.productsToDownload = productsChunk[0]
+
+        productsChunk.shift()
+
+        this.productsToDownloadQueue = productsChunk
+
+        this.$refs.html2Pdf.generatePdf();
+      }
+    },
+    hasDownloaded() {
+      if(this.productsToDownloadQueue.length) {
+        this.productsToDownload = this.productsToDownloadQueue[0]
+
+        this.productsToDownloadQueue.shift()
+
+        this.$refs.html2Pdf.generatePdf();
+      }
+    },
     async getByCountry() {
       const query = {country: this.country}
 
