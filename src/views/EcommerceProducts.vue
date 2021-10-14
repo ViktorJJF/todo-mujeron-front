@@ -603,7 +603,10 @@ export default {
       if (this.filterWithoutImage) {
         this[ENTITY] = this[ENTITY].filter(
           (el) =>
-            el.customImage == "" || !el.customImage || el.customImage == " "
+            (el.customImage == "" ||
+              !el.customImage ||
+              el.customImage == " ") &&
+            el.attributes.find((attr) => attr.name.toLowerCase() === "talla")
         );
       } else
         this[ENTITY] = JSON.parse(
