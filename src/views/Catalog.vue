@@ -26,7 +26,7 @@
         
       </v-list>
     </v-navigation-drawer>
-
+  
     <v-app-bar
       app
       color="white"
@@ -93,11 +93,25 @@
       </div>
       <v-spacer />
       
-      <tallas-select
-        style="max-width: 250px;"
-        v-model="filter.tallas"
-        :tallas="tallas"
-      />
+      <div class="d-flex">
+        <tallas-select
+          style="max-width: 250px;"
+          v-model="filter.tallas"
+          :tallas="tallas"
+        />
+
+        <v-select
+          class="ml-2"
+          style="max-width: 250px;"
+          v-model="filter.marcas"
+          :items="marcas"
+          label="Marcas"
+          no-data-text="No hay datos disponibles"
+          multiple
+          hide-details
+          solo
+        />
+      </div>
 
     </v-app-bar>
 
@@ -114,21 +128,6 @@
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
-              <!-- <div class="buy-button">
-                <v-btn
-                  rounded
-                  color="secondary"                  
-                >
-                  <v-icon
-                    dark
-                  >
-                    mdi-whatsapp
-                  </v-icon>
-                  <span class="ml-1">
-                    Comprar
-                  </span>
-                </v-btn>
-              </div> -->
             </flipbook>
           </v-col>
         </v-row>
@@ -138,8 +137,8 @@
           float-layout
           :html-to-pdf-options="htmlToPdfOptions"
           :preview-modal="false"
-          :enable-download="true"
-          :manual-pagination="true"
+          enable-download
+          manual-pagination
           @hasDownloaded="hasDownloaded"
         >
          <pdf-content
@@ -157,9 +156,9 @@
 import Flipbook from 'flipbook-vue'
 import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
-import CountrySelect from '@/components/ecommerceViewer/CountrySelect'
-import TallasSelect from '@/components/ecommerceViewer/TallasSelect'
-import PdfContent from '@/components/ecommerceViewer/PdfContent'
+import CountrySelect from '@/components/catalog/CountrySelect'
+import TallasSelect from '@/components/catalog/TallasSelect'
+import PdfContent from '@/components/catalog/PdfContent'
 import VueHtml2pdf from 'vue-html2pdf'
 import _ from 'lodash'
 
@@ -173,9 +172,11 @@ export default {
       drawerFilter: true,
       products: [],
       categories: [],
+      cartItems: [],
       filter: {
         categories: [],
         tallas: [],
+        marcas: [],
       },
       currentPage: 0,
       productsToDownload: [],
@@ -189,7 +190,7 @@ export default {
         },
         enableLinks: true,
         html2canvas: {
-          scale: 1,
+          scale: 0.8,
           useCORS: true,
           logging: false
         },
@@ -225,6 +226,12 @@ export default {
         })
       }
 
+      if(this.filter.marcas.length) {
+        filteredProducts = filteredProducts.filter(product => {
+          return this.hasSomeAttribute(product, 'marca', this.filter.marcas)
+        })
+      }
+
       return filteredProducts;
     },
     productsByCategory() {
@@ -256,6 +263,23 @@ export default {
         }
 
         return tallas;
+      }, {})
+
+      return Object.keys(res)
+    },
+    marcas() {
+      let res = this.productsByCategory.reduce((marcas, product) => {
+        const marcaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'marca')
+        const marcasAvailable = marcaAttr && marcaAttr.options.length
+        if(!marcasAvailable) {
+          return marcas;
+        }
+
+        for(const marca of marcaAttr.options) {
+          marcas[marca] = true
+        }
+
+        return marcas;
       }, {})
 
       return Object.keys(res)
@@ -320,6 +344,19 @@ export default {
         return imageAvailable && tallasAvailables;
       })
     },
+    hasSomeAttribute(product, attributeName, attrs) {
+      let attribute = product.attributes.find(attr => attr.name === attributeName)
+
+      if(attribute && attribute.options.length) {
+        for(const needle of attrs) {
+          if(attribute.options.includes(needle)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    },
     // Return true if has some of the talla from the array
     hasSomeTalla(product, tallas) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
@@ -343,6 +380,21 @@ export default {
 
       return false;
     },
+    handleBuyClick(direction) {
+      console.log(this.currentPage)
+      if(direction==='left') {
+        const isLastProduct = this.productsSource.length === this.currentPage 
+        const productIndex = isLastProduct
+          ? this.currentPage
+          : this.currentPage - 1
+
+        console.log(isLastProduct, productIndex)
+        console.log(this.productsSource[productIndex])
+        return;
+      }
+
+      return
+    },
     flipPage(direction) {
       this.$refs.flipbook[`flip${direction}`]()
     },
@@ -361,5 +413,20 @@ export default {
 <style>
 .flipbook {
   height: calc(100vh - 100px);
+  position: relative;
+}
+
+.buy-button {
+  position: absolute;
+  bottom: 50px;
+  z-index: 1;
+}
+
+.buy-button.button-left {
+  left: 50px;
+}
+
+.buy-button.button-right {
+  right: 50px;
 }
 </style>
