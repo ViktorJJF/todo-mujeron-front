@@ -49,7 +49,6 @@
           open-on-hover
           close-delay="200"
           offset-y
-          v-if="productsSource.length < 60"
         >
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -132,6 +131,7 @@
           </v-col>
         </v-row>
         <vue-html2pdf
+          v-if="false"
           ref="html2Pdf"
           :show-layout="false"
           float-layout
@@ -160,6 +160,7 @@ import CountrySelect from '@/components/catalog/CountrySelect'
 import TallasSelect from '@/components/catalog/TallasSelect'
 import PdfContent from '@/components/catalog/PdfContent'
 import VueHtml2pdf from 'vue-html2pdf'
+import { jsPDF } from "jspdf";
 import _ from 'lodash'
 
 const DEFAULT_COUNTRY = 'Chile'
@@ -295,9 +296,33 @@ export default {
   },
   methods: {
     async downloadPdf() {
-      if(this.productsSource.length) {
-        this.productsToDownload = this.productsSource;
-        this.$refs.html2Pdf.generatePdf();
+      const doc = new jsPDF();
+
+      const [x, y] = [30, 5]
+      let width = doc.internal.pageSize.getWidth() - (x * 2);
+      let height = doc.internal.pageSize.getHeight() - (y * 2);
+      
+      for(const [index, image] of this.pages.entries()) {
+        const product = this.productsSource[index]
+
+        let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product)}`
+        doc.text(leftText, x-3, height-2, {angle: 90});
+
+        // let rightText = `Actualizado al ${getDate()} - Pais: ${country}`
+
+        doc.addImage(image, "JPEG", x, y, width, height)
+        const isLast = index === this.productsSource.length-1
+        if(!isLast) {
+          doc.addPage()
+        }
+      }
+      doc.save("a4.pdf");
+    },
+    getTallas(product) {
+      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
+      const tallasAvailable = tallaAttr && tallaAttr.options.length
+      if(tallasAvailable) {
+        return tallaAttr.options.join(', ')
       }
     },
     async downloadWsPdf() {
