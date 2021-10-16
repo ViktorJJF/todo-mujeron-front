@@ -130,23 +130,6 @@
             </flipbook>
           </v-col>
         </v-row>
-        <vue-html2pdf
-          v-if="false"
-          ref="html2Pdf"
-          :show-layout="false"
-          float-layout
-          :html-to-pdf-options="htmlToPdfOptions"
-          :preview-modal="false"
-          enable-download
-          manual-pagination
-          @hasDownloaded="hasDownloaded"
-        >
-         <pdf-content
-          slot="pdf-content"
-          :products="productsToDownload"
-          :country="country"
-        />
-        </vue-html2pdf>
       </v-container>
     </v-main>
   </v-app>
@@ -158,15 +141,18 @@ import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import CountrySelect from '@/components/catalog/CountrySelect'
 import TallasSelect from '@/components/catalog/TallasSelect'
-import PdfContent from '@/components/catalog/PdfContent'
-import VueHtml2pdf from 'vue-html2pdf'
 import { jsPDF } from "jspdf";
 import _ from 'lodash'
 
 const DEFAULT_COUNTRY = 'Chile'
 
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
 export default {
-  components: { Flipbook, VueHtml2pdf, CountrySelect, TallasSelect, PdfContent },
+  components: { Flipbook, CountrySelect, TallasSelect },
   data() {
     return {
       country: DEFAULT_COUNTRY,
@@ -180,26 +166,6 @@ export default {
         marcas: [],
       },
       currentPage: 0,
-      productsToDownload: [],
-      productsToDownloadQueue: [],
-      htmlToPdfOptions: {
-        margin: 0,
-        filename: `${Date.now()}.pdf`,
-        image: {
-          type: "jpeg",
-          quality: 0.98,
-        },
-        enableLinks: true,
-        html2canvas: {
-          scale: 0.8,
-          useCORS: true,
-          logging: false
-        },
-        jsPDF: {
-          unit: "mm",
-          format: 'a4',
-        },
-      }
     }
   },
   created() {
@@ -207,7 +173,7 @@ export default {
   },
   computed: {
     pages() {
-      return this.productsSource.map(product => `/api/wp-image?url=${product.customImage}`)
+      return this.productsSource.map(this.getProductImageUrl)
     },
     rootCategories() {
       return this.categories.filter(cat => cat.parent===0)
@@ -295,56 +261,61 @@ export default {
     }
   },
   methods: {
-    async downloadPdf() {
+    async downloadPdf(products) {
+      let productsToDownload = products || this.productsSource
+
+      if(!productsToDownload.length) {
+        return;
+      }
+
       const doc = new jsPDF();
 
-      const [x, y] = [30, 5]
+      const [x, y] = [30, 7]
       let width = doc.internal.pageSize.getWidth() - (x * 2);
       let height = doc.internal.pageSize.getHeight() - (y * 2);
       
-      for(const [index, image] of this.pages.entries()) {
-        const product = this.productsSource[index]
-
+      for(const [index, product] of productsToDownload.entries()) {
         let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product)}`
-        doc.text(leftText, x-3, height-2, {angle: 90});
+        doc.text(leftText, x-3, height+y, {angle: 90});
 
-        // let rightText = `Actualizado al ${getDate()} - Pais: ${country}`
+        let rightText = `Actualizado al ${this.getDate()} - Pais: ${this.country}`
+        doc.text(rightText, width+x+6, height+y, {angle: 90});
 
+        let image = this.getProductImageUrl(product)
         doc.addImage(image, "JPEG", x, y, width, height)
-        const isLast = index === this.productsSource.length-1
+
+        const isLast = index === productsToDownload.length-1
         if(!isLast) {
           doc.addPage()
         }
       }
-      doc.save("a4.pdf");
+
+      const filename = `${Date.now()}.pdf`
+      let res = doc.output('save', filename);
+      await this.delay(500)
+      return res;
+    },
+    async downloadWsPdf() {
+      if(this.productsSource.length) {
+        let productsChunk = _.chunk(this.productsSource, 9)
+        
+        for(const products of productsChunk) {
+          await this.downloadPdf(products)
+        } 
+      }
+    },
+    delay(time=1000) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, time)
+      })
     },
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
       const tallasAvailable = tallaAttr && tallaAttr.options.length
       if(tallasAvailable) {
         return tallaAttr.options.join(', ')
-      }
-    },
-    async downloadWsPdf() {
-      if(this.productsSource.length) {
-        let productsChunk = _.chunk(this.productsSource, 70)
-        
-        this.productsToDownload = productsChunk[0]
-
-        productsChunk.shift()
-
-        this.productsToDownloadQueue = productsChunk
-
-        this.$refs.html2Pdf.generatePdf();
-      }
-    },
-    hasDownloaded() {
-      if(this.productsToDownloadQueue.length) {
-        this.productsToDownload = this.productsToDownloadQueue[0]
-
-        this.productsToDownloadQueue.shift()
-
-        this.$refs.html2Pdf.generatePdf();
       }
     },
     async getByCountry() {
@@ -406,7 +377,6 @@ export default {
       return false;
     },
     handleBuyClick(direction) {
-      console.log(this.currentPage)
       if(direction==='left') {
         const isLastProduct = this.productsSource.length === this.currentPage 
         const productIndex = isLastProduct
@@ -431,6 +401,18 @@ export default {
       this.currentPage = page
       // window.location.hash = '#' + page
     },
+    getDate() {
+      const now = new Date();
+
+      let day = now.getDay();
+      let month = now.getMonth();
+      let year = now.getFullYear();
+
+      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`
+    },
+    getProductImageUrl({customImage}) {
+      return `/api/wp-image?url=${customImage}`
+    }
   }
 }
 </script>
