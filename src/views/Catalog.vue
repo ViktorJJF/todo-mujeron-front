@@ -62,10 +62,10 @@
             </v-btn>
           </template>
         <v-list>
-          <v-list-item @click="downloadPdf">
+          <v-list-item @click="downloadPdf()">
             <v-list-item-title>Descargar normal</v-list-item-title>
           </v-list-item>
-          <v-list-item @click="downloadWsPdf">
+          <v-list-item @click="downloadPdf(13)">
             <v-list-item-title>Descargar para whatsapp</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -142,7 +142,6 @@ import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import CountrySelect from '@/components/catalog/CountrySelect'
 import TallasSelect from '@/components/catalog/TallasSelect'
 import { jsPDF } from "jspdf";
-import _ from 'lodash'
 
 const DEFAULT_COUNTRY = 'Chile'
 
@@ -261,20 +260,19 @@ export default {
     }
   },
   methods: {
-    async downloadPdf(products) {
-      let productsToDownload = products || this.productsSource
-
-      if(!productsToDownload.length) {
+    async downloadPdf(maxSize) {
+      if(!this.productsSource.length) {
         return;
       }
 
-      const doc = new jsPDF();
+      let doc = new jsPDF();
 
       const [x, y] = [30, 7]
       let width = doc.internal.pageSize.getWidth() - (x * 2);
       let height = doc.internal.pageSize.getHeight() - (y * 2);
       
-      for(const [index, product] of productsToDownload.entries()) {
+
+      for(const [index, product] of this.productsSource.entries()) {
         let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product)}`
         doc.text(leftText, x-3, height+y, {angle: 90});
 
@@ -284,24 +282,25 @@ export default {
         let image = this.getProductImageUrl(product)
         doc.addImage(image, "JPEG", x, y, width, height)
 
-        const isLast = index === productsToDownload.length-1
-        if(!isLast) {
-          doc.addPage()
-        }
-      }
+        const filename = `${Date.now()}.pdf`
 
-      const filename = `${Date.now()}.pdf`
-      let res = doc.output('save', filename);
-      await this.delay(500)
-      return res;
-    },
-    async downloadWsPdf() {
-      if(this.productsSource.length) {
-        let productsChunk = _.chunk(this.productsSource, 9)
-        
-        for(const products of productsChunk) {
-          await this.downloadPdf(products)
-        } 
+        const isLast = index === this.productsSource.length-1
+        if(isLast) {
+          return doc.output('save', filename);
+        }
+
+        if(maxSize) {
+          let size = doc.output().length
+          let sizeMb = size / (1024*1024)
+          if(sizeMb >= maxSize) {
+            doc.output('save', filename);
+            await this.delay(500)
+            doc = new jsPDF();  // reset pdf
+            continue;
+          } 
+        }
+
+        doc.addPage()
       }
     },
     delay(time=1000) {
