@@ -253,10 +253,16 @@ export default {
   },
   watch: {
     'country': function() {
+      this.filter = {
+        tallas: [],
+        marcas: [],
+        categories: []
+      }
+
       this.getByCountry()
     },
     'filter.categories': function() {
-      this.filter.tallas = []
+      Object.assign(this.filter, {tallas: [], marcas: []})
     }
   },
   methods: {
