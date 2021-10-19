@@ -346,7 +346,7 @@ export default {
       })
     },
     hasSomeAttribute(product, attributeName, attrs) {
-      let attribute = product.attributes.find(attr => attr.name === attributeName)
+      let attribute = product.attributes.find(attr => attr.name.trim().toLowerCase() === attributeName)
 
       if(attribute && attribute.options.length) {
         for(const needle of attrs) {
