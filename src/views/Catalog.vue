@@ -131,39 +131,6 @@
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
-              <div class="buy-button button-left">
-                <v-btn
-                  rounded
-                  color="secondary"
-                  @click="handleBuyClick('left')"
-                >
-                  <v-icon
-                    dark
-                  >
-                    mdi-whatsapp
-                  </v-icon>
-                  <span class="ml-1">
-                    Comprar
-                  </span>
-                </v-btn>
-              </div>
-              
-              <div class="buy-button button-right">
-                <v-btn
-                  rounded
-                  color="secondary"
-                  @click="handleBuyClick('right')"
-                >
-                  <v-icon
-                    dark
-                  >
-                    mdi-whatsapp
-                  </v-icon>
-                  <span class="ml-1">
-                    Comprar
-                  </span>
-                </v-btn>
-              </div>
             </flipbook>
           </v-col>
         </v-row>
