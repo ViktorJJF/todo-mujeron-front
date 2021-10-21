@@ -270,7 +270,19 @@ export default {
       }
 
       this.getByCountry()
-    }
+    },
+    'filter': {
+      deep: 'true',
+      handler: function() {
+        if(this.currentPage > this.pages.length) {
+          this.currentPage = this.pages.length-1
+          this.$refs.flipbook.goToPage(this.currentPage)
+        }
+      }
+    },
+    'filter.categories': function() {
+      Object.assign(this.filter, {tallas: [], marcas: []})
+    },
   },
   methods: {
     async downloadPdf(maxSize) {
