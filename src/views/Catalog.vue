@@ -21,7 +21,11 @@
             selectable
             return-object
             open-all
-          ></v-treeview>
+          >
+            <template v-slot:label="{item}">
+              {{item.name}} <span class="caption">({{item.products.length}})</span>
+            </template>
+          </v-treeview>
         </v-list-item>
         
       </v-list>
@@ -127,6 +131,39 @@
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
+              <div class="buy-button button-left">
+                <v-btn
+                  rounded
+                  color="secondary"
+                  @click="handleBuyClick('left')"
+                >
+                  <v-icon
+                    dark
+                  >
+                    mdi-whatsapp
+                  </v-icon>
+                  <span class="ml-1">
+                    Comprar
+                  </span>
+                </v-btn>
+              </div>
+              
+              <div class="buy-button button-right">
+                <v-btn
+                  rounded
+                  color="secondary"
+                  @click="handleBuyClick('right')"
+                >
+                  <v-icon
+                    dark
+                  >
+                    mdi-whatsapp
+                  </v-icon>
+                  <span class="ml-1">
+                    Comprar
+                  </span>
+                </v-btn>
+              </div>
             </flipbook>
           </v-col>
         </v-row>
@@ -142,6 +179,7 @@ import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import CountrySelect from '@/components/catalog/CountrySelect'
 import TallasSelect from '@/components/catalog/TallasSelect'
 import { jsPDF } from "jspdf";
+import _ from 'lodash'
 
 const DEFAULT_COUNTRY = 'Chile'
 
@@ -174,13 +212,23 @@ export default {
     pages() {
       return this.productsSource.map(this.getProductImageUrl)
     },
+    allCategories() {
+      return this.categories
+        .map(category => ({
+          ...category,
+          products: this.products.filter(product => {
+            return product.categories.find(productCat => productCat._id === category._id)
+          })
+        }))
+        .filter(category => category.products.length > 0)
+    },
     rootCategories() {
-      return this.categories.filter(cat => cat.parent===0)
+      return this.allCategories.filter(cat => cat.parent===0)
     },
     categoriesTree() {
       return this.rootCategories.map(category => ({
         ...category,
-        children: this.categories.filter(cat => cat.parent === category.idCategory)
+        children: this.allCategories.filter(cat => cat.parent === category.idCategory)
       }))
     },
     productsSource() {
@@ -201,17 +249,12 @@ export default {
       return filteredProducts;
     },
     productsByCategory() {
-      let filteredProducts = [...this.products];
-      
       if(this.filter.categories.length) {
-        let categoriesId = this.filter.categories.map(category => category._id)
-
-        filteredProducts = filteredProducts.filter(product => {
-          return product.categories.find(pc => categoriesId.includes(pc._id))
-        })
+        
+        return _.flatMap(this.filter.categories, 'products')
       }
 
-      return filteredProducts;
+      return this.products;
     },
     tallas() {
       let res = this.productsByCategory.reduce((tallas, product) => {
@@ -260,9 +303,6 @@ export default {
       }
 
       this.getByCountry()
-    },
-    'filter.categories': function() {
-      Object.assign(this.filter, {tallas: [], marcas: []})
     }
   },
   methods: {
