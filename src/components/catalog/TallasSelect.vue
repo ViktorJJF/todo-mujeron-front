@@ -10,6 +10,9 @@
       multiple
       hide-details
       solo
+      dense
+      outlined
+      flat
     >
   </v-select>
 </template>

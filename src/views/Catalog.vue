@@ -17,9 +17,8 @@
           <v-treeview
             v-model="filter.categories"
             :items="categoriesTree"
-            item-key="_id"
+            item-key="idCategory"
             selectable
-            return-object
             open-all
           >
             <template v-slot:label="{item}">
@@ -37,8 +36,24 @@
       flat
       clipped-left
     >
-      <country-select v-model="country" style="max-width: 200px;"/>
-
+      <country-select 
+        class="mr-2"
+        v-model="country"
+        style="max-width: 200px;"
+      />
+      <v-autocomplete
+        style="max-width: 400px"
+        :items="products"
+        prepend-inner-icon="mdi-magnify"
+        :menu-props="searchMenuOpts"
+        append-icon=""
+        hide-details
+        hide-no-data
+        outlined
+        rounded
+        dense
+      >
+      </v-autocomplete>
       <v-spacer />
       <div class="d-flex align-center">
         <v-btn
@@ -98,14 +113,14 @@
       
       <div class="d-flex">
         <tallas-select
-          style="max-width: 250px;"
+          style="max-width: 200px;"
           v-model="filter.tallas"
           :tallas="tallas"
         />
 
         <v-select
           class="ml-2"
-          style="max-width: 250px;"
+          style="max-width: 250px"
           v-model="filter.marcas"
           :items="marcas"
           label="Marcas"
@@ -113,6 +128,9 @@
           multiple
           hide-details
           solo
+          dense
+          outlined
+          flat
         />
       </div>
 
@@ -148,6 +166,7 @@ import TallasSelect from '@/components/catalog/TallasSelect'
 import { jsPDF } from "jspdf";
 import _ from 'lodash'
 
+const COUNTRIES = ['Chile', 'Peru']
 const DEFAULT_COUNTRY = 'Chile'
 
 const MONTHS = [
@@ -160,20 +179,33 @@ export default {
   data() {
     return {
       country: DEFAULT_COUNTRY,
+      countryLoaded: false,
       drawerFilter: true,
       products: [],
       categories: [],
       cartItems: [],
+      filterInitialized: false,
       filter: {
         categories: [],
         tallas: [],
         marcas: [],
       },
       currentPage: 0,
+      searchMenuOpts: {
+        value: 0
+      }
     }
   },
   created() {
-    this.getByCountry()
+    const country = this.$route.query.country
+
+    if(country && COUNTRIES.includes(country)) {
+      this.country = country
+    }
+    
+    this.getByCountry().then(() => {
+      this.setFilterFromQuery()
+    })
   },
   computed: {
     pages() {
@@ -217,8 +249,8 @@ export default {
     },
     productsByCategory() {
       if(this.filter.categories.length) {
-        
-        return _.flatMap(this.filter.categories, 'products')
+        let categories = this.allCategories.filter(c => this.filter.categories.includes(c.idCategory))
+        return _.flatMap(categories, 'products')
       }
 
       return this.products;
@@ -263,26 +295,51 @@ export default {
   },
   watch: {
     'country': function() {
+      if(!this.countryLoaded) return;
+
+      this.filterInitialized = false
+
       this.filter = {
         tallas: [],
         marcas: [],
         categories: []
       }
 
-      this.getByCountry()
+      let query = {
+        ...this.$route.query,
+        country: this.country
+      }
+
+      this.$router.push({ name: 'Catalog', query })
+
+      this.getByCountry().then(() => {
+        this.filterInitialized = true
+      })
     },
     'filter': {
-      deep: 'true',
-      handler: function() {
+      deep: true,
+      handler: function(val) {
+        if(!this.filterInitialized) return;
+
         if(this.currentPage > this.pages.length) {
           this.currentPage = this.pages.length-1
           this.$refs.flipbook.goToPage(this.currentPage)
         }
+        let query = {
+          ...this.$route.query,
+          categories: val.categories.join(','),
+          tallas: val.tallas.join(','),
+          marcas: val.marcas.join(',')
+        }
+
+        this.$router.push({ name: 'Catalog', query })
       }
     },
     'filter.categories': function() {
+      if(!this.filterInitialized) return;
+
       Object.assign(this.filter, {tallas: [], marcas: []})
-    },
+    },    
   },
   methods: {
     async downloadPdf(maxSize) {
@@ -353,6 +410,10 @@ export default {
       this.categories = categoriesRes.data.payload
 
       this.products = this.getAvailableProducts(productsRes.data.payload)
+
+      this.$nextTick(() => {
+        this.countryLoaded = true;
+      })
     },
     getAvailableProducts(products) {
       return products.filter(product => {
@@ -436,7 +497,25 @@ export default {
     },
     getProductImageUrl({customImage}) {
       return `/api/wp-image?url=${customImage}`
-    }
+    },
+    async setFilterFromQuery() {
+      const query = this.$route.query
+
+      let categories = query.categories ? query.categories.split(',').map(c=>parseInt(c, 10)) : []
+      let tallas = query.tallas ? query.tallas.split(',') : []
+      let marcas = query.marcas ? query.marcas.split(',') : []
+
+
+      this.filter.categories = categories
+
+      await this.$nextTick()
+
+      Object.assign(this.filter, {tallas, marcas})
+      
+      await this.$nextTick()
+
+      this.filterInitialized = true
+    },
   }
 }
 </script>

@@ -5,7 +5,10 @@
       :items="countries"
       label="Paises"
       hide-details
+      outlined
       solo
+      dense
+      flat
     >
   </v-select>
 </template>
