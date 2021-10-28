@@ -12,7 +12,7 @@
         subheader
       >
       <v-list-item>
-        <v-btn text @click="clearFilters">
+        <v-btn text @click="clearFilters" color="grey">
           Limpiar
           <v-icon>mdi-filter-remove-outline</v-icon>
         </v-btn>
