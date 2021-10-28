@@ -11,6 +11,13 @@
         flat
         subheader
       >
+      <v-list-item>
+        <v-btn text @click="clearFilters">
+          Limpiar
+          <v-icon>mdi-filter-remove-outline</v-icon>
+        </v-btn>
+      </v-list-item>
+
         <v-subheader>Filtrar por categorias</v-subheader>
         
         <v-list-item>
@@ -44,15 +51,40 @@
       <v-autocomplete
         style="max-width: 400px"
         :items="products"
+        v-model="productsSelected"
         prepend-inner-icon="mdi-magnify"
-        :menu-props="searchMenuOpts"
         append-icon=""
         hide-details
         hide-no-data
         outlined
         rounded
         dense
+        multiple
+        return-object
+        item-text="name"
       >
+        <template v-slot:selection="data">
+          <v-chip
+            v-bind="data.attrs"
+            :input-value="data.selected"
+            close
+            @click="data.select"
+            @click:close="removeSelectedProduct(data.item)"
+          >
+            {{ data.item.ref }}
+          </v-chip>
+        </template>
+        <template v-slot:item="{item}">
+          <template>
+            <v-list-item-avatar tile height="63" width="63">
+              <img :src="getProductImageUrl(item)">
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title>{{item.name}}</v-list-item-title>
+              <!-- <v-list-item-subtitle>Subtitle</v-list-item-subtitle> -->
+            </v-list-item-content>
+          </template>
+        </template>
       </v-autocomplete>
       <v-spacer />
       <div class="d-flex align-center">
@@ -184,16 +216,14 @@ export default {
       products: [],
       categories: [],
       cartItems: [],
+      productsSelected: [],
       filterInitialized: false,
       filter: {
         categories: [],
         tallas: [],
         marcas: [],
       },
-      currentPage: 0,
-      searchMenuOpts: {
-        value: 0
-      }
+      currentPage: 0
     }
   },
   created() {
@@ -231,6 +261,10 @@ export default {
       }))
     },
     productsSource() {
+      if(this.productsSelected.length) {
+        return this.productsSelected;
+      }
+
       let filteredProducts = [...this.productsByCategory];
 
       if(this.filter.tallas.length) {
@@ -250,7 +284,7 @@ export default {
     productsByCategory() {
       if(this.filter.categories.length) {
         let categories = this.allCategories.filter(c => this.filter.categories.includes(c.idCategory))
-        return _.flatMap(categories, 'products')
+        return _.chain(categories).flatMap('products').uniqBy('_id').value()
       }
 
       return this.products;
@@ -392,6 +426,10 @@ export default {
         }, time)
       })
     },
+    clearFilters() {
+      this.filter.categories = []
+      this.productsSelected = []
+    },
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
       const tallasAvailable = tallaAttr && tallaAttr.options.length
@@ -460,6 +498,10 @@ export default {
 
 
       return false;
+    },
+    removeSelectedProduct (item) {
+      const index = this.productsSelected.findIndex(p => p._id===item._id)
+      if (index >= 0) this.productsSelected.splice(index, 1)
     },
     handleBuyClick(direction) {
       if(direction==='left') {
