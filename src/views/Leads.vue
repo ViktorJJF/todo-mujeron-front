@@ -317,6 +317,16 @@
                   <th class="text-left">Nombre Facebook</th>
                   <th class="text-left">Nombre</th>
                   <th class="text-left">Correo</th>
+                  <th
+                    class="text-left"
+                    v-show="
+                      item.details.some(
+                        (detail) => detail.status && detail.status.length > 0
+                      )
+                    "
+                  >
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -334,6 +344,15 @@
                   <td>{{ detail.appName }}</td>
                   <td>{{ detail.nombre }}</td>
                   <td>{{ detail.email }}</td>
+                  <td
+                    v-show="
+                      item.details.some(
+                        (detail) => detail.status && detail.status.length > 0
+                      )
+                    "
+                  >
+                    {{ detail.status }}
+                  </td>
                 </tr>
               </tbody>
             </template>
