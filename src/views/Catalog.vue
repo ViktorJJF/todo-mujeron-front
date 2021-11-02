@@ -11,12 +11,6 @@
         flat
         subheader
       >
-      <v-list-item>
-        <v-btn text @click="clearFilters" color="grey">
-          Limpiar
-          <v-icon>mdi-filter-remove-outline</v-icon>
-        </v-btn>
-      </v-list-item>
 
         <v-subheader>Filtrar por categorias</v-subheader>
         
@@ -96,6 +90,14 @@
           @click="drawerFilter = !drawerFilter"
         >
           <v-icon>mdi-filter-outline</v-icon>
+        </v-btn>
+        <v-btn
+          v-if="filtersActive"
+          icon
+          color="grey-darken-4"
+          @click="clearFilters"
+        >
+          <v-icon>mdi-filter-remove-outline</v-icon>
         </v-btn>
         <v-menu
           open-on-hover
@@ -179,6 +181,7 @@
               class="flipbook" 
               ref="flipbook"
               :pages="pages"
+              :clickToZoom="false"
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
@@ -244,6 +247,14 @@ export default {
   computed: {
     pages() {
       return this.productsSource.map(this.getProductImageUrl)
+    },
+    filtersActive() {
+      return (
+        this.filter.categories.length ||
+        this.filter.tallas.length ||
+        this.filter.marcas.length ||
+        this.productsSelected.length
+      )
     },
     allCategories() {
       return this.categories
