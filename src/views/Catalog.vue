@@ -43,7 +43,8 @@
       flat
       clipped-left
     >
-      <country-select 
+      <country-select
+        v-if="!hideCountrySelect"
         class="mr-2"
         v-model="country"
         style="max-width: 200px;"
@@ -212,6 +213,7 @@ export default {
     return {
       country: DEFAULT_COUNTRY,
       countryLoaded: false,
+      hideCountrySelect: true,
       drawerFilter: true,
       products: [],
       categories: [],
@@ -223,10 +225,12 @@ export default {
         tallas: [],
         marcas: [],
       },
-      currentPage: 0
+      currentPage: 0,
     }
   },
   created() {
+    this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
+
     const country = this.$route.query.country
 
     if(country && COUNTRIES.includes(country)) {
