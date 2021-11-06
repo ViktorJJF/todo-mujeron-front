@@ -698,7 +698,7 @@ export default {
       if (index >= 0) this.productsSelected.splice(index, 1)
     },
     handleCartBuy() {
-      let message = 'Hola, estos son los productos que me gustarian pedir\n';
+      let message = 'Hola, estos son los productos que me gustaría pedir\n';
     
       let total = 0
       for(const item of this.cartItems) {
