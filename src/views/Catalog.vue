@@ -11,12 +11,6 @@
         flat
         subheader
       >
-      <v-list-item>
-        <v-btn text @click="clearFilters" color="grey">
-          Limpiar
-          <v-icon>mdi-filter-remove-outline</v-icon>
-        </v-btn>
-      </v-list-item>
 
         <v-subheader>Filtrar por categorias</v-subheader>
         
@@ -26,7 +20,6 @@
             :items="categoriesTree"
             item-key="idCategory"
             selectable
-            open-all
           >
             <template v-slot:label="{item}">
               {{item.name}} <span class="caption">({{item.products.length}})</span>
@@ -36,7 +29,79 @@
         
       </v-list>
     </v-navigation-drawer>
-  
+
+    <v-navigation-drawer
+      v-model="drawerCart"
+      app
+      right
+      temporary
+      width="500"
+    >
+      <v-list
+        flat
+        subheader
+      >
+
+        <v-subheader>Tus Artículos</v-subheader>
+        
+        <v-list-item
+          v-for="(item, index) in cartItems"
+          three-line
+          :key="item.product._id"
+        >
+           <v-list-item-avatar tile height="63" width="63">
+              <img :src="item.product.images && item.product.images[0].src">
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title>{{item.product.name}}</v-list-item-title>
+              <div>
+                <div>{{item.product.ref}}</div>
+                <div>Talla: {{item.tallas.join(', ')}}</div>
+                <strong>{{ (item.product.regular_price || item.product.variations[0].regular_price) * item.quantity | currency}}</strong>
+              </div>
+            </v-list-item-content>
+            <div class="d-flex align-center">
+              <v-text-field
+                v-model="item.quantity"
+                style="max-width: 65px;"
+                type="number"
+                min="1"
+                hide-details
+                dense
+                outlined
+              />
+              <v-btn icon @click="cartRemoveItem(index)">
+                <v-icon color="grey lighten-1">mdi-delete</v-icon>
+              </v-btn>
+            </div>
+        </v-list-item>
+      </v-list>
+      <div class="cart-total">
+        <div class="text-h4 text-center font-weight-bold mb-1">
+          Total: {{ cartTotal | currency }}
+        </div>
+        <div class="d-flex justify-center">
+          <v-btn
+            class="white--text"
+            color="green"
+            depressed
+            min-height="55"
+            @click="handleCartBuy"
+            :disabled="!cartItems.length"
+          >
+            <v-icon
+              dark
+            >
+              mdi-whatsapp
+            </v-icon>
+            <span class="ml-1">
+              Enviar pedido a mi asesor por Whatsapp
+            </span>
+          </v-btn>
+        </div>
+      </div>
+    </v-navigation-drawer>
+    
     <v-app-bar
       app
       color="white"
@@ -78,11 +143,10 @@
         <template v-slot:item="{item}">
           <template>
             <v-list-item-avatar tile height="63" width="63">
-              <img :src="getProductImageUrl(item)">
+              <img :src="item.images && item.images[0].src">
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title>{{item.name}}</v-list-item-title>
-              <!-- <v-list-item-subtitle>Subtitle</v-list-item-subtitle> -->
             </v-list-item-content>
           </template>
         </template>
@@ -96,6 +160,14 @@
           @click="drawerFilter = !drawerFilter"
         >
           <v-icon>mdi-filter-outline</v-icon>
+        </v-btn>
+        <v-btn
+          v-if="filtersActive"
+          icon
+          color="grey-darken-4"
+          @click="clearFilters"
+        >
+          <v-icon>mdi-filter-remove-outline</v-icon>
         </v-btn>
         <v-menu
           open-on-hover
@@ -141,6 +213,14 @@
         >
           <v-icon>mdi-chevron-right</v-icon>
         </v-btn>
+        <v-btn
+          :disabled="!cartItems.length"
+          icon
+          color="grey-darken-4"
+          @click="drawerCart = true"
+        >
+          <v-icon>mdi-cart-variant</v-icon>
+        </v-btn>
       </div>
       <v-spacer />
       
@@ -179,9 +259,70 @@
               class="flipbook" 
               ref="flipbook"
               :pages="pages"
+              :clickToZoom="false"
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
+              <div class="buy-button button-left">
+                <v-menu top offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      rounded
+                      class="white--text"
+                      color="green"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon
+                        dark
+                      >
+                        mdi-whatsapp
+                      </v-icon>
+                      <span class="ml-1">
+                        Comprar
+                      </span>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="talla of leftPageProductTallas"
+                      link
+                      :key="talla"
+                      @click="cartAddItem(leftPageProduct, talla)"
+                    >
+                      <v-list-item-title>{{talla}}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+              
+              <div v-if="rightPageProduct" class="buy-button button-right">
+                <v-menu top offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      rounded
+                      class="white--text"
+                      color="green"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon
+                        dark
+                      >
+                        mdi-whatsapp
+                      </v-icon>
+                      <span class="ml-1">
+                        Comprar
+                      </span>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item v-for="talla of rightPageProductTallas" :key="talla">
+                      <v-list-item-title>{{talla}}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>            
             </flipbook>
           </v-col>
         </v-row>
@@ -215,6 +356,7 @@ export default {
       countryLoaded: false,
       hideCountrySelect: true,
       drawerFilter: true,
+      drawerCart: false,
       products: [],
       categories: [],
       cartItems: [],
@@ -241,9 +383,42 @@ export default {
       this.setFilterFromQuery()
     })
   },
+  filters: {
+    currency(val) {
+      return new Intl.NumberFormat().format(val)
+    }
+  },
   computed: {
     pages() {
       return this.productsSource.map(this.getProductImageUrl)
+    },
+    leftPageProduct() {
+      return this.productsSource[this.currentPage]
+    },
+    leftPageProductTallas() {
+      if(this.leftPageProduct) {
+        return this.getTallas(this.leftPageProduct)
+      }
+
+      return []
+    },
+    rightPageProduct() {
+      return this.productsSource[this.currentPage + 1]
+    },
+    rightPageProductTallas() {
+      if(this.rightPageProduct) {
+        return this.getTallas(this.rightPageProduct)
+      }
+
+      return []
+    },
+    filtersActive() {
+      return (
+        this.filter.categories.length ||
+        this.filter.tallas.length ||
+        this.filter.marcas.length ||
+        this.productsSelected.length
+      )
     },
     allCategories() {
       return this.categories
@@ -329,6 +504,12 @@ export default {
       }, {})
 
       return Object.keys(res)
+    },
+    cartTotal() {
+      return this.cartItems.reduce((total, item) => {
+        const price = item.product.regular_price || item.product.variations[0].regular_price
+        return total + (price * item.quantity)
+      }, 0)
     }
   },
   watch: {
@@ -393,7 +574,7 @@ export default {
       
 
       for(const [index, product] of this.productsSource.entries()) {
-        let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product)}`
+        let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product).join(', ')}`
         doc.text(leftText, x-3, height+y, {angle: 90});
 
         let rightText = `Actualizado al ${this.getDate()} - Pais: ${this.country}`
@@ -437,9 +618,19 @@ export default {
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
       const tallasAvailable = tallaAttr && tallaAttr.options.length
-      if(tallasAvailable) {
-        return tallaAttr.options.join(', ')
+      if(!tallasAvailable) {
+        return [];
       }
+
+      let tallas = []
+      for(const [index, talla] of tallaAttr.options.entries()) {
+        const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
+        if(inStock) {
+          tallas.push(talla)
+        }
+      }
+
+      return tallas;
     },
     async getByCountry() {
       const query = {country: this.country}
@@ -461,10 +652,9 @@ export default {
       return products.filter(product => {
         const imageAvailable = product.customImage && product.customImage.trim().length > 0
         
-        const talla = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-        const tallasAvailables = talla && talla.options.length
+        const tallas = this.getTallas(product)
         
-        return imageAvailable && tallasAvailables;
+        return imageAvailable && tallas.length;
       })
     },
     hasSomeAttribute(product, attributeName, attrs) {
@@ -507,19 +697,35 @@ export default {
       const index = this.productsSelected.findIndex(p => p._id===item._id)
       if (index >= 0) this.productsSelected.splice(index, 1)
     },
-    handleBuyClick(direction) {
-      if(direction==='left') {
-        const isLastProduct = this.productsSource.length === this.currentPage 
-        const productIndex = isLastProduct
-          ? this.currentPage
-          : this.currentPage - 1
-
-        console.log(isLastProduct, productIndex)
-        console.log(this.productsSource[productIndex])
-        return;
+    handleCartBuy() {
+      let message = 'Hola, estos son los productos que me gustarian pedir\n';
+    
+      let total = 0
+      for(const item of this.cartItems) {
+        const tallas = item.tallas.join(', ')
+        const price = (item.product.regular_price || item.product.variations[0].regular_price)
+        const productTotal = price * item.quantity
+        const totalFormat = new Intl.NumberFormat().format(productTotal)
+        total += productTotal
+        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
       }
 
-      return
+      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
+
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+
+      window.open(url, "_blank");  
+    },
+    cartAddItem(product, talla) {
+      let item = this.cartItems.find(item => item.product._id === product._id)
+      if(item) {
+        return item.tallas.push(talla)
+      }
+
+      this.cartItems.push({product, tallas: [talla], quantity: 1})
+    },
+    cartRemoveItem(index) {
+      this.cartItems.splice(index, 1)
     },
     flipPage(direction) {
       this.$refs.flipbook[`flip${direction}`]()
@@ -585,4 +791,12 @@ export default {
 .buy-button.button-right {
   right: 50px;
 }
+
+.cart-total {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
 </style>
