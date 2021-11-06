@@ -108,7 +108,7 @@
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
-              :to="{ name: 'MailchimpLabels' }"
+              :to="{ name: 'MailchimpTags' }"
             >
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
@@ -223,10 +223,7 @@
             <v-list-item-title>Chatbot</v-list-item-title>
           </v-list-item-content>
         </template>
-        <v-list-item
-          active-class="primary custom2"
-          :to="{ name: 'Bots' }"
-        >
+        <v-list-item active-class="primary custom2" :to="{ name: 'Bots' }">
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
@@ -240,7 +237,7 @@
           sub-group
           :active-class="$route.name == 'Leads' ? 'primary custom2' : ''"
           @click="$router.push({ name: 'Leads' })"
-        > 
+        >
           <template v-slot:activator>
             <v-list-item-content>
               <v-list-item-title>Contactos</v-list-item-title>

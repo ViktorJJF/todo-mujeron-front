@@ -21,7 +21,21 @@
         >
           <template v-slot:top>
             <v-container>
+              <span class="font-weight-bold"
+                >Filtrar por nombre: {{ search }}</span
+              >
               <v-row>
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    dense
+                    hide-details
+                    v-model="search"
+                    append-icon="search"
+                    placeholder="Escribe el nomb"
+                    single-line
+                    outlined
+                  ></v-text-field>
+                </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
@@ -99,7 +113,7 @@
               </v-row>
             </v-container>
           </template>
-          <template v-slot:[`item.action`]="{ item }">
+          <!-- <template v-slot:[`item.action`]="{ item }">
             <v-btn
               class="mr-1 mb-1"
               color="primary"
@@ -113,7 +127,7 @@
             <v-btn color="error" fab small dark @click="deleteItem(item)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
-          </template>
+          </template> -->
           <template v-slot:no-data>
             <v-alert type="error" :value="true">{{
               $t(entity + ".NO_DATA")
@@ -127,20 +141,39 @@
           <template v-slot:[`item.updatedAt`]="{ item }">{{
             item.updatedAt | formatDate
           }}</template>
-          <template v-slot:[`item.url`]="{ item }">
-            <a :href="item.url" target="_blank"
-              ><v-btn color="primary" small>Visitar</v-btn>
-            </a>
-          </template>
-          <template v-slot:[`item.attributes`]="{ item }">
-            <ul
-              v-for="(attribute, attIndex) in item.attributes"
-              :key="attIndex"
+          <template v-slot:[`item.foreignLabel`]="{ item }">
+            <v-combobox
+              item-text="name"
+              :search-input.sync="searchLabel"
+              v-model="item.foreignLabelId"
+              item-value="_id"
+              :items="
+                $store.state.facebookLabelsModule.facebookLabels.filter(
+                  (facebookLabel) =>
+                    filterByCountry(facebookLabel, item.mailchimpId.country)
+                )
+              "
+              chips
+              no-data-text="No se encontraron etiquetas"
+              label="Busca la etiqueta"
             >
-              <li>
-                <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
-              </li>
-            </ul>
+              <template v-slot:selection="{ attrs, item, select, selected }">
+                <v-chip
+                  v-bind="attrs"
+                  :input-value="selected"
+                  close
+                  @click="select"
+                  @click:close="remove(telefono, item)"
+                  color="deep-purple accent-4"
+                  outlined
+                >
+                  <strong>{{ item.name }} {{ item.country }}</strong>
+                </v-chip>
+              </template>
+            </v-combobox>
+          </template>
+          <template v-slot:[`item.country`]="{ item }">
+            <span>{{ item.mailchimpId.country }}</span>
           </template>
           <template v-slot:[`item.categories`]="{ item }">
             <ul
@@ -176,7 +209,7 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
-const ENTITY = "mailchimps"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "mailchimpTags"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -204,6 +237,7 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    searchLabel: "",
     search: "",
     dialog: false,
     headers: [
@@ -214,24 +248,29 @@ export default {
         value: "updatedAt",
       },
       {
-        text: "API KEY",
+        text: "ID",
         align: "left",
         sortable: false,
-        value: "apiKey",
+        value: "idMailchimpTag",
       },
       {
-        text: "SERVER",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "server",
+        value: "name",
       },
       {
-        text: "País",
+        text: "Pais",
         align: "left",
         sortable: false,
         value: "country",
       },
-      { text: "Acciones", value: "action", sortable: false },
+      {
+        text: "Etiqueta Facebook",
+        align: "left",
+        sortable: false,
+        value: "foreignLabel",
+      },
     ],
     [ENTITY]: [],
     advisors: [],
@@ -265,11 +304,10 @@ export default {
   methods: {
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
-      // console.log(
-      //   "el resultado: ",
-      //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
-      // );
+      await Promise.all([
+        this.$store.dispatch("facebookLabelsModule/list"),
+        this.$store.dispatch(ENTITY + "Module/list"),
+      ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -322,6 +360,13 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    filterByCountry(facebookLabel, country) {
+      return (
+        this.$store.state.botsModule.bots.find(
+          (bot) => bot.fanpageId === facebookLabel.fanpageId
+        ).country === country
+      );
     },
   },
 };
