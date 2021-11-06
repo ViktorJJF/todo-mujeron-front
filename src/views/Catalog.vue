@@ -56,19 +56,48 @@
               <v-list-item-title>{{item.product.name}}</v-list-item-title>
               <div>
                 <div>{{item.product.ref}}</div>
-                <strong>{{item.product.regular_price || item.product.variations[0].regular_price | currency}}</strong>
+                <div>Talla: {{item.tallas.join(', ')}}</div>
+                <strong>{{ (item.product.regular_price || item.product.variations[0].regular_price) * item.quantity | currency}}</strong>
               </div>
             </v-list-item-content>
-          <v-list-item-action>
-            <v-btn icon @click="cartRemoveItem(index)">
-              <v-icon color="grey lighten-1">mdi-delete</v-icon>
-            </v-btn>
-          </v-list-item-action>
+            <div class="d-flex align-center">
+              <v-text-field
+                v-model="item.quantity"
+                style="max-width: 65px;"
+                type="number"
+                min="1"
+                hide-details
+                dense
+                outlined
+              />
+              <v-btn icon @click="cartRemoveItem(index)">
+                <v-icon color="grey lighten-1">mdi-delete</v-icon>
+              </v-btn>
+            </div>
         </v-list-item>
       </v-list>
       <div class="cart-total">
-        <div class="text-h4 text-center font-weight-bold">
+        <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
+        </div>
+        <div class="d-flex justify-center">
+          <v-btn
+            class="white--text"
+            color="green"
+            depressed
+            min-height="55"
+            @click="handleCartBuy"
+            :disabled="!cartItems.length"
+          >
+            <v-icon
+              dark
+            >
+              mdi-whatsapp
+            </v-icon>
+            <span class="ml-1">
+              Enviar pedido a mi asesor por Whatsapp
+            </span>
+          </v-btn>
         </div>
       </div>
     </v-navigation-drawer>
@@ -479,7 +508,7 @@ export default {
     cartTotal() {
       return this.cartItems.reduce((total, item) => {
         const price = item.product.regular_price || item.product.variations[0].regular_price
-        return total + price
+        return total + (price * item.quantity)
       }, 0)
     }
   },
@@ -623,10 +652,9 @@ export default {
       return products.filter(product => {
         const imageAvailable = product.customImage && product.customImage.trim().length > 0
         
-        const talla = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-        const tallasAvailables = talla && talla.options.length
+        const tallas = this.getTallas(product)
         
-        return imageAvailable && tallasAvailables;
+        return imageAvailable && tallas.length;
       })
     },
     hasSomeAttribute(product, attributeName, attrs) {
@@ -669,8 +697,32 @@ export default {
       const index = this.productsSelected.findIndex(p => p._id===item._id)
       if (index >= 0) this.productsSelected.splice(index, 1)
     },
+    handleCartBuy() {
+      let message = 'Hola, estos son los productos que me gustarian pedir\n';
+    
+      let total = 0
+      for(const item of this.cartItems) {
+        const tallas = item.tallas.join(', ')
+        const price = (item.product.regular_price || item.product.variations[0].regular_price)
+        const productTotal = price * item.quantity
+        const totalFormat = new Intl.NumberFormat().format(productTotal)
+        total += productTotal
+        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
+      }
+
+      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
+
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+
+      window.open(url, "_blank");  
+    },
     cartAddItem(product, talla) {
-      this.cartItems.push({product, talla, quantitiy: 1})
+      let item = this.cartItems.find(item => item.product._id === product._id)
+      if(item) {
+        return item.tallas.push(talla)
+      }
+
+      this.cartItems.push({product, tallas: [talla], quantity: 1})
     },
     cartRemoveItem(index) {
       this.cartItems.splice(index, 1)
