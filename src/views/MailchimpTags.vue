@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el nombre"
                     single-line
                     outlined
                   ></v-text-field>
@@ -142,32 +142,37 @@
             item.updatedAt | formatDate
           }}</template>
           <template v-slot:[`item.foreignLabel`]="{ item }">
+            {{ item.foreignLabel }}
             <v-combobox
-              item-text="name"
+              item-text="nameWithCountry"
               :search-input.sync="searchLabel"
               v-model="item.foreignLabelId"
               item-value="_id"
-              :items="
-                $store.state.facebookLabelsModule.facebookLabels.filter(
-                  (facebookLabel) =>
-                    filterByCountry(facebookLabel, item.mailchimpId.country)
-                )
-              "
+              :items="[
+                ...labelsFromTodoFull,
+                ...labelsFromPeru,
+                ...labelsFromChile,
+              ]"
               chips
               no-data-text="No se encontraron etiquetas"
-              label="Busca la etiqueta"
+              label="Busca las etiquetas"
+              @change="updateLabel(item, $event)"
             >
-              <template v-slot:selection="{ attrs, item, select, selected }">
+              <template v-slot:selection="{ attrs, select, selected }">
                 <v-chip
                   v-bind="attrs"
                   :input-value="selected"
                   close
                   @click="select"
-                  @click:close="remove(telefono, item)"
+                  @click:close="removeLabel(item)"
                   color="deep-purple accent-4"
                   outlined
                 >
-                  <strong>{{ item.name }} {{ item.country }}</strong>
+                  <strong
+                    >{{ item.foreignLabelId.name }} ({{
+                      item.foreignLabelId.country
+                    }})</strong
+                  >
                 </v-chip>
               </template>
             </v-combobox>
@@ -266,7 +271,7 @@ export default {
         value: "country",
       },
       {
-        text: "Etiqueta Facebook",
+        text: "Etiquetas Todofull",
         align: "left",
         sortable: false,
         value: "foreignLabel",
@@ -279,8 +284,33 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    labels: [],
   }),
   computed: {
+    labelsFromTodoFull() {
+      return this.labels
+        .filter((el) => !el.country)
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({ ...el, nameWithCountry: el.name }));
+    },
+    labelsFromPeru() {
+      return this.labels
+        .filter((el) => el.country === "Peru")
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({
+          ...el,
+          nameWithCountry: `${el.name} (${el.country})`,
+        }));
+    },
+    labelsFromChile() {
+      return this.labels
+        .filter((el) => el.country === "Chile")
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({
+          ...el,
+          nameWithCountry: `${el.name} (${el.country})`,
+        }));
+    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
@@ -304,14 +334,26 @@ export default {
   methods: {
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([
-        this.$store.dispatch("facebookLabelsModule/list"),
-        this.$store.dispatch(ENTITY + "Module/list"),
-      ]);
+      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // inicializando etiquetas de todofull
+      this.labels = [
+        ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
+        ...this.$store.state.ecommercesTagsModule.ecommercesTags,
+        ...this.$store.state.todofullLabelsModule.todofullLabels,
+        ...this.getAttributesWithValues(
+          this.$store.state.ecommercesAttributesModule.ecommercesAttributes
+        ),
+      ];
+      // poblando datos del label en base a id
+      for (let i = 0; i < this[ENTITY].length; i++) {
+        this[ENTITY][i].foreignLabelId = this.labels.find(
+          (label) => label._id == this[ENTITY][i].foreignLabelId
+        );
+      }
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -361,12 +403,54 @@ export default {
         }
       }
     },
+    getAttributesWithValues(attributes) {
+      let attributesWithValues = [];
+      for (const attribute of attributes) {
+        for (const term of attribute.terms) {
+          attributesWithValues.push({
+            name: attribute.name + " " + term.name,
+            _id: term._id,
+            country: attribute.woocommerceId.country,
+            nameWithCountry:
+              attribute.name +
+              " " +
+              term.name +
+              (attribute.woocommerceId.country
+                ? ` (${attribute.woocommerceId.country})`
+                : ""),
+            source: "EcommercesAttributes",
+          });
+        }
+      }
+      return attributesWithValues.sort((a, b) =>
+        this.sortAlphabetically(a, b, "nameWithCountry")
+      );
+    },
     filterByCountry(facebookLabel, country) {
       return (
         this.$store.state.botsModule.bots.find(
           (bot) => bot.fanpageId === facebookLabel.fanpageId
         ).country === country
       );
+    },
+    sortAlphabetically(a, b, attribute) {
+      var textA = a[attribute].toUpperCase();
+      var textB = b[attribute].toUpperCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    },
+    async updateLabel(item, label) {
+      this.searchLabel = "";
+      await this.$store.dispatch("mailchimpTagsModule/update", {
+        id: item._id,
+        data: { foreignLabelId: label._id },
+      });
+    },
+    async removeLabel(item) {
+      item.foreignLabelId = null;
+      await this.$store.dispatch("mailchimpTagsModule/update", {
+        id: item._id,
+        data: { foreignLabelId: null },
+      });
     },
   },
 };
