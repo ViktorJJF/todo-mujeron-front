@@ -21,7 +21,21 @@
         >
           <template v-slot:top>
             <v-container>
+              <span class="font-weight-bold"
+                >Filtrar por nombre: {{ search }}</span
+              >
               <v-row>
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    dense
+                    hide-details
+                    v-model="search"
+                    append-icon="search"
+                    placeholder="Escribe el nombre"
+                    single-line
+                    outlined
+                  ></v-text-field>
+                </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
@@ -99,7 +113,7 @@
               </v-row>
             </v-container>
           </template>
-          <template v-slot:[`item.action`]="{ item }">
+          <!-- <template v-slot:[`item.action`]="{ item }">
             <v-btn
               class="mr-1 mb-1"
               color="primary"
@@ -113,7 +127,7 @@
             <v-btn color="error" fab small dark @click="deleteItem(item)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
-          </template>
+          </template> -->
           <template v-slot:no-data>
             <v-alert type="error" :value="true">{{
               $t(entity + ".NO_DATA")
@@ -127,20 +141,44 @@
           <template v-slot:[`item.updatedAt`]="{ item }">{{
             item.updatedAt | formatDate
           }}</template>
-          <template v-slot:[`item.url`]="{ item }">
-            <a :href="item.url" target="_blank"
-              ><v-btn color="primary" small>Visitar</v-btn>
-            </a>
-          </template>
-          <template v-slot:[`item.attributes`]="{ item }">
-            <ul
-              v-for="(attribute, attIndex) in item.attributes"
-              :key="attIndex"
+          <template v-slot:[`item.foreignLabel`]="{ item }">
+            {{ item.foreignLabel }}
+            <v-combobox
+              item-text="nameWithCountry"
+              :search-input.sync="searchLabel"
+              v-model="item.foreignLabelId"
+              item-value="_id"
+              :items="[
+                ...labelsFromTodoFull,
+                ...labelsFromPeru,
+                ...labelsFromChile,
+              ]"
+              chips
+              no-data-text="No se encontraron etiquetas"
+              label="Busca las etiquetas"
+              @change="updateLabel(item, $event)"
             >
-              <li>
-                <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
-              </li>
-            </ul>
+              <template v-slot:selection="{ attrs, select, selected }">
+                <v-chip
+                  v-bind="attrs"
+                  :input-value="selected"
+                  close
+                  @click="select"
+                  @click:close="removeLabel(item)"
+                  color="deep-purple accent-4"
+                  outlined
+                >
+                  <strong
+                    >{{ item.foreignLabelId.name }} ({{
+                      item.foreignLabelId.country
+                    }})</strong
+                  >
+                </v-chip>
+              </template>
+            </v-combobox>
+          </template>
+          <template v-slot:[`item.country`]="{ item }">
+            <span>{{ item.mailchimpId.country }}</span>
           </template>
           <template v-slot:[`item.categories`]="{ item }">
             <ul
@@ -176,7 +214,7 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
-const ENTITY = "mailchimps"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "mailchimpTags"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -204,6 +242,7 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    searchLabel: "",
     search: "",
     dialog: false,
     headers: [
@@ -214,24 +253,29 @@ export default {
         value: "updatedAt",
       },
       {
-        text: "API KEY",
+        text: "ID",
         align: "left",
         sortable: false,
-        value: "apiKey",
+        value: "idMailchimpTag",
       },
       {
-        text: "SERVER",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "server",
+        value: "name",
       },
       {
-        text: "País",
+        text: "Pais",
         align: "left",
         sortable: false,
         value: "country",
       },
-      { text: "Acciones", value: "action", sortable: false },
+      {
+        text: "Etiquetas Todofull",
+        align: "left",
+        sortable: false,
+        value: "foreignLabel",
+      },
     ],
     [ENTITY]: [],
     advisors: [],
@@ -240,8 +284,33 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    labels: [],
   }),
   computed: {
+    labelsFromTodoFull() {
+      return this.labels
+        .filter((el) => !el.country)
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({ ...el, nameWithCountry: el.name }));
+    },
+    labelsFromPeru() {
+      return this.labels
+        .filter((el) => el.country === "Peru")
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({
+          ...el,
+          nameWithCountry: `${el.name} (${el.country})`,
+        }));
+    },
+    labelsFromChile() {
+      return this.labels
+        .filter((el) => el.country === "Chile")
+        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
+        .map((el) => ({
+          ...el,
+          nameWithCountry: `${el.name} (${el.country})`,
+        }));
+    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
@@ -266,14 +335,25 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
-      // console.log(
-      //   "el resultado: ",
-      //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
-      // );
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // inicializando etiquetas de todofull
+      this.labels = [
+        ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
+        ...this.$store.state.ecommercesTagsModule.ecommercesTags,
+        ...this.$store.state.todofullLabelsModule.todofullLabels,
+        ...this.getAttributesWithValues(
+          this.$store.state.ecommercesAttributesModule.ecommercesAttributes
+        ),
+      ];
+      // poblando datos del label en base a id
+      for (let i = 0; i < this[ENTITY].length; i++) {
+        this[ENTITY][i].foreignLabelId = this.labels.find(
+          (label) => label._id == this[ENTITY][i].foreignLabelId
+        );
+      }
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -322,6 +402,55 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    getAttributesWithValues(attributes) {
+      let attributesWithValues = [];
+      for (const attribute of attributes) {
+        for (const term of attribute.terms) {
+          attributesWithValues.push({
+            name: attribute.name + " " + term.name,
+            _id: term._id,
+            country: attribute.woocommerceId.country,
+            nameWithCountry:
+              attribute.name +
+              " " +
+              term.name +
+              (attribute.woocommerceId.country
+                ? ` (${attribute.woocommerceId.country})`
+                : ""),
+            source: "EcommercesAttributes",
+          });
+        }
+      }
+      return attributesWithValues.sort((a, b) =>
+        this.sortAlphabetically(a, b, "nameWithCountry")
+      );
+    },
+    filterByCountry(facebookLabel, country) {
+      return (
+        this.$store.state.botsModule.bots.find(
+          (bot) => bot.fanpageId === facebookLabel.fanpageId
+        ).country === country
+      );
+    },
+    sortAlphabetically(a, b, attribute) {
+      var textA = a[attribute].toUpperCase();
+      var textB = b[attribute].toUpperCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    },
+    async updateLabel(item, label) {
+      this.searchLabel = "";
+      await this.$store.dispatch("mailchimpTagsModule/update", {
+        id: item._id,
+        data: { foreignLabelId: label._id },
+      });
+    },
+    async removeLabel(item) {
+      item.foreignLabelId = null;
+      await this.$store.dispatch("mailchimpTagsModule/update", {
+        id: item._id,
+        data: { foreignLabelId: null },
+      });
     },
   },
 };

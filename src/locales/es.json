@@ -110,5 +110,13 @@
         "EDIT_ITEM": "Editar Contacto",
         "NO_DATA": "Aún no cuentas con contactos de Mailchimp",
         "NO_RESULTS": "No hay resultados"
+    },
+    "mailchimpTags": {
+        "TITLE": "Etiquetas de Mailchimp",
+        "SUBTITLE": "Listado etiquetas Mailchimp",
+        "NEW_ITEM": "Nuevo etiqueta",
+        "EDIT_ITEM": "Editar etiqueta",
+        "NO_DATA": "Aún no cuentas con etiquetas de Mailchimp",
+        "NO_RESULTS": "No hay resultados"
     }
 }

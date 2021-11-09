@@ -48,7 +48,7 @@ let routes = [
       },
       {
         path: "/bots",
-        name: 'Bots',
+        name: "Bots",
         component: () => import("@/views/Facebook.vue"),
       },
       {
@@ -248,13 +248,13 @@ let routes = [
       },
       {
         path: "/mailchimp/etiquetas",
-        name: "MailchimpLabels",
-        component: () => import("@/views/MailchimpLabels"),
+        name: "MailchimpTags",
+        component: () => import("@/views/MailchimpTags"),
       },
       {
         path: "/test",
         component: () => import("@/views/test"),
-      }
+      },
     ],
   },
   {

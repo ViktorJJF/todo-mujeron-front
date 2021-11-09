@@ -142,8 +142,8 @@
               </li>
             </ul>
           </template>
-          <template v-slot:[`item.last_changed`]="{ item }">{{
-            item.last_changed | formatDate
+          <template v-slot:[`item.updatedAt`]="{ item }">{{
+            item.updatedAt | formatDate
           }}</template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -199,7 +199,7 @@ export default {
         text: "Última Actualización",
         align: "left",
         sortable: true,
-        value: "last_changed",
+        value: "updatedAt",
       },
       {
         text: "Nombres",
@@ -304,7 +304,7 @@ export default {
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,
-          sort: "last_changed",
+          sort: "updatedAt",
           order: "desc",
         }),
       ]);
