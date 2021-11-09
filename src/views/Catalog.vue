@@ -5,8 +5,18 @@
       v-model="drawerFilter"
       app
       clipped
+      touchless
       width="350"
     >
+      <v-btn
+        icon
+        absolute
+        right
+        @click="drawerFilter = false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+
       <v-list
         flat
         subheader
@@ -27,6 +37,37 @@
           </v-treeview>
         </v-list-item>
         
+        <div class="d-md-none">
+          <v-subheader>Filtrar por tallas</v-subheader>
+
+          <v-list-item-group
+            v-model="filter.tallas"
+            multiple
+          >
+            <template v-for="(item, i) in tallas">
+              <v-divider
+                v-if="!item"
+                :key="`divider-${i}`"
+              ></v-divider>
+
+              <v-list-item
+                v-else
+                :key="`item-${i}`"
+                :value="item"
+                active-class="deep-purple--text text--accent-4"
+              >
+                <template v-slot:default="{ active }">
+                  <v-checkbox
+                    :input-value="active"
+                  ></v-checkbox>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item"></v-list-item-title>
+                  </v-list-item-content>
+                </template>
+              </v-list-item>
+            </template>
+          </v-list-item-group>
+        </div>
       </v-list>
     </v-navigation-drawer>
 
@@ -35,13 +76,22 @@
       app
       right
       temporary
+      touchless
       width="500"
     >
+        <v-btn
+          icon
+          absolute
+          right
+          @click="drawerCart = false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+
       <v-list
         flat
         subheader
       >
-
         <v-subheader>Tus Artículos</v-subheader>
         
         <v-list-item
@@ -80,21 +130,23 @@
         <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
         </div>
-        <div class="d-flex justify-center">
+        <div class="">
           <v-btn
             class="white--text"
             color="green"
             depressed
+            block
             min-height="55"
             @click="handleCartBuy"
             :disabled="!cartItems.length"
           >
             <v-icon
               dark
+              class="mr-1"
             >
               mdi-whatsapp
             </v-icon>
-            <span class="ml-1">
+            <span>
               Enviar pedido a mi asesor por Whatsapp
             </span>
           </v-btn>
@@ -110,12 +162,13 @@
     >
       <country-select
         v-if="!hideCountrySelect"
-        class="mr-2"
+        class="mr-2 d-none d-md-flex"
         v-model="country"
         style="max-width: 200px;"
       />
       <v-autocomplete
         style="max-width: 400px"
+        class="d-none d-md-flex"
         :items="products"
         v-model="productsSelected"
         prepend-inner-icon="mdi-magnify"
@@ -162,6 +215,7 @@
           <v-icon>mdi-filter-outline</v-icon>
         </v-btn>
         <v-btn
+          class="d-none d-md-flex"
           v-if="filtersActive"
           icon
           color="grey-darken-4"
@@ -202,7 +256,7 @@
         >
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
-        <div>
+        <div style="min-width: 50px;" class="d-flex justify-center">
           {{pages.length ? currentPage + 1 : 0}} / {{pages.length}}
         </div>
         <v-btn
@@ -224,7 +278,7 @@
       </div>
       <v-spacer />
       
-      <div class="d-flex">
+      <div class="d-none d-md-flex">
         <tallas-select
           style="max-width: 200px;"
           v-model="filter.tallas"
@@ -296,7 +350,7 @@
                 </v-menu>
               </div>
               
-              <div v-if="rightPageProduct" class="buy-button button-right">
+              <div v-if="rightPageProduct" class="buy-button button-right d-none d-md-flex">
                 <v-menu top offset-y>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -317,7 +371,11 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item v-for="talla of rightPageProductTallas" :key="talla">
+                    <v-list-item
+                      v-for="talla of rightPageProductTallas"
+                      :key="talla"
+                      @click="cartAddItem(rightPageProduct, talla)"
+                    >
                       <v-list-item-title>{{talla}}</v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -355,7 +413,7 @@ export default {
       country: DEFAULT_COUNTRY,
       countryLoaded: false,
       hideCountrySelect: true,
-      drawerFilter: true,
+      drawerFilter: this.$vuetify.breakpoint.mobile ? false : true,
       drawerCart: false,
       products: [],
       categories: [],
@@ -411,6 +469,11 @@ export default {
       }
 
       return []
+    },
+    cartWidth() {
+      return this.$vuetify.breakpoint.mobile
+        ? '100%'
+        : '500'
     },
     filtersActive() {
       return (
@@ -797,6 +860,11 @@ export default {
   bottom: 0;
   width: 100%;
   margin-bottom: 30px;
+}
+
+.cart-total .v-btn__content {
+  flex: unset;
+  white-space: normal
 }
 
 </style>

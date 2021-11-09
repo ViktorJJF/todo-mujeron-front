@@ -4,8 +4,6 @@
       @input="onInput"
       :items="tallas"
       label="Tallas"
-      item-text="name"
-      item-value="name"
       no-data-text="No hay datos disponibles"
       multiple
       hide-details
@@ -32,6 +30,7 @@ export default {
   },
   methods: {
     onInput(value) {
+      console.log(this.tallas)
       this.$emit('input', value)
     }
   }
