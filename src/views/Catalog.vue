@@ -12,6 +12,7 @@
         icon
         absolute
         right
+        class="mt-1"
         @click="drawerFilter = false"
       >
         <v-icon>mdi-close</v-icon>
@@ -19,26 +20,35 @@
 
       <v-list
         flat
-        subheader
+        expand
       >
 
-        <v-subheader>Filtrar por categorias</v-subheader>
-        
-        <v-list-item>
-          <v-treeview
-            v-model="filter.categories"
-            :items="categoriesTree"
-            item-key="idCategory"
-            selectable
-          >
-            <template v-slot:label="{item}">
-              {{item.name}} <span class="caption">({{item.products.length}})</span>
-            </template>
-          </v-treeview>
-        </v-list-item>
-        
-        <div class="d-md-none">
-          <v-subheader>Filtrar por tallas</v-subheader>
+        <v-list-group style="margin-top: 30px;" :value="true" color="dark">
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Filtrar por categorias</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <v-list-item>
+            <v-treeview
+              v-model="filter.categories"
+              :items="categoriesTree"
+              item-key="idCategory"
+              selectable
+            >
+              <template v-slot:label="{item}">
+                {{item.name}} <span class="caption">({{item.products.length}})</span>
+              </template>
+            </v-treeview>
+          </v-list-item>
+        </v-list-group>
+ 
+        <v-list-group :value="true" v-if="this.$vuetify.breakpoint.mobile" color="dark">
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Filtrar por tallas</v-list-item-title>
+            </v-list-item-content>
+          </template>
 
           <v-list-item-group
             v-model="filter.tallas"
@@ -54,12 +64,9 @@
                 v-else
                 :key="`item-${i}`"
                 :value="item"
-                active-class="deep-purple--text text--accent-4"
               >
                 <template v-slot:default="{ active }">
-                  <v-checkbox
-                    :input-value="active"
-                  ></v-checkbox>
+                  <v-checkbox :input-value="active" color="purple lighten-1"></v-checkbox>
                   <v-list-item-content>
                     <v-list-item-title v-text="item"></v-list-item-title>
                   </v-list-item-content>
@@ -67,7 +74,40 @@
               </v-list-item>
             </template>
           </v-list-item-group>
-        </div>
+        </v-list-group>
+
+        <v-list-group :value="true" v-if="this.$vuetify.breakpoint.mobile" color="dark">
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Filtrar por tallas</v-list-item-title>
+            </v-list-item-content>
+          </template>
+
+          <v-list-item-group
+            v-model="filter.marcas"
+            multiple
+          >
+            <template v-for="(item, i) in marcas">
+              <v-divider
+                v-if="!item"
+                :key="`divider-${i}`"
+              ></v-divider>
+
+              <v-list-item
+                v-else
+                :key="`item-${i}`"
+                :value="item"
+              >
+                <template v-slot:default="{ active }">
+                  <v-checkbox :input-value="active" color="purple lighten-1"></v-checkbox>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item"></v-list-item-title>
+                  </v-list-item-content>
+                </template>
+              </v-list-item>
+            </template>
+          </v-list-item-group>
+        </v-list-group>
       </v-list>
     </v-navigation-drawer>
 
@@ -161,14 +201,15 @@
       clipped-left
     >
       <country-select
-        v-if="!hideCountrySelect"
-        class="mr-2 d-none d-md-flex"
+        v-if="!hideCountrySelect && !this.$vuetify.breakpoint.mobile"
+        class="mr-2 d-flex"
         v-model="country"
         style="max-width: 200px;"
       />
       <v-autocomplete
+        class="d-flex"
         style="max-width: 400px"
-        class="d-none d-md-flex"
+        v-if="!this.$vuetify.breakpoint.mobile"
         :items="products"
         v-model="productsSelected"
         prepend-inner-icon="mdi-magnify"
@@ -215,8 +256,8 @@
           <v-icon>mdi-filter-outline</v-icon>
         </v-btn>
         <v-btn
-          class="d-none d-md-flex"
-          v-if="filtersActive"
+          class="d-flex"
+          v-if="filtersActive && !this.$vuetify.breakpoint.mobile"
           icon
           color="grey-darken-4"
           @click="clearFilters"
@@ -270,7 +311,7 @@
         <v-btn
           :disabled="!cartItems.length"
           icon
-          color="grey-darken-4"
+          color="blue darken-3"
           @click="drawerCart = true"
         >
           <v-icon>mdi-cart-variant</v-icon>
@@ -278,8 +319,9 @@
       </div>
       <v-spacer />
       
-      <div class="d-none d-md-flex">
+      <div class="d-flex">
         <tallas-select
+          v-if="!this.$vuetify.breakpoint.mobile"
           style="max-width: 200px;"
           v-model="filter.tallas"
           :tallas="tallas"
@@ -288,6 +330,7 @@
         <v-select
           class="ml-2"
           style="max-width: 250px"
+          v-if="!this.$vuetify.breakpoint.mobile"
           v-model="filter.marcas"
           :items="marcas"
           label="Marcas"
@@ -350,7 +393,10 @@
                 </v-menu>
               </div>
               
-              <div v-if="rightPageProduct" class="buy-button button-right d-none d-md-flex">
+              <div
+                v-if="rightPageProduct && !this.$vuetify.breakpoint.mobile"
+                class="buy-button button-right d-flex"
+              >
                 <v-menu top offset-y>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -438,6 +484,7 @@ export default {
     }
     
     this.getByCountry().then(() => {
+      this.setInitialPage()
       this.setFilterFromQuery()
     })
   },
@@ -451,24 +498,23 @@ export default {
       return this.productsSource.map(this.getProductImageUrl)
     },
     leftPageProduct() {
-      return this.productsSource[this.currentPage]
+      const index = this.currentPage > 0
+        ? this.currentPage-1
+        : 0
+      return this.productsSource[index]
     },
     leftPageProductTallas() {
-      if(this.leftPageProduct) {
-        return this.getTallas(this.leftPageProduct)
-      }
-
-      return []
+      return this.leftPageProduct
+        ? this.getTallas(this.leftPageProduct)
+        : []
     },
     rightPageProduct() {
-      return this.productsSource[this.currentPage + 1]
+      return this.productsSource[this.currentPage]
     },
     rightPageProductTallas() {
-      if(this.rightPageProduct) {
-        return this.getTallas(this.rightPageProduct)
-      }
-
-      return []
+      return this.rightPageProduct
+        ? this.getTallas(this.rightPageProduct)
+        : []
     },
     cartWidth() {
       return this.$vuetify.breakpoint.mobile
@@ -789,17 +835,28 @@ export default {
     },
     cartRemoveItem(index) {
       this.cartItems.splice(index, 1)
+      if(this.cartItems.length === 0) {
+        this.drawerCart = false;
+      }
     },
     flipPage(direction) {
       this.$refs.flipbook[`flip${direction}`]()
     },
+    setInitialPage() {
+      if(this.$vuetify.breakpoint.mobile) {
+        this.currentPage = 0;
+        return;
+      }
+
+      this.currentPage = this.productsSource.length >= 1
+        ? 1
+        : 0
+    },
     onFlipLeftEnd(page) {
       this.currentPage = page
-      // window.location.hash = '#' + page
     },
     onFlipRightEnd(page) {
       this.currentPage = page
-      // window.location.hash = '#' + page
     },
     getDate() {
       const now = new Date();
