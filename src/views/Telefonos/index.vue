@@ -96,9 +96,17 @@
                               </v-select>
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Client ID
+                              <p class="body-1 font-weight-bold ma-0">
+                                Telegram ID
                               </p>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.telegramId"
+                                label="ID de Telegram"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Client ID</p>
                               <VTextFieldWithValidation
                                 rules=""
                                 v-model="editedItem.credenciales.clientId"
@@ -210,7 +218,7 @@
             ><v-switch
               v-model="item.active"
               @change="updateActive(item)"
-              style="width:20px;"
+              style="width: 20px"
             ></v-switch
           ></template>
           <template v-slot:[`item.status`]="{ item }">
@@ -248,7 +256,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
