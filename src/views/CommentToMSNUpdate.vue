@@ -613,7 +613,8 @@ export default {
           this.commentFacebook.selectedUrlIndex = null;
           return this.customUrl;
         } else {
-          return this.urls[parseInt(this.commentFacebook.selectedUrlIndex)].url;
+          return this.urls[parseInt(this.commentFacebook.selectedUrlIndex || 0)]
+            .url;
         }
       } catch (error) {
         return "";
