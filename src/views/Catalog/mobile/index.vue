@@ -7,6 +7,7 @@
       clipped
       touchless
       width="350"
+      color="#bebebe"
     >
       <v-btn
         icon
@@ -26,9 +27,48 @@
         <v-list-item class="px-0">
           <v-img :src="personResource" max-height="300" />
         </v-list-item>
-        <v-list-group style="margin-top: 30px;" :value="true" color="dark">
+        <v-list-item class="mt-3">
+          <v-autocomplete
+            class="d-flex"
+            :items="products"
+            v-model="productsSelected"
+            prepend-inner-icon="mdi-magnify"
+            append-icon=""
+            hide-details
+            hide-no-data
+            outlined
+            dense
+            flat
+            multiple
+            return-object
+            item-text="name"
+          >
+            <template v-slot:selection="data">
+              <v-chip
+                v-bind="data.attrs"
+                :input-value="data.selected"
+                close
+                @click="data.select"
+                @click:close="removeSelectedProduct(data.item)"
+              >
+                {{ data.item.ref }}
+              </v-chip>
+            </template>
+            <template v-slot:item="{item}">
+              <template>
+                <v-list-item-avatar tile height="63" width="63">
+                  <img :src="item.images && item.images[0].src">
+                </v-list-item-avatar>
+                <v-list-item-content>
+                  <v-list-item-title>{{item.name}}</v-list-item-title>
+                </v-list-item-content>
+              </template>
+            </template>
+          </v-autocomplete>
+        </v-list-item>
+        <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="filter-title">
               <v-list-item-title>Filtrar por categorias</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -38,6 +78,7 @@
               :items="categoriesTree"
               item-key="idCategory"
               selectable
+              rounded
             >
               <template v-slot:label="{item}">
                 {{item.name}} <span class="caption">({{item.products.length}})</span>
@@ -48,7 +89,7 @@
  
         <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="filter-title">
               <v-list-item-title>Filtrar por tallas</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -65,8 +106,9 @@
 
               <v-list-item
                 v-else
-                :key="`item-${i}`"
+                class="filter-item-action"
                 :value="item"
+                :key="`item-${i}`"
               >
                 <template v-slot:default="{ active }">
                   <v-checkbox :input-value="active" color="purple lighten-1"></v-checkbox>
@@ -81,8 +123,8 @@
 
         <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content>
-              <v-list-item-title>Filtrar por tallas</v-list-item-title>
+            <v-list-item-content class="filter-title">
+              <v-list-item-title>Filtrar por marcas</v-list-item-title>
             </v-list-item-content>
           </template>
 
@@ -98,8 +140,9 @@
 
               <v-list-item
                 v-else
-                :key="`item-${i}`"
+                class="filter-item-action"
                 :value="item"
+                :key="`item-${i}`"
               >
                 <template v-slot:default="{ active }">
                   <v-checkbox :input-value="active" color="purple lighten-1"></v-checkbox>
@@ -198,9 +241,9 @@
     </v-navigation-drawer>
 
     <v-banner dark color="purple" single-line>
-      <span class="text-body-2">
-        Siguenos en facebok para mantenerte siempre al dia con secretos de
-      </span>
+      <marquee-text class="text-body-2" :duration="50">
+        Hola, recuerda seguirme en las redes sociales!!! Con Mi Tienda móvil, compras fácil y rápido, todo lo que ves está disponible; puedes filtrar por Talla  o también seleccionar la categoría (Fajas, jeans, Vestir..) para que encuentres más rápido todo lo que buscas.  recuerda filtrar por talla y veras solo lo que te interesa en tu talla. Usa el menú para filtrar por talla, marca o categoría de producto. Suma al carrito y al final me enviaras un mensaje al Whatsapp con los productos que te gustan. Estamos felices por tu visita!!
+      </marquee-text>
     </v-banner>
 
     <v-app-bar
@@ -351,7 +394,7 @@
       </v-container>
     </v-main>
 
-    <bottom-navigation @action="drawerFilter = true" />
+    <bottom-navigation @menuClick="drawerFilter = true" @itemClick="handleBottomItemClick" />
   </div>
 </template>
 
@@ -361,6 +404,7 @@ import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import TallasSelect from '@/components/catalog/TallasSelect'
 import BottomNavigation from './BottomNavigation'
+import MarqueeText from 'vue-marquee-text-component'
 import { jsPDF } from "jspdf";
 import _ from 'lodash'
 import PersonaR from './persona.jpg'
@@ -374,7 +418,7 @@ const MONTHS = [
 ];
 
 export default {
-  components: { Flipbook, TallasSelect, BottomNavigation },
+  components: { Flipbook, TallasSelect, BottomNavigation, MarqueeText },
   data() {
     return {
       country: DEFAULT_COUNTRY,
@@ -729,6 +773,10 @@ export default {
 
       return false;
     },
+    handleBottomItemClick (category) {
+      console.log(category)
+      this.filter.categories = [category]
+    },
     removeSelectedProduct (item) {
       const index = this.productsSelected.findIndex(p => p._id===item._id)
       if (index >= 0) this.productsSelected.splice(index, 1)
@@ -818,6 +866,15 @@ export default {
 
 .page >>> .v-toolbar__content {
   justify-content: center;
+}
+
+.filter-title { 
+  margin-left: 20px;
+  font-weight: bold;
+}
+
+.filter-item-action {
+  margin-left: 20px;
 }
 
 .flipbook {

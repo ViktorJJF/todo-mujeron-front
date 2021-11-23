@@ -32,6 +32,7 @@
         "vue-chartist": "^2.3.1",
         "vue-i18n": "^8.22.4",
         "vue-json-pretty": "^1.7.1",
+        "vue-marquee-text-component": "^1.2.0",
         "vue-router": "^3.3.4",
         "vue-sweetalert2": "^4.2.1",
         "vuetify": "^2.3.6",
