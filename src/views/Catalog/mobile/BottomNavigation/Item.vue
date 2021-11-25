@@ -1,7 +1,8 @@
 <template>
-  <div class="d-flex flex-column align-center elevetion-5">
+  <div class="d-flex flex-column justify-center align-center elevetion-5">
     <v-img :src="icon"
-      max-width="40"
+      max-height="30"
+      contain
     />
     <div class="text-caption">
       {{label || ''}}
