@@ -15,12 +15,12 @@
     </div>
     <v-row no-gutters>
       <v-col
-        :class="[index===items.length-1 ? '' : 'borders']"
+        :class="[index===items.length-1 ? '' : 'borders', 'd-flex align-center justify-center']"
         v-for="(item, index) of items"
         @click="$emit('itemClick', item.categoryId)"
         :key="index"
       >
-        <navigation-item class="mt-n4" v-bind="item" />
+        <navigation-item style="height: 100%" v-bind="item" />
       </v-col>
     </v-row>
   </v-bottom-navigation>

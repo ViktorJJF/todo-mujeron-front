@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page" v-scroll="onScroll">
 
     <v-navigation-drawer
       v-model="drawerFilter"
@@ -68,7 +68,7 @@
         </v-list-item>
         <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content class="filter-title">
+            <v-list-item-content class="drawer-title">
               <v-list-item-title>Filtrar por categorias</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -89,7 +89,7 @@
  
         <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content class="filter-title">
+            <v-list-item-content class="drawer-title">
               <v-list-item-title>Filtrar por tallas</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -123,7 +123,7 @@
 
         <v-list-group :value="true" color="dark">
           <template v-slot:activator>
-            <v-list-item-content class="filter-title">
+            <v-list-item-content class="drawer-title">
               <v-list-item-title>Filtrar por marcas</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -174,67 +174,68 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
 
-      <v-list
-        flat
-        subheader
-      >
-        <v-subheader>Tus Artículos</v-subheader>
+      <v-list flat>
+        <v-list-item-content class="drawer-title">
+          <v-list-item-title>Tus Artículos</v-list-item-title>
+        </v-list-item-content>
         
         <v-list-item
           v-for="(item, index) in cartItems"
           three-line
           :key="item.product._id"
         >
-           <v-list-item-avatar tile height="63" width="63">
-              <img :src="item.product.images && item.product.images[0].src">
+           <v-list-item-avatar tile width="70" height="100">
+              <v-img
+                :src="item.product.images && item.product.images[0].src"
+              />
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title>{{item.product.name}}</v-list-item-title>
               <div>
+                <div>{{item.product.name}}</div>
                 <div>{{item.product.ref}}</div>
                 <div>Talla: {{item.tallas.join(', ')}}</div>
-                <strong>{{ (item.product.regular_price || item.product.variations[0].regular_price) * item.quantity | currency}}</strong>
+                <strong style="font-size: 23px">
+                  {{ (item.product.regular_price || item.product.variations[0].regular_price) * item.quantity | currency}}
+                </strong>
               </div>
             </v-list-item-content>
-            <div class="d-flex align-center">
-              <v-text-field
-                v-model="item.quantity"
-                style="max-width: 65px;"
-                type="number"
-                min="1"
-                hide-details
-                dense
-                outlined
-              />
-              <v-btn icon @click="cartRemoveItem(index)">
-                <v-icon color="grey lighten-1">mdi-delete</v-icon>
+            <v-list-item-action class="d-flex flex-column align-center">
+              <v-btn class="mb-3" icon @click="cartRemoveItem(index)">
+                <v-icon size="40" color="grey">mdi-delete</v-icon>
               </v-btn>
-            </div>
+              <div class="d-flex align-center justify-center">
+                <v-icon color="grey" @click="item.quantity>0 && item.quantity--">mdi-minus</v-icon>
+                <v-text-field
+                  class="text-field-center"
+                  v-model="item.quantity"
+                  style="width: 42px;"
+                  type="number"
+                  min="1"
+                  hide-details
+                  dense
+                  outlined
+                />
+                <v-icon color="grey" @click="item.quantity++">mdi-plus</v-icon>
+              </div>
+            </v-list-item-action>
         </v-list-item>
       </v-list>
-      <div class="cart-total">
+      <div class="cart-bottom">
         <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
         </div>
-        <div class="">
+        <div class="pa-3 purple d-flex align-center">
+          <v-icon size="50" dark class="mr-1">
+            mdi-whatsapp
+          </v-icon>
           <v-btn
-            class="white--text"
-            color="green"
+            class="purple--text"
+            color="white"
             depressed
-            block
-            min-height="55"
             @click="handleCartBuy"
             :disabled="!cartItems.length"
           >
-            <v-icon
-              dark
-              class="mr-1"
-            >
-              mdi-whatsapp
-            </v-icon>
-            <span>
-              Enviar pedido a mi asesor por Whatsapp
-            </span>
+            Enviar pedido a mi asesor por Whatsapp
           </v-btn>
         </div>
       </div>
@@ -296,6 +297,9 @@
         <tallas-select
           style="max-width: 150px;"
           v-model="filter.tallas"
+          outlined
+          dense
+          flat
           :tallas="tallas"
         />
         <v-btn
@@ -309,10 +313,21 @@
       </div>
     </v-app-bar>
 
+    <div v-if="isAppBarHidden && cartItems.length" class="cart-fixed">
+      <v-btn
+        icon
+        outlined
+        color="blue darken-3"
+        @click="drawerCart = true"
+      >
+        <v-icon>mdi-cart-variant</v-icon>
+      </v-btn>
+    </div>
+
     <v-main class="grey lighten-3">
       <v-container>
         <v-row>
-          <v-col class="pa-0">
+          <v-col class="pa-1">
             <div class="d-flex justify-center align-center">
               <v-btn
                 class="mr-1"
@@ -320,7 +335,7 @@
                 color="grey"
                 @click="flipPage('Left')"
               >
-                <v-icon>mdi-chevron-left</v-icon>
+                <v-icon size="35">mdi-chevron-left</v-icon>
               </v-btn>
               <div style="min-width: 50px;" class="d-flex justify-center">
                 {{pages.length ? currentPage + 1 : 0}} / {{pages.length}}
@@ -331,7 +346,7 @@
                 color="grey"
                 @click="flipPage('Right')"
               >
-                <v-icon>mdi-chevron-right</v-icon>
+                <v-icon size="35">mdi-chevron-right</v-icon>
               </v-btn>
             </div>
           </v-col>
@@ -438,7 +453,8 @@ export default {
       },
       currentPage: 0,
       showGesture: false,
-      personResource: PersonaR
+      personResource: PersonaR,
+      isAppBarHidden: false
     }
   },
   mounted() {
@@ -641,6 +657,9 @@ export default {
     },    
   },
   methods: {
+    onScroll () {
+      this.isAppBarHidden = window.scrollY >= 95
+    },
     async downloadPdf(maxSize) {
       if(!this.productsSource.length) {
         return;
@@ -868,7 +887,7 @@ export default {
   justify-content: center;
 }
 
-.filter-title { 
+.drawer-title { 
   margin-left: 20px;
   font-weight: bold;
 }
@@ -916,15 +935,25 @@ export default {
     animation: rotation 2s infinite linear;
 }
 
-.cart-total {
+.cart-fixed {
+  position: fixed;
+  right: 5%;
+  top: 3%;
+  z-index: 1;
+}
+
+.cart-bottom {
   position: absolute;
   bottom: 0;
   width: 100%;
-  margin-bottom: 30px;
 }
 
-.cart-total .v-btn__content {
+.cart-bottom .v-btn__content {
   flex: unset;
   white-space: normal
+}
+
+.text-field-center >>> input {
+  text-align: center
 }
 </style>
