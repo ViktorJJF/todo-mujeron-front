@@ -16,6 +16,11 @@ let routes = [
     component: () => import("@/views/Catalog/index.vue"),
   },
   {
+    path: "/dias-frecuencia",
+    name: "DaysFrequency",
+    component: () => import("@/views/Webviews/DaysFrequency.vue"),
+  },
+  {
     path: "/",
     component: () => import("@/layouts/Admin.vue"),
     meta: {
