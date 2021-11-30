@@ -42,6 +42,7 @@
             multiple
             return-object
             item-text="name"
+            :search-input.sync="search"
           >
             <template v-slot:selection="data">
               <v-chip
@@ -54,15 +55,15 @@
                 {{ data.item.ref }}
               </v-chip>
             </template>
-            <template v-slot:item="{item}">
-              <template>
+            <template v-slot:item="{item, attrs, on}">
+              <v-list-item v-bind="attrs" v-on="on" @click="search=null" >
                 <v-list-item-avatar tile height="63" width="63">
                   <img :src="item.images && item.images[0].src">
                 </v-list-item-avatar>
                 <v-list-item-content>
                   <v-list-item-title>{{item.name}}</v-list-item-title>
                 </v-list-item-content>
-              </template>
+              </v-list-item>
             </template>
           </v-autocomplete>
         </v-list-item>
@@ -338,7 +339,7 @@
                 <v-icon size="35">mdi-chevron-left</v-icon>
               </v-btn>
               <div style="min-width: 50px;" class="d-flex justify-center">
-                {{pages.length ? currentPage + 1 : 0}} / {{pages.length}}
+                {{pages.length ? currentPage : 0}} / {{pages.length}}
               </div>
               <v-btn
                 class="ml-1"
@@ -385,10 +386,10 @@
                   </template>
                   <v-list>
                     <v-list-item
-                      v-for="talla of leftPageProductTallas"
+                      v-for="talla of currentPageProductTallas"
                       link
                       :key="talla"
-                      @click="cartAddItem(leftPageProduct, talla)"
+                      @click="cartAddItem(currentPageProduct, talla)"
                     >
                       <v-list-item-title>{{talla}}</v-list-item-title>
                     </v-list-item>
@@ -438,6 +439,7 @@ export default {
     return {
       country: DEFAULT_COUNTRY,
       countryLoaded: false,
+      search: '',
       hideCountrySelect: true,
       drawerFilter: false,
       drawerCart: false,
@@ -451,7 +453,7 @@ export default {
         tallas: [],
         marcas: [],
       },
-      currentPage: 0,
+      currentPage: 1,
       showGesture: false,
       personResource: PersonaR,
       isAppBarHidden: false
@@ -489,23 +491,15 @@ export default {
     pages() {
       return this.productsSource.map(this.getProductImageUrl)
     },
-    leftPageProduct() {
+    currentPageProduct() {
       const index = this.currentPage > 0
         ? this.currentPage-1
         : 0
       return this.productsSource[index]
     },
-    leftPageProductTallas() {
-      return this.leftPageProduct
-        ? this.getTallas(this.leftPageProduct)
-        : []
-    },
-    rightPageProduct() {
-      return this.productsSource[this.currentPage]
-    },
-    rightPageProductTallas() {
-      return this.rightPageProduct
-        ? this.getTallas(this.rightPageProduct)
+    currentPageProductTallas() {
+      return this.currentPageProduct
+        ? this.getTallas(this.currentPageProduct)
         : []
     },
     filtersActive() {
@@ -554,7 +548,9 @@ export default {
         })
       }
 
-      return filteredProducts;
+      return filteredProducts.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt)
+      });
     },
     productsByCategory() {
       if(this.filter.categories.length) {
@@ -636,10 +632,9 @@ export default {
       handler: function(val) {
         if(!this.filterInitialized) return;
 
-        if(this.currentPage > this.pages.length) {
-          this.currentPage = this.pages.length-1
-          this.$refs.flipbook.goToPage(this.currentPage)
-        }
+        this.currentPage = this.pages.length ? 1 : 0
+        this.$refs.flipbook.goToPage(this.currentPage)
+
         let query = {
           ...this.$route.query,
           categories: val.categories.join(','),
@@ -792,8 +787,10 @@ export default {
 
       return false;
     },
+    handleSearchItemClick() {
+      this.search = ''
+    },
     handleBottomItemClick (category) {
-      console.log(category)
       this.filter.categories = [category]
     },
     removeSelectedProduct (item) {
@@ -845,7 +842,7 @@ export default {
     getDate() {
       const now = new Date();
 
-      let day = now.getDay();
+      let day = now.getDate();
       let month = now.getMonth();
       let year = now.getFullYear();
 
