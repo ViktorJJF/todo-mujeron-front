@@ -11,7 +11,7 @@ let routes = [
     component: () => import("./views/Login.vue"),
   },
   {
-    path: "/catalogo-digital/",
+    path: "/catalogo-digital/:id",
     name: "Catalog",
     component: () => import("@/views/Catalog/index.vue"),
   },
@@ -55,6 +55,11 @@ let routes = [
         path: "/bots",
         name: "Bots",
         component: () => import("@/views/Facebook.vue"),
+      },
+      {
+        path: "/catalogs",
+        name: "Catalogs",
+        component: () => import("@/views/CatalogsManager.vue"),
       },
       {
         path: "/contactos",

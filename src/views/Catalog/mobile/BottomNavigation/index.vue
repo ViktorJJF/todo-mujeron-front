@@ -1,14 +1,14 @@
 <template>
   <v-bottom-navigation
     dark
-    background-color="purple"
+    :background-color="color"
     app
   >
     <div class="navigation-action d-flex align-center">
       <v-hover>
         <template v-slot:default="{ hover }">
           <div :class="['action-item', `elevation-${hover ? 24 : 6}`]" @click="$emit('menuClick')">
-            <v-icon color="purple">mdi-menu</v-icon>
+            <v-icon :color="color">mdi-menu</v-icon>
           </div>
         </template>
       </v-hover>
@@ -35,6 +35,12 @@ import IconPijamaR from './images/iconopijama.png'
 
 export default {
   components: { NavigationItem },
+  props: {
+    color: {
+      type: String,
+      default: 'purple'
+    }
+  },
   data() {
     return {
       items: [

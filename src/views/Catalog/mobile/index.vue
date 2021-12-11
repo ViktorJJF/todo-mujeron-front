@@ -24,8 +24,14 @@
         expand
         subheader
       >
-        <v-list-item class="px-0">
-          <v-img :src="personResource" max-height="300" />
+        <v-list-item class="filter-drawer-top">
+          <v-img src="https://scontent.fscl3-1.fna.fbcdn.net/v/t31.18172-8/12138341_105828646442199_4570082104489449039_o.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeEtDVL0I5_JPxDKp954Y2_QP4OTzUqEWGg_g5PNSoRYaHaF9kjznQrYgi4YeKa7j5E&_nc_ohc=0qywmKQvB5QAX9ZvLnr&_nc_ht=scontent.fscl3-1.fna&oh=a2d5c8b618f79811896cda3bb009f531&oe=61D747D6" max-height="300" />
+          <div class="content">
+            <div class="text-h4 font-weight-bold white--text">{{catalog.domain}}</div>
+            <div class="text-subtitle-1 font-weight-bold" style="color: #e3e3e3">
+              Full moda {{new Date().getFullYear()}}
+            </div>
+          </div>
         </v-list-item>
         <v-list-item class="mt-3">
           <v-autocomplete
@@ -225,26 +231,26 @@
         <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
         </div>
-        <div class="pa-3 purple d-flex align-center">
+        <div class="pa-3 d-flex align-center" :style="`background-color: ${mainColor}`">
           <v-icon size="50" dark class="mr-1">
             mdi-whatsapp
           </v-icon>
           <v-btn
-            class="purple--text"
-            color="white"
+            :style="`color: ${mainColor}`"
+            block
             depressed
             @click="handleCartBuy"
             :disabled="!cartItems.length"
           >
-            Enviar pedido a mi asesor por Whatsapp
+          <span>Enviar pedido a mi asesor por Whatsapp</span>
           </v-btn>
         </div>
       </div>
     </v-navigation-drawer>
 
-    <v-banner dark color="purple" single-line>
+    <v-banner dark :color="mainColor" single-line>
       <marquee-text class="text-body-2" :duration="50">
-        Hola, recuerda seguirme en las redes sociales!!! Con Mi Tienda móvil, compras fácil y rápido, todo lo que ves está disponible; puedes filtrar por Talla  o también seleccionar la categoría (Fajas, jeans, Vestir..) para que encuentres más rápido todo lo que buscas.  recuerda filtrar por talla y veras solo lo que te interesa en tu talla. Usa el menú para filtrar por talla, marca o categoría de producto. Suma al carrito y al final me enviaras un mensaje al Whatsapp con los productos que te gustan. Estamos felices por tu visita!!
+        {{catalog.topBannerText || 'Hola, recuerda seguirme en las redes sociales!!! Con Mi Tienda móvil, compras fácil y rápido, todo lo que ves está disponible; puedes filtrar por Talla  o también seleccionar la categoría (Fajas, jeans, Vestir..) para que encuentres más rápido todo lo que buscas.  recuerda filtrar por talla y veras solo lo que te interesa en tu talla. Usa el menú para filtrar por talla, marca o categoría de producto. Suma al carrito y al final me enviaras un mensaje al Whatsapp con los productos que te gustan. Estamos felices por tu visita!!'}}
       </marquee-text>
     </v-banner>
 
@@ -352,6 +358,7 @@
             </div>
           </v-col>
         </v-row>
+
         <v-row>
           <v-col
             cols="12"
@@ -407,10 +414,44 @@
             </flipbook>
           </v-col>
         </v-row>
+
+        <v-row justify="center">
+          <v-col cols="11">
+            <v-sheet class="d-flex justify-center rounded-xl">
+              <div class="pa-3 d-flex flex-column align-center" style="max-width: 75%">
+                <div class="text-h4 font-weight-bold" :style="`color: ${mainColor}`">{{catalog.domain}}</div>
+                <div class="mb-6 text-subtitle-1 grey--text">Full moda {{new Date().getFullYear()}}</div>
+                <div class="mb-6 text-center">
+                  Todos los derechos reservados de este website pertenecen a
+                  <span class="text-uppercase">{{catalog.domain}}</span>
+                </div>
+                <div class="mb-6 d-flex justify-space-around" style="width: 100%">
+                  <v-btn v-if="catalog.fbPage" icon color="blue" :href="catalog.fbPage" target="_blank">
+                    <v-icon x-large>mdi-facebook</v-icon>
+                  </v-btn>
+                  <v-btn v-if="catalog.wsPhone" icon color="green" :href="catalog.wsPhone" target="_blank">
+                    <v-icon x-large>mdi-whatsapp</v-icon>
+                  </v-btn>
+                  <v-btn v-if="catalog.instagram" icon color="pink" :href="catalog.instagram" target="_blank">
+                    <v-icon x-large>mdi-instagram</v-icon>
+                  </v-btn>
+                  <v-btn v-if="catalog.telegram" icon color="orange" :href="catalog.telegram" target="_blank">
+                    <v-icon x-large>mdi-phone</v-icon>
+                  </v-btn>
+                </div>
+                <div class="mb-6 text-caption">Copyright Enabled {{new Date().getFullYear()}}. All Rights Reserved.</div>
+              </div>
+            </v-sheet>
+          </v-col>
+        </v-row>
       </v-container>
     </v-main>
 
-    <bottom-navigation @menuClick="drawerFilter = true" @itemClick="handleBottomItemClick" />
+    <bottom-navigation
+      @menuClick="drawerFilter = true"
+      @itemClick="handleBottomItemClick"
+      :color="mainColor"
+    />
   </div>
 </template>
 
@@ -435,9 +476,14 @@ const MONTHS = [
 
 export default {
   components: { Flipbook, TallasSelect, BottomNavigation, MarqueeText },
+  props: {
+    catalog: {
+      type: Object
+    }
+  },
   data() {
     return {
-      country: DEFAULT_COUNTRY,
+      country: this.catalog.country || DEFAULT_COUNTRY,
       countryLoaded: false,
       search: '',
       hideCountrySelect: true,
@@ -456,7 +502,8 @@ export default {
       currentPage: 1,
       showGesture: false,
       personResource: PersonaR,
-      isAppBarHidden: false
+      isAppBarHidden: false,
+      mainColor: 'purple'
     }
   },
   mounted() {
@@ -470,6 +517,11 @@ export default {
     }, showGestureTime*4)
   },
   created() {
+
+    if(this.catalog.mainColor) {
+      this.mainColor = this.catalog.mainColor
+    }
+
     this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
 
     const country = this.$route.query.country
@@ -812,7 +864,7 @@ export default {
 
       message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
 
-      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}&phone=${this.catalog.wsPhone}`
 
       window.open(url, "_blank");  
     },
@@ -945,7 +997,7 @@ export default {
   width: 100%;
 }
 
-.cart-bottom .v-btn__content {
+.cart-bottom >>> .v-btn__content {
   flex: unset;
   white-space: normal
 }
@@ -953,4 +1005,19 @@ export default {
 .text-field-center >>> input {
   text-align: center
 }
+
+.filter-drawer-top {
+  position: relative;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.filter-drawer-top .content {
+  position: absolute;
+  bottom: 20px;
+  margin-left: 20px;
+  width: 100%;
+}
+
+
 </style>
