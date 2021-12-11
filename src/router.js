@@ -11,7 +11,7 @@ let routes = [
     component: () => import("./views/Login.vue"),
   },
   {
-    path: "/catalogo-digital/:id",
+    path: "/catalogo-digital/:id?",
     name: "Catalog",
     component: () => import("@/views/Catalog/index.vue"),
   },

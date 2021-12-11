@@ -13,6 +13,7 @@
 import CatalogMobile from './mobile/index'
 import CatalogDesktop from './desktop/index'
 import CatalogsApi from "@/services/api/catalogs";
+import Catalogs from '@/classes/Catalogs'
 
 export default {
   components: { CatalogMobile, CatalogDesktop },
@@ -22,9 +23,14 @@ export default {
     }
   },
   created() {
-    CatalogsApi.find(this.$route.params.id).then(res => {
-      this.catalog = res.data.payload
-    })
+    if(this.$route.params.id) {
+      CatalogsApi.find(this.$route.params.id).then(res => {
+        this.catalog = res.data.payload
+      })
+    }
+    else {
+      this.catalog = Catalogs()
+    }
   }
 }
 </script>
