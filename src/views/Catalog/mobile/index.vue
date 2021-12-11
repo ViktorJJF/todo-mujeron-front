@@ -25,7 +25,7 @@
         subheader
       >
         <v-list-item class="filter-drawer-top">
-          <v-img src="https://scontent.fscl3-1.fna.fbcdn.net/v/t31.18172-8/12138341_105828646442199_4570082104489449039_o.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeEtDVL0I5_JPxDKp954Y2_QP4OTzUqEWGg_g5PNSoRYaHaF9kjznQrYgi4YeKa7j5E&_nc_ohc=0qywmKQvB5QAX9ZvLnr&_nc_ht=scontent.fscl3-1.fna&oh=a2d5c8b618f79811896cda3bb009f531&oe=61D747D6" max-height="300" />
+          <v-img :src="coverImage" max-height="300" />
           <div class="content">
             <div class="text-h4 font-weight-bold white--text">{{catalog.domain}}</div>
             <div class="text-subtitle-1 font-weight-bold" style="color: #e3e3e3">
@@ -429,7 +429,7 @@
                   <v-btn v-if="catalog.fbPage" icon color="blue" :href="catalog.fbPage" target="_blank">
                     <v-icon x-large>mdi-facebook</v-icon>
                   </v-btn>
-                  <v-btn v-if="catalog.wsPhone" icon color="green" :href="catalog.wsPhone" target="_blank">
+                  <v-btn v-if="catalog.wsPhone" icon color="green" :href="getWsInfoLink()" target="_blank">
                     <v-icon x-large>mdi-whatsapp</v-icon>
                   </v-btn>
                   <v-btn v-if="catalog.instagram" icon color="pink" :href="catalog.instagram" target="_blank">
@@ -503,7 +503,8 @@ export default {
       showGesture: false,
       personResource: PersonaR,
       isAppBarHidden: false,
-      mainColor: 'purple'
+      mainColor: 'purple',
+      coverImage: 'https://scontent.fscl3-1.fna.fbcdn.net/v/t31.18172-8/12138341_105828646442199_4570082104489449039_o.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeEtDVL0I5_JPxDKp954Y2_QP4OTzUqEWGg_g5PNSoRYaHaF9kjznQrYgi4YeKa7j5E&_nc_ohc=0qywmKQvB5QAX9ZvLnr&_nc_ht=scontent.fscl3-1.fna&oh=a2d5c8b618f79811896cda3bb009f531&oe=61D747D6'
     }
   },
   mounted() {
@@ -520,6 +521,10 @@ export default {
 
     if(this.catalog.mainColor) {
       this.mainColor = this.catalog.mainColor
+    }
+
+    if(this.catalog.coverPageImage) {
+      this.coverImage = this.catalog.coverPageImage
     }
 
     this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
@@ -867,6 +872,11 @@ export default {
       let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}&phone=${this.catalog.wsPhone}`
 
       window.open(url, "_blank");  
+    },
+    getWsInfoLink() {
+      let message = `Hola estuve viendo tu pagina ${this.catalog.domain} y quiero información`
+
+      return `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}&phone=${this.catalog.wsPhone}`
     },
     cartAddItem(product, talla) {
       let item = this.cartItems.find(item => item.product._id === product._id)
