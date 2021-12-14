@@ -743,13 +743,9 @@ export default {
                     {
                       type: "postback",
                       title: "Tallas",
-                      payload: `como saber mi talla de ${
-                        this.filteredLabels[
-                          parseInt(this.commentFacebook.selectedLabelIndex)
-                        ]
-                          ? this.filteredLabels[
-                              parseInt(this.commentFacebook.selectedLabelIndex)
-                            ].name
+                      payload: `en que Todas esta disponible el ${
+                        this.commentFacebook.products.length > 0
+                          ? this.commentFacebook.products[0].ref
                           : ""
                       }`, // se usa el label seleccionado
                     },
