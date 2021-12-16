@@ -470,13 +470,18 @@ export default {
             this.commentFacebook.selectedCategories.findIndex(
               (selectedCategory) => selectedCategory.categoryId == category._id
             ) > -1
-          )
-            urls.push({
-              url: this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
+          ) {
+            let searchedCategory =
+              this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
                 (el) => el.idCategory == category.id
-              ).url,
-              type: "category",
-            });
+              );
+            if (searchedCategory) {
+              urls.push({
+                url: searchedCategory.url,
+                type: "category",
+              });
+            }
+          }
         }
         //mapeandp etiquetas
         for (const category of product.categories) {
@@ -691,6 +696,7 @@ export default {
       this.commentFacebook.products = this.commentFacebook.products.slice();
     },
     getFilteredLabels(categoryId) {
+      console.log("🚀 Aqui *** -> categoryId", categoryId);
       return this.facebookLabels.filter(
         (label) => label.foreignLabelId == categoryId
       );
