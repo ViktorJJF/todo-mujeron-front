@@ -29,7 +29,11 @@ export default {
       })
     }
     else {
-      this.catalog = Catalogs()
+      CatalogsApi.findDefault().then(res => {
+        this.catalog = res.data
+      }).catch(() => {
+        this.catalog = Catalogs()
+      })
     }
   }
 }
