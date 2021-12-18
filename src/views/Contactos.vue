@@ -377,7 +377,7 @@ export default {
     search2: "",
     telefonoId: null,
     delayTimer: null,
-    fieldsToSearch: ["nombre", "apellido", "celular", "displayName"],
+    fieldsToSearch: ["nombre", "apellido", "celular", "displayName", "email"],
   }),
 
   computed: {

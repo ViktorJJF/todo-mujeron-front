@@ -606,7 +606,8 @@ export default {
             (el.customImage == "" ||
               !el.customImage ||
               el.customImage == " ") &&
-            el.attributes.find((attr) => attr.name.toLowerCase() === "talla")
+            el.attributes.find((attr) => attr.name.toLowerCase() === "talla") &&
+            el.status === "publish"
         );
       } else
         this[ENTITY] = JSON.parse(

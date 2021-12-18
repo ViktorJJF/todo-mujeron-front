@@ -470,13 +470,18 @@ export default {
             this.commentFacebook.selectedCategories.findIndex(
               (selectedCategory) => selectedCategory.categoryId == category._id
             ) > -1
-          )
-            urls.push({
-              url: this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
+          ) {
+            let searchedCategory =
+              this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
                 (el) => el.idCategory == category.id
-              ).url,
-              type: "category",
-            });
+              );
+            if (searchedCategory) {
+              urls.push({
+                url: searchedCategory.url,
+                type: "category",
+              });
+            }
+          }
         }
         //mapeandp etiquetas
         for (const category of product.categories) {
@@ -691,6 +696,7 @@ export default {
       this.commentFacebook.products = this.commentFacebook.products.slice();
     },
     getFilteredLabels(categoryId) {
+      console.log("🚀 Aqui *** -> categoryId", categoryId);
       return this.facebookLabels.filter(
         (label) => label.foreignLabelId == categoryId
       );
@@ -743,13 +749,9 @@ export default {
                     {
                       type: "postback",
                       title: "Tallas",
-                      payload: `como saber mi talla de ${
-                        this.filteredLabels[
-                          parseInt(this.commentFacebook.selectedLabelIndex)
-                        ]
-                          ? this.filteredLabels[
-                              parseInt(this.commentFacebook.selectedLabelIndex)
-                            ].name
+                      payload: `en que Todas esta disponible el ${
+                        this.commentFacebook.products.length > 0
+                          ? this.commentFacebook.products[0].ref
                           : ""
                       }`, // se usa el label seleccionado
                     },
