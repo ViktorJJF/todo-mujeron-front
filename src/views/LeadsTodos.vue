@@ -609,7 +609,7 @@ export default {
               ? this.editedItem.msnActivaDefault
               : "SIN CONSULTA";
             //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes \n\nhttps://wa.me/${this.editedItem.telefono}`;
             this.editedItem.estado = "RE-CONECTAR";
           } else {
             //Generando nota

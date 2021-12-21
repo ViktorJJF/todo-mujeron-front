@@ -574,7 +574,7 @@ export default {
             (telefono) => telefono._id == this.editedItem.telefonoId
           );
           //Generando mensaje para el agente
-          this.editedItem.details[0].nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.details[0].nombre} que nos ha dicho en el chat: ${this.editedItem.details[0].msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
+          this.editedItem.details[0].nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.details[0].nombre} que nos ha dicho en el chat: ${this.editedItem.details[0].msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes \n\nhttps://wa.me/${this.editedItem.telefono}`;
           //cambiando estado del LEAD
           this.editedItem.estado = "INFORMADO AL AGENTE";
           await this.$store.dispatch("cleanLeadsModule/update", {
@@ -607,7 +607,22 @@ export default {
     generateNotes(telefonoId) {
       let agent = this.telefonos.find((telefono) => telefono._id == telefonoId);
       //Generando mensaje para el agente
+      // buscando detail con datos:
+      let detail = this.editedItem.details.find(
+        (el) => el.labels && el.labels.length > 0
+      );
       this.editedItem.details[0].nota = `Hola ${agent.agenteId.nombre} te hemos asignado al cliente ${this.editedItem.details[0].nombre} que nos ha dicho en el chat: ${this.editedItem.details[0].msnActivaDefault} con teléfono : ${this.editedItem.telefono}. En cuanto la contactes me informas para borrarla de los pendientes`;
+      this.editedItem.details[0].nota += `\n✅ *Etiquetas: ${detail.labels
+        .filter((el) => el.labelId)
+        .reduce((unique, o) => {
+          if (!unique.some((obj) => obj.labelId.name === o.labelId.name)) {
+            unique.push(o);
+          }
+          return unique;
+        }, [])
+        .map((el) => el.labelId.name)
+        .join(", ")}`;
+      this.editedItem.details[0].nota += `\n\nhttps://wa.me/${this.editedItem.telefono}`;
     },
     async deleteItem(item) {
       const index = this.leads.indexOf(item);
