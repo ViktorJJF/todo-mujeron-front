@@ -441,7 +441,12 @@ export default {
       //asignar al data del componente
       this.rawProducts = this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
-      ).map((el) => ({ ...el, nameWithCountry: el.name + ` (${el.country})` }));
+      )
+        .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
+        .map((el) => ({
+          ...el,
+          nameWithCountry: el.name + ` (${el.country})`,
+        }));
     },
     deleteCurrentSearch() {
       this.searchProduct = "";
