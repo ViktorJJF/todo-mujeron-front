@@ -236,13 +236,16 @@
             mdi-whatsapp
           </v-icon>
           <v-btn
+            class="send-ws"
             :style="`color: ${mainColor}`"
             block
             depressed
             @click="handleCartBuy"
             :disabled="!cartItems.length"
           >
-          <span>Enviar pedido a mi asesor por Whatsapp</span>
+          <span>
+            Enviar pedido a mi asesor por Whatsapp
+          </span>
           </v-btn>
         </div>
       </div>
@@ -1007,14 +1010,20 @@ export default {
   width: 100%;
 }
 
+.cart-bottom .send-ws {
+  width: calc(100% - 50px);
+  min-width: 0 !important;
+}
+
 .cart-bottom >>> .v-btn__content {
   flex: unset;
-  white-space: normal
+  white-space: normal;
 }
 
 .text-field-center >>> input {
-  text-align: center
+  text-align: center;
 }
+
 
 .filter-drawer-top {
   position: relative;
