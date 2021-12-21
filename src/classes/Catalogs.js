@@ -11,4 +11,5 @@ export default () => ({
   topBannerText: '',
   paymentMethods: undefined,
   mainColor: '',
+  isDefault: false
 });

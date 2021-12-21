@@ -232,18 +232,25 @@
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
               >Editar</v-btn
             >
-            <v-btn class="mr-3" small color="error" @click="deleteItem(item)"
-              >Eliminar</v-btn
-            >
+            <v-btn class="mr-3" small color="error" @click="deleteItem(item)">
+              Eliminar
+            </v-btn>
             <v-btn
+              class="mr-3"
               small
               color="info"
               target="_blank"
               :href="`/catalogo-digital/${item._id}`"
             >
               Ver
-            </v-btn
+            </v-btn>
+            <v-btn
+              small
+              :color="item.isDefault ? 'primary' : ''"
+              @click="setDefault(item)"
             >
+              Por defecto
+            </v-btn>
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
@@ -282,6 +289,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Catalogs from '@/classes/Catalogs'
+import CatalogsApi from '@/services/api/catalogs'
 export default {
   components: {
     MaterialCard,
@@ -366,6 +374,13 @@ export default {
         await this.$store.dispatch("catalogsModule/delete", itemId);
         this.catalogs.splice(index, 1);
       }
+    },
+
+    async setDefault(item) {
+      await CatalogsApi.setIsDefault(item._id)
+      const index = this.catalogs.indexOf(item)
+      this.catalogs = this.catalogs.map(c => ({...c, isDefault: false}))
+      this.catalogs.splice(index, 1, {...item, isDefault: true})
     },
 
     close() {
