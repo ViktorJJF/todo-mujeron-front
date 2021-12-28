@@ -419,7 +419,12 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/CleanLeads";
-import { getRandomInt, buildPayloadPagination } from "@/utils/utils.js";
+import {
+  getRandomInt,
+  buildPayloadPagination,
+  formatPhone,
+  getCountryByPhone,
+} from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -682,7 +687,10 @@ export default {
               }, [])
               .map((el) => el.labelId.name)
               .join(", ")}`;
-            this.editedItem.details[0].nota += `\n\nhttps://wa.me/${this.editedItem.telefono}`;
+            this.editedItem.details[0].nota += `\n\nhttps://wa.me/${formatPhone(
+              this.editedItem.telefono,
+              getCountryByPhone(randomContact.telefonoId.numero)
+            )}`;
             this.editedItem.estado = "RE-CONECTAR";
           } else {
             //Generando nota

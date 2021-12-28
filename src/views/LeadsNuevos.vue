@@ -377,7 +377,11 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
-import { buildPayloadPagination } from "@/utils/utils.js";
+import {
+  buildPayloadPagination,
+  formatPhone,
+  getCountryByPhone,
+} from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -622,7 +626,10 @@ export default {
         }, [])
         .map((el) => el.labelId.name)
         .join(", ")}`;
-      this.editedItem.details[0].nota += `\n\nhttps://wa.me/${this.editedItem.telefono}`;
+      this.editedItem.details[0].nota += `\n\nhttps://wa.me/${formatPhone(
+        this.editedItem.telefono,
+        getCountryByPhone(agent.numero)
+      )}`;
     },
     async deleteItem(item) {
       const index = this.leads.indexOf(item);
