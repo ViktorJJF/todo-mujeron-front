@@ -673,20 +673,33 @@ export default {
             let detail = this.editedItem.details.find(
               (el) => el.labels && el.labels.length > 0
             );
+            console.log("🚀 Aqui *** -> detail", detail);
             //generando nota cuando se asignó un agente random
-            this.editedItem.details[0].nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.details[0].nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.details[0].msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
-            this.editedItem.details[0].nota += `\n✅ *Etiquetas: ${detail.labels
-              .filter((el) => el.labelId)
-              .reduce((unique, o) => {
-                if (
-                  !unique.some((obj) => obj.labelId.name === o.labelId.name)
-                ) {
-                  unique.push(o);
-                }
-                return unique;
-              }, [])
-              .map((el) => el.labelId.name)
-              .join(", ")}`;
+            console.log("🚀 Aqui *** -> randomContact", randomContact);
+            this.editedItem.details[0].nota = `Hola ${
+              randomContact.telefonoId.agenteId.nombre
+            } tu cliente: ${
+              detail ? detail.nombre : this.editedItem.details[0].nombre
+            } con teléfono : ${this.editedItem.telefono} consulta: '${
+              detail
+                ? detail.msnActivaDefault
+                : this.editedItem.details[0].msnActivaDefault
+            }'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            if (detail) {
+              detail.nota += `\n✅ *Etiquetas: ${detail.labels
+                .filter((el) => el.labelId)
+                .reduce((unique, o) => {
+                  if (
+                    !unique.some((obj) => obj.labelId.name === o.labelId.name)
+                  ) {
+                    unique.push(o);
+                  }
+                  return unique;
+                }, [])
+                .map((el) => el.labelId.name)
+                .join(", ")}`;
+            }
+
             this.editedItem.details[0].nota += `\n\nhttps://wa.me/${formatPhone(
               this.editedItem.telefono,
               getCountryByPhone(randomContact.telefonoId.numero)
