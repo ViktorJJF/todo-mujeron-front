@@ -240,12 +240,26 @@
             :style="`color: ${mainColor}`"
             block
             depressed
-            @click="handleCartBuy"
+            @click="handleSendWs"
             :disabled="!cartItems.length"
           >
-          <span>
-            Enviar pedido a mi asesor por Whatsapp
-          </span>
+            <span>
+              Enviar pedido a mi asesor por Whatsapp
+            </span>
+          </v-btn>
+        </div>
+        <div class="my-1 text-h6 text-center">
+          O
+        </div>
+        <div class="pa-3" :style="`background-color: ${mainColor}`">
+          <v-btn
+            :style="`color: ${mainColor}`"
+            block
+            depressed
+            @click="drawerCart = false; buyModal = true"
+            :disabled="!cartItems.length"
+          >
+            Pagar
           </v-btn>
         </div>
       </div>
@@ -455,6 +469,117 @@
       @itemClick="handleBottomItemClick"
       :color="mainColor"
     />
+
+    <v-dialog
+      v-model="buyModal"
+      width="500"
+    >
+      <v-card>
+        <v-card-title class="text-h5 grey lighten-2">
+          Datos Generales
+        </v-card-title>
+
+        <ValidationObserver ref="obs" v-slot="{ passes }">
+          <v-container class="pa-5">
+            <v-row>
+              <v-col>
+                <v-row dense class="mb-3">
+                  <v-col>
+                    <v-img
+                      src="/images/mercadopago1.png"
+                      max-height="150"
+                      contain
+                    />
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12" md="12">
+                <div class="body-1 font-weight-bold">Nombre</div>
+                <VTextFieldWithValidation
+                  rules="required"
+                  v-model="customer.name"
+                  label="Ingresa el nombre"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12" md="12">
+                <div class="body-1 font-weight-bold">Teléfono</div>
+                <VTextFieldWithValidation
+                  rules="required"
+                  v-model="customer.phone"
+                  label="Ingresa el teléfono"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12" md="12">
+                <div class="body-1 font-weight-bold">Correo Electrónico</div>
+                <VTextFieldWithValidation
+                  rules="required"
+                  v-model="customer.email"
+                  label="Ingrese el correo"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12" md="12">
+                <v-checkbox
+                  v-model="withShippment"
+                  :label="`Incluye envio?`"
+                ></v-checkbox>
+              </v-col>
+            </v-row>
+            <template v-if="withShippment">
+              <v-row>
+                <v-col cols="12" sm="12" md="12">
+                  <div class="body-1 font-weight-bold">Dirección</div>
+                  <VTextFieldWithValidation
+                    rules="required"
+                    v-model="shippment.address"
+                    label="Ingrese la dirección"
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="12" md="12">
+                  <div class="body-1 font-weight-bold">Comuna</div>
+                  <VTextFieldWithValidation
+                    rules="required"
+                    v-model="shippment.comuna"
+                    label="Ingrese comuna"
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="12" md="12">
+                  <div class="body-1 font-weight-bold">Ciudad</div>
+                  <VTextFieldWithValidation
+                    rules="required"
+                    v-model="shippment.city"
+                    label="Ingrese la ciudad"
+                  />
+                </v-col>
+              </v-row>
+            </template>
+          </v-container>
+          <v-card-actions rd-actions>
+            <div class="flex-grow-1"></div>
+            <v-btn outlined color="error" text @click="buyModal = false">
+              Cancelar
+            </v-btn>
+            <v-btn
+              :loading="loadingButton"
+              color="success"
+              @click="passes(handleBuy)">
+                Guardar
+              </v-btn>
+          </v-card-actions>
+        </ValidationObserver>
+      </v-card>    
+    </v-dialog>
   </div>
 </template>
 
@@ -462,12 +587,14 @@
 import Flipbook from 'flipbook-vue'
 import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
+import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import OrderApi from '@/services/api/orders'
 import TallasSelect from '@/components/catalog/TallasSelect'
 import BottomNavigation from './BottomNavigation'
 import MarqueeText from 'vue-marquee-text-component'
+import PersonaR from './persona.jpg'
 import { jsPDF } from "jspdf";
 import _ from 'lodash'
-import PersonaR from './persona.jpg'
 
 const COUNTRIES = ['Chile', 'Peru']
 const DEFAULT_COUNTRY = 'Chile'
@@ -478,7 +605,7 @@ const MONTHS = [
 ];
 
 export default {
-  components: { Flipbook, TallasSelect, BottomNavigation, MarqueeText },
+  components: { Flipbook, TallasSelect, BottomNavigation, MarqueeText, VTextFieldWithValidation },
   props: {
     catalog: {
       type: Object
@@ -486,6 +613,7 @@ export default {
   },
   data() {
     return {
+      buyModal: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
       countryLoaded: false,
       search: '',
@@ -507,7 +635,19 @@ export default {
       personResource: PersonaR,
       isAppBarHidden: false,
       mainColor: 'purple',
-      coverImage: 'https://scontent.fscl3-1.fna.fbcdn.net/v/t31.18172-8/12138341_105828646442199_4570082104489449039_o.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeEtDVL0I5_JPxDKp954Y2_QP4OTzUqEWGg_g5PNSoRYaHaF9kjznQrYgi4YeKa7j5E&_nc_ohc=0qywmKQvB5QAX9ZvLnr&_nc_ht=scontent.fscl3-1.fna&oh=a2d5c8b618f79811896cda3bb009f531&oe=61D747D6'
+      coverImage: 'https://scontent.fscl3-1.fna.fbcdn.net/v/t31.18172-8/12138341_105828646442199_4570082104489449039_o.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_eui2=AeEtDVL0I5_JPxDKp954Y2_QP4OTzUqEWGg_g5PNSoRYaHaF9kjznQrYgi4YeKa7j5E&_nc_ohc=0qywmKQvB5QAX9ZvLnr&_nc_ht=scontent.fscl3-1.fna&oh=a2d5c8b618f79811896cda3bb009f531&oe=61D747D6',
+      loadingButton: false,
+      customer: {
+        name: '',
+        phone: '',
+        email: '',
+      },
+      withShippment: false,
+      shippment: {
+        address: '',
+        comuna: '',
+        city: '',
+      }
     }
   },
   mounted() {
@@ -857,7 +997,27 @@ export default {
       const index = this.productsSelected.findIndex(p => p._id===item._id)
       if (index >= 0) this.productsSelected.splice(index, 1)
     },
-    handleCartBuy() {
+    async handleBuy() {
+      this.loadingButton = true;
+
+      let items = this.cartItems.map(item => ({
+        ...item,
+        product: item.product.idEcommerce
+      }))
+
+      const form = {
+        items,
+        customer: this.customer,
+        shippment: this.withShippment ? this.shippment : undefined
+      }
+
+      let res = await OrderApi.place(form, this.catalog._id)
+
+      this.loadingButton = false;
+
+      window.open(res.data.sandbox_init_point, '_blank');
+    },
+    handleSendWs() {
       let message = 'Hola, estos son los productos que me gustaría pedir\n';
     
       let total = 0

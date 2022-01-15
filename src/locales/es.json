@@ -118,5 +118,10 @@
         "EDIT_ITEM": "Editar etiqueta",
         "NO_DATA": "Aún no cuentas con etiquetas de Mailchimp",
         "NO_RESULTS": "No hay resultados"
+    },
+    "orders": {
+        "status": {
+            "created": "Creada"
+        }
     }
 }

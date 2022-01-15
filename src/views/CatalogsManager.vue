@@ -208,6 +208,21 @@
                               ></v-select>
                             </v-col>
                           </v-row>
+                          <v-row dense class="my-2">
+                            <v-col cols="12" sm="12" md="12">
+                              <h3 class="mt-1">Mercadopago</h3>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Access Token</div>
+                              <VTextFieldWithValidation
+                                rules=""
+                                v-model="editedItem.mercadopagoAccessToken"
+                                label="Ingresa el texto"
+                              />
+                            </v-col>
+                          </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>

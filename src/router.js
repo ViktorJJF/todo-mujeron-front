@@ -16,6 +16,11 @@ let routes = [
     component: () => import("@/views/Catalog/index.vue"),
   },
   {
+    path: '/ordenes/:id',
+    name: 'Ordenes',
+    component: () => import('@/views/Orders/index.vue')
+  },
+  {
     path: "/dias-frecuencia",
     name: "DaysFrequency",
     component: () => import("@/views/Webviews/DaysFrequency.vue"),
