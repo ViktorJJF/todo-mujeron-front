@@ -439,6 +439,11 @@ export default {
       this.initialize();
     }
     console.log("los active: ", this.activeProducts);
+    // inicializando imagen producto inicial
+    if (this.commentFacebook.products.length > 0) {
+      this.commentFacebook.postUrl =
+        this.commentFacebook.products.images[0].src;
+    }
   },
   watch: {
     async searchProduct() {

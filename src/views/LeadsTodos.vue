@@ -351,7 +351,12 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
-import { getRandomInt, buildPayloadPagination } from "@/utils/utils.js";
+import {
+  getRandomInt,
+  buildPayloadPagination,
+  formatPhone,
+  getCountryByPhone,
+} from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -609,7 +614,16 @@ export default {
               ? this.editedItem.msnActivaDefault
               : "SIN CONSULTA";
             //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${randomContact.telefonoId.agenteId.nombre} tu cliente: ${this.editedItem.nombre} con teléfono : ${this.editedItem.telefono} consulta: '${this.editedItem.msnActivaDefault}'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            this.editedItem.nota = `Hola ${
+              randomContact.telefonoId.agenteId.nombre
+            } tu cliente: ${this.editedItem.nombre} con teléfono : ${
+              this.editedItem.telefono
+            } consulta: '${
+              this.editedItem.msnActivaDefault
+            }'. En cuanto la contactes me informas para borrarla de los pendientes \n\nhttps://wa.me/${formatPhone(
+              this.editedItem.telefono,
+              getCountryByPhone(randomContact.telefonoId.numero)
+            )}`;
             this.editedItem.estado = "RE-CONECTAR";
           } else {
             //Generando nota

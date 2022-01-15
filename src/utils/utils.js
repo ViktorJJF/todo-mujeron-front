@@ -212,6 +212,40 @@ export const timeout = (millis) => {
   });
 };
 
+export const startsWith = (str, word) => {
+  return str.lastIndexOf(word, 0) === 0;
+};
+
+export const getCountryCode = (country) => {
+  let countries = {
+    Peru: "51",
+    Chile: "56",
+    Colombia: "58",
+  };
+  return countries[country] || "";
+};
+
+export const getCountryByPhone = (phone) => {
+  let formattedPhone = String(phone)
+    .replace("+", "")
+    .trim();
+  let codes = {
+    51: "Peru",
+    56: "Chile",
+    58: "Colombia",
+  };
+  let code = Object.keys(codes).find((code) => formattedPhone.startsWith(code));
+  return code ? codes[code] : null;
+};
+
+export const formatPhone = (phone, country) => {
+  //country Peru, Chile, Colombia, etc
+  let cleanPhone = phone.replace(/[^0-9]/g, "");
+  let countryCode = getCountryCode(country);
+  if (startsWith(cleanPhone, countryCode)) return cleanPhone;
+  return countryCode + cleanPhone;
+};
+
 export const getProductRef = (productName) => {
   console.log("el match: ", productName.match(/-*([0-9]-*){1,}/g));
   let numberRefs = productName.match(/-*([0-9]-*){1,}/g) || [];
