@@ -11,5 +11,6 @@ export default () => ({
   topBannerText: '',
   paymentMethods: undefined,
   mainColor: '',
-  isDefault: false
+  isDefault: false,
+  mercadopagoAccessToken: ''
 });

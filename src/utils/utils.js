@@ -247,6 +247,12 @@ export const formatPhone = (phone, country) => {
   return countryCode + cleanPhone;
 };
 
+export const sortAlphabetically = (a, b, attribute) => {
+  var textA = a[attribute].toUpperCase();
+  var textB = b[attribute].toUpperCase();
+  return textA < textB ? -1 : textA > textB ? 1 : 0;
+};
+
 export const getProductRef = (productName) => {
   console.log("el match: ", productName.match(/-*([0-9]-*){1,}/g));
   let numberRefs = productName.match(/-*([0-9]-*){1,}/g) || [];

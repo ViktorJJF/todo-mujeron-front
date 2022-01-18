@@ -16,6 +16,11 @@ let routes = [
     component: () => import("@/views/Catalog/index.vue"),
   },
   {
+    path: "/ordenes/:id",
+    name: "Ordenes",
+    component: () => import("@/views/Orders/index.vue"),
+  },
+  {
     path: "/dias-frecuencia",
     name: "DaysFrequency",
     component: () => import("@/views/Webviews/DaysFrequency.vue"),
@@ -100,6 +105,11 @@ let routes = [
         path: "/mailchimp",
         name: "Mailchimp",
         component: () => import("@/views/Mailchimp.vue"),
+      },
+      {
+        path: "/retail-rocket/etiquetas",
+        name: "RetailRocketTags",
+        component: () => import("@/views/RetailRocketTags.vue"),
       },
       {
         path: "/woocommerce",

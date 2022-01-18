@@ -118,5 +118,18 @@
         "EDIT_ITEM": "Editar etiqueta",
         "NO_DATA": "Aún no cuentas con etiquetas de Mailchimp",
         "NO_RESULTS": "No hay resultados"
+    },
+    "retailRocketTags": {
+        "TITLE": "Etiquetas de RetailRocket",
+        "SUBTITLE": "Listado etiquetas RetailRocket",
+        "NEW_ITEM": "Nuevo etiqueta",
+        "EDIT_ITEM": "Editar etiqueta",
+        "NO_DATA": "Aún no cuentas con etiquetas de RetailRocket",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "orders": {
+        "status": {
+            "created": "Creada"
+        }
     }
 }
