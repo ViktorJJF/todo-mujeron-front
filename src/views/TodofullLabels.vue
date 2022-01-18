@@ -39,9 +39,14 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-show="rolPermisos['Write']" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-show="rolPermisos['Write']"
+                        v-on="on"
+                        >{{ $t(entity + ".NEW_ITEM") }}</v-btn
+                      >
                     </template>
                     <v-card>
                       <v-card-title>
@@ -229,7 +234,14 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']" >
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -349,15 +361,12 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
-<<<<<<< HEAD
     rolPermisos: {},
-=======
     labels: [],
     messengerTags: [],
     webTags: [],
     retailRocketTags: [],
     usedTags: [],
->>>>>>> 3577dc37be002675cdb43e5f4da9c353110ddb51
   }),
   computed: {
     formTitle() {
@@ -378,24 +387,23 @@ export default {
     },
   },
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch(ENTITY + "Module/list"); 
+    this.$store.commit("loadingModule/showLoading");
+    await this.$store.dispatch(ENTITY + "Module/list");
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
   methods: {
-       rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/TodoFull',
-          'model':'TodofullLabels'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/TodoFull",
+          model: "TodofullLabels",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     async initialize() {
       //llamada asincrona de items
