@@ -52,12 +52,136 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
+                            <v-col cols="12" sm="12" md="12" class="mb-2">
+                              <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
                                 label="Nombre de etiqueta todofull"
                               />
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <v-divider
+                                style="border: 1px solid #ddd"
+                                class="my-3"
+                              ></v-divider>
+                              <p class="body-1 font-weight-bold">
+                                Etiquetas relacionadas
+                              </p>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Messenger</p>
+                              <v-combobox
+                                item-text="nameWithFanpage"
+                                v-model="editedItem.messengerTags"
+                                :items="messengerTags"
+                                multiple
+                                chips
+                                outlined
+                                no-data-text="No se encontraron etiquetas"
+                                label="Busca las etiquetas"
+                              >
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="
+                                      remove(item._id, editedItem.messengerTags)
+                                    "
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.nameWithFanpage }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-combobox>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Página Web</p>
+                              <v-combobox
+                                item-text="nameWithCountry"
+                                v-model="editedItem.webTags"
+                                :items="webTags"
+                                multiple
+                                chips
+                                outlined
+                                no-data-text="No se encontraron etiquetas"
+                                label="Busca las etiquetas"
+                              >
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="
+                                      remove(item._id, editedItem.webTags)
+                                    "
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.nameWithCountry }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-combobox>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Retail Rocket
+                              </p>
+                              <v-combobox
+                                item-text="idTag"
+                                v-model="editedItem.retailRocketTags"
+                                item-value="_id"
+                                :items="retailRocketTags"
+                                multiple
+                                chips
+                                outlined
+                                no-data-text="No se encontraron etiquetas"
+                                label="Busca las etiquetas"
+                              >
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="
+                                      remove(
+                                        item._id,
+                                        editedItem.retailRocketTags
+                                      )
+                                    "
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.idTag }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-combobox>
                             </v-col>
                           </v-row>
                         </v-container>
@@ -177,6 +301,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import { sortAlphabetically } from "@/utils/utils";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -184,7 +309,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -222,6 +347,11 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    labels: [],
+    messengerTags: [],
+    webTags: [],
+    retailRocketTags: [],
+    usedTags: [],
   }),
   computed: {
     formTitle() {
@@ -247,15 +377,60 @@ export default {
   methods: {
     async initialize() {
       //llamada asincrona de items
-      // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
-      // console.log(
-      //   "el resultado: ",
-      //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
-      // );
+      await Promise.all([
+        this.$store.dispatch("facebookLabelsModule/list"),
+        this.$store.dispatch("retailRocketTagsModule/list"),
+      ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // agregando campo a etiquetas guardadas
+      for (const todoFullLabel of this[ENTITY]) {
+        if (todoFullLabel.messengerTags) {
+          todoFullLabel.messengerTags = todoFullLabel.messengerTags.map(
+            (el) => ({
+              ...el,
+              nameWithFanpage: `${el.name} (${
+                this.$store.state.botsModule.bots.find(
+                  (bot) => bot.fanpageId === el.fanpageId
+                ).name
+              })`,
+            })
+          );
+        }
+        if (todoFullLabel.webTags) {
+          todoFullLabel.webTags = todoFullLabel.webTags.map((el) => ({
+            ...el,
+            nameWithCountry: `${el.name} (${el.country})`,
+          }));
+        }
+      }
+
+      // etiquetas messenger
+      this.webTags = this.$store.state[
+        "ecommercesCategoriesModule"
+      ].ecommercesCategories
+        .map((el) => ({
+          ...el,
+          nameWithCountry: `${el.name} (${el.country})`,
+        }))
+        .sort((a, b) => sortAlphabetically(a, b, "name"));
+      this.messengerTags = this.$store.state[
+        "facebookLabelsModule"
+      ].facebookLabels
+        .filter((el) => !el.name.includes("ad_id."))
+        .map((el) => ({
+          ...el,
+          nameWithFanpage: `${el.name} (${
+            this.$store.state.botsModule.bots.find(
+              (bot) => bot.fanpageId === el.fanpageId
+            ).name
+          })`,
+        }))
+        .sort((a, b) => sortAlphabetically(a, b, "name"));
+      this.retailRocketTags =
+        this.$store.state["retailRocketTagsModule"].retailRocketTags;
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -282,9 +457,20 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
+          let editedItem = this.$deepCopy(this.editedItem);
+          // mandando solo id de tags
+          editedItem.messengerTags = editedItem.messengerTags
+            ? editedItem.messengerTags.map((el) => el._id)
+            : [];
+          editedItem.webTags = editedItem.webTags
+            ? editedItem.webTags.map((el) => el._id)
+            : [];
+          editedItem.retailRocketTags = editedItem.retailRocketTags
+            ? editedItem.retailRocketTags.map((el) => el._id)
+            : [];
           await this.$store.dispatch(ENTITY + "Module/update", {
             id: itemId,
-            data: this.editedItem,
+            data: editedItem,
           });
           Object.assign(this[ENTITY][this.editedIndex], this.editedItem);
           this.close();
@@ -304,6 +490,13 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    remove(itemId, labels) {
+      let index = labels.findIndex((label) => label._id == itemId);
+      labels.splice(index, 1);
+    },
+    isUsedTag(_id) {
+      return this.usedTags.find((tag) => tag === _id);
     },
   },
 };
