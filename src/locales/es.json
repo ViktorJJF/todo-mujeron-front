@@ -121,7 +121,8 @@
     },
     "orders": {
         "status": {
-            "created": "Creada"
+            "created": "Creada",
+            "done": "Completada"
         }
     }
 }
