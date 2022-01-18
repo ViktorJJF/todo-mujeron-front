@@ -98,7 +98,7 @@
               <v-col cols="12" sm="6">
                 <v-dialog v-model="dialog" max-width="900px">
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on"
+                    <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                       >Agregar lead</v-btn
                     >
                   </template>
@@ -279,9 +279,10 @@
             small
             color="secondary"
             @click="editItem(item)"
+            v-if="rolPermisos['Edit']"
             >Editar</v-btn
           >
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+          <v-btn class="mb-1" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
             >Eliminar</v-btn
           >
         </template>
@@ -351,6 +352,8 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
+import auth from "@/services/api/auth";
+
 import {
   getRandomInt,
   buildPayloadPagination,
@@ -449,6 +452,7 @@ export default {
       "displayName",
       "appName",
     ],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -494,12 +498,26 @@ export default {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
-
   mounted() {
+    this.$store.commit("loadingModule/showLoading");
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    this.rolAuth(); 
   },
 
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'ChatBot/Leads',
+          'model':'Lista-Completa'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
@@ -509,7 +527,12 @@ export default {
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("leadsModule/listAll", body)]);
+      await Promise.all([
+        this.$store.dispatch("cleanLeadsModule/list", body),
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("woocommercesModule/list"),
+        ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.leadsModule.leads;

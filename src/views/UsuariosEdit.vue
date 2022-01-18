@@ -65,6 +65,14 @@
                           itemValue="_id"
                         />
                       </v-col>
+                      <v-col cols="12" sm="6" md="6" >
+                        <p class="body-1 font-weight-bold mb-0">Estado</p>
+                         <v-switch
+                          v-model="user.status"
+                          inset
+                          :label="status"
+                        ></v-switch>
+                      </v-col>
                     </v-row>
                   </v-container>
                 </v-col>
@@ -115,7 +123,7 @@
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
-import api from "@/services/api/auth";
+import api from "@/services/api/users";
 import { handleError } from "@/utils/utils.js";
 export default {
   components: {
@@ -133,16 +141,20 @@ export default {
     this.initialData();
   },
   methods: {
-    initialData() {
-      this.user = this.$deepCopy(this.$store.state.authModule.user);
-      console.log("lo inicial: ", this.user);
-      console.log("el user: ", this.user);
+    async initialData() {
+      this.user = await this.$store.dispatch(
+          "usersModule/listOne",
+          this.$route.params.id
+        );
     },
     updateUser() {
-      this.$store.dispatch("authModule/editUser", {
+      console.log(this.user);
+      this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
       });
+     console.log(this.user);
+
     },
     updatePassword() {
       return new Promise((resolve, reject) => {
@@ -169,6 +181,9 @@ export default {
     cities() {
       return this.$store.state.cities;
     },
+    status () {
+      return  this.user.status ? "Activo" : "Inactivo";  
+    }
   },
 };
 </script>

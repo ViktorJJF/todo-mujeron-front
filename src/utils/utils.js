@@ -1,5 +1,6 @@
 import { isPast, format } from "date-fns";
 import store from "@/store";
+import router from "@/router";
 
 export const addCustomScript = (src) => {
   let recaptchaScript = document.createElement("script");
@@ -139,8 +140,8 @@ export const handleError = (error, commit, reject) => {
     return reject(error);
   }
   if (error.response.status === 401) {
-    store.dispatch("authModule/logout", { root: true });
-    console.log("se fue al loign");
+    router.push({ name: 'Profile'});
+    commit("errorModule/error", "Pide permisos : " + error.response.data.errors.msg.data, { root: true });
   } else {
     console.log("se produjo else");
     // Any other error

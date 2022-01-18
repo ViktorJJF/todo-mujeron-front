@@ -5,7 +5,7 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Facebook"
+        title="Multi Páginas / Páginas"
         text="Resumen de Catalogs"
       >
         <v-data-table
@@ -37,7 +37,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar catalogo</v-btn
                       >
                     </template>
@@ -229,10 +229,10 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn class="mr-3" small color="error" @click="deleteItem(item)">
+            <v-btn class="mr-3" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']" >
               Eliminar
             </v-btn>
             <v-btn
@@ -248,6 +248,7 @@
               small
               :color="item.isDefault ? 'primary' : ''"
               @click="setDefault(item)"
+              v-if="rolPermisos['Edit']"
             >
               Por defecto
             </v-btn>
@@ -290,6 +291,8 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import Catalogs from '@/classes/Catalogs'
 import CatalogsApi from '@/services/api/catalogs'
+import auth from "@/services/api/auth";
+
 export default {
   components: {
     MaterialCard,
@@ -334,6 +337,8 @@ export default {
     colorPickerMenu: false,
     paises: ["Peru", "Chile", "Colombia"],
     categories: ['Fajas', 'Jeans', 'Pijamas', 'Vestuario'],
+    rolPermisos: {},
+
   }),
 
   computed: {
@@ -348,18 +353,38 @@ export default {
     }
   },
 
-  mounted() {
-    this.initialize();
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading");
+    await this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'MultiPaginas/Paginas',
+          'model':'Paginas'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize() {
-      await Promise.all([this.$store.dispatch("catalogsModule/list")]);
+      await Promise.all([
+        this.$store.dispatch("catalogsModule/list"),
+        // this.$store.dispatch("locacionesModule/list"),
+        ]);
       this.catalogs = this.$deepCopy(this.$store.state.catalogsModule.catalogs).map(c => {
         c.mainColor = c.mainColor || ''
         return c;
       });
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
+      // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
       this.editedIndex = this.catalogs.indexOf(item);

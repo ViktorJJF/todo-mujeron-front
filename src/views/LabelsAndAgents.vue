@@ -89,7 +89,7 @@ export default {
 
   watch: {},
 
-  mounted() {
+  async mounted() {
     this.initialize();
   },
   computed: {
@@ -123,7 +123,16 @@ export default {
   },
 
   methods: {
-    initialize() {
+    async initialize() {
+      await Promise.all([
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("agentesModule/list"),
+        this.$store.dispatch("ecommercesCategoriesModule/list"),
+        this.$store.dispatch("ecommercesTagsModule/list"),
+        this.$store.dispatch("todofullLabelsModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list"),
+      ]);
+
       // inicializando agentes
       this.telefonos = this.$deepCopy(
         this.$store.state.telefonosModule.telefonos

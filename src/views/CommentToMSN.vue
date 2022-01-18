@@ -45,6 +45,7 @@
                         dark
                         class="mb-2"
                         v-on="on"
+                        v-show="rolPermisos['Write']"
                         >{{
                           isCommentView ? "Agregar publicación" : "Agregar Ad"
                         }}</v-btn
@@ -177,9 +178,10 @@
               small
               color="secondary"
               @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -241,6 +243,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import CommentsFacebook from "@/classes/CommentsFacebook";
+import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import { getRandomInt } from "@/utils/utils";
 export default {
@@ -298,6 +301,7 @@ export default {
     editedItem: CommentsFacebook(),
     defaultItem: CommentsFacebook(),
     type: "comment",
+    rolPermisos: {},
   }),
 
   computed: {
@@ -338,10 +342,26 @@ export default {
   },
 
   mounted() {
+    this.$store.commit("loadingModule/showLoading")
     this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Facebook/Facebook',
+          'model':'Comentarios'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize() {
       await Promise.all([
         this.$store.dispatch("commentsFacebookModule/list", {
@@ -437,8 +457,11 @@ export default {
           fieldsToSearch: ["name"],
           listType: "All",
         }),
+        this.$store.dispatch("botsModule/list"),
+
       ]);
       //asignar al data del componente
+
       this.rawProducts = this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
       )

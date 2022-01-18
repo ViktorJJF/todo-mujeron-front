@@ -12,4 +12,7 @@ export default {
   refreshToken() {
     return axios.get("/api/token");
   },
+  roleAuthorization(query) {
+    return axios.get("/api/auth", { params: query });
+  },
 };

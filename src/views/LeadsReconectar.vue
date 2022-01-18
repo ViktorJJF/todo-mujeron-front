@@ -98,7 +98,7 @@
               <v-col cols="12" sm="6">
                 <v-dialog v-model="dialog" max-width="900px">
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on"
+                    <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                       >Agregar lead</v-btn
                     >
                   </template>
@@ -295,9 +295,10 @@
             small
             color="secondary"
             @click="editItem(item)"
+            v-if="rolPermisos['Edit']"
             >Editar</v-btn
           >
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+          <v-btn class="mb-1" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
             >Eliminar</v-btn
           >
         </template>
@@ -384,6 +385,8 @@ import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
 import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
+import auth from "@/services/api/auth";
+
 export default {
   components: {
     MaterialCard,
@@ -454,6 +457,7 @@ export default {
     fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
     telefono: {},
     cambiarAInformadoAgente: false,
+    rolPermisos: {},
   }),
 
   computed: {
@@ -501,10 +505,25 @@ export default {
   },
 
   mounted() {
+    this.$store.commit("loadingModule/showLoading");
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    this.rolAuth(); 
   },
 
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'ChatBot/Leads',
+          'model':'Re-conectar'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
@@ -515,7 +534,13 @@ export default {
       body["estado"] = "RE-CONECTAR";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
+      await Promise.all([
+        this.$store.dispatch("cleanLeadsModule/list", body),
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("woocommercesModule/list"),
+        
+        ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads.filter(
