@@ -349,15 +349,12 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
-<<<<<<< HEAD
     rolPermisos: {},
-=======
     labels: [],
     messengerTags: [],
     webTags: [],
     retailRocketTags: [],
     usedTags: [],
->>>>>>> 3577dc37be002675cdb43e5f4da9c353110ddb51
   }),
   computed: {
     formTitle() {
