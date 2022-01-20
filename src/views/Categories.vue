@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
                     </template>
@@ -100,10 +100,11 @@
               small
               dark
               @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
+            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -153,6 +154,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -194,6 +196,8 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    rolPermisos: {},
+
   }),
   computed: {
     formTitle() {
@@ -213,10 +217,27 @@ export default {
       val || this.close();
     },
   },
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
+    await this.$store.dispatch("categoriesModule/list"); 
     this.initialize();
+    this.rolAuth(); 
   },
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Genial',
+          'model':'Categorias'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     async initialize() {
       //llamada asincrona de items
       // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);

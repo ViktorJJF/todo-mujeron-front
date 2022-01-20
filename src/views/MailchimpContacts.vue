@@ -42,7 +42,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
+                      <v-btn color="primary" dark class="mb-2" v-show="rolPermisos['Write']" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
                     </template>
@@ -178,6 +178,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -258,6 +259,7 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
+    rolPermisos: {},
   }),
   computed: {
     totalItems() {
@@ -293,10 +295,26 @@ export default {
       this.initialize(1);
     },
   },
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
     this.initialize();
+    this.rolAuth(); 
   },
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Mailchimp',
+          'model':'Contactos'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize(page = 1) {
       //llamada asincrona de items
       await Promise.all([

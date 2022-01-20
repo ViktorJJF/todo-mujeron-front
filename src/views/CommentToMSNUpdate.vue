@@ -461,10 +461,10 @@ export default {
     // "commentFacebook.labels": function(newVal) {
     //   console.log("el nuevo valor: ", newVal);
     // },
-    commentFacebook: function () {
+     commentFacebook:  function () {
       this.generateCode();
     },
-    "commentFacebook.products": function (products) {
+    "commentFacebook.products": async function (products) {
       let urls = [];
       this.filteredLabels = [];
       for (const product of products) {
@@ -476,6 +476,10 @@ export default {
               (selectedCategory) => selectedCategory.categoryId == category._id
             ) > -1
           ) {
+            await Promise.all([
+            this.$store.dispatch("ecommercesCategoriesModule/list", { limit: 9999 }),
+            ]);
+      
             let searchedCategory =
               this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
                 (el) => el.idCategory == category.id

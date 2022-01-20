@@ -109,6 +109,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 // import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -190,6 +191,7 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
+    rolPermisos: {},
   }),
   computed: {
     formTitle() {
@@ -213,10 +215,25 @@ export default {
     },
   },
   async mounted() {
+    this.$store.commit("loadingModule/showLoading")
     await this.initialize();
-    // let newItems = [];
+    this.rolAuth(); 
   },
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Woocommerces',
+          'model':'Categorias'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize() {
       //llamada asincrona de items
       // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);

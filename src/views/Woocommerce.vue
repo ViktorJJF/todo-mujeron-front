@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on"  v-show="rolPermisos['Write']"
                         >Agregar dominio</v-btn
                       >
                     </template>
@@ -115,10 +115,10 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)"  v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -160,6 +160,8 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import Woocommerces from "@/classes/Woocommerces";
 import { es } from "date-fns/locale";
+import auth from "@/services/api/auth";
+
 export default {
   components: {
     MaterialCard,
@@ -198,6 +200,7 @@ export default {
     editedItem: Woocommerces(),
     defaultItem: Woocommerces(),
     locaciones: [],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -212,12 +215,34 @@ export default {
     },
   },
 
-  mounted() {
+   async mounted() {
+    this.$store.commit("loadingModule/showLoading")
     this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
-    initialize() {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Woocommerces',
+          'model':'Woocommerces'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
+    async initialize() {
+
+      await Promise.all([
+        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("locacionesModule/list"),
+      ]);
+
       this.woocommerces = this.$deepCopy(
         this.$store.state.woocommercesModule.woocommerces
       );

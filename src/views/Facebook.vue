@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar bot</v-btn
                       >
                     </template>
@@ -265,10 +265,10 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -309,6 +309,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Bots from "@/classes/Bots";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
@@ -349,6 +350,7 @@ export default {
     editedItem: Bots(),
     defaultItem: Bots(),
     paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -363,15 +365,31 @@ export default {
     },
   },
 
-  mounted() {
-    this.initialize();
+    async mounted() {
+      this.$store.commit("loadingModule/showLoading")
+      this.initialize();
+      this.rolAuth(); 
   },
 
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades',
+          'model':'Facebook'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+    
     async initialize() {
       await Promise.all([this.$store.dispatch("botsModule/list")]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
+      // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
       this.editedIndex = this.bots.indexOf(item);
