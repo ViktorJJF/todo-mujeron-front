@@ -90,29 +90,39 @@
             </div>
         </v-list-item>
       </v-list>
-      <div class="cart-total">
+      <div class="cart-bottom">
         <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
         </div>
-        <div class="">
+        <div class="pa-3 d-flex align-center" :style="`background-color: ${mainColor}`">
+          <v-icon size="50" dark class="mr-1">
+            mdi-whatsapp
+          </v-icon>
           <v-btn
-            class="white--text"
-            color="green"
-            depressed
+            class="send-ws"
+            :style="`color: ${mainColor}`"
             block
-            min-height="55"
-            @click="handleCartBuy"
+            depressed
+            @click="handleSendWs"
             :disabled="!cartItems.length"
           >
-            <v-icon
-              dark
-              class="mr-1"
-            >
-              mdi-whatsapp
-            </v-icon>
             <span>
               Enviar pedido a mi asesor por Whatsapp
             </span>
+          </v-btn>
+        </div>
+        <div class="my-1 text-h6 text-center">
+          O
+        </div>
+        <div class="pa-3" :style="`background-color: ${mainColor}`">
+          <v-btn
+            :style="`color: ${mainColor}`"
+            block
+            depressed
+            @click="drawerCart = false; buyModal = true"
+            :disabled="!cartItems.length"
+          >
+            Pagar
           </v-btn>
         </div>
       </div>
@@ -353,6 +363,12 @@
         </v-row>
       </v-container>
     </v-main>
+    <v-dialog
+      v-model="buyModal"
+      width="500"
+    >
+      <buy-form :items="cartItems" :catalog="catalog" />
+    </v-dialog>
   </div>
 </template>
 
@@ -362,6 +378,7 @@ import EcommercesApi from "@/services/api/ecommerces";
 import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import CountrySelect from '@/components/catalog/CountrySelect'
 import TallasSelect from '@/components/catalog/TallasSelect'
+import BuyForm from "../BuyForm"
 import { jsPDF } from "jspdf";
 import _ from 'lodash'
 
@@ -374,9 +391,15 @@ const MONTHS = [
 ];
 
 export default {
-  components: { Flipbook, CountrySelect, TallasSelect },
+  components: { Flipbook, CountrySelect, TallasSelect, BuyForm },
+  props: {
+    catalog: {
+      type: Object
+    }
+  },
   data() {
     return {
+      buyModal: false,
       country: DEFAULT_COUNTRY,
       countryLoaded: false,
       hideCountrySelect: true,
@@ -393,9 +416,14 @@ export default {
         marcas: [],
       },
       currentPage: 0,
+      mainColor: 'purple',
     }
   },
   created() {
+    if(this.catalog.mainColor) {
+      this.mainColor = this.catalog.mainColor
+    }
+
     this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
 
     const country = this.$route.query.country
@@ -722,7 +750,7 @@ export default {
       const index = this.productsSelected.findIndex(p => p._id===item._id)
       if (index >= 0) this.productsSelected.splice(index, 1)
     },
-    handleCartBuy() {
+    handleSendWs() {
       let message = 'Hola, estos son los productos que me gustaría pedir\n';
     
       let total = 0
@@ -828,16 +856,20 @@ export default {
   right: 50px;
 }
 
-.cart-total {
+.cart-bottom {
   position: absolute;
   bottom: 0;
   width: 100%;
-  margin-bottom: 30px;
 }
 
-.cart-total .v-btn__content {
+.cart-bottom .send-ws {
+  width: calc(100% - 50px);
+  min-width: 0 !important;
+}
+
+.cart-bottom >>> .v-btn__content {
   flex: unset;
-  white-space: normal
+  white-space: normal;
 }
 
 </style>
