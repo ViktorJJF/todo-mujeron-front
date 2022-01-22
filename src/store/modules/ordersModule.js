@@ -11,17 +11,20 @@ const module = {
   actions: {
     list({ commit }, { catalog }) {
       return new Promise((resolve, reject) => {
-        api
-          .list(catalog)
-          .then((response) => {
-            commit("list", response.data.payload);
-            commit("totalItems", response.data.totalDocs);
-            commit("totalPages", response.data.totalPages);
-            resolve(response.data.payload);
-          })
-          .catch((error) => {
-            handleError(error, commit, reject);
-          });
+        let resPromise = catalog
+          ? api.list(catalog)
+          : api.listAll()
+
+        resPromise.then((response) => {
+          console.log(response.data.payload)
+          commit("list", response.data.payload);
+          commit("totalItems", response.data.totalDocs);
+          commit("totalPages", response.data.totalPages);
+          resolve(response.data.payload);
+        })
+        .catch((error) => {
+          handleError(error, commit, reject);
+        });
       });
     },
   },
