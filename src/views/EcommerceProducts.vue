@@ -191,7 +191,7 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
+            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -366,6 +366,7 @@ import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
 import ecommercesApi from "@/services/api/ecommerces";
 import { timeout } from "@/utils/utils";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
@@ -459,6 +460,7 @@ export default {
     countProductSyncSelected: 0,
     selectedProductsSize: 1,
     updateCheckbox: 0,
+    rolPermisos: {},
   }),
   computed: {
     formTitle() {
@@ -488,13 +490,30 @@ export default {
     },
   },
   mounted() {
+    this.$store.commit("loadingModule/showLoading")
     this.initialize();
     // se verifica si se estuvo sincronizando
     if (localStorage.getItem("syncStarted")) {
       this.syncAll();
     }
+    this.rolAuth(); 
   },
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Woocommerces',
+          'model':'Productos'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     filterWithoutRefMethods() {
       if (this.filterWithoutRef) {
         this[ENTITY] = this[ENTITY].filter(

@@ -67,7 +67,7 @@
               <v-col cols="12" sm="6">
                 <v-dialog v-model="dialog" max-width="900px">
                   <!-- <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on"
+                    <v-btn color="primary" dark class="mb-2" v-on="on"  v-show="rolPermisos['Write']"
                       >Agregar lead</v-btn
                     >
                   </template> -->
@@ -326,10 +326,10 @@
           </v-simple-table>
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn class="mb-1 mr-2" small color="primary" @click="editItem(item)"
-            >Asignar o editar</v-btn
+          <v-btn class="mb-1 mr-2" small color="primary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
+            >Asignar o editar</v-btn 
           >
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"  v-if="rolPermisos['Delete']"
             >Eliminar</v-btn
           >
         </template>
@@ -377,6 +377,8 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
+import auth from "@/services/api/auth";
+
 import {
   buildPayloadPagination,
   formatPhone,
@@ -439,6 +441,7 @@ export default {
     telefonoId: null,
     delayTimer: null,
     fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -484,12 +487,28 @@ export default {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
-
   mounted() {
+    this.$store.commit("loadingModule/showLoading");
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    this.rolAuth(); 
   },
 
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'ChatBot/Leads',
+          'model':'Sin-Asignar'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
@@ -500,7 +519,12 @@ export default {
       body["estado"] = "SIN ASIGNAR";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      await Promise.all([this.$store.dispatch("cleanLeadsModule/list", body)]);
+      await Promise.all([
+        this.$store.dispatch("cleanLeadsModule/list", body),
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("woocommercesModule/list"),
+        ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads;

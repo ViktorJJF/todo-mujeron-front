@@ -41,7 +41,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
+                      <v-btn color="primary" dark class="mb-2" v-show="rolPermisos['Write']" v-on="on">{{
                         $t(entity + ".NEW_ITEM")
                       }}</v-btn>
                     </template>
@@ -72,9 +72,7 @@
                                 hide-details
                                 placeholder="Categoría"
                                 outlined
-                                :items="
-                                  $store.state.categoriesModule.categories
-                                "
+                                :items="categorias"
                                 item-text="name"
                                 item-value="_id"
                                 v-model="editedItem.categoryId"
@@ -87,7 +85,7 @@
                                 hide-details
                                 placeholder="Marca"
                                 outlined
-                                :items="$store.state.brandsModule.brands"
+                                :items="marcas"
                                 item-text="name"
                                 item-value="_id"
                                 v-model="editedItem.brandId"
@@ -215,10 +213,11 @@
               small
               dark
               @click="editItem(item)"
+              v-show="rolPermisos['Edit']"
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
+            <v-btn color="error" fab small dark @click="deleteItem(item)" v-show="rolPermisos['Delete']">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -273,6 +272,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
@@ -316,6 +316,9 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
+    rolPermisos: {},
+    marcas :[],
+    categorias:[], 
   }),
   computed: {
     totalItems() {
@@ -351,10 +354,25 @@ export default {
       this.initialize(1);
     },
   },
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
     this.initialize();
+    this.rolAuth(); 
   },
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades/Genial',
+          'model':'Productos'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     async initialize(page = 1) {
       //llamada asincrona de items
       await Promise.all([
@@ -363,12 +381,16 @@ export default {
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,
-        }),
+        }),   
+        this.$store.dispatch("brandsModule/list"), 
+        this.$store.dispatch("categoriesModule/list")
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      this.categorias = this.$store.state.categoriesModule.categories;
+      this.marcas = this.$store.state.brandsModule.brands
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);

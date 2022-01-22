@@ -177,20 +177,20 @@ export default {
         this.getStatus();
       }, 9 * 1000);
     },
-    editItem(item) {
-      this.editedIndex = this.agentes.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
-    },
+    // editItem(item) {
+    //   this.editedIndex = this.agentes.indexOf(item);
+    //   this.editedItem = Object.assign({}, item);
+    //   this.dialog = true;
+    // },
 
-    async deleteItem(item) {
-      const index = this.agentes.indexOf(item);
-      let itemId = this.agentes[index]._id;
-      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("agentesModule/delete", itemId);
-        this.agentes.splice(index, 1);
-      }
-    },
+    // async deleteItem(item) {
+    //   const index = this.agentes.indexOf(item);
+    //   let itemId = this.agentes[index]._id;
+    //   if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+    //     await this.$store.dispatch("agentesModule/delete", itemId);
+    //     this.agentes.splice(index, 1);
+    //   }
+    // },
 
     close() {
       this.dialog = false;
@@ -200,34 +200,34 @@ export default {
       }, 300);
     },
 
-    async save() {
-      this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        let itemId = this.agentes[this.editedIndex]._id;
-        try {
-          await this.$store.dispatch("agentesModule/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
-        //create item
-        try {
-          let newItem = await this.$store.dispatch(
-            "agentesModule/create",
-            this.editedItem
-          );
-          this.agentes.push(newItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      }
-    },
+    // async save() {
+    //   this.loadingButton = true;
+    //   if (this.editedIndex > -1) {
+    //     let itemId = this.agentes[this.editedIndex]._id;
+    //     try {
+    //       await this.$store.dispatch("agentesModule/update", {
+    //         id: itemId,
+    //         data: this.editedItem,
+    //       });
+    //       Object.assign(this.agentes[this.editedIndex], this.editedItem);
+    //       this.close();
+    //     } finally {
+    //       this.loadingButton = false;
+    //     }
+    //   } else {
+    //     //create item
+    //     try {
+    //       let newItem = await this.$store.dispatch(
+    //         "agentesModule/create",
+    //         this.editedItem
+    //       );
+    //       this.agentes.push(newItem);
+    //       this.close();
+    //     } finally {
+    //       this.loadingButton = false;
+    //     }
+    //   }
+    // },
   },
 };
 </script>

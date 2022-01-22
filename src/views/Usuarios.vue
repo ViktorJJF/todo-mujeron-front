@@ -5,15 +5,15 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Agentes"
-        text="Tabla resumen de agentes"
+        title="Usuarios"
+        text="Tabla resumen de usuarios"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="agentes"
+          :items="usuarios"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el nombre"
                     single-line
                     outlined
                   ></v-text-field>
@@ -39,8 +39,8 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
-                        >Agregar agente</v-btn
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                        >Agregar usuario</v-btn
                       >
                     </template>
                     <v-card>
@@ -52,55 +52,87 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.nombre"
-                                label="Ingresa el nombre"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="6" md="6">
-                              <p class="body-1 font-weight-bold">Apellidos</p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.apellido"
-                                label="Ingresa el apellido"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Correo</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.email"
-                                label="Ingresa el correo"
-                              />
-                            </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Nombres</p>
+                        <VTextFieldWithValidation
+                          rules="required"
+                          v-model="editedItem.first_name"
+                          label="Nombres"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Apellidos</p>
+                        <VTextFieldWithValidation
+                          rules="required"
+                          v-model="editedItem.last_name"
+                          label="Apellidos"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Email</p>
+                        <VTextFieldWithValidation
+                          rules="required"
+                          v-model="editedItem.email"
+                          label="Email"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Celular</p>
+                        <VTextFieldWithValidation
+                          :rules="{
+                            required: false,
+                            decimal: true,
+                          }"
+                          v-model="editedItem.phone_number"
+                          label="+51982745576"
+                        />
+                      </v-col>
+                      <!-- <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">País</p>
+                        <VSelectWithValidation
+                          rules=""
+                          :items="countries"
+                          v-model="editedItem.country"
+                          label="Selecciona país"
+                          itemText="name"
+                          itemValue="_id"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Ciudad</p>
+                        <VSelectWithValidation
+                          rules=""
+                          :items="cities"
+                          v-model="editedItem.city"
+                          label="Selecciona una ciudad"
+                          itemText="name"
+                          itemValue="_id"
+                        />
+                      </v-col> -->
 
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">Locación</span>
-                              <v-select
-                                hide-details
-                                placeholder="Selecciona una locación"
-                                outlined
-                                :items="locaciones"
-                                item-text="nombre"
-                                item-value="_id"
-                                v-model="editedItem.locacionId"
-                              ></v-select>
-                            </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
-                          </v-row>
+                      <v-col cols="12" sm="6" md="6" >
+                        <p class="body-1 font-weight-bold mb-0">Contraseña</p>
+                          <VTextFieldWithValidation
+                            rules="required"
+                            v-model="editedItem.password"
+                            label="Contraseña"
+                            type="password"
+                          />
+                       </v-col>
+
+                      <v-col cols="12" sm="6" md="6" >
+                        <p class="body-1 font-weight-bold mb-0">Estado</p>
+                         <v-switch
+                          v-model="editedItem.status"
+                          inset
+                          :label="status"
+                        ></v-switch>
+                      </v-col>
+
+
+                      
+
+                    </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -122,16 +154,16 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" :to="{ name: 'UsuariosEdit',  params: {id: item._id,}, }" v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
-              >Aún no cuentas con agentes</v-alert
+              >Aún no cuentas con usuarios</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -146,11 +178,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > agentes.length
-                ? agentes.length
+              $store.state.itemsPerPage > usuarios.length
+                ? usuarios.length
                 : $store.state.itemsPerPage
             }}
-            de {{ agentes.length }} registros
+            de {{ usuarios.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -165,7 +197,8 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Agentes from "@/classes/Agentes";
+import Usuarios from "@/classes/Users";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
@@ -188,13 +221,13 @@ export default {
         text: "Nombres",
         align: "left",
         sortable: false,
-        value: "nombre",
+        value: "first_name",
       },
       {
         text: "Apellidos",
         align: "left",
         sortable: false,
-        value: "apellido",
+        value: "last_name",
       },
       {
         text: "Email",
@@ -203,30 +236,32 @@ export default {
         value: "email",
       },
       {
-        text: "Locación",
+        text: "Estado",
         align: "left",
         sortable: true,
-        value: "locacionId.nombre",
-      },
-      {
-        text: "Agregado",
-        align: "left",
-        sortable: true,
-        value: "createdAt",
+        value: "status",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    agentes: [],
+    usuarios: [],
     editedIndex: -1,
-    editedItem: Agentes(),
-    defaultItem: Agentes(),
+    editedItem: Usuarios(),
+    defaultItem: Usuarios(),
     locaciones: [],
+    rolPermisos: {},
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo agente" : "Editar agente";
+      return this.editedIndex === -1 ? "Nuevo usuarios" : "Editar usuario";
     },
+      countries() {
+      return this.$store.state.countries;
+    },
+    cities() {
+      return this.$store.state.cities;
+    },
+
   },
 
   watch: {
@@ -235,27 +270,48 @@ export default {
     },
   },
 
-  mounted() {
+   async created(){
+    await         this.$store.dispatch("usersModule/list");
+
     this.initialize();
   },
 
+    mounted() {
+    this.$store.commit("loadingModule/showLoading");
+    this.rolAuth(); 
+  },
+
+
   methods: {
+     rolAuth(){
+      auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/TodoFull',
+          'model':'Usuarios'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     initialize() {
-      this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
+      this.usuarios = this.$deepCopy(this.$store.state.usersModule.users);
+      // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
-      this.editedIndex = this.agentes.indexOf(item);
+      this.editedIndex = this.usuarios.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.agentes.indexOf(item);
-      let itemId = this.agentes[index]._id;
+      const index = this.usuarios.indexOf(item);
+      let itemId = this.usuarios[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("agentesModule/delete", itemId);
-        this.agentes.splice(index, 1);
+        await this.$store.dispatch("usersModule/delete", itemId);
+        this.usuarios.splice(index, 1);
       }
     },
 
@@ -269,33 +325,23 @@ export default {
 
     async save() {
       this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        let itemId = this.agentes[this.editedIndex]._id;
-        try {
-          await this.$store.dispatch("agentesModule/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "agentesModule/create",
+            "usersModule/create",
             this.editedItem
           );
-          this.agentes.push(newItem);
+          this.usuarios.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
         }
-      }
+      
     },
   },
+  
+
+
 };
 </script>
 

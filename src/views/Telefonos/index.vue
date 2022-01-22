@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar teléfono</v-btn
                       >
                     </template>
@@ -197,9 +197,10 @@
               small
               color="secondary"
               @click="editItem(item)"
+              v-show="rolPermisos['Write']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-show="rolPermisos['Write']"
               >Eliminar</v-btn
             >
           </template>
@@ -250,6 +251,8 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Telefonos from "@/classes/Telefonos";
+import auth from "@/services/api/auth";
+
 export default {
   components: {
     MaterialCard,
@@ -306,6 +309,7 @@ export default {
     editedItem: Telefonos(),
     defaultItem: Telefonos(),
     agentes: [],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -320,11 +324,30 @@ export default {
     },
   },
 
-  mounted() {
+  
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
+    await this.$store.dispatch("telefonosModule/list"); 
+    await this.$store.dispatch("agentesModule/list"); 
     this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/Propiedades',
+          'model':'Telefonos'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     initialize() {
       this.telefonos = this.$deepCopy(
         this.$store.state.telefonosModule.telefonos

@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar locación</v-btn
                       >
                     </template>
@@ -131,10 +131,10 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-show="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -175,6 +175,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Locaciones from "@/classes/Locaciones";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
@@ -232,6 +233,7 @@ export default {
       },
     ],
     equipoDeVentas: [],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -254,11 +256,31 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
+    await this.$store.dispatch("locacionesModule/list"); 
+    console.log("equipo de venta fetch");
+    await this.$store.dispatch("equipoDeVentasModule/list");
     this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/TodoFull',
+          'model':'Locaciones'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     initialize() {
       this.locaciones = this.$deepCopy(
         this.$store.state.locacionesModule.locaciones
