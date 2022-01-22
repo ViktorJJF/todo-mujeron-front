@@ -77,6 +77,11 @@ let routes = [
         component: () => import("@/views/CatalogsManager.vue"),
       },
       {
+        path: "/ordenes",
+        name: "Ordenes",
+        component: () => import("@/views/Orders/index.vue"),
+      },
+      {
         path: "/contactos",
         name: "Contactos",
         component: () => import("@/views/Contactos.vue"),

@@ -502,6 +502,13 @@
 
           <v-list-item-content> Página </v-list-item-content>
         </v-list-item>
+        <v-list-item active-class="primary custom2" :to="{ name: 'Ordenes' }">
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content> Ordenes </v-list-item-content>
+        </v-list-item>
       </v-list-group>
 
       <v-divider class="mx-3 mb-3"></v-divider>

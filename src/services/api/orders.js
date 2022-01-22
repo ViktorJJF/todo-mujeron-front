@@ -7,5 +7,9 @@ export default {
 
   list(catalog) {
     return axios.get(`/api/orders/catalog/${catalog}`);
+  },
+
+  listAll() {
+    return axios.get(`/api/orders`)
   }
 };
