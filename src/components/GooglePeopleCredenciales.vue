@@ -87,7 +87,8 @@ export default {
       credenciales: {},
     };
   },
-  mounted() {
+  async mounted() {
+    await this.$store.dispatch("telefonosModule/list"); 
     this.initialize();
   },
   methods: {

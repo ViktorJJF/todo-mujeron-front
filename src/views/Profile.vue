@@ -72,15 +72,15 @@
                           :disabled="true"
                         ></v-switch>
                       </v-col>
-                      <v-col cols="12" sm="6" md="6">
+                      <!-- <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Roles</p>
                         <VTextFieldWithValidation
                           :disabled="true"
                           rules="required"
-                          v-model="user.roles"
+                          :value="roles()"
                           label="Roles"
                         />
-                      </v-col>
+                      </v-col> -->
                     </v-row>
                   </v-container>
                 </v-col>
