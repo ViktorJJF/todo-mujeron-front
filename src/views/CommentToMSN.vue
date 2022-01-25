@@ -367,6 +367,7 @@ export default {
         this.$store.dispatch("commentsFacebookModule/list", {
           limit: 9999,
         }),
+         this.$store.dispatch("botsModule/list"),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook

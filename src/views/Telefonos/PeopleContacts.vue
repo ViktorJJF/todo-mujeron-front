@@ -164,6 +164,7 @@
 import MaterialCard from "@/components/material/Card";
 import api from "@/services/api/contactsPercentages";
 import axios from "axios";
+import { handleError } from "@/utils/utils.js";
 export default {
   components: {
     MaterialCard,
@@ -237,6 +238,7 @@ export default {
         } catch (error) {
           this.bucle = false;
           this.bucleError = true;
+          handleError(error, this.$store.commit);
         }
       }
     },
@@ -245,8 +247,9 @@ export default {
         setTimeout(resolve, millis);
       });
     },
-    restartContacts() {
-      axios
+    async restartContacts() {
+
+      await axios
         .delete(
           "/api/contactos/deletes-by-telefonoid/" + this.selectedTelefono._id
         )
@@ -255,6 +258,7 @@ export default {
         })
         .catch((err) => {
           console.error(err);
+          handleError(err, this.$store.commit);
         });
       console.log("reiniciando...");
     },

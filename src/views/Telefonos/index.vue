@@ -197,10 +197,10 @@
               small
               color="secondary"
               @click="editItem(item)"
-              v-show="rolPermisos['Write']"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-show="rolPermisos['Write']"
+            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
