@@ -111,20 +111,22 @@
             </span>
           </v-btn>
         </div>
-        <div class="my-1 text-h6 text-center">
-          O
-        </div>
-        <div class="pa-3" :style="`background-color: ${mainColor}`">
-          <v-btn
-            :style="`color: ${mainColor}`"
-            block
-            depressed
-            @click="drawerCart = false; buyModal = true"
-            :disabled="!cartItems.length"
-          >
-            Pagar
-          </v-btn>
-        </div>
+        <template v-if="mercadopagoAvailable">
+          <div class="my-1 text-h6 text-center">
+            O
+          </div>
+          <div class="pa-3" :style="`background-color: ${mainColor}`">
+            <v-btn
+              :style="`color: ${mainColor}`"
+              block
+              depressed
+              @click="drawerCart = false; buyModal = true"
+              :disabled="!cartItems.length"
+            >
+              Pagar
+            </v-btn>
+          </div>
+        </template>
       </div>
     </v-navigation-drawer>
     
@@ -464,6 +466,11 @@ export default {
       return this.rightPageProduct
         ? this.getTallas(this.rightPageProduct)
         : []
+    },
+    mercadopagoAvailable() {
+      return (
+        this.catalog.mercadopagoAccessToken && this.catalog.mercadopagoAccessToken.trim().length > 0
+      )
     },
     filtersActive() {
       return (
