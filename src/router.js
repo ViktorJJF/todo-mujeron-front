@@ -62,6 +62,11 @@ let routes = [
         component: () => import("@/views/Locaciones.vue"),
       },
       {
+        path: "/gravity-forms",
+        name: "GravityForms",
+        component: () => import("@/views/GravityForms.vue"),
+      },
+      {
         path: "/telefonos",
         name: "Telefonos",
         component: () => import("@/views/Telefonos"),

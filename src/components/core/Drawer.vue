@@ -31,15 +31,19 @@
         :value="false"
         prepend-icon="mdi-format-list-bulleted"
         color="white"
-        v-if="checkAuth('Configuracion/TodoFull') || checkAuth('Configuracion/Propiedades')"
+        v-if="
+          checkAuth('Configuracion/TodoFull') ||
+          checkAuth('Configuracion/Propiedades')
+        "
       >
         <template v-slot:activator>
           <v-list-item-title>Configuración</v-list-item-title>
         </template>
-        <v-list-group 
-          color="white" 
-          :value="false" 
-          no-action sub-group 
+        <v-list-group
+          color="white"
+          :value="false"
+          no-action
+          sub-group
           v-if="checkAuth('Configuracion/TodoFull')"
         >
           <template v-slot:activator>
@@ -62,7 +66,7 @@
             <v-list-item-content> Equipo de ventas </v-list-item-content>
           </v-list-item>
           <v-list-item
-            active-class="primary custom2" 
+            active-class="primary custom2"
             :to="{ name: 'Agentes' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Agentes')"
           >
@@ -84,20 +88,23 @@
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
-            :to="{ name: 'Groups' }" 
+            :to="{ name: 'Groups' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
           >
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group 
-          color="white" 
-          :value="false" 
-          no-action sub-group
-          v-if="checkAuth('Configuracion/Propiedades') 
-                || checkAuth('Configuracion/Propiedades/Mailchimp') 
-                || checkAuth('Configuracion/Propiedades/Woocommerces') 
-                || checkAuth('Configuracion/Propiedades/Genial') " 
+        <v-list-group
+          color="white"
+          :value="false"
+          no-action
+          sub-group
+          v-if="
+            checkAuth('Configuracion/Propiedades') ||
+            checkAuth('Configuracion/Propiedades/Mailchimp') ||
+            checkAuth('Configuracion/Propiedades/Woocommerces') ||
+            checkAuth('Configuracion/Propiedades/Genial')
+          "
         >
           <template v-slot:activator>
             <v-list-item-content>
@@ -123,7 +130,11 @@
             :value="false"
             no-action
             sub-group
-            @click="checkAuth('Configuracion/Propiedades/Mailchimp', 'Credenciales') ? $router.push({ name: 'Mailchimp' }) : ''"
+            @click="
+              checkAuth('Configuracion/Propiedades/Mailchimp', 'Credenciales')
+                ? $router.push({ name: 'Mailchimp' })
+                : ''
+            "
             v-if="checkAuth('Configuracion/Propiedades/Mailchimp')"
           >
             <template v-slot:activator>
@@ -134,14 +145,18 @@
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'MailchimpContacts' }"
-              v-if="checkAuth('Configuracion/Propiedades/Mailchimp', 'Contactos')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Mailchimp', 'Contactos')
+              "
             >
               <v-list-item-content> Contactos </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'MailchimpTags' }"
-              v-if="checkAuth('Configuracion/Propiedades/Mailchimp', 'Etiquetas')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Mailchimp', 'Etiquetas')
+              "
             >
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
@@ -151,7 +166,14 @@
             :value="false"
             no-action
             sub-group
-            @click="checkAuth('Configuracion/Propiedades/Woocommerces', 'Woocommerces') ? $router.push({ name: 'Woocommerce' }) : ''"
+            @click="
+              checkAuth(
+                'Configuracion/Propiedades/Woocommerces',
+                'Woocommerces'
+              )
+                ? $router.push({ name: 'Woocommerce' })
+                : ''
+            "
             v-if="checkAuth('Configuracion/Propiedades/Woocommerces')"
           >
             <template v-slot:activator>
@@ -162,50 +184,66 @@
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceProducts' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')
+              "
             >
               <v-list-item-content> Productos </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceCategories' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Categorias')"
+              v-if="
+                checkAuth(
+                  'Configuracion/Propiedades/Woocommerces',
+                  'Categorias'
+                )
+              "
             >
               <v-list-item-content> Categorías </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceTags' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Etiquetas')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Woocommerces', 'Etiquetas')
+              "
             >
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceContacts' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Contactos')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Woocommerces', 'Contactos')
+              "
             >
               <v-list-item-content> Contactos </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceOrders' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')
+              "
             >
               <v-list-item-content> Órdenes </v-list-item-content>
             </v-list-item>
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'EcommerceAttributes' }"
-              v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Atributos')"
+              v-if="
+                checkAuth('Configuracion/Propiedades/Woocommerces', 'Atributos')
+              "
             >
               <v-list-item-content> Atributos </v-list-item-content>
             </v-list-item>
           </v-list-group>
-          <v-list-group 
-            color="white" 
-            :value="false" 
-            no-action sub-group
+          <v-list-group
+            color="white"
+            :value="false"
+            no-action
+            sub-group
             v-if="checkAuth('Configuracion/Propiedades/Genial')"
           >
             <template v-slot:activator>
@@ -242,7 +280,6 @@
         prepend-icon="mdi-format-list-bulleted"
         color="white"
         v-if="checkAuth('GoogleContact/Contactos')"
-
       >
         <template v-slot:activator>
           <v-list-item-content>
@@ -268,18 +305,22 @@
         :value="false"
         prepend-icon="mdi-format-list-bulleted"
         color="white"
-        v-if="checkAuth('ChatBot/Bots') || checkAuth('ChatBot/Leads') || checkAuth('ChatBot/MSN-Facebook')"
+        v-if="
+          checkAuth('ChatBot/Bots') ||
+          checkAuth('ChatBot/Leads') ||
+          checkAuth('ChatBot/MSN-Facebook')
+        "
       >
         <template v-slot:activator>
           <v-list-item-content>
             <v-list-item-title>Chatbot</v-list-item-title>
           </v-list-item-content>
         </template>
-        <v-list-item 
-          active-class="primary custom2" 
+        <v-list-item
+          active-class="primary custom2"
           :to="{ name: 'Bots' }"
           v-if="checkAuth('ChatBot/Bots', 'Bots')"
-          >
+        >
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
@@ -292,11 +333,13 @@
           no-action
           sub-group
           :active-class="$route.name == 'Leads' ? 'primary custom2' : ''"
-          @click="checkAuth('ChatBot/Leads', 'Leads') ? $router.push({ name: 'Leads' }) : ''"
+          @click="
+            checkAuth('ChatBot/Leads', 'Leads')
+              ? $router.push({ name: 'Leads' })
+              : ''
+          "
           v-if="checkAuth('ChatBot/Leads')"
         >
-
-
           <template v-slot:activator>
             <v-list-item-content>
               <v-list-item-title>Leads</v-list-item-title>
@@ -345,10 +388,10 @@
             <v-list-item-content> Lista Completa </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-group 
-          color="white" 
-          :value="false" 
-          no-action 
+        <v-list-group
+          color="white"
+          :value="false"
+          no-action
           sub-group
           v-if="checkAuth('ChatBot/MSN-Facebook')"
         >
@@ -357,12 +400,15 @@
               <v-list-item-title>MSN Facebook</v-list-item-title>
             </v-list-item-content>
           </template>
-          <v-list-group 
-            color="white" 
-            :value="false" 
-            no-action 
+          <v-list-group
+            color="white"
+            :value="false"
+            no-action
             sub-group
-            v-if="checkAuth('ChatBot/MSN-Facebook', 'Etiqutas-FB-Messenger') || checkAuth('ChatBot/MSN-Facebook', 'Etiquetas-FB-Ads')"
+            v-if="
+              checkAuth('ChatBot/MSN-Facebook', 'Etiqutas-FB-Messenger') ||
+              checkAuth('ChatBot/MSN-Facebook', 'Etiquetas-FB-Ads')
+            "
           >
             <template v-slot:activator>
               <v-list-item-content>
@@ -382,12 +428,21 @@
               <v-list-item-content> FB Ads </v-list-item-content>
             </v-list-item>
           </v-list-group>
-          <v-list-group 
-          color="white" 
-          :value="false" 
-          no-action 
-          sub-group
-          v-if="checkAuth('ChatBot/MSN-Facebook', 'Publicaciones-Comentarios-Defecto') || checkAuth('ChatBot/MSN-Facebook', 'Publicaciones-Comentarios-Programado')"
+          <v-list-group
+            color="white"
+            :value="false"
+            no-action
+            sub-group
+            v-if="
+              checkAuth(
+                'ChatBot/MSN-Facebook',
+                'Publicaciones-Comentarios-Defecto'
+              ) ||
+              checkAuth(
+                'ChatBot/MSN-Facebook',
+                'Publicaciones-Comentarios-Programado'
+              )
+            "
           >
             <template v-slot:activator>
               <v-list-item-content>
@@ -492,10 +547,11 @@
         <template v-slot:activator>
           <v-list-item-title>Multi Páginas</v-list-item-title>
         </template>
-        <v-list-item 
-          active-class="primary custom2" 
+        <v-list-item
+          active-class="primary custom2"
           :to="{ name: 'Catalogs' }"
-          v-if="checkAuth('MultiPaginas/Paginas', 'Paginas')">
+          v-if="checkAuth('MultiPaginas/Paginas', 'Paginas')"
+        >
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
@@ -517,14 +573,13 @@
 </template>
 
 <script>
-
 import auth from "@/services/api/auth";
 
 export default {
   data() {
     return {
       getData: false,
-      rolPermisos: [], 
+      rolPermisos: [],
       active2: false,
       propiedades: [
         {
@@ -536,6 +591,11 @@ export default {
           icon: "mdi-check",
           text: "Etiquetas y Agentes",
           to: "LabelsAndAgents",
+        },
+        {
+          icon: "mdi-check",
+          text: "Gravity Forms",
+          to: "GravityForms",
         },
         {
           icon: "mdi-check",
@@ -630,40 +690,40 @@ export default {
     },
   },
 
-  async created () {
+  async created() {
     await this.rolAuth();
     this.getData = true;
   },
 
-methods: {
-
-    rolAuth(){
-      auth.roleAuthorization({'id':this.$store.state.authModule.user._id})
-       .then((res) => {
+  methods: {
+    rolAuth() {
+      auth
+        .roleAuthorization({ id: this.$store.state.authModule.user._id })
+        .then((res) => {
           this.rolPermisos = res.data;
-          })
+        });
     },
-  
-    checkAuth(menu, model=false){
+
+    checkAuth(menu, model = false) {
       try {
         if (model) {
-          if (this.rolPermisos[menu][model].indexOf('Read') > -1) {
-            return true
+          if (this.rolPermisos[menu][model].indexOf("Read") > -1) {
+            return true;
           }
-      }else{
-        for (const model in this.rolPermisos[menu]) {
-          if (this.rolPermisos[menu][model].indexOf('Read') > -1) {
-              return true
+        } else {
+          for (const model in this.rolPermisos[menu]) {
+            if (this.rolPermisos[menu][model].indexOf("Read") > -1) {
+              return true;
+            }
           }
-        }}
-      return false
-        
+        }
+        return false;
       } catch (error) {
-        return false
+        return false;
       }
-      
-    }
-}};
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>

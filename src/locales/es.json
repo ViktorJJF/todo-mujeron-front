@@ -127,6 +127,14 @@
         "NO_DATA": "Aún no cuentas con etiquetas de RetailRocket",
         "NO_RESULTS": "No hay resultados"
     },
+    "gravityForms": {
+        "TITLE": "Gravity Forms",
+        "SUBTITLE": "Listado formularios",
+        "NEW_ITEM": "Nuevo formulario",
+        "EDIT_ITEM": "Editar formulario",
+        "NO_DATA": "Aún no cuentas con formularios",
+        "NO_RESULTS": "No hay resultados"
+    },
     "orders": {
         "status": {
             "created": "Creada",
