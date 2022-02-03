@@ -408,6 +408,8 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("facebookLabelsModule/list"),
         this.$store.dispatch("retailRocketTagsModule/list"),
       ]);
