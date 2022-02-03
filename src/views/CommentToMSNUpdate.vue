@@ -161,36 +161,6 @@
                 </tbody>
               </template>
             </v-simple-table>
-            <!-- <v-combobox
-                item-text="name"
-                :search-input.sync="searchFacebookLabel"
-                v-model="commentFacebook.labels"
-                :items="facebookLabels"
-                chips
-                clearable
-                label="Busca las etiquetas de Facebook"
-                multiple
-                prepend-icon="mdi-filter-variant"
-                no-data-text="No se encontraron productos"
-                no-filter
-                solo
-                :return-object="true"
-                @change="deleteCurrentSearch"
-              >
-                <template v-slot:selection="{ attrs, item, select, selected }">
-                  <v-chip
-                    v-bind="attrs"
-                    :input-value="selected"
-                    close
-                    @click="select"
-                    @click:close="remove(item)"
-                    color="deep-purple accent-4"
-                    outlined
-                  >
-                    <strong>{{ item.name }}</strong>
-                  </v-chip>
-                </template>
-              </v-combobox> -->
           </v-col>
           <v-col class="mt-3 mb-3" cols="4" sm="4" md="4">
             <p class="body-1 font-weight-bold">Selecciona la URL</p>
@@ -378,7 +348,6 @@ export default {
     tab: null,
     postPicture: "",
     searchProduct: "",
-    searchFacebookLabel: "",
     products: [],
     facebookLabels: [],
     originalCommentFacebook: [],
@@ -429,6 +398,7 @@ export default {
       postImgUrl: "",
       selectedUrl: "",
       botId: null,
+      todofullLabels: [],
     };
   },
   async mounted() {
@@ -452,19 +422,13 @@ export default {
         this.getProducts(1);
       }, 600);
     },
-    async searchFacebookLabel() {
-      clearTimeout(this.delayTimer);
-      this.delayTimer = setTimeout(() => {
-        this.getFacebookLabels(1);
-      }, 600);
-    },
     // "commentFacebook.labels": function(newVal) {
     //   console.log("el nuevo valor: ", newVal);
     // },
     commentFacebook: function () {
       this.generateCode();
     },
-    "commentFacebook.products": function (products) {
+    "commentFacebook.products": async function (products) {
       let urls = [];
       this.filteredLabels = [];
       for (const product of products) {
@@ -476,6 +440,12 @@ export default {
               (selectedCategory) => selectedCategory.categoryId == category._id
             ) > -1
           ) {
+            await Promise.all([
+              this.$store.dispatch("ecommercesCategoriesModule/list", {
+                limit: 9999,
+              }),
+            ]);
+
             let searchedCategory =
               this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
                 (el) => el.idCategory == category.id
@@ -514,7 +484,7 @@ export default {
             limit: 9999,
             _id: this.$route.params.id,
           }),
-          this.$store.dispatch("facebookLabelsModule/list", { limit: 9999 }),
+          this.$store.dispatch("todofullLabelsModule/list", { limit: 9999 }),
         ]);
         this.commentsFacebook = this.$deepCopy(
           this.$store.state.commentsFacebookModule.commentsFacebook
@@ -524,7 +494,7 @@ export default {
         );
       } else {
         await Promise.all([
-          this.$store.dispatch("facebookLabelsModule/list"),
+          this.$store.dispatch("todofullLabelsModule/list"),
           { limit: 9999 },
         ]);
         // buscando si existe plantilla asociada a producto
@@ -541,10 +511,8 @@ export default {
       this.originalCommentFacebook = JSON.parse(
         JSON.stringify(this.commentFacebook.responses)
       );
-      this.facebookLabels =
-        this.$store.state.facebookLabelsModule.facebookLabels.filter(
-          (el) => !el.name.includes("ad_id.")
-        );
+      this.todofullLabels =
+        this.$store.state.todofullLabelsModule.todofullLabels;
       //inicializando URL seleccionados
       if (
         !this.commentFacebook.selectedUrlIndex &&
@@ -661,22 +629,6 @@ export default {
         this.$store.state.ecommercesModule.ecommerces
       ).map((el) => ({ ...el, nameWithCountry: el.name + ` (${el.country})` }));
     },
-    async getFacebookLabels(page = 1) {
-      if (!this.searchFacebookLabel) return;
-      //llamada asincrona de items
-      await Promise.all([
-        this.$store.dispatch("facebookLabelsModule/list", {
-          sort: "name",
-          page,
-          search: this.searchFacebookLabel,
-          fieldsToSearch: ["name"],
-        }),
-      ]);
-      //asignar al data del componente
-      this.facebookLabels = this.$deepCopy(
-        this.$store.state.facebookLabelsModule.facebookLabels
-      );
-    },
     deleteCurrentSearch() {
       this.searchProduct = "";
     },
@@ -700,11 +652,19 @@ export default {
       // .filter((el) => !!el);
       this.commentFacebook.products = this.commentFacebook.products.slice();
     },
+    /**
+     * @Description Este metodo obtiene las etiquetas de Facebook vinculadas a etiqueta de todofull correspondiente
+     */
     getFilteredLabels(categoryId) {
       console.log("🚀 Aqui *** -> categoryId", categoryId);
-      return this.facebookLabels.filter(
-        (label) => label.foreignLabelId == categoryId
+      let selectedTodofullLabels = this.todofullLabels.find(
+        (el) => el.webTags && el.webTags.find((tag) => tag._id === categoryId)
       );
+      if (selectedTodofullLabels) {
+        return selectedTodofullLabels.messengerTags.filter(
+          (tag) => tag.fanpageId === this.commentFacebook.botId.fanpageId // se retorna solo las que pertenezcan a la fanpage actual
+        );
+      }
     },
     generateCode() {
       let quickReplies = [];

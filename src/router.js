@@ -33,7 +33,7 @@ let routes = [
     },
     name: "dashboard",
     redirect: {
-      name: "Contactos",
+      name: "Profile",
     },
     children: [
       // {
@@ -41,6 +41,16 @@ let routes = [
       //   name: "Colors",
       //   component: () => import("@/views/Colors.vue"),
       // },
+      {
+        path: "/grupos",
+        name: "Groups",
+        component: () => import("@/views/Groups.vue"),
+      },
+      {
+        path: "/grupos/:id",
+        name: "EditarGrupos",
+        component: () => import("@/views/GroupsEdit.vue"),
+      },
       {
         path: "/equipo-de-ventas",
         name: "EquipoDeVentas",
@@ -50,6 +60,11 @@ let routes = [
         path: "/locaciones",
         name: "Locaciones",
         component: () => import("@/views/Locaciones.vue"),
+      },
+      {
+        path: "/gravity-forms",
+        name: "GravityForms",
+        component: () => import("@/views/GravityForms.vue"),
       },
       {
         path: "/telefonos",
@@ -173,13 +188,13 @@ let routes = [
       },
       {
         path: "/perfil",
-        name: "UserProfile",
-        component: () => import("@/views/UserProfile.vue"),
+        name: "Profile",
+        component: () => import("@/views/Profile.vue"),
       },
       {
-        path: "/perfil",
-        name: "UserProfile",
-        component: () => import("@/views/UserProfile.vue"),
+        path: "/usuarios/:id",
+        name: "UsuariosEdit",
+        component: () => import("@/views/UsuariosEdit.vue"),
       },
       {
         path: "/comment-to-msn",

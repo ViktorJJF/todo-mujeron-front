@@ -21,14 +21,33 @@
         >
           <template v-slot:top>
             <v-container>
+              <span class="font-weight-bold"
+                >Filtrar por nombre: {{ search }}</span
+              >
               <v-row>
                 <v-col cols="12" sm="6">
+                  <v-text-field
+                    dense
+                    hide-details
+                    v-model="search"
+                    append-icon="search"
+                    placeholder="Escribe el nombre del formulario"
+                    single-line
+                    outlined
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
+                        >{{ $t(entity + ".NEW_ITEM") }}</v-btn
+                      >
+                    </template>
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -43,8 +62,58 @@
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
-                                label="Nombre de la categoría"
+                                label="Nombre del formulario"
                               />
+                            </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold ma-0">País</p>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="País"
+                                outlined
+                                :items="$store.state.countries"
+                                v-model="editedItem.country"
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Messenger</p>
+                              <v-combobox
+                                item-text="name"
+                                v-model="editedItem.todofullLabels"
+                                :items="todofullLabels"
+                                multiple
+                                chips
+                                outlined
+                                no-data-text="No se encontraron etiquetas"
+                                label="Busca las etiquetas"
+                              >
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="
+                                      remove(
+                                        item._id,
+                                        editedItem.todofullLabels
+                                      )
+                                    "
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.name }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-combobox>
                             </v-col>
                           </v-row>
                         </v-container>
@@ -78,22 +147,26 @@
               </v-row> -->
             </v-container>
           </template>
-          <template v-slot:[`item.url`]="{ item }">
-            <a :href="item.url" target="_blank">{{ item.url }}</a>
-          </template>
           <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
+            <v-btn
               class="mr-1 mb-1"
               color="primary"
               fab
               small
               dark
               @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
             >
               <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']"
->
+            </v-btn>
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -110,17 +183,6 @@
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
-          <template v-slot:[`item.fanpage`]="{ item }">
-            {{
-              $store.state.botsModule.bots.find(
-                (el) => el.fanpageId == item.fanpageId
-              )
-                ? $store.state.botsModule.bots.find(
-                    (el) => el.fanpageId == item.fanpageId
-                  ).name
-                : "SIN PAGINA"
-            }}</template
-          >
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -147,7 +209,7 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
-const ENTITY = "commentsWithoutResponses"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "gravityForms"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
@@ -182,16 +244,10 @@ export default {
         value: "createdAt",
       },
       {
-        text: "URL",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "url",
-      },
-      {
-        text: "Fanpage",
-        align: "left",
-        sortable: false,
-        value: "fanpage",
+        value: "name",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -203,6 +259,7 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
+    todofullLabels: [],
   }),
   computed: {
     formTitle() {
@@ -223,32 +280,40 @@ export default {
     },
   },
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch(ENTITY + "Module/list"); 
+    this.$store.commit("loadingModule/showLoading");
+    await this.$store.dispatch("gravityFormsModule/list");
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Facebook/Facebook',
-          'model':'Comentarios-SinResponder'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades",
+          model: "GravityForms",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     async initialize() {
       //llamada asincrona de items
-      // await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      await Promise.all([
+        this.$store.dispatch("todofullLabelsModule/list", {
+          sort: "name",
+          order: 1,
+        }),
+        this.$store.dispatch(ENTITY + "Module/list"),
+      ]);
+      this.todofullLabels =
+        this.$store.state["todofullLabelsModule"]["todofullLabels"];
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      console.log("🚀 Aqui *** -> this[ENTITY]", this[ENTITY]);
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -259,7 +324,7 @@ export default {
       const index = this[ENTITY].indexOf(item);
       let itemId = this[ENTITY][index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch(ENTITY + "Module/delete", itemId);
+        await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
         this[ENTITY].splice(index, 1);
       }
     },
@@ -297,6 +362,11 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    remove(itemId, labels) {
+      console.log("🚀 Aqui *** -> itemId, labels", itemId, labels);
+      let index = labels.findIndex((label) => label._id == itemId);
+      labels.splice(index, 1);
     },
   },
 };

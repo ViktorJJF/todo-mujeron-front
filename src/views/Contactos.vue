@@ -75,7 +75,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar contacto</v-btn
                       >
                     </template>
@@ -243,9 +243,10 @@
               small
               color="secondary"
               @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
+            <v-btn class="mb-1" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -300,6 +301,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Contactos from "@/classes/Contactos";
+import auth from "@/services/api/auth";
 import { buildPayloadPagination } from "@/utils/utils.js";
 export default {
   components: {
@@ -377,6 +379,8 @@ export default {
     search2: "",
     telefonoId: null,
     delayTimer: null,
+    rolPermisos: {},
+
     fieldsToSearch: ["nombre", "apellido", "celular", "displayName", "email"],
   }),
 
@@ -410,18 +414,40 @@ export default {
     },
   },
 
+
+
+
   mounted() {
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    this.rolAuth(); 
+
   },
 
   methods: {
+    
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'GoogleContact/Contactos',
+          'model':'Contactos'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
+
     async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      await Promise.all([this.$store.dispatch("contactosModule/list", body)]);
+      await Promise.all([
+        this.$store.dispatch("contactosModule/list", body),
+        this.$store.dispatch("telefonosModule/list") ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.contactos = this.$store.state.contactosModule.contactos;

@@ -39,9 +39,14 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-show="rolPermisos['Write']"
+                        v-on="on"
+                        >{{ $t(entity + ".NEW_ITEM") }}</v-btn
+                      >
                     </template>
                     <v-card>
                       <v-card-title>
@@ -154,6 +159,7 @@
               outlined
               dense
               class="mt-2"
+              :disabled="rolPermisos['Edit'] ? true : false"
             ></v-select>
             <v-select
               v-if="item.foreignLabelId && item.showSelect != 1"
@@ -197,7 +203,14 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -272,6 +285,8 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 import graphApi from "@/services/api/graphApi";
+import auth from "@/services/api/auth";
+
 export default {
   components: {
     MaterialCard,
@@ -336,6 +351,7 @@ export default {
     menu1: false,
     menu2: false,
     todofullLabels: [],
+    rolPermisos: {},
   }),
   computed: {
     formTitle() {
@@ -420,10 +436,25 @@ export default {
       val || this.close();
     },
   },
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading");
     this.initialize();
+    this.rolAuth();
   },
   methods: {
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Facebook/Facebook",
+          model: "Etiquetas",
+        })
+        .then((res) => {
+          this.rolPermisos = res.data;
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
+    },
+
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
@@ -435,11 +466,13 @@ export default {
           sort: "name",
           order: 1,
         }),
+        this.$store.dispatch("botsModule/list"),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
 
-      this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
+      this.todofullLabels =
+        this.$store.state.todofullLabelsModule.todofullLabels;
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);

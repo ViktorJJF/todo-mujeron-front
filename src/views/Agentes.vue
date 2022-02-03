@@ -39,7 +39,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"
+                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
                         >Agregar agente</v-btn
                       >
                     </template>
@@ -122,10 +122,10 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"
+            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -165,6 +165,7 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import auth from "@/services/api/auth";
 import Agentes from "@/classes/Agentes";
 export default {
   components: {
@@ -221,6 +222,7 @@ export default {
     editedItem: Agentes(),
     defaultItem: Agentes(),
     locaciones: [],
+    rolPermisos: {},
   }),
 
   computed: {
@@ -235,11 +237,29 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading")
+    await this.$store.dispatch("agentesModule/list"); 
+    await this.$store.dispatch("locacionesModule/list");
     this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
+
+    rolAuth(){
+       auth.roleAuthorization(
+        {
+          'id':this.$store.state.authModule.user._id, 
+          'menu':'Configuracion/TodoFull',
+          'model':'Agentes'
+        })
+          .then((res) => {
+          this.rolPermisos = res.data;
+          }).finally(() =>
+            this.$store.commit("loadingModule/showLoading", false)
+          );
+    },
     initialize() {
       this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
       this.locaciones = this.$store.state.locacionesModule.locaciones;
