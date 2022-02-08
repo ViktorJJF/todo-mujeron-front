@@ -70,8 +70,11 @@
               <v-list-item-title>{{item.product.name}}</v-list-item-title>
               <div>
                 <div>{{item.product.ref}}</div>
+                <div v-if="item.color" style="text-transform: capitalize;">
+                  Color: {{item.color}}
+                </div>
                 <div>Talla: {{item.tallas.join(', ')}}</div>
-                <strong>{{ (item.product.regular_price || item.product.variations[0].regular_price) * item.quantity | currency}}</strong>
+                <strong>{{item.price * item.quantity | currency}}</strong>
               </div>
             </v-list-item-content>
             <div class="d-flex align-center">
@@ -315,12 +318,14 @@
                   </template>
                   <v-list>
                     <v-list-item
-                      v-for="talla of leftPageProductTallas"
+                      v-for="variation of leftPageProductVariations"
                       link
-                      :key="talla"
-                      @click="cartAddItem(leftPageProduct, talla)"
+                      :key="variation.id"
+                      @click="cartAddItem(leftPageProduct, variation)"
                     >
-                      <v-list-item-title>{{talla}}</v-list-item-title>
+                      <div style="text-transform: capitalize">
+                        {{getVariationLabel(variation)}}
+                      </div>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -351,11 +356,13 @@
                   </template>
                   <v-list>
                     <v-list-item
-                      v-for="talla of rightPageProductTallas"
-                      :key="talla"
-                      @click="cartAddItem(rightPageProduct, talla)"
+                      v-for="variation of rightPageProductVariations"
+                      :key="variation.id"
+                      @click="cartAddItem(rightPageProduct, variation)"
                     >
-                      <v-list-item-title>{{talla}}</v-list-item-title>
+                      <div style="text-transform: capitalize">
+                        {{getVariationLabel(variation)}}
+                      </div>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -454,17 +461,17 @@ export default {
         : 0
       return this.productsSource[index]
     },
-    leftPageProductTallas() {
+    leftPageProductVariations() {
       return this.leftPageProduct
-        ? this.getTallas(this.leftPageProduct)
+        ? this.getVariations(this.leftPageProduct)
         : []
     },
     rightPageProduct() {
       return this.productsSource[this.currentPage]
     },
-    rightPageProductTallas() {
+    rightPageProductVariations() {
       return this.rightPageProduct
-        ? this.getTallas(this.rightPageProduct)
+        ? this.getVariations(this.rightPageProduct)
         : []
     },
     mercadopagoAvailable() {
@@ -677,20 +684,58 @@ export default {
     },
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const tallasAvailable = tallaAttr && tallaAttr.options.length
-      if(!tallasAvailable) {
+      const hasVariations = tallaAttr && tallaAttr.variation === true
+      if(!hasVariations) {
         return [];
       }
 
       let tallas = []
-      for(const [index, talla] of tallaAttr.options.entries()) {
-        const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
-        if(inStock) {
+      for(const variation of product.variations) {
+        const available = variation.status === 'publish' && variation.stock_status === 'instock'
+        if(!available) {
+          continue;
+        }
+
+        const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
+        if(!attr) {
+          continue;
+        }
+
+        const talla = attr.option
+        const isDuplicated = tallas.includes(talla)
+        if(!isDuplicated) {
           tallas.push(talla)
         }
       }
 
       return tallas;
+    },
+    getVariationLabel (variation) {
+      const talla = variation.attributes.talla.option
+      const color = variation.attributes.color?.option
+
+      if(color) {
+        return `${talla} - ${color}`
+      }
+
+      return talla;
+    },
+    getVariations(product) {
+      let variations = []
+
+      for(const variation of product.variations) {
+        const available = variation.status === 'publish' && variation.stock_status === 'instock'
+        if(!available) {
+          continue;
+        }
+        
+        variations.push({
+          ...variation,
+          attributes: _.keyBy(variation.attributes, 'name')
+        })
+      }
+
+      return variations;
     },
     async getByCountry() {
       const query = {country: this.country}
@@ -768,6 +813,9 @@ export default {
         const totalFormat = new Intl.NumberFormat().format(productTotal)
         total += productTotal
         message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
+        if(item.color) {
+          message += ` | Color: ${item.color}`
+        }
       }
 
       message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
@@ -776,13 +824,23 @@ export default {
 
       window.open(url, "_blank");  
     },
-    cartAddItem(product, talla) {
-      let item = this.cartItems.find(item => item.product._id === product._id)
+    cartAddItem(product, variation) {
+      const talla = variation.attributes.talla.option
+      const color = variation.attributes.color?.option
+
+      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
+
       if(item) {
         return item.tallas.push(talla)
       }
 
-      this.cartItems.push({product, tallas: [talla], quantity: 1})
+      this.cartItems.push({
+        product,
+        tallas: [talla],
+        color,
+        quantity: 1,
+        price: variation.regular_price,
+      })
     },
     cartRemoveItem(index) {
       this.cartItems.splice(index, 1)
