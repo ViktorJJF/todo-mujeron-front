@@ -656,15 +656,15 @@ export default {
      * @Description Este metodo obtiene las etiquetas de Facebook vinculadas a etiqueta de todofull correspondiente
      */
     getFilteredLabels(categoryId) {
-      console.log("🚀 Aqui *** -> categoryId", categoryId);
       let selectedTodofullLabels = this.todofullLabels.find(
-        (el) => el.webTags && el.webTags.find((tag) => tag._id === categoryId)
+        (el) => el.webTags && el.webTags.find((tag) => tag._id == categoryId)
       );
       if (selectedTodofullLabels) {
         return selectedTodofullLabels.messengerTags.filter(
           (tag) => tag.fanpageId === this.commentFacebook.botId.fanpageId // se retorna solo las que pertenezcan a la fanpage actual
         );
       }
+      return [];
     },
     generateCode() {
       let quickReplies = [];
