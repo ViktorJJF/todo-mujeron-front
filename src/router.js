@@ -292,6 +292,11 @@ let routes = [
         component: () => import("@/views/MailchimpTags"),
       },
       {
+        path: "/chat",
+        name: "ChatRoom",
+        component: () => import("@/views/ChatRoom"),
+      },
+      {
         path: "/test",
         component: () => import("@/views/test"),
       },
