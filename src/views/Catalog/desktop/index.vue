@@ -870,7 +870,7 @@ export default {
     getDate() {
       const now = new Date();
 
-      let day = now.getDay();
+      let day = now.getDate();
       let month = now.getMonth();
       let year = now.getFullYear();
 
