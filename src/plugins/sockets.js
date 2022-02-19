@@ -20,9 +20,10 @@ socket.on("NEW_MESSAGE", (data) => {
     });
   }
   // actualizando ultima fecha mensaje recibido
-  chats.find(
-    (el) => el._id === data.chatId
-  ).last_message[0].createdAt = new Date();
+  let lastChat = chats.find((el) => el._id === data.chatId);
+  if (lastChat) {
+    lastChat.last_message[0].createdAt = new Date();
+  }
 });
 
 socket.on("NEW_CHAT", (data) => {
