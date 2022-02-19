@@ -140,8 +140,12 @@ export const handleError = (error, commit, reject) => {
     return reject(error);
   }
   if (error.response.status === 401) {
-    router.push({ name: 'Profile'});
-    commit("errorModule/error", "Pide permisos : " + error.response.data.errors.msg.data, { root: true });
+    router.push({ name: "Profile" });
+    commit(
+      "errorModule/error",
+      "Pide permisos : " + error.response.data.errors.msg.data,
+      { root: true }
+    );
   } else {
     console.log("se produjo else");
     // Any other error
@@ -292,4 +296,11 @@ export const getProductRef = (productName) => {
       .trim()
       .toUpperCase();
   return productName;
+};
+
+export const scrollBottom = () => {
+  setTimeout(() => {
+    var objDiv = document.getElementById("content_section"); // es el id del contenedor del chat
+    objDiv.scrollTop = objDiv.scrollHeight;
+  }, 0);
 };

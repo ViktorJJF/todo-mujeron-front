@@ -1,6 +1,5 @@
 import io from "socket.io-client";
 
-// ruta prod
 const socket = io("https://todo-full.digital");
 const store = require("@/store/index.js");
 
