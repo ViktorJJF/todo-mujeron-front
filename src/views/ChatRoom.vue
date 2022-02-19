@@ -26,7 +26,6 @@
                       <a
                         class="nav-link"
                         data-toggle="tab"
-                        href="#tab-pane2"
                         role="tab"
                         aria-controls="tab-pane2"
                         aria-selected="true"
@@ -40,7 +39,7 @@
                 <!-- Tab Content-->
                 <div class="tab-content">
                   <!-- Tab panel -->
-                  <div id="tab-pane1" class="tab-pane active">
+                  <div id="tab-pane1" class="">
                     <!-- Contact Container -->
                     <div class="dt-contacts__container ps-custom-scrollbar">
                       <div class="dt-contacts__container-inner">
@@ -52,7 +51,7 @@
 
                           <!-- Contact -->
                           <div
-                            class="dt-contact"
+                            class="dt-contact tf-wrapper"
                             v-for="chat in chats"
                             :key="chat._id"
                             @click="selectChat(chat)"
@@ -67,13 +66,33 @@
 
                             <!-- Contact Info -->
                             <div class="dt-contact__info">
-                              <h4 class="dt-contact__title">
+                              <h4
+                                class="dt-contact__title"
+                                style="font-size: 17px"
+                              >
                                 {{
-                                  chat.cleanLeadId.details[0].nombre ||
-                                  chat.cleanLeadId.details[0].appName
+                                  chat.cleanLeadId
+                                    ? chat.cleanLeadId.details[0].nombre
+                                    : "Cliente"
                                 }}
                               </h4>
-                              <p class="dt-contact__desc">ultimo mensaje</p>
+                              <p
+                                class="dt-contact__desc"
+                                style="font-size: 14px"
+                              >
+                                {{
+                                  chat.last_message &&
+                                  chat.last_message.length > 0
+                                    ? chat.last_message[0].text
+                                    : ""
+                                }}
+                              </p>
+                              <small>{{
+                                (chat.last_message &&
+                                chat.last_message.length > 0
+                                  ? chat.last_message[0].createdAt
+                                  : new Date()) | formatDate
+                              }}</small>
                             </div>
                             <!-- /contact info -->
                           </div>
@@ -294,7 +313,11 @@
             <!-- /module sidebar -->
 
             <!-- Module Container -->
-            <div class="dt-module__container" v-if="selectedChat">
+            <div
+              class="dt-module__container"
+              style="height: 100%; max-height: 800px"
+              v-if="selectedChat"
+            >
               <!-- Module Header -->
               <div class="dt-module__header">
                 <!-- User Detail  -->
@@ -309,11 +332,14 @@
                   </div>
                   <span class="dt-avatar-info">
                     <a href="javascript:void(0)" class="dt-avatar-name">{{
-                      selectedChat.cleanLeadId.details[0].nombre ||
-                      selectedChat.cleanLeadId.details[0].appName
+                      selectedChat.cleanLeadId
+                        ? selectedChat.cleanLeadId.details[0].nombre
+                        : "Cliente"
                     }}</a>
                     <span class="d-inline-block">{{
-                      selectedChat.cleanLeadId.telefono
+                      selectedChat.cleanLeadId
+                        ? selectedChat.cleanLeadId.telefono
+                        : "Sin teléfono"
                     }}</span>
                   </span>
                 </div>
@@ -321,37 +347,23 @@
 
                 <!-- Dropdown -->
                 <div class="dropdown ml-auto">
-                  <a
-                    class="dropdown-toggle no-arrow text-dark"
-                    href="#"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false"
+                  <v-btn
+                    x-large
+                    color="success"
+                    @click="endConversation"
+                    v-show="isAgentConnected || selectedChat.userId"
+                    >Finalizar conversación</v-btn
                   >
-                    <i class="icon icon-horizontal-more icon-lg"></i>
-                  </a>
-
-                  <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="javascript:void(0)">
-                      <i class="icon icon-editors icon-fw"></i> Edit
-                    </a>
-                    <a class="dropdown-item" href="javascript:void(0)">
-                      <i class="icon icon-trash icon-fw"></i> Delete
-                    </a>
-                    <a class="dropdown-item" href="javascript:void(0)">
-                      <i class="icon icon-contacts icon-fw"></i> Contact List</a
-                    >
-                    <a class="dropdown-item" href="javascript:void(0)">
-                      <i class="icon icon-heart icon-fw"></i> Favourite List
-                    </a>
-                  </div>
                 </div>
                 <!-- /dropdown -->
               </div>
               <!-- /module header -->
 
               <!-- Module Content -->
-              <div class="dt-module__content ps-custom-scrollbar">
+              <div
+                class="dt-module__content ps-custom-scrollbar"
+                id="content_section"
+              >
                 <!-- Module Content Inner -->
                 <div class="dt-module__content-inner">
                   <!-- Chat Conversation -->
@@ -362,7 +374,7 @@
                         'dt-chat__item': true,
                         reply: message.from !== 'Cliente',
                       }"
-                      v-for="message in messages"
+                      v-for="message in $store.state.chatsModule.messages"
                       :key="message._id"
                     >
                       <!-- Avatar -->
@@ -400,19 +412,13 @@
               <!-- Comment Box -->
               <div class="add-comment-box">
                 <!-- Action Tools -->
-                <div class="action-tools">
-                  <button class="btn btn-primary dt-fab-btn" type="button">
-                    <i class="icon icon-send-new icon-xl"></i>
-                  </button>
-
-                  <div class="dt-fab-btn dt-attachment-btn size-30">
-                    <input type="file" /> <i class="icon icon-attach-v"></i>
-                  </div>
-                </div>
                 <!-- /action tools -->
 
                 <!-- Media -->
-                <div class="media" v-if="isAgentConnected">
+                <div
+                  class="media"
+                  v-if="isAgentConnected || selectedChat.userId"
+                >
                   <!-- Avatar -->
                   <img
                     class="dt-avatar"
@@ -436,16 +442,45 @@
                 </div>
                 <div class="media" v-else>
                   <v-btn
+                    v-if="!isAgentConnected || !selectedChat.userId"
                     block
                     x-large
                     color="primary"
-                    @click="connectAgent(chat)"
+                    @click.once="connectAgent(selectedChat)"
                     >Conversar</v-btn
                   >
                 </div>
                 <!-- /media -->
               </div>
               <!-- /comment box -->
+            </div>
+            <div v-else class="dt-module__container">
+              <!-- Module Content -->
+              <div class="dt-module__content">
+                <!-- Module Content Inner -->
+                <div
+                  class="
+                    dt-module__content-inner
+                    h-100
+                    d-flex
+                    flex-column
+                    justify-content-center
+                    align-items-center
+                  "
+                >
+                  <div class="icon icon-message icon-fw icon-7x mb-2"></div>
+                  <h1 class="display-1">Selecciona un usuario para empezar</h1>
+
+                  <button
+                    class="btn btn-primary d-md-none"
+                    data-toggle="msidebar-content"
+                  >
+                    Select contact to start Chat
+                  </button>
+                </div>
+                <!-- /module content inner -->
+              </div>
+              <!-- /module content -->
             </div>
             <!-- /module container -->
 
@@ -907,10 +942,21 @@
 </template>
 
 <script>
+import { formatDistance } from "date-fns";
 import chatsService from "@/services/api/chats";
 import messagesService from "@/services/api/messages";
+import { scrollBottom } from "@/utils/utils";
+import socket from "@/plugins/sockets";
+import { es } from "date-fns/locale";
 
 export default {
+  filters: {
+    formatDate: function (value) {
+      let date = new Date(value);
+      console.log("🚀 Aqui *** -> date", date);
+      return formatDistance(new Date(), date, { addSuffix: true, locale: es });
+    },
+  },
   data() {
     return {
       chats: [],
@@ -926,11 +972,17 @@ export default {
   methods: {
     async initialize() {
       // traer listado de chats
-      this.chats = (await chatsService.list()).data.payload;
-      console.log("🚀 Aqui *** -> this.chats", this.chats);
+      this.chats = (
+        await chatsService.list({
+          sort: "createdAt",
+          order: "desc",
+        })
+      ).data.payload;
+      this.$store.commit("chatsModule/setChats", this.chats);
     },
     async selectChat(chat) {
       this.selectedChat = chat;
+      this.$store.commit("chatsModule/setSelectedChat", chat);
       this.messages = (
         await messagesService.listByChat({
           chatId: chat._id,
@@ -938,9 +990,11 @@ export default {
           order: "asc",
         })
       ).data.payload;
-      console.log("🚀 Aqui *** -> this.messages", this.messages);
+      this.$store.commit("chatsModule/setMessages", this.messages);
+      scrollBottom();
     },
     sendTextMessage(text, from = "Agente") {
+      console.log("ENVIANDO MENSAJE: ", text, from);
       let payload = {
         text,
         from,
@@ -951,18 +1005,65 @@ export default {
       messagesService.create(payload);
       this.messages.push(payload);
       this.text = "";
+      socket.emit("AGENT_MESSAGE", {
+        senderId: this.selectedChat.leadId.contactId,
+        chatId: this.selectedChat._id,
+        text: text,
+        pageID: this.selectedChat.pageID,
+      });
     },
-    connectAgent(chat) {
-      console.log("🚀 Aqui *** -> chat", chat);
-      this.sendTextMessage(
-        "Ahora estás conversando con un agente real",
-        "Chatbot"
-      );
-      this.isAgentConnected = true;
+    connectAgent() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      let message =
+        "🤝👩🏻‍💼 Ahora estás conversando con el agente " +
+        user.first_name +
+        " " +
+        user.last_name;
+
+      if (!this.isAgentConnected) {
+        console.log("CONECTANDO AGENTE");
+        this.sendTextMessage(message, "Chatbot");
+        this.isAgentConnected = true;
+        // se cambia estado de atendiendo agente en bd
+        chatsService.update(this.selectedChat._id, { userId: user._id });
+        scrollBottom();
+        // socket.emit("CONNECT_AGENT", {
+        //   senderId: this.selectedChat.leadId.contactId,
+        //   chatId: this.selectedChat._id,
+        //   text: message,
+        //   pageID: this.selectedChat.pageID,
+        // });
+      }
+    },
+    endConversation() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      let message = `El agente ${user.first_name} ${user.last_name} se ha desconectado`;
+      this.sendTextMessage(message, "Chatbot");
+      this.isAgentConnected = false;
+      this.selectedChat.userId = null;
+      chatsService.update(this.selectedChat._id, { userId: null });
+      // socket.emit("DISCONNECT_AGENT", {
+      //   senderId: this.selectedChat.leadId.contactId,
+      //   chatId: this.selectedChat._id,
+      //   text: message,
+      //   pageID: this.selectedChat.pageID,
+      // });
+    },
+  },
+  computed: {},
+  watch: {
+    messages() {
+      scrollBottom();
     },
   },
 };
 </script>
 
 <style scoped src="@/assets/css/semidark-style-1.min.css">
+.tf-wrapper {
+  -webkit-column-width: 150px;
+  column-width: 150px;
+  height: 100%;
+  width: 500px;
+}
 </style>
