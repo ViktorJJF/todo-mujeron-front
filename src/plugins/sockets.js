@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 
-const socket = io("http://localhost:3000");
+const socket = io("https://todo-full.digital");
 const store = require("@/store/index.js");
 
 socket.on("NEW_MESSAGE", (data) => {
