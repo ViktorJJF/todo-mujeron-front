@@ -1,9 +1,6 @@
 import io from "socket.io-client";
 
-const socket = io("https://todo-full.digital", {
-  transports: ["websocket"],
-  secure: true,
-});
+const socket = io("https://todo-full.digital");
 const store = require("@/store/index.js");
 
 socket.on("NEW_MESSAGE", (data) => {
