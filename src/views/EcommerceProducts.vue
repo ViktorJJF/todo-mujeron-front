@@ -239,6 +239,15 @@
             >
               Insertar Imagen
             </v-btn>
+            <v-btn
+              style="display: block"
+              class="mt-1"
+              color="accent"
+              dark
+              :to="`/ecommerce/productos/${item._id}`"
+            >
+              Editar
+            </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
             <ul

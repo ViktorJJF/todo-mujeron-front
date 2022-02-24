@@ -6,8 +6,17 @@ export default {
     }
     return axios.get("/api/ecommerces", { params: query });
   },
+  listOne(id, params) {
+    return axios.get(`/api/ecommerces/${id}`, { params });
+  },
   update(id, payload) {
     return axios.put(`/api/ecommerces/${id}`, payload);
+  },
+  updateVariation(id, variation, payload) {
+    return axios.put(`/api/ecommerces/${id}/variations/${variation}`, payload);
+  },
+  updateVariationBatch(id, payload) {
+    return axios.post(`/api/ecommerces/${id}/variations/batch`, payload);
   },
   create(payload) {
     return axios.post("/api/ecommerces", payload);

@@ -262,6 +262,11 @@ let routes = [
         component: () => import("@/views/EcommerceProducts"),
       },
       {
+        path: "/ecommerce/productos/:id",
+        name: "EcommerceProducts",
+        component: () => import("@/views/EcommerceProductsSingle"),
+      },
+      {
         path: "/etiquetas-facebook",
         name: "FacebookLabels",
         component: () => import("@/views/FacebookLabels"),
