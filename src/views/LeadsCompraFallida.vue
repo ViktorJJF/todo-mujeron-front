@@ -98,7 +98,12 @@
               <v-col cols="12" sm="6">
                 <v-dialog v-model="dialog" max-width="900px">
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                    <v-btn
+                      color="primary"
+                      dark
+                      class="mb-2"
+                      v-on="on"
+                      v-show="rolPermisos['Write']"
                       >Agregar lead</v-btn
                     >
                   </template>
@@ -110,6 +115,17 @@
                     <v-divider></v-divider>
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
+                        <v-row dense>
+                          <v-chip
+                            dark
+                            class="mb-1 mr-1"
+                            color="primary"
+                            v-for="todofullLabel in editedItem.todofullLabels"
+                            :key="todofullLabel._id"
+                          >
+                            {{ todofullLabel.name }}
+                          </v-chip>
+                        </v-row>
                         <v-row dense>
                           <v-col
                             v-for="detail in editedItem.details"
@@ -298,7 +314,12 @@
             v-if="rolPermisos['Edit']"
             >Editar</v-btn
           >
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+          <v-btn
+            class="mb-1"
+            small
+            color="error"
+            @click="deleteItem(item)"
+            v-if="rolPermisos['Delete']"
             >Eliminar</v-btn
           >
         </template>
@@ -501,25 +522,24 @@ export default {
     },
   },
 
-   mounted() {
+  mounted() {
     this.$store.commit("loadingModule/showLoading");
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    this.rolAuth(); 
+    this.rolAuth();
   },
 
   methods: {
-      rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'ChatBot/Leads',
-          'model':'Compra-Fallida'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "ChatBot/Leads",
+          model: "Compra-Fallida",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     async initialize(paginationPayload) {
@@ -537,7 +557,7 @@ export default {
         this.$store.dispatch("telefonosModule/list"),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),
-        ]);
+      ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads.filter(
