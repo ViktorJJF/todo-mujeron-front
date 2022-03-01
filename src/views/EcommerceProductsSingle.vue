@@ -35,15 +35,15 @@
           </template>
           <template v-slot:item.talla="{ index, item }">
             <span class="format-breaklines" v-if="index===0">
-              {{ item.attributes.talla.options.join(', ') }}
+              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.options.join(', ') : '' }}
             </span>
             <span class="format-breaklines" v-else>
-              {{ item.attributes.talla.option }}
+              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.option : '' }}
             </span>
           </template>
           <template v-slot:item.color="{ index, item }">
             <span class="format-breaklines" v-if="index!==0">
-              {{ item.attributes.color ? item.attributes.color.option : '' }}
+              {{ item.attributesFormatted.color ? item.attributesFormatted.color.option : '' }}
             </span>
           </template>
         </v-data-table>
@@ -55,7 +55,6 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import EcommercesApi from '@/services/api/ecommerces'
-import _ from 'lodash'
 import ecommerces from '@/services/api/ecommerces';
 
 export default {
@@ -139,9 +138,16 @@ export default {
     const productId = this.$route.params.id
     EcommercesApi.listOne(productId, { sync: true })
     .then(res => {
-      const product = this.formatAttributes(res.data.payload);
+      let product = res.data.payload
 
-      const variations = product.variations.map(this.formatAttributes)
+      Object.assign(product, {
+        attributesFormatted: this.getFormatAttributes(product.attributes)
+      })
+
+      const variations = product.variations.map(variation => ({
+        ...variation,
+        attributesFormatted: this.getFormatAttributes(variation.attributes)
+      }))
 
       Object.assign(this, { product, variations })
     })
@@ -156,11 +162,11 @@ export default {
     },
   },
   methods: {
-    formatAttributes(item) {
-      return {
-        ...item,
-        attributes: _.keyBy(item.attributes, 'name')
-      }
+    getFormatAttributes(attributes) {
+      return attributes.reduce((attributes, current) => ({
+        ...attributes,
+        [current.name.toLowerCase()]: current
+      }), {})
     },
     async changeItemStatus(active, item) {
       const id = item.id || item.idEcommerce
@@ -171,19 +177,27 @@ export default {
       this.switchLoading.push(id)
 
       const stock_status = active === true ? 'instock' : 'outofstock'
-
-      let changes = { stock_status }
+      const stock_quantity = active === true ? 1 : 0
+      let changes = { stock_status, stock_quantity }
 
       const isProduct = 'idEcommerce' in item
       if(isProduct) {
-        Object.assign(changes, {
-          status: active === true ? 'publish' : 'draft',
-          catalog_visibility: active === true ? 'visible' : 'hidden'
-        })
-        
-        await ecommerces.update(item._id, changes)
+        // const attributes = this.getAttributes(active)
 
-        Object.assign(item, changes)
+        let productChanges = {
+          ...changes,
+          status: active === true ? 'publish' : 'draft',
+          catalog_visibility: active === true ? 'visible' : 'hidden',
+          // attributes
+        }
+
+        await ecommerces.update(item._id, productChanges)
+
+        Object.assign(item, {
+          ...productChanges,
+          stock_quantity: null,
+          // attributesFormatted: this.getFormatAttributes(attributes)
+        })
         
         this.switchLoading = this.switchLoading.filter(v => v !== id)
 
@@ -193,16 +207,14 @@ export default {
           // disable variations when product is being disabled
           let payload = this.variations.map(variation => ({
             id: variation.id,
-            stock_status
+            ...changes
           }))
 
           await ecommerces.updateVariationBatch(this.product._id, payload)
 
           this.switchLoading = []
 
-          for(let variant of this.variations) {
-            Object.assign(variant, { stock_status })
-          }
+          this.variations = this.variations.map(variation => ({ ...variation, ...changes }))
         }
 
         return;
@@ -227,9 +239,28 @@ export default {
       if(!hasStock) {
         this.changeItemStatus(false, this.product)
       }
+    },
+    getAttributes(active) {
+      let attributes = [...this.product.attributes]
 
+      const index = attributes.findIndex(attr => attr.name.toLowerCase() === 'talla')
+      const talla = attributes[index]
+
+      let options = []
+      
+      if(active) {
+        for(const variation of this.variations) {
+          if(variation.stock_status === 'instock') {
+            options.push(variation.attributesFormatted.talla.option)
+          }
+        }
+      }
+
+      attributes[index] = { ...talla, options }
+
+      return attributes;
     }
-  }
+  },
 }
 </script>
 
