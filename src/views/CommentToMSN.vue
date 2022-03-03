@@ -181,7 +181,11 @@
               v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -342,24 +346,23 @@ export default {
   },
 
   mounted() {
-    this.$store.commit("loadingModule/showLoading")
+    this.$store.commit("loadingModule/showLoading");
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Facebook/Facebook',
-          'model':'Comentarios'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Facebook/Facebook",
+          model: "Comentarios",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     async initialize() {
@@ -367,6 +370,7 @@ export default {
         this.$store.dispatch("commentsFacebookModule/list", {
           limit: 9999,
         }),
+        this.$store.dispatch("botsModule/list"),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
@@ -457,8 +461,6 @@ export default {
           fieldsToSearch: ["name"],
           listType: "All",
         }),
-        this.$store.dispatch("botsModule/list"),
-
       ]);
       //asignar al data del componente
 

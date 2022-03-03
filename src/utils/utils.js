@@ -2,6 +2,12 @@ import { isPast, format } from "date-fns";
 import store from "@/store";
 import router from "@/router";
 
+function sortByAttribute(a, b, attribute) {
+  var textA = a[attribute].toUpperCase();
+  var textB = b[attribute].toUpperCase();
+  return textA < textB ? -1 : textA > textB ? 1 : 0;
+}
+
 export const addCustomScript = (src) => {
   let recaptchaScript = document.createElement("script");
   recaptchaScript.setAttribute("src", src);
@@ -303,4 +309,32 @@ export const scrollBottom = () => {
     var objDiv = document.getElementById("content_section"); // es el id del contenedor del chat
     objDiv.scrollTop = objDiv.scrollHeight;
   }, 0);
+};
+
+/**
+ * @Description Dar formato a coleccion atributos
+ * @param {*} ecommercesAttributes
+ */
+export const getAttributesWithValues = (ecommercesAttributes) => {
+  let attributesWithValues = [];
+  for (const attribute of ecommercesAttributes) {
+    for (const term of attribute.terms) {
+      attributesWithValues.push({
+        name: attribute.name + " " + term.name,
+        _id: term._id,
+        country: attribute.woocommerceId.country,
+        nameWithCountry:
+          attribute.name +
+          " " +
+          term.name +
+          (attribute.woocommerceId.country
+            ? ` (${attribute.woocommerceId.country})`
+            : ""),
+        source: "EcommercesAttributes",
+      });
+    }
+  }
+  return attributesWithValues.sort((a, b) =>
+    sortByAttribute(a, b, "nameWithCountry")
+  );
 };

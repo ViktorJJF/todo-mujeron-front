@@ -147,6 +147,42 @@
                               </v-combobox>
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Atributos</p>
+                              <v-combobox
+                                item-text="nameWithCountry"
+                                v-model="editedItem.attributeTags"
+                                :items="attributeTags"
+                                multiple
+                                chips
+                                outlined
+                                no-data-text="No se encontraron etiquetas"
+                                label="Busca las etiquetas"
+                              >
+                                <template
+                                  v-slot:selection="{
+                                    attrs,
+                                    item,
+                                    select,
+                                    selected,
+                                  }"
+                                >
+                                  <v-chip
+                                    v-bind="attrs"
+                                    :input-value="selected"
+                                    close
+                                    @click="select"
+                                    @click:close="
+                                      remove(item._id, editedItem.attributeTags)
+                                    "
+                                    color="deep-purple accent-4"
+                                    outlined
+                                  >
+                                    <strong>{{ item.nameWithCountry }}</strong>
+                                  </v-chip>
+                                </template>
+                              </v-combobox>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
                                 Retail Rocket
                               </p>
@@ -314,7 +350,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import { sortAlphabetically } from "@/utils/utils";
+import { sortAlphabetically, getAttributesWithValues } from "@/utils/utils";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
 export default {
@@ -367,6 +403,7 @@ export default {
     webTags: [],
     retailRocketTags: [],
     usedTags: [],
+    attributeTags: [],
   }),
   computed: {
     formTitle() {
@@ -412,6 +449,7 @@ export default {
         this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("facebookLabelsModule/list"),
         this.$store.dispatch("retailRocketTagsModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list"),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
@@ -436,6 +474,15 @@ export default {
             ...el,
             nameWithCountry: `${el.name} (${el.country})`,
           }));
+        }
+        if (todoFullLabel.attributeTags) {
+          todoFullLabel.attributeTags = getAttributesWithValues(
+            this.$store.state["ecommercesAttributesModule"].ecommercesAttributes
+          ).filter((el) => todoFullLabel.attributeTags.includes(el._id));
+          console.log(
+            "🚀 Aqui *** -> todoFullLabel.attributeTags",
+            todoFullLabel.attributeTags
+          );
         }
       }
 
@@ -463,6 +510,10 @@ export default {
         .sort((a, b) => sortAlphabetically(a, b, "name"));
       this.retailRocketTags =
         this.$store.state["retailRocketTagsModule"].retailRocketTags;
+      // attriutes
+      this.attributeTags = getAttributesWithValues(
+        this.$store.state["ecommercesAttributesModule"].ecommercesAttributes
+      );
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -491,6 +542,9 @@ export default {
         try {
           let editedItem = this.$deepCopy(this.editedItem);
           // mandando solo id de tags
+          editedItem.attributeTags = editedItem.attributeTags
+            ? editedItem.attributeTags.map((el) => el._id)
+            : [];
           editedItem.messengerTags = editedItem.messengerTags
             ? editedItem.messengerTags.map((el) => el._id)
             : [];
