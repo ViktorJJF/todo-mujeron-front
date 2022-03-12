@@ -68,20 +68,61 @@
                                 label="Ingresa la URL"
                               />
                             </v-col>
-                            <v-row
+                            <v-col cols="12" sm="8">
+                              <p class="body-1 font-weight-bold">
+                                Tipo de publicación
+                              </p>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Selecciona un país"
+                                item-value="value"
+                                outlined
+                                :items="[
+                                  {
+                                    name: 'Varios productos',
+                                    value: 'VARIOS_PRODUCTOS',
+                                  },
+                                  {
+                                    name: 'Mayoristas Default',
+                                    value: 'MAYORISTAS_DEFAULT',
+                                  },
+                                  {
+                                    name: 'Mayoristas personalizadas',
+                                    value: 'MAYORISTAS_PERSONALIZADAS',
+                                  },
+                                  {
+                                    name: 'Publicaciones de comunidad',
+                                    value: 'PUBLICACIONES_COMUNIDAD',
+                                  },
+                                  {
+                                    name: 'No responder',
+                                    value: 'NO_RESPONDER',
+                                  },
+                                ]"
+                                v-model="editedItem.type"
+                                item-text="name"
+                              ></v-select>
+                            </v-col>
+
+                            <v-col
+                              cols="12"
+                              sm="6"
                               v-show="getBotId(editedItem.postUrl)"
-                              class="mb-2"
                             >
-                              <v-col cols="12" sm="6">
-                                <b>País: </b>
-                                {{
-                                  getBotId(editedItem.postUrl)
-                                    ? getBotId(editedItem.postUrl).country
-                                    : ""
-                                }}
-                              </v-col>
-                            </v-row>
-                            <v-col cols="12" sm="12" md="12">
+                              <b>País: </b>
+                              {{
+                                getBotId(editedItem.postUrl)
+                                  ? getBotId(editedItem.postUrl).country
+                                  : ""
+                              }}
+                            </v-col>
+                            <v-col
+                              cols="12"
+                              sm="12"
+                              md="12"
+                              v-show="editedItem.type == 'VARIOS_PRODUCTOS'"
+                            >
                               <p class="body-1 font-weight-bold">
                                 Selecciona una plantilla
                               </p>
@@ -95,7 +136,6 @@
                                 chips
                                 clearable
                                 label="Busca los productos"
-                                prepend-icon="mdi-filter-variant"
                                 no-data-text="No se encontraron productos"
                                 no-filter
                                 solo
@@ -280,12 +320,12 @@ export default {
         sortable: false,
         value: "updatedAt",
       },
-      // {
-      //   text: "Estado de respuestas",
-      //   align: "left",
-      //   sortable: false,
-      //   value: "responses",
-      // },
+      {
+        text: "Tipo",
+        align: "left",
+        sortable: false,
+        value: "type",
+      },
       {
         text: "URL",
         align: "left",
@@ -319,10 +359,7 @@ export default {
         ? this.commentsFacebook
             .filter((comment) => comment.botId._id == this.filterByFanpage)
             .filter((el) => el.type == this.type)
-        : this.commentsFacebook.filter(
-            (el) =>
-              el.type == (this.$route.name == "CommentToMSN" ? "comment" : "ad")
-          );
+        : this.commentsFacebook.filter((el) => el.type !== "ad");
     },
     isCommentView() {
       return this.$route.name == "CommentToMSN";
@@ -428,10 +465,10 @@ export default {
       } else {
         //create item
         try {
-          //agregando tipo comment/add
-          this.editedItem.type = this.isCommentView ? "comment" : "ad";
-          // verificando si se agrego plantilla
           if (this.selectedProducts) {
+            //agregando tipo comment/add
+            this.editedItem.type = this.isCommentView ? "comment" : "ad";
+            // verificando si se agrego plantilla
             // agregando plantilla
             if (this.products.length > 0) {
               const product = this.products[0];
