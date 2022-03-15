@@ -409,7 +409,7 @@ export default {
   data() {
     return {
       buyModal: false,
-      country: DEFAULT_COUNTRY,
+      country: this.catalog.country || DEFAULT_COUNTRY,
       countryLoaded: false,
       hideCountrySelect: true,
       drawerFilter: true,
@@ -725,17 +725,21 @@ export default {
 
       for(const variation of product.variations) {
         const available = variation.status === 'publish' && variation.stock_status === 'instock'
-        if(!available) {
-          continue;
+        if(available) {
+          variations.push({
+            ...variation,
+            attributes: this.getFormatAttributes(variation.attributes)
+          })
         }
-        
-        variations.push({
-          ...variation,
-          attributes: _.keyBy(variation.attributes, 'name')
-        })
       }
 
       return variations;
+    },
+    getFormatAttributes(attributes) {
+      return attributes.reduce((attributes, current) => ({
+        ...attributes,
+        [current.name.toLowerCase()]: current
+      }), {})
     },
     async getByCountry() {
       const query = {country: this.country}
