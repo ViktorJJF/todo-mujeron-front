@@ -588,6 +588,13 @@ export default {
         ? this.getVariations(this.currentPageProduct)
         : []
     },
+    currencyCode() {
+      if(this.country === COUNTRIES[0]) {
+        return 'CLP'
+      }
+
+      return 'PEN'
+    },
     mercadopagoAvailable() {
       return (
         this.catalog.mercadopagoAccessToken && this.catalog.mercadopagoAccessToken.trim().length > 0
@@ -958,8 +965,19 @@ export default {
       const talla = variation.attributes.talla.option
       const color = variation.attributes.color?.option
 
+      this.$gtag.event('add_to_cart', {
+        currency: this.currencyCode,
+        value: variation.regular_price,
+        items: [{
+          item_id: variation.sku,
+          item_name: product.name,
+          item_variant: talla,
+          price: variation.regular_price,
+          quantity: 1
+        }]
+      })
+      
       let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
-
       if(item) {
         return item.tallas.push(talla)
       }

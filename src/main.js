@@ -1,4 +1,5 @@
 import Vue from "vue";
+import "./plugins/vue-gtag"
 import "./plugins/vuetify";
 import vuetify from "./plugins/vuetify";
 import App from "./App.vue";

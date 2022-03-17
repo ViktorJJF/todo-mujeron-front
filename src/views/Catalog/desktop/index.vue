@@ -474,6 +474,13 @@ export default {
         ? this.getVariations(this.rightPageProduct)
         : []
     },
+    currencyCode() {
+      if(this.country === COUNTRIES[0]) {
+        return 'CLP'
+      }
+
+      return 'PEN'
+    },
     mercadopagoAvailable() {
       return (
         this.catalog.mercadopagoAccessToken && this.catalog.mercadopagoAccessToken.trim().length > 0
@@ -810,6 +817,7 @@ export default {
       let message = 'Hola, estos son los productos que me gustaría pedir\n';
     
       let total = 0
+      let items = []
       for(const item of this.cartItems) {
         const tallas = item.tallas.join(', ')
         const price = (item.product.regular_price || item.product.variations[0].regular_price)
@@ -820,20 +828,46 @@ export default {
         if(item.color) {
           message += ` | Color: ${item.color}`
         }
+
+        // Google Analytics items
+        items.push({
+          item_id: item.product.idEcommerce,
+          item_name: item.product.name,
+          item_variant: tallas,
+          price,
+          quantity: item.quantity
+        })
       }
 
       message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
 
-      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+      this.$gtag.event('begin_checkout', {
+        currency: this.currencyCode,
+        value: total,
+        items
+      })
 
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+      
       window.open(url, "_blank");  
     },
     cartAddItem(product, variation) {
       const talla = variation.attributes.talla.option
       const color = variation.attributes.color?.option
 
-      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
+      this.$gtag.event('agrego_al_carrito', {
+        currency: this.currencyCode,
+        value: variation.regular_price,
+        items: [{
+          item_id: product.idEcommerce,
+          item_name: product.name,
+          item_variant: talla,
+          price: variation.regular_price,
+          quantity: 1,
+        }]
+      })
 
+      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
       if(item) {
         return item.tallas.push(talla)
       }
