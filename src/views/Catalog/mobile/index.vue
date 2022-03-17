@@ -301,6 +301,9 @@
           <v-list-item @click="downloadPdf(13)">
             <v-list-item-title>Descargar para whatsapp</v-list-item-title>
           </v-list-item>
+          <v-list-item @click="downloadPdf(undefined, true)">
+            <v-list-item-title>Descargar con precio</v-list-item-title>
+          </v-list-item>
         </v-list>
         </v-menu>
         <v-btn
@@ -753,7 +756,7 @@ export default {
     onScroll () {
       this.isAppBarHidden = window.scrollY >= 95
     },
-    async downloadPdf(maxSize) {
+    async downloadPdf(maxSize, price) {
       if(!this.productsSource.length) {
         return;
       }
@@ -774,6 +777,16 @@ export default {
 
         let image = this.getProductImageUrl(product)
         doc.addImage(image, "JPEG", x, y, width, height)
+
+        if(price) {
+          let productPrice = product.regular_price || product.variations[0].regular_price
+          productPrice = new Intl.NumberFormat().format(productPrice)
+          let priceText = `Precio: ${productPrice}`
+          
+          doc.setFontSize(doc.getFontSize() + 2)
+             .setFont(undefined, 'bold')
+             .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+        }
 
         const filename = `${Date.now()}.pdf`
 
