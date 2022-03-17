@@ -415,7 +415,7 @@
                       v-for="variation of currentPageProductVariations"
                       link
                       :key="variation.id"
-                      @click="cartAddItem(currentPageProductVariations, variation)"
+                      @click="cartAddItem(currentPageProduct, variation)"
                     >
                       <div style="text-transform: capitalize">
                         {{getVariationLabel(variation)}}
