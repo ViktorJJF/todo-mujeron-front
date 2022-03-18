@@ -22,6 +22,9 @@ export default {
       catalog: null
     }
   },
+  beforeCreate() {
+    this.$gtag.pageview(this.$route)
+  },
   created() {
     if(this.$route.params.id) {
       CatalogsApi.find(this.$route.params.id).then(res => {

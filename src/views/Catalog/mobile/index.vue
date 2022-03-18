@@ -301,6 +301,9 @@
           <v-list-item @click="downloadPdf(13)">
             <v-list-item-title>Descargar para whatsapp</v-list-item-title>
           </v-list-item>
+          <v-list-item @click="downloadPdf(undefined, true)">
+            <v-list-item-title>Descargar con precio</v-list-item-title>
+          </v-list-item>
         </v-list>
         </v-menu>
         <v-btn
@@ -412,12 +415,14 @@
                   </template>
                   <v-list>
                     <v-list-item
-                      v-for="talla of currentPageProductTallas"
+                      v-for="variation of currentPageProductVariations"
                       link
-                      :key="talla"
-                      @click="cartAddItem(currentPageProduct, talla)"
+                      :key="variation.id"
+                      @click="cartAddItem(currentPageProduct, variation)"
                     >
-                      <v-list-item-title>{{talla}}</v-list-item-title>
+                      <div style="text-transform: capitalize">
+                        {{getVariationLabel(variation)}}
+                      </div>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -581,10 +586,17 @@ export default {
         : 0
       return this.productsSource[index]
     },
-    currentPageProductTallas() {
+    currentPageProductVariations() {
       return this.currentPageProduct
-        ? this.getTallas(this.currentPageProduct)
+        ? this.getVariations(this.currentPageProduct)
         : []
+    },
+    currencyCode() {
+      if(this.country === COUNTRIES[0]) {
+        return 'CLP'
+      }
+
+      return 'PEN'
     },
     mercadopagoAvailable() {
       return (
@@ -744,7 +756,7 @@ export default {
     onScroll () {
       this.isAppBarHidden = window.scrollY >= 95
     },
-    async downloadPdf(maxSize) {
+    async downloadPdf(maxSize, price) {
       if(!this.productsSource.length) {
         return;
       }
@@ -765,6 +777,16 @@ export default {
 
         let image = this.getProductImageUrl(product)
         doc.addImage(image, "JPEG", x, y, width, height)
+
+        if(price) {
+          let productPrice = product.regular_price || product.variations[0].regular_price
+          productPrice = new Intl.NumberFormat().format(productPrice)
+          let priceText = `Precio: ${productPrice}`
+          
+          doc.setFontSize(doc.getFontSize() + 2)
+             .setFont(undefined, 'bold')
+             .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+        }
 
         const filename = `${Date.now()}.pdf`
 
@@ -800,20 +822,62 @@ export default {
     },
     getTallas(product) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const tallasAvailable = tallaAttr && tallaAttr.options.length
-      if(!tallasAvailable) {
+      const hasVariations = tallaAttr && tallaAttr.variation === true
+      if(!hasVariations) {
         return [];
       }
 
       let tallas = []
-      for(const [index, talla] of tallaAttr.options.entries()) {
-        const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
-        if(inStock) {
+      for(const variation of product.variations) {
+        const available = variation.status === 'publish' && variation.stock_status === 'instock'
+        if(!available) {
+          continue;
+        }
+
+        const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
+        if(!attr) {
+          continue;
+        }
+
+        const talla = attr.option
+        const isDuplicated = tallas.includes(talla)
+        if(!isDuplicated) {
           tallas.push(talla)
         }
       }
 
       return tallas;
+    },
+    getVariationLabel (variation) {
+      const talla = variation.attributes.talla.option
+      const color = variation.attributes.color?.option
+
+      if(color) {
+        return `${talla} - ${color}`
+      }
+
+      return talla;
+    },
+    getVariations(product) {
+      let variations = []
+
+      for(const variation of product.variations) {
+        const available = variation.status === 'publish' && variation.stock_status === 'instock'
+        if(available) {
+          variations.push({
+            ...variation,
+            attributes: this.getFormatAttributes(variation.attributes)
+          })
+        }
+      }
+
+      return variations;
+    },
+    getFormatAttributes(attributes) {
+      return attributes.reduce((attributes, current) => ({
+        ...attributes,
+        [current.name.toLowerCase()]: current
+      }), {})
     },
     async getByCountry() {
       const query = {country: this.country}
@@ -910,13 +974,34 @@ export default {
 
       return `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}&phone=${this.catalog.wsPhone}`
     },
-    cartAddItem(product, talla) {
-      let item = this.cartItems.find(item => item.product._id === product._id)
+    cartAddItem(product, variation) {
+      const talla = variation.attributes.talla.option
+      const color = variation.attributes.color?.option
+
+      this.$gtag.event('add_to_cart', {
+        currency: this.currencyCode,
+        value: variation.regular_price,
+        items: [{
+          item_id: variation.sku,
+          item_name: product.name,
+          item_variant: talla,
+          price: variation.regular_price,
+          quantity: 1
+        }]
+      })
+      
+      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
       if(item) {
         return item.tallas.push(talla)
       }
 
-      this.cartItems.push({product, tallas: [talla], quantity: 1})
+      this.cartItems.push({
+        product,
+        tallas: [talla],
+        color,
+        quantity: 1,
+        price: variation.regular_price,
+      })
     },
     cartRemoveItem(index) {
       this.cartItems.splice(index, 1)

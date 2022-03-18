@@ -225,6 +225,9 @@
           <v-list-item @click="downloadPdf(13)">
             <v-list-item-title>Descargar para whatsapp</v-list-item-title>
           </v-list-item>
+          <v-list-item @click="downloadPdf(undefined, true)">
+            <v-list-item-title>Descargar con precio</v-list-item-title>
+          </v-list-item>
         </v-list>
         </v-menu>   
         <v-btn
@@ -409,7 +412,7 @@ export default {
   data() {
     return {
       buyModal: false,
-      country: DEFAULT_COUNTRY,
+      country: this.catalog.country || DEFAULT_COUNTRY,
       countryLoaded: false,
       hideCountrySelect: true,
       drawerFilter: true,
@@ -473,6 +476,13 @@ export default {
       return this.rightPageProduct
         ? this.getVariations(this.rightPageProduct)
         : []
+    },
+    currencyCode() {
+      if(this.country === COUNTRIES[0]) {
+        return 'CLP'
+      }
+
+      return 'PEN'
     },
     mercadopagoAvailable() {
       return (
@@ -628,7 +638,7 @@ export default {
     },    
   },
   methods: {
-    async downloadPdf(maxSize) {
+    async downloadPdf(maxSize, price) {
       if(!this.productsSource.length) {
         return;
       }
@@ -646,6 +656,16 @@ export default {
 
         let rightText = `Actualizado al ${this.getDate()} - Pais: ${this.country}`
         doc.text(rightText, width+x+6, height+y, {angle: 90});
+
+        if(price) {
+          let productPrice = product.regular_price || product.variations[0].regular_price
+          productPrice = new Intl.NumberFormat().format(productPrice)
+          let priceText = `Precio: ${productPrice}`
+          
+          doc.setFontSize(doc.getFontSize() + 2)
+             .setFont(undefined, 'bold')
+             .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+        }
 
         let image = this.getProductImageUrl(product)
         doc.addImage(image, "JPEG", x, y, width, height)
@@ -725,17 +745,21 @@ export default {
 
       for(const variation of product.variations) {
         const available = variation.status === 'publish' && variation.stock_status === 'instock'
-        if(!available) {
-          continue;
+        if(available) {
+          variations.push({
+            ...variation,
+            attributes: this.getFormatAttributes(variation.attributes)
+          })
         }
-        
-        variations.push({
-          ...variation,
-          attributes: _.keyBy(variation.attributes, 'name')
-        })
       }
 
       return variations;
+    },
+    getFormatAttributes(attributes) {
+      return attributes.reduce((attributes, current) => ({
+        ...attributes,
+        [current.name.toLowerCase()]: current
+      }), {})
     },
     async getByCountry() {
       const query = {country: this.country}
@@ -806,6 +830,7 @@ export default {
       let message = 'Hola, estos son los productos que me gustaría pedir\n';
     
       let total = 0
+      let items = []
       for(const item of this.cartItems) {
         const tallas = item.tallas.join(', ')
         const price = (item.product.regular_price || item.product.variations[0].regular_price)
@@ -816,20 +841,46 @@ export default {
         if(item.color) {
           message += ` | Color: ${item.color}`
         }
+
+        // Google Analytics items
+        items.push({
+          item_id: item.product.idEcommerce,
+          item_name: item.product.name,
+          item_variant: tallas,
+          price,
+          quantity: item.quantity
+        })
       }
 
       message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
 
-      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+      this.$gtag.event('begin_checkout', {
+        currency: this.currencyCode,
+        value: total,
+        items
+      })
 
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
+      
       window.open(url, "_blank");  
     },
     cartAddItem(product, variation) {
       const talla = variation.attributes.talla.option
       const color = variation.attributes.color?.option
 
-      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
+      this.$gtag.event('agrego_al_carrito', {
+        currency: this.currencyCode,
+        value: variation.regular_price,
+        items: [{
+          item_id: product.idEcommerce,
+          item_name: product.name,
+          item_variant: talla,
+          price: variation.regular_price,
+          quantity: 1,
+        }]
+      })
 
+      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
       if(item) {
         return item.tallas.push(talla)
       }
