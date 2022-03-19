@@ -49,16 +49,25 @@
             >
           </v-form>
         </ValidationObserver>
+        <v-facebook-login
+          style="margin: auto"
+          @login="facebookLogged"
+          app-id="309102442977190"
+          class="mb-3"
+        ></v-facebook-login>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import VFacebookLogin from "vue-facebook-login-component";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import graphApi from "@/services/api/graphApi";
 export default {
   components: {
     VTextFieldWithValidation,
+    VFacebookLogin,
   },
   data() {
     return {
@@ -84,6 +93,17 @@ export default {
           console.log("error en login: ", error);
         })
         .finally(() => (this.loading = false));
+    },
+    async facebookLogged(e) {
+      // solo para fines de test, se logea con USUARIO TEST
+      this.$store.state.facebookAccessToken = e.authResponse.accessToken;
+      this.user.email = "pruebas@mujeron.cl";
+      this.user.password = "Telepizz@";
+      this.login();
+      let facebookUser = await graphApi.getUserInformation(
+        e.authResponse.accessToken
+      );
+      this.$store.state.facebookName = facebookUser.data.payload.name;
     },
   },
 };

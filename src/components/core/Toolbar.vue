@@ -27,7 +27,7 @@
         </v-btn>
       </template>
       <v-list>
-        <v-list-item :to="{ name: 'Profile' }" >
+        <v-list-item :to="{ name: 'Profile' }">
           <v-list-item-title>Perfil</v-list-item-title>
         </v-list-item>
         <v-list-item @click="logout">
@@ -53,7 +53,10 @@ export default {
       },
     },
     user() {
-      return this.$store.state.authModule.user.email;
+      return (
+        this.$store.state.facebookName ||
+        this.$store.state.authModule.user.email
+      );
     },
   },
   methods: {

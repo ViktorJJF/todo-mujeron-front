@@ -1,19 +1,18 @@
 <template>
-  <v-container fluid>
-    <p>{{ values }}</p>
-    <v-checkbox v-model="values" value="John"></v-checkbox>
-    <v-checkbox v-model="values" value="Jacob"></v-checkbox>
-  </v-container>
+  <v-facebook-login @login="logged" app-id="309102442977190"></v-facebook-login>
 </template>
 
 <script>
+import VFacebookLogin from "vue-facebook-login-component";
+
 export default {
-  data() {
-    return {
-      values: [],
-    };
+  components: {
+    VFacebookLogin,
+  },
+  methods: {
+    logged(e) {
+      console.log("LOGEADO:", e);
+    },
   },
 };
 </script>
-
-<style lang="scss" scoped></style>
