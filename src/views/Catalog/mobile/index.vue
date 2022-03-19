@@ -786,6 +786,9 @@ export default {
           doc.setFontSize(doc.getFontSize() + 2)
              .setFont(undefined, 'bold')
              .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+          
+          // return font to normal
+          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
         }
 
         const filename = `${Date.now()}.pdf`
