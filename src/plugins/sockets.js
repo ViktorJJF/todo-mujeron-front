@@ -1,6 +1,11 @@
 import io from "socket.io-client";
+import environment from "@/environment";
 
-const socket = io("https://todo-full.digital");
+let socketUrl =
+  environment === "development"
+    ? "http://localhost:3000"
+    : "https://todo-full.digital";
+const socket = io(socketUrl);
 const store = require("@/store/index.js");
 
 socket.on("NEW_MESSAGE", (data) => {
@@ -13,10 +18,13 @@ socket.on("NEW_MESSAGE", (data) => {
   // agregando mensaje a chat
   if (selectedChat && data.chatId === selectedChat._id) {
     store.default.commit("chatsModule/addMessage", {
+      mid: data.mid,
       text: data.text,
       from: data.from,
       type: "text",
       chatId,
+      isActive: true,
+      payload: data.payload,
     });
   }
   // actualizando ultima fecha mensaje recibido
@@ -28,6 +36,10 @@ socket.on("NEW_MESSAGE", (data) => {
 
 socket.on("NEW_CHAT", (data) => {
   store.default.commit("chatsModule/addChat", data);
+});
+
+socket.on("DELETED_MESSAGE", (data) => {
+  store.default.commit("chatsModule/deletedMessage", data);
 });
 
 export default socket;

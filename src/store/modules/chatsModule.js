@@ -16,6 +16,14 @@ const module = {
     addChat(state, data) {
       state.chats.unshift(data);
     },
+    deletedMessage(state, data) {
+      let message = state.messages.find((el) => el.mid === data.mid);
+      if (message) {
+        console.log("BORRANDO MENSAJE");
+        message.isActive = false;
+      }
+    },
+
     setMessages(state, data) {
       state.messages = data;
     },

@@ -394,8 +394,24 @@
                       <!-- Messages -->
                       <div class="dt-chat__message-wrapper">
                         <!-- Message -->
-                        <div class="dt-chat__message">
+                        <div class="dt-chat__message" v-if="message.isActive">
                           {{ message.text }}
+                          <v-btn
+                            v-if="message.payload && message.payload.image_url"
+                            color="secondary"
+                            @click.stop="
+                              dialog = true;
+                              selectedMessage = message;
+                              isErrorStory = false;
+                            "
+                            dark
+                            small
+                          >
+                            Ver historia
+                          </v-btn>
+                        </div>
+                        <div v-else class="dt-chat__message">
+                          Mensaje eliminado por el usuario
                         </div>
                         <!-- /message -->
                       </div>
@@ -938,6 +954,51 @@
       </div>
       <!-- /grid -->
     </div>
+    <v-dialog v-model="dialog" v-if="dialog" width="500">
+      <v-card v-if="selectedMessage">
+        <v-container class="mt-3">
+          <v-img
+            class="mt-3"
+            v-show="
+              selectedMessage.payload &&
+              selectedMessage.payload.image_url &&
+              !isErrorStory
+            "
+            aspect-ratio="0.7"
+            contain
+            :src="selectedMessage.payload.image_url"
+            @error="errorStory"
+            @load="loadStory"
+          ></v-img>
+          <div v-if="isErrorStory" class="dt-module__content">
+            <!-- Module Content Inner -->
+            <div
+              class="
+                dt-module__content-inner
+                h-100
+                d-flex
+                flex-column
+                justify-content-center
+                align-items-center
+              "
+            >
+              <div class="icon icon-message icon-fw icon-7x mb-2"></div>
+              <h1 class="display-1">
+                Esta historia de Instagram ya no está disponible
+              </h1>
+            </div>
+            <!-- /module content inner -->
+          </div>
+        </v-container>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="dialog = false"> Listo </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -953,7 +1014,6 @@ export default {
   filters: {
     formatDate: function (value) {
       let date = new Date(value);
-      console.log("🚀 Aqui *** -> date", date);
       return formatDistance(new Date(), date, { addSuffix: true, locale: es });
     },
   },
@@ -964,6 +1024,9 @@ export default {
       selectedChat: null,
       text: "",
       isAgentConnected: false,
+      dialog: null,
+      isErrorStory: false,
+      selectedMessage: null,
     };
   },
   mounted() {
@@ -1000,11 +1063,13 @@ export default {
         from,
         type: "text",
         chatId: this.selectedChat._id,
+        isActive: true,
       };
       // guardando en bd
       messagesService.create(payload);
       this.messages.push(payload);
       this.text = "";
+      console.log("🚀 Aqui *** -> this.selectedChat", this.selectedChat);
       socket.emit("AGENT_MESSAGE", {
         senderId: this.selectedChat.leadId.contactId,
         chatId: this.selectedChat._id,
@@ -1048,6 +1113,12 @@ export default {
       //   text: message,
       //   pageID: this.selectedChat.pageID,
       // });
+    },
+    errorStory() {
+      this.isErrorStory = true;
+    },
+    loadStory() {
+      this.isErrorStory = false;
     },
   },
   computed: {},
