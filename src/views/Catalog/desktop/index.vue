@@ -661,10 +661,13 @@ export default {
           let productPrice = product.regular_price || product.variations[0].regular_price
           productPrice = new Intl.NumberFormat().format(productPrice)
           let priceText = `Precio: ${productPrice}`
-          
+
           doc.setFontSize(doc.getFontSize() + 2)
              .setFont(undefined, 'bold')
              .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+
+          // return font to normal
+          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
         }
 
         let image = this.getProductImageUrl(product)
