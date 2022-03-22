@@ -1,5 +1,4 @@
 import api from "@/services/api/cleanLeads";
-import store from "@/store";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 
 const module = {
@@ -21,18 +20,6 @@ const module = {
                 return new Date(b.updatedAt) - new Date(a.updatedAt);
               });
             }
-            // filtrando que no sean agentes
-            console.log(
-              "esto en telefonos: ",
-              store.state.telefonosModule.telefonos
-            );
-            const telefonos = store.state.telefonosModule.telefonos; // telefonos de agentes
-            cleanLeads = cleanLeads.filter(
-              (lead) =>
-                !telefonos
-                  .map((tel) => tel.numero.replace(/ /g, ""))
-                  .includes(lead.telefono)
-            );
             commit("list", cleanLeads);
             commit("totalItems", response.data.totalDocs);
             commit("totalPages", response.data.totalPages);
