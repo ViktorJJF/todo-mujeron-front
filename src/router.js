@@ -77,9 +77,14 @@ let routes = [
         component: () => import("@/views/Facebook.vue"),
       },
       {
-        path: "/telegram/groups",
+        path: "/telegram/grupos",
         name: "TelegramGroups",
         component: () => import("@/views/TelegramGroups.vue"),
+      },
+      {
+        path: "/telegram/rutinas",
+        name: "TelegramRoutines",
+        component: () => import("@/views/TelegramRoutines.vue"),
       },
       {
         path: "/catalogs",

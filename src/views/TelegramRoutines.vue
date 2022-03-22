@@ -6,14 +6,14 @@
         icon="mdi-cellphone-dock"
         color="primary"
         title="Facebook"
-        text="Resumen de Grupos"
+        text="Resumen de Rutinas"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="groups"
+          :items="routines"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -40,7 +40,7 @@
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
-                        >Agregar grupo</v-btn
+                        >Agregar rutina</v-btn
                       >
                     </template>
                     <v-card>
@@ -59,46 +59,58 @@
 
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombre</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Ingresa el nombre del grupo"
-                              />
+                              <div class="body-1 font-weight-bold">Pais</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione un pais"
+                                outlined
+                                :items="paises"
+                                v-model="editedItem.country"
+                              ></v-select>
                             </v-col>
                           </v-row>
-
-                          <v-row dense class="my-2">
-                            <v-col cols="12" sm="12" md="12">
-                              <h3 class="mt-1">Usuarios de Telegram</h3>
-                            </v-col>
-                          </v-row>
-
-                          <v-row v-for="(id, index) of editedItem.users" :key="index">
-                            <v-col cols="11">
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.users[index]"
-                                label="Ingresa el id de telegram"
-                              />
-                            </v-col>
-                            <v-col class="d-flex justify-center" cols="1" v-if="index > 0">
-                             <v-btn
-                              icon
-                              color="primary"
-                              @click="removeUser(index)"
-                            >
-                              <v-icon>mdi-delete</v-icon>
-                            </v-btn>
-                            </v-col>
-                          </v-row>
-
                           <v-row>
-                            <v-col>
-                              <v-btn color="primary" @click="addUser">
-                                <v-icon left>mdi-plus-circle</v-icon>
-                                Agregar usuario
-                              </v-btn>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Grupo de telegram</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione un grupo"
+                                outlined
+                                :items="[]"
+                                v-model="editedItem.telegramGroup"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Minimo de inventario</div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.minStock"
+                                label="Ingresa el minimo de inventario"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Minimo de tallas</div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.minSize"
+                                label="Ingresa el minimo de tallas"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Cantidad de imagenes</div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.imagesQuantity"
+                                label="Ingresa la cantidad de imagenes"
+                              />
                             </v-col>
                           </v-row>
                         </v-container>
@@ -131,7 +143,7 @@
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
-              >Aún no cuentas con grupos</v-alert
+              >Aún no cuentas con rutinas</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -146,11 +158,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > groups.length
-                ? groups.length
+              $store.state.itemsPerPage > routines.length
+                ? routines.length
                 : $store.state.itemsPerPage
             }}
-            de {{ groups.length }} registros
+            de {{ routines.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -165,7 +177,7 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import TelegramGroups from "@/classes/TelegramGroups";
+import TelegramRoutines from "@/classes/TelegramRoutines";
 import auth from "@/services/api/auth";
 export default {
   components: {
@@ -198,17 +210,17 @@ export default {
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    groups: [],
+    routines: [],
     editedIndex: -1,
-    editedItem: TelegramGroups(),
-    defaultItem: TelegramGroups(),
+    editedItem: TelegramRoutines(),
+    defaultItem: TelegramRoutines(),
     paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
     rolPermisos: {},
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo grupo" : "Editar grupo";
+      return this.editedIndex === -1 ? "Nueva rutina" : "Editar rutina";
     },
   },
 
@@ -247,21 +259,21 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("telegramGroupsModule/list")]);
-      this.groups = this.$deepCopy(this.$store.state.telegramGroupsModule.groups);
+      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list")]);
+      this.routines = this.$deepCopy(this.$store.state.telegramRoutinesModule.routines);
     },
     editItem(item) {
-      this.editedIndex = this.groups.indexOf(item);
+      this.editedIndex = this.routines.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.groups.indexOf(item);
-      let itemId = this.groups[index]._id;
+      const index = this.routines.indexOf(item);
+      let itemId = this.routines[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("telegramGroupsModule/delete", itemId);
-        this.groups.splice(index, 1);
+        await this.$store.dispatch("telegramRoutinesModule/delete", itemId);
+        this.routines.splice(index, 1);
       }
     },
 
@@ -276,13 +288,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.groups[this.editedIndex]._id;
+        let itemId = this.routines[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("telegramGroupsModule/update", {
+          await this.$store.dispatch("telegramRoutinesModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.groups[this.editedIndex], this.editedItem);
+          Object.assign(this.routines[this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -291,10 +303,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "telegramGroupsModule/create",
+            "telegramRoutinesModule/create",
             this.editedItem
           );
-          this.groups.push(newItem);
+          this.routines.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
