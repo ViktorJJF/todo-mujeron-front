@@ -17,7 +17,7 @@ let routes = [
   },
   {
     path: "/ordenes/:id",
-    name: "Ordenes",
+    name: "OrdenesSingle",
     component: () => import("@/views/Orders/index.vue"),
   },
   {
@@ -75,6 +75,16 @@ let routes = [
         path: "/bots",
         name: "Bots",
         component: () => import("@/views/Facebook.vue"),
+      },
+      {
+        path: "/telegram/grupos",
+        name: "TelegramGroups",
+        component: () => import("@/views/TelegramGroups.vue"),
+      },
+      {
+        path: "/telegram/rutinas",
+        name: "TelegramRoutines",
+        component: () => import("@/views/TelegramRoutines.vue"),
       },
       {
         path: "/catalogs",
