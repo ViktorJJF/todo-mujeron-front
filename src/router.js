@@ -77,6 +77,11 @@ let routes = [
         component: () => import("@/views/Facebook.vue"),
       },
       {
+        path: "/telegram/groups",
+        name: "TelegramGroups",
+        component: () => import("@/views/TelegramGroups.vue"),
+      },
+      {
         path: "/catalogs",
         name: "Catalogs",
         component: () => import("@/views/CatalogsManager.vue"),

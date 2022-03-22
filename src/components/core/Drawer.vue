@@ -327,6 +327,19 @@
 
           <v-list-item-content> Bots </v-list-item-content>
         </v-list-item>
+        
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'TelegramGroups' }"
+          v-if="checkAuth('ChatBot/Bots', 'Bots')"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content> Telegram </v-list-item-content>
+        </v-list-item>
+
         <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
