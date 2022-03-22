@@ -17,7 +17,7 @@ let routes = [
   },
   {
     path: "/ordenes/:id",
-    name: "Ordenes",
+    name: "OrdenesSingle",
     component: () => import("@/views/Orders/index.vue"),
   },
   {
