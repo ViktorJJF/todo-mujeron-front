@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el nombre"
                     single-line
                     outlined
                   ></v-text-field>
@@ -59,6 +59,17 @@
 
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Nombre</div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.name"
+                                label="Ingresa el nombre"
+                              />
+                            </v-col>
+                          </v-row>
+
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Pais</div>
                               <v-select
                                 dense
@@ -70,6 +81,21 @@
                               ></v-select>
                             </v-col>
                           </v-row>
+                          <v-row v-if="editedItem.country.length">
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Categoria</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione una categoria"
+                                outlined
+                                :items="categories"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.category"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Grupo de telegram</div>
@@ -78,7 +104,9 @@
                                 hide-details
                                 placeholder="Seleccione un grupo"
                                 outlined
-                                :items="[]"
+                                :items="groups"
+                                item-text="name"
+                                item-value="_id"
                                 v-model="editedItem.telegramGroup"
                               ></v-select>
                             </v-col>
@@ -105,12 +133,74 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Dias de envío</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione los dias de envio"
+                                outlined
+                                multiple
+                                chips
+                                :items="scheduleDays"
+                                v-model="editedItem.scheduleDays"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col>
+                              <div class="body-1 font-weight-bold">Hora de envío</div>
+                              <v-menu
+                                ref="timeMenu"
+                                v-model="scheduleTimeMenu"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                :return-value.sync="editedItem.scheduleTime"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                              >
+                                <template v-slot:activator="{ on, attrs }">
+                                  <VTextFieldWithValidation
+                                    rules="required"
+                                    v-model="editedItem.scheduleTime"
+                                    label="Seleccione la hora de envio"
+                                    append-icon="mdi-clock-time-four-outline"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on"
+                                  ></VTextFieldWithValidation>
+                                </template>
+                                  <v-time-picker
+                                    v-if="scheduleTimeMenu"
+                                    v-model="scheduleTime"
+                                    full-width
+                                    @click:minute="$refs.timeMenu.save(scheduleTime)"
+                                  ></v-time-picker>
+                              </v-menu>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Cantidad de imagenes</div>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.imagesQuantity"
                                 label="Ingresa la cantidad de imagenes"
                               />
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Estado</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione un estado"
+                                outlined
+                                :items="status"
+                                v-model="editedItem.status"
+                              ></v-select>
                             </v-col>
                           </v-row>
                         </v-container>
@@ -150,7 +240,7 @@
             item.createdAt | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status" color="success">Activo</v-chip>
+            <v-chip v-if="item.status==='active'" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
         </v-data-table>
@@ -179,6 +269,9 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import TelegramRoutines from "@/classes/TelegramRoutines";
 import auth from "@/services/api/auth";
+import telegramGroupsApi from '@/services/api/telegramGroups'
+import categoriesApi from '@/services/api/ecommercesCategories'
+
 export default {
   components: {
     MaterialCard,
@@ -197,7 +290,7 @@ export default {
     dialog: false,
     headers: [
       {
-        text: "Nombre Grupo",
+        text: "Nombre",
         align: "left",
         sortable: false,
         value: "name",
@@ -206,18 +299,40 @@ export default {
         text: "Última Actualización",
         align: "left",
         sortable: false,
-        value: "createdAt",
+        value: "updatedAt",
       },
+      { text: 'Estado', value:'status', sortable: false },
       { text: "Acciones", value: "action", sortable: false },
     ],
+    categories: [],
     routines: [],
+    groups: [],
     editedIndex: -1,
     editedItem: TelegramRoutines(),
     defaultItem: TelegramRoutines(),
     paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
+    scheduleTimeMenu: false,
+    scheduleTime: null,
+    status: [
+      {text: 'Activo', value: 'active'},
+      {text: 'Inactivo', value: 'inactive'}
+    ],
+    scheduleDays: [
+      {text: 'Lunes', value: 1},
+      {text: 'Martes', value: 2},
+      {text: 'Miercoles', value: 3},
+      {text: 'Jueves', value: 4},
+      {text: 'Viernes', value: 5},
+      {text: 'Sabado', value: 6},
+      {text: 'Domingo', value: 0},
+    ],
     rolPermisos: {},
   }),
-
+  created() {
+    telegramGroupsApi.list().then(res => {
+      this.groups = res.data.payload
+    })
+  },
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nueva rutina" : "Editar rutina";
@@ -228,6 +343,14 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    'editedItem.country': function(val) {
+      if(val.length) {
+        const query = {country: val}
+        categoriesApi.list(query).then(res => {
+          this.categories = res.data.payload
+        })
+      }
+    }
   },
 
     async mounted() {
@@ -286,6 +409,7 @@ export default {
     },
 
     async save() {
+      console.log(this.editedItem)
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         let itemId = this.routines[this.editedIndex]._id;
