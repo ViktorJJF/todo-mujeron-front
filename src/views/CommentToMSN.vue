@@ -523,7 +523,8 @@ export default {
         return this.$store.state.botsModule.bots.find(
           (bot) =>
             bot.country == this.getCountryByPostLink(link) ||
-            link.includes(bot.fanpageId)
+            link.toLowerCase().includes(bot.fanpageId) ||
+            link.toLowerCase().includes(bot.fanpageName)
         );
     },
     getCountryByPostLink(link) {
@@ -534,7 +535,8 @@ export default {
           link
             .toLowerCase()
             .includes(bot.fanpageName.toLowerCase().replace("@", "")) ||
-          link.toLowerCase().includes(bot.fanpageId)
+          link.toLowerCase().includes(bot.fanpageId) ||
+          link.toLowerCase().includes(bot.fanpageName)
         ) {
           return (country = bot.country);
         }

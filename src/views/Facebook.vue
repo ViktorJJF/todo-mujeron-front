@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar bot</v-btn
                       >
                     </template>
@@ -89,7 +94,7 @@
                                 label="Ingresa el url"
                               />
                             </v-col>
-                          </v-row>                   
+                          </v-row>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Plataforma</p>
@@ -115,9 +120,9 @@
                                   label="Ingresa el API"
                                 />
                               </v-col>
-                            </v-row>                            
+                            </v-row>
                           </template>
-                          <template v-if="editedItem.platform === 'facebook'">
+                          <template>
                             <v-row dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
@@ -132,7 +137,9 @@
                             </v-row>
                             <v-row dense>
                               <v-col cols="12" sm="12" md="12">
-                                <p class="body-1 font-weight-bold">URL Fanpage</p>
+                                <p class="body-1 font-weight-bold">
+                                  URL Fanpage
+                                </p>
                                 <VTextFieldWithValidation
                                   rules=""
                                   v-model="editedItem.fanpageUrl"
@@ -142,7 +149,9 @@
                             </v-row>
                             <v-row dense>
                               <v-col cols="12" sm="12" md="12">
-                                <p class="body-1 font-weight-bold">Fanpage ID</p>
+                                <p class="body-1 font-weight-bold">
+                                  Fanpage ID
+                                </p>
                                 <VTextFieldWithValidation
                                   rules=""
                                   v-model="editedItem.fanpageId"
@@ -265,10 +274,19 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -316,7 +334,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
@@ -327,8 +345,8 @@ export default {
     search: "",
     dialog: false,
     platforms: [
-      {text: 'Facebook', value: 'facebook'},
-      {text: 'Telegram', value: 'telegram'}
+      { text: "Facebook", value: "facebook" },
+      { text: "Telegram", value: "telegram" },
     ],
     headers: [
       {
@@ -365,27 +383,26 @@ export default {
     },
   },
 
-    async mounted() {
-      this.$store.commit("loadingModule/showLoading")
-      this.initialize();
-      this.rolAuth(); 
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading");
+    this.initialize();
+    this.rolAuth();
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades',
-          'model':'Facebook'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades",
+          model: "Facebook",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
-    
+
     async initialize() {
       await Promise.all([this.$store.dispatch("botsModule/list")]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
