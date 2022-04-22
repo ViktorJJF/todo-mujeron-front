@@ -140,5 +140,15 @@
             "created": "Creada",
             "done": "Completada"
         }
+    },
+    "scOrders": {
+        "status": {
+            "shipped": "Enviada"
+        }
+    },
+    "scOrdersItems": {
+        "status": {
+            "shipped": "Enviado"
+        }
     }
 }

@@ -1,4 +1,4 @@
-import api from "@/services/api/orders";
+import api from "@/services/api/scOrders";
 import { handleError } from "@/utils/utils.js";
 
 const module = {
@@ -9,13 +9,9 @@ const module = {
     totalPages: 0,
   },
   actions: {
-    list({ commit }, { catalog }) {
+    list({ commit }) {
       return new Promise((resolve, reject) => {
-        let resPromise = catalog
-          ? api.list(catalog)
-          : api.listAll()
-
-        resPromise.then((response) => {
+        api.listAll().then((response) => {
           commit("list", response.data.payload);
           commit("totalItems", response.data.totalDocs);
           commit("totalPages", response.data.totalPages);
