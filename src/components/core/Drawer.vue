@@ -602,6 +602,26 @@
         </v-list-item>
       </v-list-group>
 
+      <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
+      >
+        <template v-slot:activator>
+          <v-list-item-title>Marketplace</v-list-item-title>
+        </template>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'SCOrdenes' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Ordenes</v-list-item-content>
+        </v-list-item>
+      </v-list-group>
+
       <v-divider class="mx-3 mb-3"></v-divider>
     </v-list>
   </v-navigation-drawer>
