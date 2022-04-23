@@ -327,7 +327,7 @@
 
           <v-list-item-content> Bots </v-list-item-content>
         </v-list-item>
-        
+
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'TelegramGroups' }"
@@ -345,6 +345,12 @@
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Chat en vivo </v-list-item-content>
+        </v-list-item>
+        <v-list-item active-class="primary custom2" :to="{ name: 'Marketing' }">
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content> Audiencias </v-list-item-content>
         </v-list-item>
         <v-list-group
           color="white"
@@ -584,7 +590,10 @@
 
           <v-list-item-content> Ordenes </v-list-item-content>
         </v-list-item>
-        <v-list-item active-class="primary custom2" :to="{ name: 'TelegramRoutines' }">
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'TelegramRoutines' }"
+        >
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>

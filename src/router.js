@@ -311,6 +311,11 @@ let routes = [
         name: "ChatRoom",
         component: () => import("@/views/ChatRoom"),
       },
+      {
+        path: "/marketing",
+        name: "Marketing",
+        component: () => import("@/views/Marketing"),
+      },
     ],
   },
   {

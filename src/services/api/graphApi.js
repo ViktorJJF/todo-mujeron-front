@@ -8,6 +8,9 @@ export default {
       access_token: accessToken,
     });
   },
+  getAudiences() {
+    return axios.post("/api/graph-api/getAudiences");
+  },
   deleteLabel(id, fanpageId) {
     return axios.delete(`/api/graph-api/labels/${id}?fanpageId=${fanpageId}`);
   },
