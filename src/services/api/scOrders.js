@@ -8,6 +8,9 @@ export default {
   
   listItems(id) {
     return axios.get(`/api/sc-orders/${id}/items`)
-  }
+  },
 
+  listDocument(id, DocumentType) {
+    return axios.get(`/api/sc-orders/${id}/documents`, { params: { DocumentType } })
+  }
 };

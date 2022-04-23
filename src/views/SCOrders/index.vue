@@ -59,9 +59,14 @@
           </template>
           
           <template v-slot:item.action="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="openDetails(item)">
-              Detalles
-            </v-btn>
+            <div class="d-flex">
+              <v-btn small color="secondary" @click="openDetails(item)">
+                Detalles
+              </v-btn>
+              <v-btn class="ml-3" small color="secondary" @click="getPdf(item)">
+                Guía Pdf
+              </v-btn>
+            </div>
           </template>
 
           <template v-slot:item.updatedAt="{ item }">
@@ -101,6 +106,7 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
+import scOrdersApi from '@/services/api/scOrders'
 
 export default {
   components: {
@@ -185,33 +191,19 @@ export default {
       this.detailsModal = true
     },
 
-    async save() {
-      this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        let itemId = this.orders[this.editedIndex]._id;
-        try {
-          await this.$store.dispatch("scOrdersModule/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this.orders[this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
-        //create item
-        try {
-          let newItem = await this.$store.dispatch(
-            "scOrdersModule/create",
-            this.editedItem
-          );
-          this.orders.push(newItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
+    async getPdf(order) {
+      let res = await scOrdersApi.listDocument(order._id, 'shippingParcel')
+      const document = res.data.payload
+      var binStr = atob(document.File);
+      var len = binStr.length;
+      var arr = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+      arr[ i ] = binStr.charCodeAt( i );
       }
+
+      var blob = new Blob( [ arr ], { type: document.MimeType } )
+      var url = URL.createObjectURL( blob );
+      window.open(url);
     },
   },
 };
