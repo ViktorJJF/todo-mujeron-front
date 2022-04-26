@@ -51,7 +51,7 @@
         </ValidationObserver>
         <v-facebook-login
           :login-options="{
-            scope: 'email,ads_management,pages_read_engagement',
+            scope: 'email,ads_management',
           }"
           style="margin: auto"
           @login="facebookLogged"
