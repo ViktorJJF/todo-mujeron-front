@@ -50,6 +50,9 @@
           </v-form>
         </ValidationObserver>
         <v-facebook-login
+          :login-options="{
+            scope: 'email,ads_management,pages_read_engagement',
+          }"
           style="margin: auto"
           @login="facebookLogged"
           app-id="309102442977190"
