@@ -346,12 +346,6 @@
           </v-list-item-icon>
           <v-list-item-content> Chat en vivo </v-list-item-content>
         </v-list-item>
-        <v-list-item active-class="primary custom2" :to="{ name: 'Marketing' }">
-          <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content> Audiencias </v-list-item-content>
-        </v-list-item>
         <v-list-group
           color="white"
           :value="false"
@@ -561,6 +555,12 @@
           </v-list-item-icon>
           <v-list-item-content> Etiquetas </v-list-item-content>
         </v-list-item>
+        <v-list-item active-class="primary custom2" :to="{ name: 'Marketing' }">
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content> Audiencias </v-list-item-content>
+        </v-list-item>
       </v-list-group>
 
       <v-list-group
@@ -610,10 +610,7 @@
         <template v-slot:activator>
           <v-list-item-title>Marketplace</v-list-item-title>
         </template>
-        <v-list-item
-          active-class="primary custom2"
-          :to="{ name: 'SCOrdenes' }"
-        >
+        <v-list-item active-class="primary custom2" :to="{ name: 'SCOrdenes' }">
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>

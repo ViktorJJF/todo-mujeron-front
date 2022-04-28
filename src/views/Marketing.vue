@@ -22,7 +22,7 @@
               </v-card-title>
               <v-divider></v-divider>
               <ValidationObserver ref="obs" v-slot="{ passes }">
-                <v-container class="pa-5">
+                <div class="pa-5 ma-3">
                   <v-row>
                     <v-col cols="12" sm="12" md="12">
                       <span class="font-weight-bold">Nombre</span>
@@ -79,7 +79,7 @@
                       ></v-textarea>
                     </v-col>
                   </v-row>
-                </v-container>
+                </div>
                 <v-card-actions rd-actions>
                   <div class="flex-grow-1"></div>
                   <v-btn outlined color="error" text @click="close"
@@ -103,6 +103,11 @@
           :items="audiences"
           sort-by="calories"
         >
+          <template v-slot:[`item.action`]="{ item }">
+            <v-btn color="error" fab small dark @click="deleteItem(item)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </template>
         </v-data-table>
       </material-card>
     </v-row>
@@ -132,7 +137,14 @@ export default {
     return {
       audiences: [],
       loadingButton: false,
-      editedItem: {},
+      editedItem: {
+        subtype: "CUSTOM",
+        customer_file_source: "USER_PROVIDED_ONLY",
+      },
+      defaultItem: {
+        subtype: "CUSTOM",
+        customer_file_source: "USER_PROVIDED_ONLY",
+      },
       dialog: false,
       editedIndex: -1,
       headers: [
@@ -166,6 +178,7 @@ export default {
           sortable: false,
           value: "description",
         },
+        { text: "Acciones", value: "action", sortable: false },
       ],
     };
   },
@@ -198,13 +211,19 @@ export default {
             ...this.editedItem,
             id: res.data.payload.id,
           });
-          console.log("GUARDANDO: ", this.editedItem);
           this.editedItem = {};
           this.close();
         })
         .catch((err) => {
           console.error("err trayendo imagen: ", err);
         });
+    },
+    async deleteItem(item) {
+      const index = this.audiences.indexOf(item);
+      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+        axios.delete("/api/graph-api/audiences/" + item.id);
+        this.audiences.splice(index, 1);
+      }
     },
   },
 };
