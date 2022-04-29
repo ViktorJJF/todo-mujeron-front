@@ -107,7 +107,7 @@
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
 import scOrdersApi from '@/services/api/scOrders'
-
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 export default {
   components: {
     MaterialCard,
@@ -191,17 +191,47 @@ export default {
       this.detailsModal = true
     },
 
-    async getPdf(order) {
-      let res = await scOrdersApi.listDocument(order._id, 'shippingParcel')
-      const document = res.data.payload
-      var binStr = atob(document.File);
-      var len = binStr.length;
-      var arr = new Uint8Array(len);
-      for (var i = 0; i < len; i++) {
-      arr[ i ] = binStr.charCodeAt( i );
+    async formatPdf(pdfBytes, order) {
+      let itemsRes = await scOrdersApi.listItems(order._id)
+      const items = itemsRes.data.payload;
+
+      const pdfDoc = await PDFDocument.load(pdfBytes)
+
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+
+      // Get the first page of the document
+      const pages = pdfDoc.getPages()
+      const firstPage = pages[0]
+
+      // Get the width and height of the first page
+      const { height } = firstPage.getSize()
+
+      for(const [index, item] of items.entries()) {
+        const price = new Intl.NumberFormat().format(item.ItemPrice)
+        firstPage.drawText(`${item.Sku} \t ${price}`, {
+          x: 100,
+          y: (height / 2) + 15 - (15 * index),
+          size: 8,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        })
       }
 
-      var blob = new Blob( [ arr ], { type: document.MimeType } )
+      // Serialize the PDFDocument to bytes (a Uint8Array)
+      return pdfDoc.save()
+    },
+
+    async getPdf(order) {
+
+      let res = await scOrdersApi.listDocument(order._id, 'shippingParcel')
+
+      const document = res.data.payload
+
+      let pdfBytes = Uint8Array.from(atob(document.File), c => c.charCodeAt(0))
+      
+      pdfBytes = await this.formatPdf(pdfBytes, order)
+
+      var blob = new Blob( [ pdfBytes ], { type: document.MimeType } )
       var url = URL.createObjectURL( blob );
       window.open(url);
     },
