@@ -115,16 +115,39 @@
                     <v-divider></v-divider>
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
-                        <v-row dense>
-                          <v-chip
-                            dark
-                            class="mb-1 mr-1"
-                            color="primary"
-                            v-for="todofullLabel in editedItem.todofullLabels"
-                            :key="todofullLabel._id"
+                        <v-row>
+                          <v-combobox
+                            item-text="name"
+                            :search-input.sync="searchLabel"
+                            v-model="editedItem.todofullLabels"
+                            item-value="_id"
+                            :items="todofullLabels"
+                            multiple
+                            chips
+                            no-data-text="No se encontraron etiquetas"
+                            label="Busca las etiquetas"
+                            @change="updateLabels(editedItem)"
                           >
-                            {{ todofullLabel.name }}
-                          </v-chip>
+                            <template
+                              v-slot:selection="{
+                                attrs,
+                                item,
+                                select,
+                                selected,
+                              }"
+                            >
+                              <v-chip
+                                v-bind="attrs"
+                                :input-value="selected"
+                                close
+                                @click="select"
+                                @click:close="removeLabels(editedItem, item)"
+                                color="primary"
+                              >
+                                <strong>{{ item.name }}</strong>
+                              </v-chip>
+                            </template>
+                          </v-combobox>
                         </v-row>
                         <v-row dense>
                           <v-col
@@ -525,6 +548,8 @@ export default {
       "displayName",
       "appName",
     ],
+    todofullLabels: [],
+    searchLabel: "",
   }),
 
   computed: {
@@ -609,10 +634,17 @@ export default {
         this.$store.dispatch("telefonosModule/list"),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("todofullLabelsModule/list", {
+          sort: "name",
+          order: "asc",
+        }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
+      this.todofullLabels =
+        this.$store.state.todofullLabelsModule.todofullLabels;
+      console.log("🚀 Aqui *** -> this.todofullLabels", this.todofullLabels);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
@@ -776,6 +808,17 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    async updateLabels(lead) {
+      lead.todofullLabels = lead.todofullLabels.filter(
+        (el) => typeof el === "object"
+      );
+    },
+    async removeLabels(lead, label) {
+      lead.todofullLabels.splice(
+        lead.todofullLabels.findIndex((el) => el._id === label._id),
+        1
+      );
     },
   },
 };
