@@ -2,7 +2,7 @@
   <v-container>
     <v-row justify="center">
       <material-card
-        width="90%"
+        width="99%"
         icon="mdi-cellphone-dock"
         color="primary"
         title="Ordenes"
@@ -131,11 +131,15 @@ export default {
         value: "updatedAt",
       },
       {
-        text:  "N°Orden",
+        text: "N°Orden",
         value: "OrderNumber"
       },
       {
-        text:  "Fuente",
+        text: "Genial",
+        value: "OdooOrderName"
+      },
+      {
+        text: "Fuente",
         value: "fuente"
       },
       {
@@ -145,7 +149,7 @@ export default {
         value: "status",
       },
       {
-        text:  "Cliente",
+        text: "Cliente",
         value: "customer"
       },
       {
@@ -208,8 +212,15 @@ export default {
 
       for(const [index, item] of items.entries()) {
         const price = new Intl.NumberFormat().format(item.ItemPrice)
-        firstPage.drawText(`${item.Sku} \t ${price}`, {
-          x: 100,
+
+        const baseText = `${item.Sku} \t ${price}`
+
+        let text = order.OdooOrderName
+          ? `${order.OdooOrderName} \t ${baseText}`
+          : baseText
+
+        firstPage.drawText(text, {
+          x: order.OdooOrderName ? 90 : 105,
           y: (height / 2) + 15 - (15 * index),
           size: 8,
           font: helveticaFont,
