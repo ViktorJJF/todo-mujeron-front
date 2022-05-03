@@ -79,6 +79,40 @@
                     <v-divider></v-divider>
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
+                        <v-row>
+                          <v-combobox
+                            item-text="name"
+                            :search-input.sync="searchLabel"
+                            v-model="editedItem.todofullLabels"
+                            item-value="_id"
+                            :items="todofullLabels"
+                            multiple
+                            chips
+                            no-data-text="No se encontraron etiquetas"
+                            label="Busca las etiquetas"
+                            @change="updateLabels(editedItem)"
+                          >
+                            <template
+                              v-slot:selection="{
+                                attrs,
+                                item,
+                                select,
+                                selected,
+                              }"
+                            >
+                              <v-chip
+                                v-bind="attrs"
+                                :input-value="selected"
+                                close
+                                @click="select"
+                                @click:close="removeLabels(editedItem, item)"
+                                color="primary"
+                              >
+                                <strong>{{ item.name }}</strong>
+                              </v-chip>
+                            </template>
+                          </v-combobox>
+                        </v-row>
                         <v-row dense>
                           <v-col
                             v-for="detail in editedItem.details"
@@ -326,10 +360,20 @@
           </v-simple-table>
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn class="mb-1 mr-2" small color="primary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
-            >Asignar o editar</v-btn 
+          <v-btn
+            class="mb-1 mr-2"
+            small
+            color="primary"
+            @click="editItem(item)"
+            v-if="rolPermisos['Edit']"
+            >Asignar o editar</v-btn
           >
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"  v-if="rolPermisos['Delete']"
+          <v-btn
+            class="mb-1"
+            small
+            color="error"
+            @click="deleteItem(item)"
+            v-if="rolPermisos['Delete']"
             >Eliminar</v-btn
           >
         </template>
@@ -442,6 +486,8 @@ export default {
     delayTimer: null,
     fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
     rolPermisos: {},
+    todofullLabels: [],
+    searchLabel: "",
   }),
 
   computed: {
@@ -490,23 +536,21 @@ export default {
   mounted() {
     this.$store.commit("loadingModule/showLoading");
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    this.rolAuth(); 
+    this.rolAuth();
   },
 
   methods: {
-
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'ChatBot/Leads',
-          'model':'Sin-Asignar'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "ChatBot/Leads",
+          model: "Sin-Asignar",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     async initialize(paginationPayload) {
@@ -524,10 +568,16 @@ export default {
         this.$store.dispatch("telefonosModule/list"),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),
-        ]);
+        this.$store.dispatch("todofullLabelsModule/list", {
+          sort: "name",
+          order: "asc",
+        }),
+      ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
+      this.todofullLabels =
+        this.$store.state.todofullLabelsModule.todofullLabels;
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.filter(
         (telefono) => telefono.active == true
@@ -662,6 +712,17 @@ export default {
         await this.$store.dispatch("cleanLeadsModule/delete", itemId);
         this.leads.splice(index, 1);
       }
+    },
+    async updateLabels(lead) {
+      lead.todofullLabels = lead.todofullLabels.filter(
+        (el) => typeof el === "object"
+      );
+    },
+    async removeLabels(lead, label) {
+      lead.todofullLabels.splice(
+        lead.todofullLabels.findIndex((el) => el._id === label._id),
+        1
+      );
     },
   },
 };

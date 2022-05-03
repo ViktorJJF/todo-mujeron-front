@@ -644,7 +644,6 @@ export default {
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
       this.todofullLabels =
         this.$store.state.todofullLabelsModule.todofullLabels;
-      console.log("🚀 Aqui *** -> this.todofullLabels", this.todofullLabels);
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
