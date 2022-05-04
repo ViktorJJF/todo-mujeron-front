@@ -718,7 +718,7 @@ export default {
         try {
           await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
-            data: this.editedItem,
+            data: { ...this.editedItem, sendToRetailRocket: true },
           });
           Object.assign(this.leads[this.editedIndex], this.editedItem);
           this.close();
