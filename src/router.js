@@ -264,7 +264,7 @@ let routes = [
       {
         path: "/ecommerce/ordenes",
         name: "EcommerceOrders",
-        component: () => import("@/views/EcommerceOrders"),
+        component: () => import("@/views/EcommerceOrders/index"),
       },
       {
         path: "/ecommerce/etiquetas",
