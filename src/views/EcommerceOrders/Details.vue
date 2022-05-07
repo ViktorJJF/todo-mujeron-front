@@ -84,6 +84,14 @@
             </div>
           </v-col>
         </v-row>
+        <v-row v-if="order.rut">
+          <v-col>
+            <div class="d-flex">
+              <div class="body-1 font-weight-bold">Rut:</div>
+              <div class="ml-1">{{order.rut}}</div>
+            </div>
+          </v-col>
+        </v-row>
         <v-row>
           <v-col>
             <div class="d-flex">
