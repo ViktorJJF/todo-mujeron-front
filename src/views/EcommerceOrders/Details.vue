@@ -223,7 +223,8 @@ export default {
   methods: {
     getSku(item) {
       const variation = item.ecommerceId.variations.find(v => v.id === item.variation_id)
-      return variation.sku
+
+      return variation ? variation.sku : item.ecommerceId.sku
     }
   }
 }
