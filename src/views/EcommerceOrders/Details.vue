@@ -134,7 +134,7 @@
             </template>
 
             <template v-slot:item.sku="{ item }">
-              {{item.ecommerceId.sku}}
+              {{getSku(item)}}
             </template>
 
             <template v-slot:item.name="{ item }">
@@ -218,6 +218,12 @@ export default {
   computed: {
     total() {
       return this.order.line_items.reduce((a, b) => a + parseFloat(b.total), 0)
+    }
+  },
+  methods: {
+    getSku(item) {
+      const variation = item.ecommerceId.variations.find(v => v.id === item.variation_id)
+      return variation.sku
     }
   }
 }
