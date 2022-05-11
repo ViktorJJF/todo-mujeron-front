@@ -277,6 +277,11 @@
               >Trash</v-chip
             >
           </template>
+          <template v-slot:item.action="{ item }">
+            <v-btn small color="secondary" @click="openDetails(item)">
+              Detalles
+            </v-btn>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -299,6 +304,13 @@
         </div>
       </material-card>
     </v-row>
+
+    <v-dialog
+      v-model="detailsModal"
+      width="800"
+    >
+      <order-details :order="currentOrder" />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -311,9 +323,12 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
+import OrderDetails from './Details.vue'
+
 export default {
   components: {
     MaterialCard,
+    OrderDetails,
     VTextFieldWithValidation,
   },
   filters: {
@@ -375,7 +390,7 @@ export default {
         sortable: false,
         value: "total",
       },
-      // { text: "Acciones", value: "action", sortable: false },
+      { text: "Acciones", value: "action", sortable: false },
     ],
     delayTimer: null,
     [ENTITY]: [],
@@ -390,6 +405,8 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
+    detailsModal: false,
+    currentOrder: null
   }),
   computed: {
     totalItems() {
@@ -444,6 +461,10 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+    },
+    openDetails(order) {
+      this.currentOrder = order
+      this.detailsModal = true
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
