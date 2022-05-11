@@ -317,9 +317,9 @@ let routes = [
         component: () => import("@/views/ChatRoom"),
       },
       {
-        path: "/marketing",
-        name: "Marketing",
-        component: () => import("@/views/Marketing"),
+        path: "/facebook-audiencias",
+        name: "FacebookAudiences",
+        component: () => import("@/views/FacebookAudiences"),
       },
     ],
   },

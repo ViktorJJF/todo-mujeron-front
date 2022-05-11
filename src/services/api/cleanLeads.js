@@ -1,5 +1,6 @@
 import axios from "axios";
 import store from "@/store";
+
 export default {
   list(query = { sort: "createdAt", order: "1" }) {
     if (query.telefonoId === null) query.telefonoId = "";
@@ -31,6 +32,17 @@ export default {
   },
   listOne(id) {
     return axios.get("/api/clean-leads/" + id);
+  },
+  getByTodofullLabels(todoFullLabels) {
+    return axios.get("/api/clean-leads/get-by-todofulllabels", {
+      params: { todoFullLabels: JSON.stringify(todoFullLabels) },
+    });
+  },
+  sendLeadsToAudience(audienceId, todoFullLabels) {
+    return axios.post("/api/clean-leads/send-to-audience", {
+      audienceId,
+      todoFullLabels,
+    });
   },
   update(id, payload) {
     return axios.put(`/api/clean-leads/${id}`, payload);
