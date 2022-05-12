@@ -555,7 +555,10 @@
           </v-list-item-icon>
           <v-list-item-content> Etiquetas </v-list-item-content>
         </v-list-item>
-        <v-list-item active-class="primary custom2" :to="{ name: 'Marketing' }">
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'FacebookAudiences' }"
+        >
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
