@@ -5,7 +5,7 @@
         <v-img
           aspect-ratio="1.7"
           contain
-          src="/images/logo/mujeron.jpg"
+          src="/images/logo/todofull.jpg"
         ></v-img>
       </v-list-item>
       <v-list-item>

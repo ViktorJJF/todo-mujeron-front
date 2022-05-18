@@ -13,7 +13,7 @@
                 class="fadeIn first circular"
                 aspect-ratio="2"
                 contain
-                src="/images/logo/mujeron.jpg"
+                src="/images/logo/todofull.jpg"
               ></v-img>
             </div>
 
