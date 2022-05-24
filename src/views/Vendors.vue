@@ -44,12 +44,8 @@
               >Aún no cuentas con vendors</v-alert
             >
           </template>
-          <template v-slot:[`item.createdAt`]="{ item }">{{
-            item.createdAt | formatDate
-          }}</template>
-          <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status" color="success">Activo</v-chip>
-            <v-chip v-else color="error">Inactivo</v-chip>
+          <template v-slot:item.createdAt="{ item }">
+            {{item.createdAt | formatDate}}
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -104,6 +100,18 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
+      },
+      {
+        text: "Compañia Id",
+        align: "left",
+        sortable: false,
+        value: "company.id",
+      },
+      {
+        text: "Compañia",
+        align: "left",
+        sortable: false,
+        value: "company.name",
       },
       {
         text: "Email",
