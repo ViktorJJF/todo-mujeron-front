@@ -794,10 +794,10 @@ export default {
               ).country
             : "Peru";
           this.editedItem.details[0].type = "CHATBOT"; //pagina por defecto
-          await this.$store.dispatch(
-            "cleanLeadsModule/create",
-            this.editedItem
-          );
+          await this.$store.dispatch("cleanLeadsModule/create", {
+            ...this.editedItem,
+            is_manual: true,
+          });
           //refrescar tabla
           this.initialize(
             this.buildPayloadPagination(null, this.buildSearch())
