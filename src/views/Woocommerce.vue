@@ -82,17 +82,19 @@
                                 label="Ingresa la llave secreta"
                               />
                             </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Vendedor</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione las categorias"
+                                outlined
+                                :items="vendors"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.vendor"
+                              ></v-select>
+                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -161,6 +163,7 @@ import MaterialCard from "@/components/material/Card";
 import Woocommerces from "@/classes/Woocommerces";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
+import vendorsApi from '@/services/api/vendors'
 
 export default {
   components: {
@@ -201,6 +204,7 @@ export default {
     defaultItem: Woocommerces(),
     locaciones: [],
     rolPermisos: {},
+    vendors: []
   }),
 
   computed: {
@@ -247,6 +251,9 @@ export default {
         this.$store.state.woocommercesModule.woocommerces
       );
       this.locaciones = this.$store.state.locacionesModule.locaciones;
+
+      const res = await vendorsApi.list()
+      this.vendors = res.data.payload
     },
     editItem(item) {
       this.editedIndex = this.woocommerces.indexOf(item);

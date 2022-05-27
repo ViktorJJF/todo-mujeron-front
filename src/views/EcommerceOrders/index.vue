@@ -367,6 +367,12 @@ export default {
         value: "url",
       },
       {
+        text: "Genial",
+        align: "left",
+        sortable: false,
+        value: "odooOrderName",
+      },
+      {
         text: "Estado",
         align: "left",
         sortable: false,

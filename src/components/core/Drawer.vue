@@ -5,7 +5,7 @@
         <v-img
           aspect-ratio="1.7"
           contain
-          src="/images/logo/mujeron.jpg"
+          src="/images/logo/todofull.jpg"
         ></v-img>
       </v-list-item>
       <v-list-item>
@@ -271,6 +271,12 @@
               v-if="checkAuth('Configuracion/Propiedades/Genial', 'Marcas')"
             >
               <v-list-item-content> Marcas </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'Vendors' }"
+            >
+              <v-list-item-content> Vendedores </v-list-item-content>
             </v-list-item>
           </v-list-group>
         </v-list-group>
