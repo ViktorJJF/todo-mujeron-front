@@ -116,7 +116,10 @@
               </v-row>
             </v-container>
           </template>
-          <template v-slot:[`item.action`]="{ item }">
+          <template v-slot:item.vendor="{ item }">
+            {{item.vendor ? getVendor(item.vendor).name : ''}}
+          </template>
+          <template v-slot:item.action="{ item }">
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
@@ -196,6 +199,12 @@ export default {
         sortable: false,
         value: "domain",
       },
+      {
+        text: "Vendedor",
+        align: "left",
+        sortable: false,
+        value: "vendor",
+      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     woocommerces: [],
@@ -259,6 +268,10 @@ export default {
       this.editedIndex = this.woocommerces.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+    },
+
+    getVendor(id) {
+      return this.vendors.find(vendor => vendor._id === id)
     },
 
     async deleteItem(item) {
