@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar teléfono</v-btn
                       >
                     </template>
@@ -200,7 +205,11 @@
               v-show="rolPermisos['Write']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-show="rolPermisos['Write']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-show="rolPermisos['Write']"
               >Eliminar</v-btn
             >
           </template>
@@ -210,7 +219,8 @@
             >
           </template>
           <template v-slot:[`item.agenteId`]="{ item }"
-            >{{ item.agenteId.nombre }} {{ item.agenteId.apellido }}</template
+            >{{ item.agenteId ? item.agenteId.nombre : "" }}
+            {{ item.agenteId ? item.agenteId.apellido : "" }}</template
           >
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
@@ -324,28 +334,26 @@ export default {
     },
   },
 
-  
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("telefonosModule/list"); 
-    await this.$store.dispatch("agentesModule/list"); 
+    this.$store.commit("loadingModule/showLoading");
+    await this.$store.dispatch("telefonosModule/list");
+    await this.$store.dispatch("agentesModule/list");
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades',
-          'model':'Telefonos'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades",
+          model: "Telefonos",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     initialize() {
