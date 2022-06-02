@@ -805,19 +805,19 @@ export default {
     // Return true if has some of the talla from the array
     hasSomeTalla(product, tallas) {
       const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const tallasAvailable = tallaAttr && tallaAttr.options.length
-      if(!tallasAvailable) {
+      const hasVariations = tallaAttr && tallaAttr.variation === true
+      if(!hasVariations) {
         return false;
       }
 
-      for(const talla of tallas) {
-        const tallaIndex = tallaAttr.options.indexOf(talla)
-        if(tallaIndex === -1) {
+      for(const variation of product.variations) {
+        const available = variation.status === 'publish' && variation.stock_status === 'instock'
+        if(!available) {
           continue;
         }
 
-        const inStock = product.variations[tallaIndex]?.status==="publish" && product.variations[tallaIndex]?.stock_status==="instock"
-        if(inStock) {
+        const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
+        if(tallas.includes(attr.option)) {
           return true;
         }
       }
