@@ -619,7 +619,7 @@
         <template v-slot:activator>
           <v-list-item-title>Marketplace</v-list-item-title>
         </template>
-        <v-list-item active-class="primary custom2" :to="{ name: 'SCOrdenes' }">
+        <v-list-item active-class="primary custom2" :to="{ name: 'MarketplaceOrdenes' }">
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>

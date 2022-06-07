@@ -40,22 +40,24 @@
 
           <template v-slot:item.customer="{ item }">
             <div class="text-capitalize">
-              {{item.CustomerFirstName}} {{item.CustomerLastName}}
+              {{item.customer.firstname}} {{item.customer.lastname}}
             </div>
           </template>
 
           <template v-slot:item.status="{ item }">
             <v-chip dark color="success">
-              {{ item.Status }}
+              {{ item.status }}
             </v-chip>
           </template>
 
-          <template v-slot:item.fuente>
-            Drafitti
+          <template v-slot:item.source="{ item }">
+            <span style="text-transform: capitalize;">
+              {{ item.source }}
+            </span>
           </template>
 
           <template v-slot:item.total="{ item }">
-            {{ item.Price | currency }}
+            {{ item.total | currency }}
           </template>
           
           <template v-slot:item.action="{ item }">
@@ -63,19 +65,19 @@
               <v-btn small color="secondary" @click="openDetails(item)">
                 Detalles
               </v-btn>
-              <v-btn class="ml-3" small color="secondary" @click="getPdf(item)">
+              <v-btn v-if="item.source==='dafiti'" class="ml-3" small color="secondary" @click="getPdf(item)">
                 Guía Pdf
               </v-btn>
             </div>
           </template>
 
           <template v-slot:item.updatedAt="{ item }">
-            {{ item.UpdatedAt }}
+            {{ item.updatedAtSource }}
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true"
-              >Aún no cuentas con ordenes</v-alert
-            >
+            <v-alert type="error" :value="true">
+              Aún no cuentas con ordenes
+            </v-alert>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -106,8 +108,9 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
-import scOrdersApi from '@/services/api/scOrders'
+import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
 export default {
   components: {
     MaterialCard,
@@ -132,15 +135,15 @@ export default {
       },
       {
         text: "N°Orden",
-        value: "OrderNumber"
+        value: "externalNumber"
       },
       {
         text: "Genial",
-        value: "OdooOrderName"
+        value: "odooOrderName"
       },
       {
         text: "Fuente",
-        value: "fuente"
+        value: "source"
       },
       {
         text: "Estado",
@@ -156,7 +159,7 @@ export default {
         text: "Artículos",
         align: "center",
         sortable: false,
-        value: 'ItemsCount',
+        value: 'itemsCount',
       },
       {
         text: "Total",
@@ -177,8 +180,8 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("scOrdersModule/list", { catalog: this.$route.params.id })]);
-      this.orders = this.$deepCopy(this.$store.state.scOrdersModule.orders)
+      await Promise.all([this.$store.dispatch("marketplaceOrdersModule/list", { catalog: this.$route.params.id })]);
+      this.orders = this.$deepCopy(this.$store.state.marketplaceOrdersModule.orders)
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
 
@@ -196,7 +199,7 @@ export default {
     },
 
     async formatPdf(pdfBytes, order) {
-      let itemsRes = await scOrdersApi.listItems(order._id)
+      let itemsRes = await marketplaceOrdersApi.listItems(order._id)
       const items = itemsRes.data.payload;
 
       const pdfDoc = await PDFDocument.load(pdfBytes)
@@ -234,7 +237,7 @@ export default {
 
     async getPdf(order) {
 
-      let res = await scOrdersApi.listDocument(order._id, 'shippingParcel')
+      let res = await marketplaceOrdersApi.listDocument(order._id, 'shippingParcel')
 
       const document = res.data.payload
 
