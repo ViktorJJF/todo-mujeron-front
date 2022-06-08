@@ -87,12 +87,26 @@
                               <v-select
                                 dense
                                 hide-details
-                                placeholder="Seleccione las categorias"
+                                placeholder="Seleccione el vendedor"
                                 outlined
                                 :items="vendors"
                                 item-text="name"
                                 item-value="_id"
                                 v-model="editedItem.vendor"
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">Localizacion</div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione localizaciones"
+                                outlined
+                                :items="locations"
+                                v-model="editedItem.locations"
+                                multiple
+                                chips
+                                deletable-chips
                               ></v-select>
                             </v-col>
                           </v-row>
@@ -186,6 +200,22 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
+    locations: [
+      {text: '2Cara/Stock', value: 8},
+      {text: 'CALID/Stock', value: 52},
+      {text: 'CMCHI/Stock', value: 8},
+      {text: 'CMCHI/StockFULL', value: 141},
+      {text: 'CMCHI/StockFULL/FALABELLA', value: 146},
+      {text: 'CMCHI/StockFULL/MERCADO LIBRE', value: 148},
+      {text: 'CMCHI/StockFULL/PARIS', value: 147},
+      {text: 'DEVOLUCIONES', value: 139},
+      {text: 'ESTUP/Stock', value: 62},
+      {text: 'MODL/Stock', value: 122},
+      {text: 'Mira/Stock', value: 134},
+      {text: 'NVAFI/Stock', value: 104},
+      {text: 'NVAPR/Stock', value: 110},
+      {text: 'STA/Stock', value: 92},
+    ],
     headers: [
       {
         text: "Agregado",
