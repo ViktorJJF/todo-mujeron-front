@@ -142,7 +142,7 @@ export default {
     loadingButton: false,
     sources: [
       {text: 'Dafiti', value: 'dafiti'},
-      {text: 'Mercadolibre', value: 'mercadolibree'}
+      {text: 'Mercadolibre', value: 'mercadolibre'}
     ],
     selectedSources: [],
     search: "",
