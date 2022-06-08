@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="orders"
+          :items="dataTableSoure"
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
@@ -29,10 +29,25 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el texto"
                     single-line
                     outlined
                   ></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-select
+                    hide-details
+                    v-model="selectedSources"
+                    placeholder="Filtrar por fuente"
+                    :items="sources"
+                    single-line
+                    clearable
+                    deletable-chips
+                    outlined
+                    multiple
+                    chips
+                  >
+                  </v-select>
                 </v-col>
               </v-row>
             </v-container>
@@ -125,6 +140,11 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    sources: [
+      {text: 'Dafiti', value: 'dafiti'},
+      {text: 'Mercadolibre', value: 'mercadolibree'}
+    ],
+    selectedSources: [],
     search: "",
     headers: [
       {
@@ -173,6 +193,18 @@ export default {
     orders: [],
     currentOrder: null
   }),
+
+  computed: {
+    dataTableSoure () {
+      let orders = this.orders;
+
+      if(this.selectedSources.length) {
+        orders = orders.filter(order => this.selectedSources.includes(order.source))
+      }
+
+      return orders;
+    }
+  },
 
   mounted() {
     this.initialize();
