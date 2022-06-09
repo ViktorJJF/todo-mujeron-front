@@ -246,16 +246,16 @@ export default {
       const { height } = firstPage.getSize()
 
       for(const [index, item] of items.entries()) {
-        const price = new Intl.NumberFormat().format(item.ItemPrice)
+        const price = new Intl.NumberFormat().format(item.price)
 
-        const baseText = `${item.Sku} \t ${price}`
+        const baseText = `${item.sku} \t ${price}`
 
-        let text = order.OdooOrderName
-          ? `${order.OdooOrderName} \t ${baseText}`
+        let text = order.odooOrderName
+          ? `${order.odooOrderName} \t ${baseText}`
           : baseText
 
         firstPage.drawText(text, {
-          x: order.OdooOrderName ? 90 : 105,
+          x: order.odooOrderName ? 90 : 105,
           y: (height / 2) + 15 - (15 * index),
           size: 8,
           font: helveticaFont,
@@ -268,7 +268,6 @@ export default {
     },
 
     async getPdf(order) {
-
       let res = await marketplaceOrdersApi.listDocument(order._id, 'shippingParcel')
 
       const document = res.data.payload
