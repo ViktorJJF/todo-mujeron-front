@@ -201,7 +201,7 @@ export default {
     search: "",
     dialog: false,
     locations: [
-      {text: '2Cara/Stock', value: 8},
+      {text: '2Cara/Stock', value: 98},
       {text: 'CALID/Stock', value: 52},
       {text: 'CMCHI/Stock', value: 8},
       {text: 'CMCHI/StockFULL', value: 141},
