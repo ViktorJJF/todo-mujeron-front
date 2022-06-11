@@ -93,6 +93,13 @@
           >
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'Groups' }"
+            v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
+          >
+            <v-list-item-content> Grupos </v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group
           color="white"
@@ -116,11 +123,8 @@
             :key="propiedad.id"
             active-class="primary custom2"
             :to="{ name: propiedad.to }"
-            v-show="checkAuth('Configuracion/Propiedades', propiedad.to)"
+            v-show="propiedad.to==='MarketplaceFuentes' || checkAuth('Configuracion/Propiedades', propiedad.to)"
           >
-            <!-- <v-list-item-icon>
-              <v-icon>{{ propiedad.icon }}</v-icon>
-            </v-list-item-icon> -->
             <v-list-item-content>
               {{ propiedad.text }}
             </v-list-item-content>
@@ -161,6 +165,7 @@
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
           </v-list-group>
+
           <v-list-group
             color="white"
             :value="false"
@@ -682,6 +687,11 @@ export default {
           icon: "mdi-check",
           text: "Drive",
           to: "Drive",
+        },
+                {
+          icon: "mdi-check",
+          text: "Marketplace",
+          to: "MarketplaceFuentes"
         },
         {
           icon: "mdi-check",
