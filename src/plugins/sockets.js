@@ -4,7 +4,7 @@ import environment from "@/environment";
 let socketUrl =
   environment === "development"
     ? "http://localhost:3000"
-    : "https://todo-full.digital";
+    : "https://todofull.club";
 const socket = io(socketUrl);
 const store = require("@/store/index.js");
 

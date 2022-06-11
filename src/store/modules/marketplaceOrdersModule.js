@@ -1,4 +1,4 @@
-import api from "@/services/api/scOrders";
+import api from "@/services/api/marketplaceOrders";
 import { handleError } from "@/utils/utils.js";
 
 const module = {

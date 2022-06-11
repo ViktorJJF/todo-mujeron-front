@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="orders"
+          :items="dataTableSoure"
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
@@ -29,10 +29,25 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nomb"
+                    placeholder="Escribe el texto"
                     single-line
                     outlined
                   ></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-select
+                    hide-details
+                    v-model="selectedSources"
+                    placeholder="Filtrar por fuente"
+                    :items="sources"
+                    single-line
+                    clearable
+                    deletable-chips
+                    outlined
+                    multiple
+                    chips
+                  >
+                  </v-select>
                 </v-col>
               </v-row>
             </v-container>
@@ -40,22 +55,24 @@
 
           <template v-slot:item.customer="{ item }">
             <div class="text-capitalize">
-              {{item.CustomerFirstName}} {{item.CustomerLastName}}
+              {{item.customer.firstname}} {{item.customer.lastname}}
             </div>
           </template>
 
           <template v-slot:item.status="{ item }">
             <v-chip dark color="success">
-              {{ item.Status }}
+              {{ item.status }}
             </v-chip>
           </template>
 
-          <template v-slot:item.fuente>
-            Drafitti
+          <template v-slot:item.source="{ item }">
+            <span style="text-transform: capitalize;">
+              {{ item.source }}
+            </span>
           </template>
 
           <template v-slot:item.total="{ item }">
-            {{ item.Price | currency }}
+            {{ item.total | currency }}
           </template>
           
           <template v-slot:item.action="{ item }">
@@ -63,19 +80,19 @@
               <v-btn small color="secondary" @click="openDetails(item)">
                 Detalles
               </v-btn>
-              <v-btn class="ml-3" small color="secondary" @click="getPdf(item)">
+              <v-btn v-if="item.source==='dafiti'" class="ml-3" small color="secondary" @click="getPdf(item)">
                 Guía Pdf
               </v-btn>
             </div>
           </template>
 
           <template v-slot:item.updatedAt="{ item }">
-            {{ item.UpdatedAt }}
+            {{ item.updatedAtSource }}
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true"
-              >Aún no cuentas con ordenes</v-alert
-            >
+            <v-alert type="error" :value="true">
+              Aún no cuentas con ordenes
+            </v-alert>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -106,8 +123,9 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
-import scOrdersApi from '@/services/api/scOrders'
+import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
 export default {
   components: {
     MaterialCard,
@@ -122,6 +140,11 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    sources: [
+      {text: 'Dafiti', value: 'dafiti'},
+      {text: 'Mercadolibre', value: 'mercadolibre'}
+    ],
+    selectedSources: [],
     search: "",
     headers: [
       {
@@ -132,15 +155,15 @@ export default {
       },
       {
         text: "N°Orden",
-        value: "OrderNumber"
+        value: "externalNumber"
       },
       {
         text: "Genial",
-        value: "OdooOrderName"
+        value: "odooOrderName"
       },
       {
         text: "Fuente",
-        value: "fuente"
+        value: "source"
       },
       {
         text: "Estado",
@@ -156,7 +179,7 @@ export default {
         text: "Artículos",
         align: "center",
         sortable: false,
-        value: 'ItemsCount',
+        value: 'itemsCount',
       },
       {
         text: "Total",
@@ -171,14 +194,26 @@ export default {
     currentOrder: null
   }),
 
+  computed: {
+    dataTableSoure () {
+      let orders = this.orders;
+
+      if(this.selectedSources.length) {
+        orders = orders.filter(order => this.selectedSources.includes(order.source))
+      }
+
+      return orders;
+    }
+  },
+
   mounted() {
     this.initialize();
   },
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("scOrdersModule/list", { catalog: this.$route.params.id })]);
-      this.orders = this.$deepCopy(this.$store.state.scOrdersModule.orders)
+      await Promise.all([this.$store.dispatch("marketplaceOrdersModule/list", { catalog: this.$route.params.id })]);
+      this.orders = this.$deepCopy(this.$store.state.marketplaceOrdersModule.orders)
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
 
@@ -196,7 +231,7 @@ export default {
     },
 
     async formatPdf(pdfBytes, order) {
-      let itemsRes = await scOrdersApi.listItems(order._id)
+      let itemsRes = await marketplaceOrdersApi.listItems(order._id)
       const items = itemsRes.data.payload;
 
       const pdfDoc = await PDFDocument.load(pdfBytes)
@@ -211,16 +246,16 @@ export default {
       const { height } = firstPage.getSize()
 
       for(const [index, item] of items.entries()) {
-        const price = new Intl.NumberFormat().format(item.ItemPrice)
+        const price = new Intl.NumberFormat().format(item.price)
 
-        const baseText = `${item.Sku} \t ${price}`
+        const baseText = `${item.sku} \t ${price}`
 
-        let text = order.OdooOrderName
-          ? `${order.OdooOrderName} \t ${baseText}`
+        let text = order.odooOrderName
+          ? `${order.odooOrderName} \t ${baseText}`
           : baseText
 
         firstPage.drawText(text, {
-          x: order.OdooOrderName ? 90 : 105,
+          x: order.odooOrderName ? 90 : 105,
           y: (height / 2) + 15 - (15 * index),
           size: 8,
           font: helveticaFont,
@@ -233,8 +268,7 @@ export default {
     },
 
     async getPdf(order) {
-
-      let res = await scOrdersApi.listDocument(order._id, 'shippingParcel')
+      let res = await marketplaceOrdersApi.listDocument(order._id, 'shippingParcel')
 
       const document = res.data.payload
 

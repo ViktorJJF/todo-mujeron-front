@@ -5,15 +5,15 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Woocommerces"
-        text="Tabla resumen de woocommerces"
+        title="Marketplaces"
+        text="Tabla resumen de sources"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="woocommerces"
+          :items="sources"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -31,7 +31,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el dominio"
+                    placeholder="Escribe el nombre"
                     single-line
                     outlined
                   ></v-text-field>
@@ -39,9 +39,9 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"  v-show="rolPermisos['Write']"
-                        >Agregar dominio</v-btn
-                      >
+                      <v-btn color="primary" dark class="mb-2" v-on="on">
+                        Agregar Marketplace
+                      </v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -54,6 +54,16 @@
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12" class="mb-3">
                               <p class="body-1 font-weight-bold ma-0">
+                                Nombre
+                              </p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.name"
+                                label="Ingresa el nombre"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12" class="mb-3">
+                              <p class="body-1 font-weight-bold ma-0">
                                 Dominio
                               </p>
                               <VTextFieldWithValidation
@@ -64,25 +74,15 @@
                             </v-col>
                             <v-col cols="12" sm="12" md="12" class="mb-3">
                               <p class="body-1 font-weight-bold ma-0">
-                                ConsumerKey
+                                Odoo Partner Id
                               </p>
                               <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.consumerKey"
-                                label="Ingresa la llave de cliente"
+                                rules="required"
+                                v-model="editedItem.odooPartnerId"
+                                label="Ingresa el numero"
                               />
                             </v-col>
                             <v-col cols="12" sm="12" md="12" class="mb-3">
-                              <p class="body-1 font-weight-bold ma-0">
-                                ConsumerSecret
-                              </p>
-                              <VTextFieldWithValidation
-                                rules=""
-                                v-model="editedItem.consumerSecret"
-                                label="Ingresa la llave secreta"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Vendedor</div>
                               <v-select
                                 dense
@@ -95,8 +95,8 @@
                                 v-model="editedItem.vendor"
                               ></v-select>
                             </v-col>
-                            <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Localizacion</div>
+                            <v-col cols="12" sm="12" md="12" class="mb-3">
+                              <div class="body-1 font-weight-bold">Localizaciones</div>
                               <v-select
                                 dense
                                 hide-details
@@ -109,6 +109,42 @@
                                 deletable-chips
                               ></v-select>
                             </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <v-checkbox
+                                v-model="editedItem.hasFulfillment"
+                                label="Contine fulfillment"
+                              >
+                              </v-checkbox>
+                            </v-col>
+                            <template v-if="editedItem.hasFulfillment">
+                              <v-col cols="12" sm="12" md="12" class="mb-3">
+                                <div class="body-1 font-weight-bold">Vendedor secundario</div>
+                                <v-select
+                                  dense
+                                  hide-details
+                                  placeholder="Seleccione el vendedor"
+                                  outlined
+                                  :items="vendors"
+                                  item-text="name"
+                                  item-value="_id"
+                                  v-model="editedItem.secondaryVendor"
+                                ></v-select>
+                              </v-col>
+                              <v-col cols="12" sm="12" md="12" class="mb-3">
+                                <div class="body-1 font-weight-bold">Localizaciones secundarias</div>
+                                <v-select
+                                  dense
+                                  hide-details
+                                  placeholder="Seleccione localizaciones"
+                                  outlined
+                                  :items="locations"
+                                  v-model="editedItem.secondaryLocations"
+                                  multiple
+                                  chips
+                                  deletable-chips
+                                ></v-select>
+                              </v-col>
+                            </template>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -134,16 +170,16 @@
             {{item.vendor ? getVendor(item.vendor).name : ''}}
           </template>
           <template v-slot:item.action="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"  v-if="rolPermisos['Delete']"
+            <v-btn small color="error" @click="deleteItem(item)"
               >Eliminar</v-btn
             >
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
-              >Aún no cuentas con woocommerces</v-alert
+              >Aún no cuentas con sources</v-alert
             >
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
@@ -158,11 +194,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > woocommerces.length
-                ? woocommerces.length
+              $store.state.itemsPerPage > sources.length
+                ? sources.length
                 : $store.state.itemsPerPage
             }}
-            de {{ woocommerces.length }} registros
+            de {{ sources.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -177,9 +213,8 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
-import Woocommerces from "@/classes/Woocommerces";
+import Sources from "@/classes/MarketplaceSources";
 import { es } from "date-fns/locale";
-import auth from "@/services/api/auth";
 import vendorsApi from '@/services/api/vendors'
 
 export default {
@@ -224,10 +259,10 @@ export default {
         value: "createdAt",
       },
       {
-        text: "Dominio",
+        text: "Nombre",
         align: "left",
         sortable: false,
-        value: "domain",
+        value: "name",
       },
       {
         text: "Vendedor",
@@ -237,18 +272,17 @@ export default {
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    woocommerces: [],
+    sources: [],
     editedIndex: -1,
-    editedItem: Woocommerces(),
-    defaultItem: Woocommerces(),
+    editedItem: Sources(),
+    defaultItem: Sources(),
     locaciones: [],
-    rolPermisos: {},
     vendors: []
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo dominio" : "Editar dominio";
+      return this.editedIndex === -1 ? "Nueva fuente" : "Editar fuente";
     },
   },
 
@@ -259,35 +293,20 @@ export default {
   },
 
    async mounted() {
-    this.$store.commit("loadingModule/showLoading")
     this.initialize();
-    this.rolAuth(); 
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades/Woocommerces',
-          'model':'Woocommerces'
-        })
-          .then((res) => {
-          this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
-    },
 
     async initialize() {
 
       await Promise.all([
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("marketplaceSourcesModule/list"),
         this.$store.dispatch("locacionesModule/list"),
       ]);
 
-      this.woocommerces = this.$deepCopy(
-        this.$store.state.woocommercesModule.woocommerces
+      this.sources = this.$deepCopy(
+        this.$store.state.marketplaceSourcesModule.sources
       );
       this.locaciones = this.$store.state.locacionesModule.locaciones;
 
@@ -295,7 +314,7 @@ export default {
       this.vendors = res.data.payload
     },
     editItem(item) {
-      this.editedIndex = this.woocommerces.indexOf(item);
+      this.editedIndex = this.sources.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
@@ -305,11 +324,11 @@ export default {
     },
 
     async deleteItem(item) {
-      const index = this.woocommerces.indexOf(item);
-      let itemId = this.woocommerces[index]._id;
+      const index = this.sources.indexOf(item);
+      let itemId = this.sources[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("woocommercesModule/delete", itemId);
-        this.woocommerces.splice(index, 1);
+        await this.$store.dispatch("marketplaceSourcesModule/delete", itemId);
+        this.sources.splice(index, 1);
       }
     },
 
@@ -324,13 +343,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.woocommerces[this.editedIndex]._id;
+        let itemId = this.sources[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("woocommercesModule/update", {
+          await this.$store.dispatch("marketplaceSourcesModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.woocommerces[this.editedIndex], this.editedItem);
+          Object.assign(this.sources[this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -339,10 +358,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "woocommercesModule/create",
+            "marketplaceSourcesModule/create",
             this.editedItem
           );
-          this.woocommerces.push(newItem);
+          this.sources.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
