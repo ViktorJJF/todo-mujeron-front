@@ -240,11 +240,20 @@
 
 <script>
 import axios from "axios";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import MaterialCard from "@/components/material/Card";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import cleanLeadsService from "@/services/api/cleanLeads";
 
 export default {
+  filters: {
+    formatDate: function (value) {
+      return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
+        locale: es,
+      });
+    },
+  },
   components: {
     MaterialCard,
     VTextFieldWithValidation,
@@ -436,7 +445,8 @@ export default {
         )
       ) {
         cleanLeadsService.sendLeadsToAudience(
-          audience.id,
+          audience._id,
+          audience.external_id,
           selectedLabels.map((el) => el._id)
         );
         this.$swal("Los leads se están enviando a la audiencia");

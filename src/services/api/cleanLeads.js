@@ -38,9 +38,10 @@ export default {
       params: { todoFullLabels: JSON.stringify(todoFullLabels) },
     });
   },
-  sendLeadsToAudience(audienceId, todoFullLabels) {
+  sendLeadsToAudience(audienceId, facebookAudienceId, todoFullLabels) {
     return axios.post("/api/clean-leads/send-to-audience", {
       audienceId,
+      facebookAudienceId,
       todoFullLabels,
     });
   },
