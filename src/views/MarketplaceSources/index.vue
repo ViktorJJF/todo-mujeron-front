@@ -118,6 +118,14 @@
                             </v-col>
                             <template v-if="editedItem.hasFulfillment">
                               <v-col cols="12" sm="12" md="12" class="mb-3">
+                                <div class="body-1 font-weight-bold">Odoo Partner Id secundario</div>
+                                <VTextFieldWithValidation
+                                  rules="required"
+                                  v-model="editedItem.secondaryOdooPartnerId"
+                                  label="Ingresa el numero"
+                                />
+                              </v-col>
+                              <v-col cols="12" sm="12" md="12" class="mb-3">
                                 <div class="body-1 font-weight-bold">Vendedor secundario</div>
                                 <v-select
                                   dense
