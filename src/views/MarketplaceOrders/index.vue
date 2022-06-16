@@ -53,6 +53,10 @@
             </v-container>
           </template>
 
+          <template v-slot:item.externalNumber="{ item }">
+            {{item.externalNumber || item.externalId}}
+          </template>
+          
           <template v-slot:item.customer="{ item }">
             <div class="text-capitalize">
               {{item.customer.firstname}} {{item.customer.lastname}}
@@ -256,7 +260,7 @@ export default {
 
         firstPage.drawText(text, {
           x: order.odooOrderName ? 90 : 105,
-          y: (height / 2) + 15 - (15 * index),
+          y: (height / 2) + 20 - (10 * index),
           size: 8,
           font: helveticaFont,
           color: rgb(0, 0, 0),
