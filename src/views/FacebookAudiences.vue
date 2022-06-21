@@ -288,11 +288,15 @@
               v-model="item.conditions"
               label="Con Datos"
               value="Con Datos"
+              multiple
+              @change="updatedConditions(item, $event)"
             ></v-checkbox>
             <v-checkbox
               v-model="item.conditions"
               label="Sin Datos"
               value="Sin Datos"
+              multiple
+              @change="updatedConditions(item, $event)"
             ></v-checkbox>
             <!-- <v-chip
               v-show="item.conditions.length == 0"
@@ -421,30 +425,32 @@ export default {
         }),
       ]);
       this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels;
+        this.$store.state.todofullLabelsModule.todofullLabels.filter(
+          (el) => el.subtype === "CUSTOM"
+        );
       this.audiences =
         this.$store.state.facebookAudiencesModule.facebookAudiences;
       // agregando por defecto array conditions
-      for (const audience of this.audiences) {
-        if (!audience.conditions) {
-          audience.conditions = [];
-        }
-      }
+      // for (const audience of this.audiences) {
+      //   if (!audience.conditions) {
+      //     audience.conditions = [];
+      //   }
+      // }
 
       // leyendo audiencias de api facebook
       let res = await axios.get("/api/graph-api/getAudiences");
       this.adManagerId = res.data.payload.ad_manager_id;
-      let facebookAudiences = res.data.payload.data;
+      // let facebookAudiences = res.data.payload.data;
       // se sincroniza con bd todofull
-      for (const audience of facebookAudiences) {
-        if (!this.audiences.find((el) => el.external_id === audience.id)) {
-          let payload = this.$store.dispatch("facebookAudiencesModule/create", {
-            ...audience,
-            external_id: audience.id,
-          });
-          this.audiences.push(payload);
-        }
-      }
+      // for (const audience of facebookAudiences) {
+      //   if (!this.audiences.find((el) => el.external_id === audience.id)) {
+      //     let payload = this.$store.dispatch("facebookAudiencesModule/create", {
+      //       ...audience,
+      //       external_id: audience.id,
+      //     });
+      //     this.audiences.push(payload);
+      //   }
+      // }
     },
     close() {
       this.dialog = false;
@@ -561,6 +567,12 @@ export default {
         );
         this.$swal("Los leads potenciales se están enviando a la audiencia");
       }
+    },
+    async updatedConditions(item) {
+      await this.$store.dispatch("facebookAudiences" + "Module/update", {
+        id: item._id,
+        data: item,
+      });
     },
   },
 };
