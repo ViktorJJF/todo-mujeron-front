@@ -8,7 +8,20 @@
         title="Audiencias"
         text="Listado audiencias"
       >
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="10">
+          <v-row class="mb-3">
+            <v-col cols="12" sm="6" md="6">
+              <v-select
+                color="primary"
+                prepend-icon="mdi-map"
+                dense
+                hide-details
+                outlined
+                :items="$store.state.countries"
+                v-model="country"
+              ></v-select>
+            </v-col>
+          </v-row>
           <v-dialog v-model="dialog" max-width="600px">
             <template v-slot:activator="{ on }">
               <v-btn color="primary" dark class="mb-2" v-on="on">
@@ -155,13 +168,29 @@
                     <v-btn
                       color="primary"
                       @click="
-                        getLeadsByTodofullLabels(editedItem.todofullLabels)
+                        currentView = 'CleanLeads';
+                        getLeadsByTodofullLabels(editedItem.todofullLabels);
                       "
                       >Ver Leads</v-btn
                     >
                   </v-col>
-                  <v-col cols="12" sm="3"
-                    ><v-btn
+                  <v-col cols="12" sm="3">
+                    <v-btn
+                      color="primary"
+                      @click="
+                        currentView = 'Leads';
+                        getPotentialLeadsByTodofullLabels(
+                          editedItem.todofullLabels
+                        );
+                      "
+                      >Ver potenciales Leads</v-btn
+                    >
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" sm="3">
+                    <v-btn
+                      v-show="currentView && currentView == 'CleanLeads'"
                       color="error"
                       @click="
                         sendLeadsToAudience(
@@ -171,26 +200,48 @@
                       "
                       >Enviar a Audiencia</v-btn
                     >
+                    <v-btn
+                      v-show="currentView && currentView == 'Leads'"
+                      color="error"
+                      @click="
+                        sendPotentialLeadsToAudience(
+                          editedItem,
+                          editedItem.todofullLabels
+                        )
+                      "
+                      >Enviar a Audiencia</v-btn
+                    >
                   </v-col>
                 </v-row>
-                <v-row class="ma-2">
+                <v-row class="ma-1">
                   <b>Total leads: </b>{{ totalDocs }}
                 </v-row>
                 <v-row>
                   <v-col cols="12" sm="12">
-                    <h6>Primeros 10 leads del listaod</h6>
+                    <h6>Primeros 10 leads del listado</h6>
                     <v-simple-table>
                       <template v-slot:default>
                         <thead>
                           <tr>
                             <th class="text-left">Última Actualización</th>
-                            <th class="text-left">Teléfono</th>
+                            <th class="text-left">
+                              {{
+                                currentView == "Leads"
+                                  ? "ID Contacto"
+                                  : "Teléfono"
+                              }}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr v-for="lead in cleanLeads" :key="lead._id">
-                            <td>{{ lead.updatedAt }}</td>
-                            <td>{{ lead.telefono }}</td>
+                            <td>{{ lead.updatedAt | formatDate }}</td>
+                            <td v-show="currentView == 'Leads'">
+                              {{ lead.contactId }}
+                            </td>
+                            <td v-show="currentView == 'CleanLeads'">
+                              {{ lead.telefono }}
+                            </td>
                           </tr>
                         </tbody>
                       </template>
@@ -232,6 +283,25 @@
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
+          <template v-slot:[`item.conditions`]="{ item }">
+            <v-checkbox
+              v-model="item.conditions"
+              label="Con Datos"
+              value="Con Datos"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="item.conditions"
+              label="Sin Datos"
+              value="Sin Datos"
+            ></v-checkbox>
+            <!-- <v-chip
+              v-show="item.conditions.length == 0"
+              class="ma-2"
+              color="error"
+            >
+              Se enviará todo
+            </v-chip> -->
+          </template>
         </v-data-table>
       </material-card>
     </v-row>
@@ -245,6 +315,7 @@ import { es } from "date-fns/locale";
 import MaterialCard from "@/components/material/Card";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import cleanLeadsService from "@/services/api/cleanLeads";
+import leadsService from "@/services/api/leads";
 
 export default {
   filters: {
@@ -270,6 +341,8 @@ export default {
   },
   data() {
     return {
+      currentView: null,
+      country: "Chile",
       adManagerId: null,
       totalDocs: 0,
       cleanLeads: [],
@@ -283,12 +356,16 @@ export default {
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
+        country: "",
+        conditions: [],
       },
       defaultItem: {
         ad_manager_id: "211739752213400",
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
+        country: "",
+        conditions: [],
       },
       dialog: false,
       editedIndex: -1,
@@ -323,6 +400,7 @@ export default {
           sortable: false,
           value: "description",
         },
+        { text: "Condiciones", value: "conditions", sortable: false },
         { text: "Acciones", value: "action", sortable: false },
       ],
     };
@@ -346,6 +424,13 @@ export default {
         this.$store.state.todofullLabelsModule.todofullLabels;
       this.audiences =
         this.$store.state.facebookAudiencesModule.facebookAudiences;
+      // agregando por defecto array conditions
+      for (const audience of this.audiences) {
+        if (!audience.conditions) {
+          audience.conditions = [];
+        }
+      }
+
       // leyendo audiencias de api facebook
       let res = await axios.get("/api/graph-api/getAudiences");
       this.adManagerId = res.data.payload.ad_manager_id;
@@ -363,6 +448,7 @@ export default {
     },
     close() {
       this.dialog = false;
+      this.currentView = null;
       setTimeout(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
@@ -437,6 +523,15 @@ export default {
       this.totalDocs = response.totalDocs;
       this.cleanLeads = response.docs;
     },
+    async getPotentialLeadsByTodofullLabels(selectedLabels) {
+      const response = (
+        await leadsService.getByTodofullLabels(
+          selectedLabels.map((el) => el._id)
+        )
+      ).data.payload;
+      this.totalDocs = response.totalDocs;
+      this.cleanLeads = response.docs;
+    },
     async sendLeadsToAudience(audience, selectedLabels) {
       console.log("AUDIENCIA: ", audience);
       if (
@@ -452,106 +547,24 @@ export default {
         this.$swal("Los leads se están enviando a la audiencia");
       }
     },
+    async sendPotentialLeadsToAudience(audience, selectedLabels) {
+      console.log("AUDIENCIA: ", audience);
+      if (
+        await this.$confirm(
+          `¿Seguro que deseas enviar estos leads potenciales a la audiencia ${audience.name}?`
+        )
+      ) {
+        leadsService.sendLeadsToAudience(
+          audience._id,
+          audience.external_id,
+          selectedLabels.map((el) => el._id)
+        );
+        this.$swal("Los leads potenciales se están enviando a la audiencia");
+      }
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700");
-
-$base-spacing-unit: 24px;
-$half-spacing-unit: $base-spacing-unit / 2;
-
-$color-alpha: #1772ff;
-$color-form-highlight: #eeeeee;
-
-*,
-*:before,
-*:after {
-  box-sizing: border-box;
-}
-
-body {
-  padding: $base-spacing-unit;
-  font-family: "Source Sans Pro", sans-serif;
-  margin: 0;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-}
-
-.container {
-  max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.table {
-  width: 100%;
-  border: 1px solid $color-form-highlight;
-}
-
-.table-header {
-  display: flex;
-  width: 100%;
-  background: #000;
-  padding: ($half-spacing-unit * 1.5) 0;
-}
-
-.table-row {
-  display: flex;
-  width: 100%;
-  padding: ($half-spacing-unit * 1.5) 0;
-
-  &:nth-of-type(odd) {
-    background: $color-form-highlight;
-  }
-}
-
-.table-data,
-.header__item {
-  flex: 1 1 20%;
-  text-align: center;
-}
-
-.header__item {
-  text-transform: uppercase;
-}
-
-.filter__link {
-  color: white;
-  text-decoration: none;
-  position: relative;
-  display: inline-block;
-  padding-left: $base-spacing-unit;
-  padding-right: $base-spacing-unit;
-
-  &::after {
-    content: "";
-    position: absolute;
-    right: -($half-spacing-unit * 1.5);
-    color: white;
-    font-size: $half-spacing-unit;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  &.desc::after {
-    content: "(desc)";
-  }
-
-  &.asc::after {
-    content: "(asc)";
-  }
-}
 </style>
