@@ -20,11 +20,11 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
-              >
+              <span class="font-weight-bold">
+                Filtrar por nombre: {{ search }}
+              </span>
               <v-row>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="5">
                   <v-text-field
                     hide-details
                     v-model="search"
@@ -48,6 +48,29 @@
                     chips
                   >
                   </v-select>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="4">
+                  <span class="font-weight-bold">
+                    Filtrar por fulfilled
+                  </span>
+                  <div class="d-flex">
+                    <v-checkbox
+                      v-model="fulfilledFilter"
+                      label="Con Fulfilled"
+                      :value="true"
+                    >
+                    </v-checkbox>
+                    <v-checkbox
+                      class="ml-5"
+                      v-model="fulfilledFilter"
+                      label="Sin Fulfilled"
+                      :value="false"
+                    >
+                    </v-checkbox>
+                    
+                  </div>
                 </v-col>
               </v-row>
             </v-container>
@@ -77,6 +100,12 @@
 
           <template v-slot:item.total="{ item }">
             {{ item.total | currency }}
+          </template>
+
+          <template v-slot:item.fulfilled="{ item }">
+            <div style="font-size: 30px; color: green;" v-if="item.isFulfilled">
+              ✓
+            </div>
           </template>
           
           <template v-slot:item.action="{ item }">
@@ -149,6 +178,7 @@ export default {
       {text: 'Mercadolibre', value: 'mercadolibre'}
     ],
     selectedSources: [],
+    fulfilledFilter: [],
     search: "",
     headers: [
       {
@@ -191,6 +221,13 @@ export default {
         sortable: false,
         value: "total",
       },
+      {
+        text: "Fulfilled",
+        align: "center",
+        sortable: false,
+        value: "fulfilled",
+      },
+      
       { text: "Acciones", value: "action", sortable: false },
     ],
     detailsModal: false,
@@ -204,6 +241,11 @@ export default {
 
       if(this.selectedSources.length) {
         orders = orders.filter(order => this.selectedSources.includes(order.source))
+      }
+
+      console.log(this.fulfilledFilter)
+      if(this.fulfilledFilter.length) {
+        orders = orders.filter(order => this.fulfilledFilter.includes(order.isFulfilled))
       }
 
       return orders;
