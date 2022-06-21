@@ -425,11 +425,11 @@ export default {
         }),
       ]);
       this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels.filter(
+        this.$store.state.todofullLabelsModule.todofullLabels;
+      this.audiences =
+        this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
           (el) => el.subtype === "CUSTOM"
         );
-      this.audiences =
-        this.$store.state.facebookAudiencesModule.facebookAudiences;
       // agregando por defecto array conditions
       // for (const audience of this.audiences) {
       //   if (!audience.conditions) {
