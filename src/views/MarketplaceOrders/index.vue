@@ -53,19 +53,19 @@
               <v-row>
                 <v-col cols="12" sm="4">
                   <span class="font-weight-bold">
-                    Filtrar por fulfilled
+                    Filtrar por fulfillment
                   </span>
                   <div class="d-flex">
                     <v-checkbox
-                      v-model="fulfilledFilter"
-                      label="Con Fulfilled"
+                      v-model="fulfillmentFilter"
+                      label="Con Fulfillment"
                       :value="true"
                     >
                     </v-checkbox>
                     <v-checkbox
                       class="ml-5"
-                      v-model="fulfilledFilter"
-                      label="Sin Fulfilled"
+                      v-model="fulfillmentFilter"
+                      label="Sin Fulfillment"
                       :value="false"
                     >
                     </v-checkbox>
@@ -102,8 +102,8 @@
             {{ item.total | currency }}
           </template>
 
-          <template v-slot:item.fulfilled="{ item }">
-            <div style="font-size: 30px; color: green;" v-if="item.isFulfilled">
+          <template v-slot:item.fulfillment="{ item }">
+            <div style="font-size: 30px; color: green;" v-if="item.isFulfillment">
               ✓
             </div>
           </template>
@@ -178,7 +178,7 @@ export default {
       {text: 'Mercadolibre', value: 'mercadolibre'}
     ],
     selectedSources: [],
-    fulfilledFilter: [],
+    fulfillmentFilter: [],
     search: "",
     headers: [
       {
@@ -222,10 +222,10 @@ export default {
         value: "total",
       },
       {
-        text: "Fulfilled",
+        text: "Fulfillment",
         align: "center",
         sortable: false,
-        value: "fulfilled",
+        value: "fulfillment",
       },
       
       { text: "Acciones", value: "action", sortable: false },
@@ -243,9 +243,9 @@ export default {
         orders = orders.filter(order => this.selectedSources.includes(order.source))
       }
 
-      console.log(this.fulfilledFilter)
-      if(this.fulfilledFilter.length) {
-        orders = orders.filter(order => this.fulfilledFilter.includes(order.isFulfilled))
+      console.log(this.fulfillmentFilter)
+      if(this.fulfillmentFilter.length) {
+        orders = orders.filter(order => this.fulfillmentFilter.includes(order.isFulfillment))
       }
 
       return orders;
