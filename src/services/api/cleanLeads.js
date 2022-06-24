@@ -33,9 +33,9 @@ export default {
   listOne(id) {
     return axios.get("/api/clean-leads/" + id);
   },
-  getByTodofullLabels(todoFullLabels) {
+  getByTodofullLabels(todoFullLabels, country) {
     return axios.get("/api/clean-leads/get-by-todofulllabels", {
-      params: { todoFullLabels: JSON.stringify(todoFullLabels) },
+      params: { todoFullLabels: JSON.stringify(todoFullLabels), country },
     });
   },
   sendLeadsToAudience(audienceId, facebookAudienceId, todoFullLabels) {

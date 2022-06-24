@@ -19,12 +19,19 @@
                 outlined
                 :items="$store.state.countries"
                 v-model="country"
+                @change="initialize(country)"
               ></v-select>
             </v-col>
           </v-row>
           <v-dialog v-model="dialog" max-width="600px">
             <template v-slot:activator="{ on }">
-              <v-btn color="primary" dark class="mb-2" v-on="on">
+              <v-btn
+                @click="openForm"
+                color="primary"
+                dark
+                class="mb-2"
+                v-on="on"
+              >
                 Crear audiencia
               </v-btn>
             </template>
@@ -40,6 +47,7 @@
                 v-slot="{}"
               >
                 <div class="pa-5 ma-3">
+                  {{ editedItem }}
                   <v-row>
                     <v-col cols="12" sm="6" md="6">
                       <span class="font-weight-bold"
@@ -47,7 +55,7 @@
                       >
                       <VTextFieldWithValidation
                         rules="required"
-                        v-model="editedItem.ad_manager_id"
+                        v-model="adManagerId"
                         label="Coloca el nombre de la audiencia"
                       />
                     </v-col>
@@ -59,7 +67,7 @@
                         placeholder="Seleccione un pais"
                         outlined
                         :items="['Peru', 'Colombia', 'Chile']"
-                        v-model="editedItem.country"
+                        v-model="country"
                       ></v-select>
                     </v-col>
                     <v-col cols="12" sm="12" md="12">
@@ -74,6 +82,7 @@
                       <span class="font-weight-bold">Subtipo</span>
                       <v-select
                         hide-details
+                        disabled
                         v-model="editedItem.subtype"
                         :items="[
                           'CUSTOM',
@@ -98,6 +107,7 @@
                     <v-col cols="12" sm="12" md="12">
                       <span class="font-weight-bold">Fuente de datos</span>
                       <v-select
+                        disabled
                         hide-details
                         v-model="editedItem.customer_file_source"
                         :items="[
@@ -413,9 +423,10 @@ export default {
     this.initialize();
   },
   methods: {
-    async initialize() {
+    async initialize(country) {
       await Promise.all([
         this.$store.dispatch("facebookAudiencesModule/list", {
+          country,
           sort: "name",
           order: "asc",
         }),
@@ -430,23 +441,24 @@ export default {
         this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
           (el) => el.subtype === "CUSTOM"
         );
-      // agregando por defecto array conditions
-      // for (const audience of this.audiences) {
-      //   if (!audience.conditions) {
-      //     audience.conditions = [];
-      //   }
-      // }
 
       // leyendo audiencias de api facebook
-      let res = await axios.get("/api/graph-api/getAudiences");
+      let res = await axios.get("/api/graph-api/getAudiences", {
+        params: { country: this.country },
+      });
+      console.log("🚀 Aqui *** -> res", res);
       this.adManagerId = res.data.payload.ad_manager_id;
       // let facebookAudiences = res.data.payload.data;
       // se sincroniza con bd todofull
       // for (const audience of facebookAudiences) {
-      //   if (!this.audiences.find((el) => el.external_id === audience.id)) {
+      //   if (
+      //     !this.audiences.find((el) => el.external_id === audience.id) &&
+      //     audience.subtype === "CUSTOM"
+      //   ) {
       //     let payload = this.$store.dispatch("facebookAudiencesModule/create", {
       //       ...audience,
       //       external_id: audience.id,
+      //       country: this.country,
       //     });
       //     this.audiences.push(payload);
       //   }
@@ -467,7 +479,11 @@ export default {
         try {
           await this.$store.dispatch("facebookAudiences" + "Module/update", {
             id: itemId,
-            data: this.editedItem,
+            data: {
+              ...this.editedItem,
+              country: this.country,
+              ad_manager_id: this.adManagerId,
+            },
           });
           Object.assign(this["audiences"][this.editedIndex], this.editedItem);
           this.close();
@@ -479,11 +495,22 @@ export default {
         try {
           axios
             .post("/api/graph-api/audiences", { ...this.editedItem })
-            .then((res) => {
+            .then(async (res) => {
               console.log(res.data);
+              await this.$store.dispatch(
+                "facebookAudiences" + "Module/create",
+                {
+                  ...this.editedItem,
+                  country: this.country,
+                  ad_manager_id: this.adManagerId,
+                  external_id: res.data.payload.id,
+                }
+              );
               this.audiences.unshift({
                 ...this.editedItem,
-                id: res.data.payload.id,
+                country: this.country,
+                ad_manager_id: this.adManagerId,
+                external_id: res.data.payload.id,
               });
               this.editedItem = {};
               this.close();
@@ -523,7 +550,8 @@ export default {
     async getLeadsByTodofullLabels(selectedLabels) {
       const response = (
         await cleanLeadsService.getByTodofullLabels(
-          selectedLabels.map((el) => el._id)
+          selectedLabels.map((el) => el._id),
+          this.country
         )
       ).data.payload;
       this.totalDocs = response.totalDocs;
@@ -532,7 +560,8 @@ export default {
     async getPotentialLeadsByTodofullLabels(selectedLabels) {
       const response = (
         await leadsService.getByTodofullLabels(
-          selectedLabels.map((el) => el._id)
+          selectedLabels.map((el) => el._id),
+          this.country
         )
       ).data.payload;
       this.totalDocs = response.totalDocs;
@@ -573,6 +602,9 @@ export default {
         id: item._id,
         data: item,
       });
+    },
+    openForm() {
+      this.editItem.country = this.country;
     },
   },
 };
