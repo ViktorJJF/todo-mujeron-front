@@ -47,7 +47,6 @@
                 v-slot="{}"
               >
                 <div class="pa-5 ma-3">
-                  {{ editedItem }}
                   <v-row>
                     <v-col cols="12" sm="6" md="6">
                       <span class="font-weight-bold"
