@@ -113,7 +113,7 @@
               <v-btn small color="secondary" @click="openDetails(item)">
                 Detalles
               </v-btn>
-              <v-btn v-if="item.source==='dafiti'" class="ml-3" small color="secondary" @click="getPdf(item)">
+              <v-btn class="ml-3" v-if="pdfButtonVisible(item)" small color="secondary" @click="getPdf(item)">
                 Guía Pdf
               </v-btn>
             </div>
@@ -154,6 +154,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
 import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
@@ -300,32 +301,82 @@ export default {
           ? `${order.odooOrderName} \t ${baseText}`
           : baseText
 
-        firstPage.drawText(text, {
-          x: order.odooOrderName ? 90 : 105,
-          y: (height / 2) + 20 - (10 * index),
-          size: 8,
-          font: helveticaFont,
-          color: rgb(0, 0, 0),
-        })
+        if(order.source === 'dafiti') {
+          firstPage.drawText(text, {
+            x: order.odooOrderName ? 90 : 105,
+            y: (height / 2) + 20 - (10 * index),
+            size: 8,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+          })
+        }
+
+        if(order.source === 'mercadolibre') {
+          firstPage.drawText(text, {
+            x: order.odooOrderName ? 90 : 105,
+            y: (height / 2) - 25 - (10 * index),
+            size: 8,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+          })
+        }
       }
 
       // Serialize the PDFDocument to bytes (a Uint8Array)
       return pdfDoc.save()
     },
 
+
     async getPdf(order) {
+      let pdfBytes;
+      
+      if(order.source === 'dafiti') {
+        pdfBytes = await this.getDafitiPdf(order)
+      }
+
+      if(order.source === 'mercadolibre' && order.shipmentLabelPath) {
+        pdfBytes = await this.getMercadolibrePdf(order)
+      }
+
+      if(!pdfBytes) {
+        return;
+      }
+
+      pdfBytes = await this.formatPdf(pdfBytes, order)
+
+      var blob = new Blob( [ pdfBytes ], { type: 'application/pdf' } )
+      var url = URL.createObjectURL( blob );
+      window.open(url);
+    },
+
+    async getDafitiPdf(order) {
       let res = await marketplaceOrdersApi.listDocument(order._id, 'shippingParcel')
 
       const document = res.data.payload
 
-      let pdfBytes = Uint8Array.from(atob(document.File), c => c.charCodeAt(0))
-      
-      pdfBytes = await this.formatPdf(pdfBytes, order)
-
-      var blob = new Blob( [ pdfBytes ], { type: document.MimeType } )
-      var url = URL.createObjectURL( blob );
-      window.open(url);
+      return Uint8Array.from(atob(document.File), c => c.charCodeAt(0))
     },
+
+    async getMercadolibrePdf(order) {
+      let res = await axios.get(
+        `/uploads/${order.shipmentLabelPath}`,
+        { responseType: 'arraybuffer' }
+      )
+
+      return new Uint8Array(res.data)
+    },
+
+    pdfButtonVisible(order) {
+      if(order.source === 'dafiti') {
+        return true;
+      }
+
+      if(order.source === 'mercadolibre') {
+        if(order.shipmentLabelPath) {
+          return true;
+        }
+      }
+    }
   },
 };
 </script>
