@@ -178,7 +178,7 @@ export default {
 
       const stock_status = active === true ? 'instock' : 'outofstock'
       const stock_quantity = active === true ? 1 : 0
-      let changes = { stock_status, stock_quantity }
+      let changes = { stock_status, stock_quantity, status: active === true ? 'publish' : 'draft', }
 
       const isProduct = 'idEcommerce' in item
       if(isProduct) {
@@ -186,7 +186,6 @@ export default {
 
         let productChanges = {
           ...changes,
-          status: active === true ? 'publish' : 'draft',
           catalog_visibility: active === true ? 'visible' : 'hidden',
           // attributes
         }
