@@ -126,7 +126,12 @@
                               label="ID de Contacto"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" md="6">
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="6"
+                            v-if="editedItem.labels"
+                          >
                             <v-chip
                               dark
                               class="mb-1 mr-1"
@@ -273,8 +278,16 @@
             Sin Asignar
           </v-chip>
           <span v-show="item.telefonoId"
-            >{{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
-            {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
+            >{{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.nombre
+                : " "
+            }}
+            {{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.apellido
+                : " "
+            }}
             ({{ item.telefonoId ? item.telefonoId.numero : " " }})</span
           >
         </template>
@@ -357,19 +370,13 @@
 </template>
 
 <script>
-import axios from "axios";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
 import auth from "@/services/api/auth";
 
-import {
-  getRandomInt,
-  buildPayloadPagination,
-  formatPhone,
-  getCountryByPhone,
-} from "@/utils/utils.js";
+import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -537,7 +544,7 @@ export default {
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([
-        this.$store.dispatch("leadsModule/listAll", body),
+        this.$store.dispatch("leadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),
@@ -614,78 +621,59 @@ export default {
 
     async save() {
       this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        let itemId = this.leads[this.editedIndex]._id;
-        try {
-          await this.$store.dispatch("leadsModule/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this.leads[this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
-        //create item
-        try {
-          //buscando telefono en contactos de Agentes
-          let contactos = (
-            await axios.get(
-              "/api/contactos?filter=" +
-                this.editedItem.telefono +
-                "&fields=celular"
-            )
-          ).data.payload;
-          if (contactos.length > 0) {
-            //asignando agente random
-            let randomContact =
-              contactos[getRandomInt(0, contactos.length - 1)];
-            this.editedItem.telefonoId = randomContact.telefonoId._id;
-            this.editedItem.msnActivaDefault = this.editedItem.msnActivaDefault
-              ? this.editedItem.msnActivaDefault
-              : "SIN CONSULTA";
-            //generando nota cuando se asignó un agente random
-            this.editedItem.nota = `Hola ${
-              randomContact.telefonoId.agenteId.nombre
-            } tu cliente: ${this.editedItem.nombre} con teléfono : ${
-              this.editedItem.telefono
-            } consulta: '${
-              this.editedItem.msnActivaDefault
-            }'. En cuanto la contactes me informas para borrarla de los pendientes \n\nhttps://wa.me/${formatPhone(
-              this.editedItem.telefono,
-              getCountryByPhone(randomContact.telefonoId.numero)
-            )}`;
-            this.editedItem.estado = "RE-CONECTAR";
-          } else {
-            //Generando nota
-            this.editedItem.estado = "SIN ASIGNAR";
-          }
-          //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.pais = this.editedItem.pais || "Peru";
-          let fuente = this.sourceSelectList.find(
-            (el) => el._id === this.editedItem.fuente
-          )
-            ? this.sourceSelectList.find(
-                (el) => el._id === this.editedItem.fuente
-              ).name
-            : this.editedItem.fuente;
-          this.editedItem.pais =
-            fuente == "www.mujeron.cl" ||
-            fuente == "www.pushup.cl" ||
-            fuente == "www.fajassalome.cl" ||
-            fuente == "www.annchery.cl"
-              ? "Chile"
-              : "Peru";
-          await this.$store.dispatch("leadsModule/create", this.editedItem);
-          //refrescar tabla
-          this.initialize(
-            this.buildPayloadPagination(null, this.buildSearch())
-          );
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
+      try {
+        let id = this.editedItem._id;
+        delete this.editedItem._id;
+        delete this.editedItem.createdAt;
+        delete this.editedItem.updatedAt;
+        this.editedItem.estado = "SIN ASIGNAR";
+        //ASIGNANDO PAIS POR DEFECTO
+        this.editedItem.details = [{}];
+        this.editedItem.pais = this.editedItem.pais || "Peru";
+        let fuente = this.sourceSelectList.find(
+          (el) => el._id === this.editedItem.fuente
+        )
+          ? this.sourceSelectList.find(
+              (el) => el._id === this.editedItem.fuente
+            ).name
+          : this.editedItem.fuente;
+        this.editedItem.details[0].fuente = this.editedItem.fuente;
+        this.editedItem.details[0].appName = this.editedItem.sourceName;
+        this.editedItem.details[0].contactId = this.editedItem.contactId;
+        this.editedItem.details[0].fuente = this.editedItem.fuente;
+        this.editedItem.details[0].labels = this.editedItem.labels;
+        this.editedItem.details[0].msnActivaDefault =
+          this.editedItem.msnActivaDefault;
+        this.editedItem.details[0].email = this.editedItem.email;
+        this.editedItem.details[0].nombre = this.editedItem.nombre;
+        this.editedItem.details[0].ciudad = this.editedItem.ciudad;
+        this.editedItem.details[0].asunto = this.editedItem.asunto;
+        this.editedItem.details[0].nota = this.editedItem.nota;
+        this.editedItem.details[0].todofullLabels =
+          this.editedItem.todofullLabels;
+        this.editedItem.details[0].pais =
+          fuente == "www.mujeron.cl" ||
+          fuente == "www.pushup.cl" ||
+          fuente == "www.fajassalome.cl" ||
+          fuente == "www.annchery.cl"
+            ? "Chile"
+            : "Peru";
+        console.log("CREANDO...");
+        let createdItem = await this.$store.dispatch(
+          "cleanLeadsModule/create",
+          this.editedItem
+        );
+        // actualizando referencia a lead
+        await this.$store.dispatch("leadsModule/update", {
+          id,
+          data: { cleanLeadId: createdItem._id },
+        });
+        //refrescar tabla
+        this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+        this.close();
+      } finally {
+        this.loadingButton = false;
+        // }
       }
     },
   },

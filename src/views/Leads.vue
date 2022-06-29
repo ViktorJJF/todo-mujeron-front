@@ -329,8 +329,16 @@
             Sin Asignar
           </v-chip>
           <span v-show="item.telefonoId"
-            >{{ item.telefonoId ? item.telefonoId.agenteId.nombre : " " }}
-            {{ item.telefonoId ? item.telefonoId.agenteId.apellido : " " }}
+            >{{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.nombre
+                : " "
+            }}
+            {{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.apellido
+                : " "
+            }}
             ({{ item.telefonoId ? item.telefonoId.numero : " " }})</span
           >
         </template>
