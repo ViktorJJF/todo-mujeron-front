@@ -173,12 +173,21 @@
                   </v-col>
                 </v-row>
                 <v-row>
+                  <v-col cols="12" sm="12">
+                    <v-switch
+                      label="Ver SOLO leads faltantes"
+                      v-model="showMissingLeads"
+                    ></v-switch>
+                  </v-col>
                   <v-col cols="12" sm="3">
                     <v-btn
                       color="primary"
                       @click="
                         currentView = 'CleanLeads';
-                        getLeadsByTodofullLabels(editedItem.todofullLabels);
+                        getLeadsByTodofullLabels(
+                          editedItem.todofullLabels,
+                          editedItem._id
+                        );
                       "
                       >Ver Leads</v-btn
                     >
@@ -189,7 +198,8 @@
                       @click="
                         currentView = 'Leads';
                         getPotentialLeadsByTodofullLabels(
-                          editedItem.todofullLabels
+                          editedItem.todofullLabels,
+                          editedItem._id
                         );
                       "
                       >Ver potenciales Leads</v-btn
@@ -225,6 +235,7 @@
                 <v-row class="ma-1">
                   <b>Total leads: </b>{{ totalDocs }}
                 </v-row>
+
                 <v-row>
                   <v-col cols="12" sm="12">
                     <h6>Primeros 10 leads del listado</h6>
@@ -354,6 +365,7 @@ export default {
   },
   data() {
     return {
+      showMissingLeads: false,
       currentView: null,
       country: "Chile",
       adManagerId: null,
@@ -546,21 +558,25 @@ export default {
         1
       );
     },
-    async getLeadsByTodofullLabels(selectedLabels) {
+    async getLeadsByTodofullLabels(selectedLabels, audienceId) {
       const response = (
         await cleanLeadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country
+          this.country,
+          audienceId,
+          this.showMissingLeads
         )
       ).data.payload;
       this.totalDocs = response.totalDocs;
       this.cleanLeads = response.docs;
     },
-    async getPotentialLeadsByTodofullLabels(selectedLabels) {
+    async getPotentialLeadsByTodofullLabels(selectedLabels, audienceId) {
       const response = (
         await leadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country
+          this.country,
+          audienceId,
+          this.showMissingLeads
         )
       ).data.payload;
       this.totalDocs = response.totalDocs;
@@ -576,7 +592,8 @@ export default {
         cleanLeadsService.sendLeadsToAudience(
           audience._id,
           audience.external_id,
-          selectedLabels.map((el) => el._id)
+          selectedLabels.map((el) => el._id),
+          this.showMissingLeads
         );
         this.$swal("Los leads se están enviando a la audiencia");
       }
@@ -591,7 +608,8 @@ export default {
         leadsService.sendLeadsToAudience(
           audience._id,
           audience.external_id,
-          selectedLabels.map((el) => el._id)
+          selectedLabels.map((el) => el._id),
+          this.showMissingLeads
         );
         this.$swal("Los leads potenciales se están enviando a la audiencia");
       }

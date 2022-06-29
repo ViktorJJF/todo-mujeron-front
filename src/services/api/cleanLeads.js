@@ -33,16 +33,27 @@ export default {
   listOne(id) {
     return axios.get("/api/clean-leads/" + id);
   },
-  getByTodofullLabels(todoFullLabels, country) {
+  getByTodofullLabels(todoFullLabels, country, audienceId, showMissingLeads) {
     return axios.get("/api/clean-leads/get-by-todofulllabels", {
-      params: { todoFullLabels: JSON.stringify(todoFullLabels), country },
+      params: {
+        todoFullLabels: JSON.stringify(todoFullLabels),
+        country,
+        audienceId,
+        showMissingLeads,
+      },
     });
   },
-  sendLeadsToAudience(audienceId, facebookAudienceId, todoFullLabels) {
+  sendLeadsToAudience(
+    audienceId,
+    facebookAudienceId,
+    todoFullLabels,
+    showMissingLeads
+  ) {
     return axios.post("/api/clean-leads/send-to-audience", {
       audienceId,
       facebookAudienceId,
       todoFullLabels,
+      showMissingLeads,
     });
   },
   update(id, payload) {

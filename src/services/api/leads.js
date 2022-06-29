@@ -28,16 +28,27 @@ export default {
   listOne(id) {
     return axios.get("/api/leads/" + id);
   },
-  getByTodofullLabels(todoFullLabels) {
+  getByTodofullLabels(todoFullLabels, country, audienceId, showMissingLeads) {
     return axios.get("/api/leads/get-by-todofulllabels", {
-      params: { todoFullLabels: JSON.stringify(todoFullLabels) },
+      params: {
+        todoFullLabels: JSON.stringify(todoFullLabels),
+        country,
+        audienceId,
+        showMissingLeads,
+      },
     });
   },
-  sendLeadsToAudience(audienceId, facebookAudienceId, todoFullLabels) {
+  sendLeadsToAudience(
+    audienceId,
+    facebookAudienceId,
+    todoFullLabels,
+    showMissingLeads
+  ) {
     return axios.post("/api/leads/send-to-audience", {
       audienceId,
       facebookAudienceId,
       todoFullLabels,
+      showMissingLeads,
     });
   },
   update(id, payload) {
