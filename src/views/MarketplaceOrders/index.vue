@@ -158,7 +158,7 @@ import axios from 'axios'
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
 import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
 
 export default {
   components: {
@@ -289,6 +289,10 @@ export default {
       const pages = pdfDoc.getPages()
       const firstPage = pages[0]
 
+      if(order.source === 'mercadolibre') {
+        pdfDoc.removePage(1)
+      }
+
       // Get the width and height of the first page
       const { height } = firstPage.getSize()
 
@@ -313,11 +317,12 @@ export default {
 
         if(order.source === 'mercadolibre') {
           firstPage.drawText(text, {
-            x: order.odooOrderName ? 90 : 105,
-            y: (height / 2) - 25 - (10 * index),
+            x: 300 + (10 * index),
+            y: (height / 2),
             size: 8,
             font: helveticaFont,
             color: rgb(0, 0, 0),
+            rotate: degrees(90)
           })
         }
       }
