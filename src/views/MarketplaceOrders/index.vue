@@ -279,7 +279,7 @@ export default {
 
     async formatPdf(pdfBytes, order) {
       let itemsRes = await marketplaceOrdersApi.listItems(order._id)
-      const items = [...itemsRes.data.payload, ...itemsRes.data.payload, ...itemsRes.data.payload, ...itemsRes.data.payload]
+      const items = itemsRes.data.payload
 
       const pdfDoc = await PDFDocument.load(pdfBytes)
 
