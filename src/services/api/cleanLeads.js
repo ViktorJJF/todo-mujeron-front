@@ -47,13 +47,15 @@ export default {
     audienceId,
     facebookAudienceId,
     todoFullLabels,
-    showMissingLeads
+    showMissingLeads,
+    country
   ) {
     return axios.post("/api/clean-leads/send-to-audience", {
       audienceId,
       facebookAudienceId,
       todoFullLabels,
       showMissingLeads,
+      country,
     });
   },
   update(id, payload) {

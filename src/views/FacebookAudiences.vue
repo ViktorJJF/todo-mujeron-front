@@ -53,6 +53,7 @@
                         >ID administrador de anuncios</span
                       >
                       <VTextFieldWithValidation
+                        disabled
                         rules="required"
                         v-model="adManagerId"
                         label="Coloca el nombre de la audiencia"
@@ -61,6 +62,7 @@
                     <v-col cols="12" sm="6" md="6">
                       <div class="body-1 font-weight-bold">Pais</div>
                       <v-select
+                        disabled
                         dense
                         hide-details
                         placeholder="Seleccione un pais"
@@ -437,7 +439,7 @@ export default {
     async initialize(country) {
       await Promise.all([
         this.$store.dispatch("facebookAudiencesModule/list", {
-          country,
+          country: country || this.country,
           sort: "name",
           order: "asc",
         }),
@@ -537,7 +539,9 @@ export default {
     async deleteItem(item) {
       const index = this.audiences.indexOf(item);
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        axios.delete("/api/graph-api/audiences/" + item.id);
+        axios.delete("/api/graph-api/audiences/" + item.external_id);
+        // eliminando de sistema
+        this.$store.dispatch("facebookAudiences" + "Module/create", item._id);
         this.audiences.splice(index, 1);
       }
     },
@@ -593,7 +597,8 @@ export default {
           audience._id,
           audience.external_id,
           selectedLabels.map((el) => el._id),
-          this.showMissingLeads
+          this.showMissingLeads,
+          this.country
         );
         this.$swal("Los leads se están enviando a la audiencia");
       }
@@ -609,7 +614,8 @@ export default {
           audience._id,
           audience.external_id,
           selectedLabels.map((el) => el._id),
-          this.showMissingLeads
+          this.showMissingLeads,
+          this.country
         );
         this.$swal("Los leads potenciales se están enviando a la audiencia");
       }
