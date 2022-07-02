@@ -52,7 +52,7 @@
         <v-facebook-login
           :login-options="{
             scope:
-              'email,ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata',
+              'email,public_profile,manage_pages,publish_pages,pages_show_list,ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata',
           }"
           style="margin: auto"
           @login="facebookLogged"

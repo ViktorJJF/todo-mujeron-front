@@ -541,7 +541,7 @@ export default {
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
         axios.delete("/api/graph-api/audiences/" + item.external_id);
         // eliminando de sistema
-        this.$store.dispatch("facebookAudiences" + "Module/create", item._id);
+        this.$store.dispatch("facebookAudiences" + "Module/delete", item._id);
         this.audiences.splice(index, 1);
       }
     },
