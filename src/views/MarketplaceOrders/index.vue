@@ -77,7 +77,7 @@
           </template>
 
           <template v-slot:item.externalNumber="{ item }">
-            {{item.externalNumber || item.externalId}}
+            {{item.externalNumber || item.packId || item.externalId}}
           </template>
           
           <template v-slot:item.customer="{ item }">
@@ -158,7 +158,7 @@ import axios from 'axios'
 import MaterialCard from "@/components/material/Card";
 import OrderDetails from './Details.vue'
 import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
 
 export default {
   components: {
@@ -279,7 +279,7 @@ export default {
 
     async formatPdf(pdfBytes, order) {
       let itemsRes = await marketplaceOrdersApi.listItems(order._id)
-      const items = itemsRes.data.payload;
+      const items = itemsRes.data.payload
 
       const pdfDoc = await PDFDocument.load(pdfBytes)
 
@@ -289,19 +289,32 @@ export default {
       const pages = pdfDoc.getPages()
       const firstPage = pages[0]
 
+      if(order.source === 'mercadolibre') {
+        pdfDoc.removePage(1)
+      }
+
       // Get the width and height of the first page
       const { height } = firstPage.getSize()
+
+      if(order.source === 'mercadolibre') {
+        firstPage.drawText(order.odooOrderName || '********', {
+          x: 298,
+            y: 125,
+            size: 7,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+            rotate: degrees(90)
+        })
+      }
 
       for(const [index, item] of items.entries()) {
         const price = new Intl.NumberFormat().format(item.price)
 
-        const baseText = `${item.sku} \t ${price}`
-
-        let text = order.odooOrderName
-          ? `${order.odooOrderName} \t ${baseText}`
-          : baseText
-
         if(order.source === 'dafiti') {
+          const text = order.odooOrderName
+            ? `${order.odooOrderName} \t ${item.sku} \t ${price}`
+            : `${item.sku} \t ${price}`
+
           firstPage.drawText(text, {
             x: order.odooOrderName ? 90 : 105,
             y: (height / 2) + 20 - (10 * index),
@@ -312,12 +325,15 @@ export default {
         }
 
         if(order.source === 'mercadolibre') {
+          const text = `${item.sku}   ${price}`
+
           firstPage.drawText(text, {
-            x: order.odooOrderName ? 90 : 105,
-            y: (height / 2) - 25 - (10 * index),
-            size: 8,
+            x: 298,
+            y: 158 + (75 * index),
+            size: 7,
             font: helveticaFont,
             color: rgb(0, 0, 0),
+            rotate: degrees(90)
           })
         }
       }
