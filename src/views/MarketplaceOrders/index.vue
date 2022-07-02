@@ -77,7 +77,7 @@
           </template>
 
           <template v-slot:item.externalNumber="{ item }">
-            {{item.externalNumber || item.externalId}}
+            {{item.externalNumber || item.packId || item.externalId}}
           </template>
           
           <template v-slot:item.customer="{ item }">

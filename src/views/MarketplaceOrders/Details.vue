@@ -14,7 +14,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">N°Orden:</div>
-              <div class="ml-1">{{order.externalNumber || order.externalId}}</div>
+              <div class="ml-1">{{order.externalNumber || order.packId || order.externalId}}</div>
             </div>
           </v-col>
         </v-row>
