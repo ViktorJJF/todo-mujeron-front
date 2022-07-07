@@ -526,6 +526,12 @@ export default {
         value: "telefono",
       },
       {
+        text: "Odoo",
+        align: "left",
+        sortable: false,
+        value: "odoo_id",
+      },
+      {
         text: "Agente",
         align: "left",
         sortable: false,
@@ -656,8 +662,12 @@ export default {
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
           _id: telefono._id,
-          agent: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido} (${telefono.numero})`,
-          fullname: `${telefono.agenteId.nombre} ${telefono.agenteId.apellido}`,
+          agent: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${
+            telefono.agenteId ? telefono.agenteId.apellido : ""
+          } (${telefono.numero})`,
+          fullname: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${
+            telefono.agenteId ? telefono.agenteId.apellido : ""
+          }`,
           cellphone: `${telefono.numero}`,
           active: telefono.active,
         })
@@ -800,7 +810,7 @@ export default {
             ? this.sourceSelectList.find(
                 (el) => el._id === this.editedItem.details[0].fuente
               ).country
-            : "Peru";
+            : "Chile";
           this.editedItem.details[0].type = "CHATBOT"; //pagina por defecto
           await this.$store.dispatch("cleanLeadsModule/create", {
             ...this.editedItem,
