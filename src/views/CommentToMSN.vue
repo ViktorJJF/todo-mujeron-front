@@ -105,7 +105,11 @@
                           </v-row>
                           <div v-if="editedItem.platform">
                             <v-row dense>
-                              <v-col cols="12" sm="6">
+                              <v-col
+                                cols="12"
+                                sm="6"
+                                v-if="editedItem.platform === 'instagram'"
+                              >
                                 <span class="font-weight-bold"
                                   >Selecciona una cuenta de instagram</span
                                 >
