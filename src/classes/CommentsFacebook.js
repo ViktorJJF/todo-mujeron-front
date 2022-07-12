@@ -7,4 +7,5 @@ export default () => ({
   type: "VARIOS_PRODUCTOS",
   postImgUrl: "",
   selectedUrl: "",
+  platform: "",
 });

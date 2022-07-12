@@ -18,6 +18,8 @@
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -40,14 +42,31 @@
                   <v-dialog v-model="dialog" max-width="800px">
                     <template v-slot:activator="{ on }">
                       <v-btn
-                        @click="clearResponses"
-                        color="primary"
+                        @click="
+                          editedItem.platform = 'facebook';
+                          clearResponses();
+                        "
+                        color="secondary"
                         dark
                         class="mb-2"
                         v-on="on"
                         v-show="rolPermisos['Write']"
                         >{{
-                          isCommentView ? "Agregar publicación" : "Agregar Ad"
+                          isCommentView ? "Publicación Facebook" : "Agregar Ad"
+                        }}</v-btn
+                      >
+                      <v-btn
+                        class="mx-2 mb-2"
+                        @click="
+                          editedItem.platform = 'instagram';
+                          clearResponses();
+                        "
+                        color="warning"
+                        dark
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
+                        >{{
+                          isCommentView ? "Publicación Instagram" : "Agregar Ad"
                         }}</v-btn
                       >
                     </template>
@@ -59,111 +78,283 @@
                       <v-divider></v-divider>
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">URL</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.postUrl"
-                                label="Ingresa la URL"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="8">
-                              <p class="body-1 font-weight-bold">
-                                Tipo de publicación
-                              </p>
+                          <v-row>
+                            <!-- <v-col cols="12" sm="12" class="mt-3">
+                              <p class="body-1 font-weight-bold">Red social</p>
                               <v-select
+                                @change="clearData()"
                                 dense
                                 hide-details
-                                placeholder="Selecciona un país"
+                                placeholder="Selecciona una red social"
                                 item-value="value"
                                 outlined
                                 :items="[
                                   {
-                                    name: 'Varios productos',
-                                    value: 'VARIOS_PRODUCTOS',
+                                    name: 'Facebook',
+                                    value: 'facebook',
                                   },
                                   {
-                                    name: 'Mayoristas Default',
-                                    value: 'MAYORISTAS_DEFAULT',
-                                  },
-                                  {
-                                    name: 'Mayoristas personalizadas',
-                                    value: 'MAYORISTAS_PERSONALIZADAS',
-                                  },
-                                  {
-                                    name: 'Publicaciones de comunidad',
-                                    value: 'PUBLICACIONES_COMUNIDAD',
-                                  },
-                                  {
-                                    name: 'No responder',
-                                    value: 'NO_RESPONDER',
+                                    name: 'Instagram',
+                                    value: 'instagram',
                                   },
                                 ]"
-                                v-model="editedItem.type"
+                                v-model="editedItem.platform"
                                 item-text="name"
                               ></v-select>
-                            </v-col>
-
-                            <v-col
-                              cols="12"
-                              sm="6"
-                              v-show="getBotId(editedItem.postUrl)"
-                            >
-                              <b>País: </b>
-                              {{
-                                getBotId(editedItem.postUrl)
-                                  ? getBotId(editedItem.postUrl).country
-                                  : ""
-                              }}
-                            </v-col>
-                            <v-col
-                              cols="12"
-                              sm="12"
-                              md="12"
-                              v-show="editedItem.type == 'VARIOS_PRODUCTOS'"
-                            >
-                              <p class="body-1 font-weight-bold">
-                                Selecciona una plantilla
-                              </p>
-                              <v-autocomplete
-                                :disabled="!getBotId(editedItem.postUrl)"
-                                item-text="nameWithCountry"
-                                item-value="_id"
-                                :search-input.sync="searchProduct"
-                                v-model="selectedProducts"
-                                :items="products"
-                                chips
-                                clearable
-                                label="Busca los productos"
-                                no-data-text="No se encontraron productos"
-                                no-filter
-                                solo
-                                @change="deleteCurrentSearch"
-                              >
-                                <template
-                                  v-slot:selection="{
-                                    attrs,
-                                    item,
-                                    select,
-                                    selected,
-                                  }"
-                                >
-                                  <v-chip
-                                    v-bind="attrs"
-                                    :input-value="selected"
-                                    close
-                                    @click="select"
-                                    @click:close="remove(item)"
-                                    color="deep-purple accent-4"
-                                    outlined
-                                  >
-                                    <strong>{{ item.name }}</strong>
-                                  </v-chip>
-                                </template>
-                              </v-autocomplete>
-                            </v-col>
+                            </v-col> -->
                           </v-row>
+                          <div v-if="editedItem.platform">
+                            <v-row dense>
+                              <v-col cols="12" sm="6">
+                                <span class="font-weight-bold"
+                                  >Selecciona una cuenta de instagram</span
+                                >
+                                <v-select
+                                  @change="
+                                    instagramPosts = [];
+                                    instagramNextPage = null;
+                                    updateScroll += 1;
+                                  "
+                                  clearable
+                                  dense
+                                  hide-details
+                                  placeholder="Selecciona la fanpage"
+                                  outlined
+                                  :items="
+                                    $store.state.botsModule.bots.filter(
+                                      (el) => el.platform === 'instagram'
+                                    )
+                                  "
+                                  item-text="fanpageName"
+                                  :return-object="true"
+                                  v-model="selectedFanpage"
+                                ></v-select>
+                              </v-col>
+                              <v-col cols="12" sm="12">
+                                <p
+                                  v-show="editedItem.platform === 'instagram'"
+                                  class="body-1 font-weight-bold"
+                                >
+                                  Publicación
+                                </p>
+                                <v-card
+                                  v-if="
+                                    selectedPost &&
+                                    editedItem.platform === 'instagram'
+                                  "
+                                >
+                                  <span class="limited-text ma-2">
+                                    {{ selectedPost.caption }}
+                                  </span>
+                                  <v-img
+                                    :src="
+                                      selectedPost.media_type != 'VIDEO'
+                                        ? selectedPost.media_url
+                                        : selectedPost.thumbnail_url
+                                    "
+                                    height="330px"
+                                    aspect-ratio="1"
+                                    contain
+                                  ></v-img>
+                                  <v-card-actions>
+                                    {{ selectedPost.timestamp | formatDateAgo }}
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="info" text>
+                                      <a
+                                        :href="selectedPost.permalink"
+                                        target="_blank"
+                                      >
+                                        Ver en Instagram</a
+                                      >
+                                    </v-btn>
+                                    <v-btn icon> </v-btn>
+                                  </v-card-actions>
+                                </v-card>
+                                <v-dialog
+                                  v-show="editedItem.platform === 'instagram'"
+                                  v-model="dialog3"
+                                  width="600"
+                                  hide-overlay
+                                  transition="dialog-top-transition"
+                                >
+                                  <template v-slot:activator="{ on: dialog3 }">
+                                    <v-tooltip bottom>
+                                      <template
+                                        v-slot:activator="{ on: tooltip }"
+                                      >
+                                        <v-btn
+                                          class="mt-1"
+                                          v-show="
+                                            editedItem.platform === 'instagram'
+                                          "
+                                          color="info"
+                                          outlined
+                                          dark
+                                          v-on="{ ...tooltip, ...dialog3 }"
+                                          >{{
+                                            selectedPost
+                                              ? "Cambiar post"
+                                              : "Selecciona un Post"
+                                          }}</v-btn
+                                        >
+                                      </template>
+                                      <span>Publicaciones Instagram</span>
+                                    </v-tooltip>
+                                  </template>
+
+                                  <v-card>
+                                    <v-container
+                                      ><InfiniteScroll
+                                        :key="updateScroll"
+                                        @loadMore="loadMore"
+                                      >
+                                        <v-card
+                                          v-for="(post, idx) in instagramPosts"
+                                          :key="idx"
+                                        >
+                                          <span class="limited-text ma-2">
+                                            {{ post.caption }}
+                                          </span>
+                                          <v-img
+                                            aspect-ratio="0.3"
+                                            style="cursor: pointer"
+                                            @click="selectInstagramPost(post)"
+                                            :src="
+                                              post.media_type != 'VIDEO'
+                                                ? post.media_url
+                                                : post.thumbnail_url
+                                            "
+                                            height="490px"
+                                          ></v-img>
+                                          <v-card-actions>
+                                            {{ post.timestamp | formatDateAgo }}
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="info" text>
+                                              <a
+                                                :href="post.permalink"
+                                                target="_blank"
+                                              >
+                                                Ver en Instagram</a
+                                              >
+                                            </v-btn>
+                                            <v-btn icon> </v-btn>
+                                          </v-card-actions>
+                                        </v-card>
+                                      </InfiniteScroll>
+                                    </v-container>
+                                  </v-card>
+                                </v-dialog>
+                              </v-col>
+                              <v-col
+                                cols="12"
+                                sm="12"
+                                md="12"
+                                v-show="editedItem.platform === 'facebook'"
+                              >
+                                <p class="body-1 font-weight-bold">URL</p>
+                                <VTextFieldWithValidation
+                                  rules="required"
+                                  v-model="editedItem.postUrl"
+                                  label="Ingresa la URL"
+                                />
+                              </v-col>
+                              <v-col cols="12" sm="8">
+                                <p class="body-1 font-weight-bold">
+                                  Tipo de publicación
+                                </p>
+                                <v-select
+                                  dense
+                                  hide-details
+                                  placeholder="Selecciona un país"
+                                  item-value="value"
+                                  outlined
+                                  :items="[
+                                    {
+                                      name: 'Varios productos',
+                                      value: 'VARIOS_PRODUCTOS',
+                                    },
+                                    {
+                                      name: 'Mayoristas Default',
+                                      value: 'MAYORISTAS_DEFAULT',
+                                    },
+                                    {
+                                      name: 'Mayoristas personalizadas',
+                                      value: 'MAYORISTAS_PERSONALIZADAS',
+                                    },
+                                    {
+                                      name: 'Publicaciones de comunidad',
+                                      value: 'PUBLICACIONES_COMUNIDAD',
+                                    },
+                                    {
+                                      name: 'No responder',
+                                      value: 'NO_RESPONDER',
+                                    },
+                                  ]"
+                                  v-model="editedItem.type"
+                                  item-text="name"
+                                ></v-select>
+                              </v-col>
+
+                              <v-col
+                                cols="12"
+                                sm="6"
+                                v-show="getBotId(editedItem.postUrl)"
+                              >
+                                <b>País: </b>
+                                {{
+                                  getBotId(editedItem.postUrl)
+                                    ? getBotId(editedItem.postUrl).country
+                                    : ""
+                                }}
+                              </v-col>
+                              <v-col
+                                cols="12"
+                                sm="12"
+                                md="12"
+                                v-show="editedItem.type == 'VARIOS_PRODUCTOS'"
+                              >
+                                <p class="body-1 font-weight-bold">
+                                  Selecciona una plantilla
+                                </p>
+                                <v-autocomplete
+                                  :disabled="!getBotId(editedItem.postUrl)"
+                                  item-text="nameWithCountry"
+                                  item-value="_id"
+                                  :search-input.sync="searchProduct"
+                                  v-model="selectedProducts"
+                                  :items="products"
+                                  chips
+                                  clearable
+                                  label="Busca los productos"
+                                  no-data-text="No se encontraron productos"
+                                  no-filter
+                                  solo
+                                  @change="deleteCurrentSearch"
+                                >
+                                  <template
+                                    v-slot:selection="{
+                                      attrs,
+                                      item,
+                                      select,
+                                      selected,
+                                    }"
+                                  >
+                                    <v-chip
+                                      v-bind="attrs"
+                                      :input-value="selected"
+                                      close
+                                      @click="select"
+                                      @click:close="remove(item)"
+                                      color="deep-purple accent-4"
+                                      outlined
+                                    >
+                                      <strong>{{ item.name }}</strong>
+                                    </v-chip>
+                                  </template>
+                                </v-autocomplete>
+                              </v-col>
+                            </v-row>
+                          </div>
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -203,13 +394,15 @@
                     {{ filteredCommentsFacebook.length }} registros
                   </span>
                 </v-col>
-                <div class="text-center pt-2">
-                  <v-pagination
-                    v-model="page"
-                    :length="pageCount"
-                  ></v-pagination>
-                </div>
               </v-row>
+              <div class="text-center pt-2">
+                <v-pagination
+                  @input="initialize(page)"
+                  v-model="page"
+                  :length="pageCount"
+                  :total-visible="$store.state.maxPaginationButtons"
+                ></v-pagination>
+              </div>
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
@@ -275,7 +468,12 @@
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            @input="initialize(page)"
+            v-model="page"
+            :length="pageCount"
+            :total-visible="$store.state.maxPaginationButtons"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -283,17 +481,20 @@
 </template>
 
 <script>
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import CommentsFacebook from "@/classes/CommentsFacebook";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import { getRandomInt } from "@/utils/utils";
+import InfiniteScroll from "@/components/InfiniteScroll.vue";
+import graphApiService from "@/services/api/graphApi";
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    InfiniteScroll,
   },
   filters: {
     formatDate: function (value) {
@@ -301,17 +502,27 @@ export default {
         locale: es,
       });
     },
+    formatDateAgo: function (value) {
+      return formatDistance(new Date(value), new Date(), {
+        addSuffix: true,
+        locale: es,
+      });
+    },
   },
   data: () => ({
+    updateScroll: 0,
+    fieldsToSearch: ["postUrl"],
     selectedProducts: null,
     products: [],
     searchProduct: "",
     filterByFanpage: null,
+    selectedFanpage: null,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
     dialog: false,
+    dialog3: false,
     paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
@@ -346,9 +557,18 @@ export default {
     defaultItem: CommentsFacebook(),
     type: "comment",
     rolPermisos: {},
+    pagination: {},
+    instagramPosts: [],
+    selectedPost: null,
   }),
 
   computed: {
+    totalItems() {
+      return this.$store.state["commentsFacebookModule"].total;
+    },
+    totalPages() {
+      return this.$store.state["commentsFacebookModule"].totalPages;
+    },
     formTitle() {
       return this.editedIndex === -1
         ? "Nuevo URL"
@@ -380,6 +600,12 @@ export default {
       let isCommentView = this.$route.name == "CommentToMSN";
       this.type = isCommentView ? "comment" : "ad";
     },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
+    },
   },
 
   mounted() {
@@ -402,10 +628,14 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
-    async initialize() {
+    async initialize(page = 1) {
       await Promise.all([
         this.$store.dispatch("commentsFacebookModule/list", {
-          limit: 9999,
+          page,
+          search: this.search,
+          fieldsToSearch: this.fieldsToSearch,
+          sort: "updatedAt",
+          order: "desc",
         }),
         this.$store.dispatch("botsModule/list"),
       ]);
@@ -436,17 +666,26 @@ export default {
 
     close() {
       this.dialog = false;
+      this.clearData();
+    },
+    clearData() {
+      // conservando seleccion plataforma
+      let auxPlatform = this.editedItem.platform;
       setTimeout(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedItem.platform = auxPlatform;
         this.selectedProducts = null;
         this.products = [];
         this.editedIndex = -1;
+        this.selectedFanpage = null;
       }, 300);
     },
 
     async save() {
       this.loadingButton = true;
-      this.editedItem.botId = this.getBotId(this.editedItem.postUrl)._id;
+      this.editedItem.botId = this.selectedFanpage
+        ? this.selectedFanpage._id
+        : this.getBotId(this.editedItem.postUrl)._id;
       if (this.editedIndex > -1) {
         let itemId = this.commentsFacebook[this.editedIndex]._id;
         try {
@@ -582,6 +821,23 @@ export default {
       this.editedItem.selectedLabelIndex = facebookLabels.length > 0 ? 0 : null;
       this.editedItem.selectedUrl = product.permalink;
       this.editedItem.selectedUrlIndex = 0;
+    },
+    async loadMore() {
+      console.log("CARGANDO MAS...");
+      let response = await graphApiService.getInstagramPosts(
+        this.selectedFanpage.fanpageId,
+        this.instagramNextPage
+      );
+      this.instagramPosts.push(...response.data.payload.data);
+      this.instagramNextPage = response.data.payload.paging.cursors.after;
+    },
+    selectInstagramPost(post) {
+      this.selectedPost = post;
+      this.dialog3 = false;
+      this.editedItem.postImgUrl =
+        post.media_type === "VIDEO" ? post.thumbnail_url : post.media_url;
+      this.editedItem.postUrl = post.permalink;
+      this.editedItem.external_id = post.id;
     },
   },
 };

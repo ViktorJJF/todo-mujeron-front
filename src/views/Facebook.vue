@@ -347,6 +347,7 @@ export default {
     platforms: [
       { text: "Facebook", value: "facebook" },
       { text: "Telegram", value: "telegram" },
+      { text: "Instagram", value: "instagram" },
     ],
     headers: [
       {

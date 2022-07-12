@@ -11,6 +11,11 @@ export default {
   getAudiences() {
     return axios.post("/api/graph-api/getAudiences");
   },
+  getInstagramPosts(fanpageId, next_page) {
+    return axios.get("/api/graph-api/get-instagram-posts", {
+      params: { fanpageId, next_page },
+    });
+  },
   deleteLabel(id, fanpageId) {
     return axios.delete(`/api/graph-api/labels/${id}?fanpageId=${fanpageId}`);
   },

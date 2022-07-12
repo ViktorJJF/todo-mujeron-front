@@ -1,57 +1,65 @@
 * {
-    font-family: Helvetica, Arial, sans-serif
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 // table headers
 th {
-    span {
-        color: black;
-        font-size: 1.3em;
-    }
+  span {
+    color: black;
+    font-size: 1.3em;
+  }
 }
 
 .ganancia {
-    color: #1DB059;
-    font-weight: bold;
+  color: #1db059;
+  font-weight: bold;
 }
 
 .perdida {
-    color: red;
-    font-weight: bold;
+  color: red;
+  font-weight: bold;
 }
 
 .date-width {
-    max-width: 300px;
+  max-width: 300px;
 }
 
 // table style
 .v-data-table.custom-table {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
 }
 
 .v-data-table.custom-table td,
 .v-data-table.custom-table th {
-    border: 1px solid #ddd;
-    padding: 8px;
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 
 .v-data-table.custom-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
 .v-data-table.custom-table tr:hover {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 .v-data-table.custom-table th {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    text-align: left;
-    background-color: #28156C;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #28156c;
 
-    span {
-        color: white;
-    }
+  span {
+    color: white;
+  }
+}
+
+.limited-text {
+  display: block;
+  width: 400px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

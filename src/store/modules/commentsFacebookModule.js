@@ -1,5 +1,9 @@
 import api from "@/services/api/commentsFacebook";
-import { buildSuccess, handleError } from "@/utils/utils.js";
+import {
+  buildSuccess,
+  handleError,
+  buildQueryWithPagination,
+} from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
@@ -10,10 +14,11 @@ const module = {
   },
   actions: {
     list({ commit }, query) {
+      let finalQuery = buildQueryWithPagination(query);
       commit("loadingModule/showLoading", true, { root: true });
       return new Promise((resolve, reject) => {
         api
-          .list(query)
+          .list(finalQuery)
           .then((response) => {
             commit("loadingModule/showLoading", false, { root: true });
             commit("list", response.data.payload);
