@@ -45,6 +45,7 @@
                         @click="
                           editedItem.platform = 'facebook';
                           clearResponses();
+                          clearData();
                         "
                         color="secondary"
                         dark
@@ -105,13 +106,9 @@
                           </v-row>
                           <div v-if="editedItem.platform">
                             <v-row dense>
-                              <v-col
-                                cols="12"
-                                sm="6"
-                                v-if="editedItem.platform === 'instagram'"
-                              >
+                              <v-col cols="12" sm="6">
                                 <span class="font-weight-bold"
-                                  >Selecciona una cuenta de instagram</span
+                                  >Selecciona una cuenta</span
                                 >
                                 <v-select
                                   @change="
@@ -122,11 +119,12 @@
                                   clearable
                                   dense
                                   hide-details
-                                  placeholder="Selecciona la fanpage"
+                                  placeholder="Cuenta"
                                   outlined
                                   :items="
                                     $store.state.botsModule.bots.filter(
-                                      (el) => el.platform === 'instagram'
+                                      (el) =>
+                                        el.platform === editedItem.platform
                                     )
                                   "
                                   item-text="fanpageName"
@@ -135,22 +133,15 @@
                                 ></v-select>
                               </v-col>
                               <v-col cols="12" sm="12">
-                                <p
-                                  v-show="editedItem.platform === 'instagram'"
-                                  class="body-1 font-weight-bold"
-                                >
+                                <p class="body-1 font-weight-bold">
                                   Publicación
                                 </p>
-                                <v-card
-                                  v-if="
-                                    selectedPost &&
-                                    editedItem.platform === 'instagram'
-                                  "
-                                >
+                                <v-card v-if="selectedPost">
                                   <span class="limited-text ma-2">
                                     {{ selectedPost.caption }}
                                   </span>
                                   <v-img
+                                    v-if="editedItem.platform === 'instagram'"
                                     :src="
                                       selectedPost.media_type != 'VIDEO'
                                         ? selectedPost.media_url
@@ -160,22 +151,38 @@
                                     aspect-ratio="1"
                                     contain
                                   ></v-img>
+                                  <v-img
+                                    v-else
+                                    :src="selectedPost.full_picture"
+                                    height="330px"
+                                    aspect-ratio="1"
+                                    contain
+                                  ></v-img>
                                   <v-card-actions>
-                                    {{ selectedPost.timestamp | formatDateAgo }}
+                                    {{
+                                      selectedPost.timestamp ||
+                                      selectedPost.created_time | formatDateAgo
+                                    }}
                                     <v-spacer></v-spacer>
                                     <v-btn color="info" text>
                                       <a
-                                        :href="selectedPost.permalink"
+                                        :href="
+                                          selectedPost.permalink ||
+                                          selectedPost.permalink_url
+                                        "
                                         target="_blank"
                                       >
-                                        Ver en Instagram</a
+                                        {{
+                                          editedItem.platform === "instagram"
+                                            ? "Ver en Instagram"
+                                            : "Ver en Facebook"
+                                        }}</a
                                       >
                                     </v-btn>
                                     <v-btn icon> </v-btn>
                                   </v-card-actions>
                                 </v-card>
                                 <v-dialog
-                                  v-show="editedItem.platform === 'instagram'"
                                   v-model="dialog3"
                                   width="600"
                                   hide-overlay
@@ -188,12 +195,9 @@
                                       >
                                         <v-btn
                                           class="mt-1"
-                                          v-show="
-                                            editedItem.platform === 'instagram'
-                                          "
                                           color="info"
                                           outlined
-                                          dark
+                                          :disabled="!selectedFanpage"
                                           v-on="{ ...tooltip, ...dialog3 }"
                                           >{{
                                             selectedPost
@@ -207,22 +211,45 @@
                                   </template>
 
                                   <v-card>
-                                    <v-container
-                                      ><InfiniteScroll
+                                    <v-container>
+                                      <v-row>
+                                        <v-col cols="12" sm="12">
+                                          <v-text-field
+                                            dense
+                                            hide-details
+                                            v-model="searchPost"
+                                            append-icon="search"
+                                            placeholder="Escribe la url"
+                                            single-line
+                                            outlined
+                                            class="mb-2"
+                                          ></v-text-field>
+                                        </v-col>
+                                      </v-row>
+                                      <InfiniteScroll
                                         :key="updateScroll"
                                         @loadMore="loadMore"
                                       >
                                         <v-card
-                                          v-for="(post, idx) in instagramPosts"
+                                          v-for="(post, idx) in filteredPosts"
                                           :key="idx"
                                         >
                                           <span class="limited-text ma-2">
-                                            {{ post.caption }}
+                                            {{ post.caption || post.message }}
                                           </span>
                                           <v-img
+                                            v-if="
+                                              editedItem.platform ===
+                                              'instagram'
+                                            "
                                             aspect-ratio="0.3"
                                             style="cursor: pointer"
-                                            @click="selectInstagramPost(post)"
+                                            @click="
+                                              selectPost(
+                                                post,
+                                                editedItem.platform
+                                              )
+                                            "
                                             :src="
                                               post.media_type != 'VIDEO'
                                                 ? post.media_url
@@ -230,15 +257,42 @@
                                             "
                                             height="490px"
                                           ></v-img>
+                                          <v-img
+                                            v-if="
+                                              editedItem.platform === 'facebook'
+                                            "
+                                            aspect-ratio="0.3"
+                                            style="cursor: pointer"
+                                            @click="
+                                              selectPost(
+                                                post,
+                                                editedItem.platform
+                                              )
+                                            "
+                                            :src="post.full_picture"
+                                            height="490px"
+                                          ></v-img>
                                           <v-card-actions>
-                                            {{ post.timestamp | formatDateAgo }}
+                                            {{
+                                              (post.timestamp ||
+                                                post.created_time)
+                                                | formatDateAgo
+                                            }}
                                             <v-spacer></v-spacer>
                                             <v-btn color="info" text>
                                               <a
-                                                :href="post.permalink"
+                                                :href="
+                                                  post.permalink ||
+                                                  post.permalink_url
+                                                "
                                                 target="_blank"
                                               >
-                                                Ver en Instagram</a
+                                                {{
+                                                  editedItem.platform ===
+                                                  "instagram"
+                                                    ? "Ver en Instagram"
+                                                    : "Ver en Facebook"
+                                                }}</a
                                               >
                                             </v-btn>
                                             <v-btn icon> </v-btn>
@@ -321,7 +375,7 @@
                                   Selecciona una plantilla
                                 </p>
                                 <v-autocomplete
-                                  :disabled="!getBotId(editedItem.postUrl)"
+                                  :disabled="!selectedFanpage"
                                   item-text="nameWithCountry"
                                   item-value="_id"
                                   :search-input.sync="searchProduct"
@@ -514,6 +568,7 @@ export default {
     },
   },
   data: () => ({
+    searchPost: "",
     updateScroll: 0,
     fieldsToSearch: ["postUrl"],
     selectedProducts: null,
@@ -587,6 +642,15 @@ export default {
     },
     isCommentView() {
       return this.$route.name == "CommentToMSN";
+    },
+    filteredPosts() {
+      return this.searchPost.trim().length > 0
+        ? this.instagramPosts.filter((el) =>
+            (el.permalink ? el.permalink : el.permalink_url)
+              .toLowerCase()
+              .includes(this.searchPost.trim().toLowerCase())
+          )
+        : this.instagramPosts;
     },
   },
 
@@ -682,6 +746,8 @@ export default {
         this.products = [];
         this.editedIndex = -1;
         this.selectedFanpage = null;
+        this.searchPost = "";
+        this.selectedPost = null;
       }, 300);
     },
 
@@ -732,9 +798,13 @@ export default {
     async getProducts(page = 1) {
       if (!this.searchProduct) return;
       //llamada asincrona de items
+      console.log(
+        "🚀 Aqui *** -> this.selectedFanpage.country",
+        this.selectedFanpage.country
+      );
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
-          country: this.getCountryByPostLink(this.editedItem.postUrl),
+          country: this.selectedFanpage.country,
           sort: "name",
           page,
           search: this.searchProduct,
@@ -828,19 +898,33 @@ export default {
     },
     async loadMore() {
       console.log("CARGANDO MAS...");
-      let response = await graphApiService.getInstagramPosts(
-        this.selectedFanpage.fanpageId,
-        this.instagramNextPage
-      );
+      let response;
+      if (this.editedItem.platform === "instagram") {
+        response = await graphApiService.getInstagramPosts(
+          this.selectedFanpage.fanpageId,
+          this.instagramNextPage
+        );
+      } else {
+        response = await graphApiService.getFacebookPosts(
+          this.selectedFanpage.fanpageId,
+          this.instagramNextPage
+        );
+      }
       this.instagramPosts.push(...response.data.payload.data);
       this.instagramNextPage = response.data.payload.paging.cursors.after;
     },
-    selectInstagramPost(post) {
+    selectPost(post, platform) {
       this.selectedPost = post;
       this.dialog3 = false;
-      this.editedItem.postImgUrl =
-        post.media_type === "VIDEO" ? post.thumbnail_url : post.media_url;
-      this.editedItem.postUrl = post.permalink;
+      if (platform === "instagram") {
+        this.editedItem.postImgUrl =
+          post.media_type === "VIDEO" ? post.thumbnail_url : post.media_url;
+        this.editedItem.postUrl = post.permalink;
+      } else {
+        this.editedItem.postImgUrl = post.full_picture;
+        this.editedItem.postUrl = post.permalink_url;
+      }
+
       this.editedItem.external_id = post.id;
     },
   },

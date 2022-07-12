@@ -16,6 +16,11 @@ export default {
       params: { fanpageId, next_page },
     });
   },
+  getFacebookPosts(fanpageId, next_page) {
+    return axios.get("/api/graph-api/get-facebook-posts", {
+      params: { fanpageId, next_page },
+    });
+  },
   deleteLabel(id, fanpageId) {
     return axios.delete(`/api/graph-api/labels/${id}?fanpageId=${fanpageId}`);
   },
