@@ -386,6 +386,9 @@ export default {
           : this.postPicture
         : this.postPicture;
     },
+    isInstagramPost() {
+      return this.commentFacebook.platform === "instagram";
+    },
   },
   created() {
     this.commentFacebook = {
@@ -660,9 +663,11 @@ export default {
         (el) => el.webTags && el.webTags.find((tag) => tag._id == categoryId)
       );
       if (selectedTodofullLabels) {
-        return selectedTodofullLabels.messengerTags.filter(
-          (tag) => tag.fanpageId === this.commentFacebook.botId.fanpageId // se retorna solo las que pertenezcan a la fanpage actual
-        );
+        return this.isInstagramPost
+          ? selectedTodofullLabels.messengerTags
+          : selectedTodofullLabels.messengerTags.filter(
+              (tag) => tag.fanpageId === this.commentFacebook.botId.fanpageId // se retorna solo las que pertenezcan a la fanpage actual
+            );
       }
       return [];
     },
