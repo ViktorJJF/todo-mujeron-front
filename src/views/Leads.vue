@@ -522,6 +522,7 @@ export default {
     },
   },
   data: () => ({
+    selectedLabels: [],
     isFilterEmptyActive: false,
     filterCountries: [],
     dataTableLoading: true,
@@ -663,11 +664,7 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
-    async initialize(
-      paginationPayload,
-      selectedLabels,
-      showLeadsWithoutLabels
-    ) {
+    async initialize(paginationPayload) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
@@ -676,11 +673,11 @@ export default {
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
-      if (selectedLabels && selectedLabels.length > 0) {
-        body["todofullLabels"] = selectedLabels.map((el) => el._id);
+      if (this.selectedLabels && this.selectedLabels.length > 0) {
+        body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
       }
-      if (showLeadsWithoutLabels) {
-        body["showLeadsWithoutLabels"] = true;
+      if (this.showLeadsWithoutLabel) {
+        body["showLeadsWithoutLabel"] = true;
       }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
@@ -877,6 +874,7 @@ export default {
       );
     },
     onSelectTodofullLabels(selectedLabels) {
+      this.selectedLabels = selectedLabels;
       this.initialize(
         buildPayloadPagination(
           {
@@ -884,11 +882,11 @@ export default {
             itemsPerPage: this.$store.state.itemsPerPage,
           },
           this.buildSearch()
-        ),
-        selectedLabels
+        )
       );
     },
     showLeadsWithoutLabels() {
+      this.showLeadsWithoutLabel = true;
       this.initialize(
         buildPayloadPagination(
           {
@@ -896,12 +894,11 @@ export default {
             itemsPerPage: this.$store.state.itemsPerPage,
           },
           this.buildSearch()
-        ),
-        null,
-        true
+        )
       );
     },
     showAllLeads() {
+      this.showLeadsWithoutLabel = false;
       this.initialize(
         buildPayloadPagination(
           {
