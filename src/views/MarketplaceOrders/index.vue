@@ -358,7 +358,10 @@ export default {
         return;
       }
 
-      pdfBytes = await this.formatPdf(pdfBytes, order)
+      const isFormatted = order.source === 'mercadolibre' && order.externalId >= 2000003861160360
+      if(!isFormatted) {
+        pdfBytes = await this.formatPdf(pdfBytes, order)
+      }
 
       var blob = new Blob( [ pdfBytes ], { type: 'application/pdf' } )
       var url = URL.createObjectURL( blob );
