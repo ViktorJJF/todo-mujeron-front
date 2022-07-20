@@ -677,7 +677,7 @@ export default {
         body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
       }
       if (this.showLeadsWithoutLabel) {
-        body["showLeadsWithoutLabel"] = true;
+        body["showLeadsWithoutLabels"] = true;
       }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
