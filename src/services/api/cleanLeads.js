@@ -3,7 +3,11 @@ import store from "@/store";
 
 export default {
   list(query = { sort: "createdAt", order: "1" }) {
+    console.log("🚀 Aqui *** -> query", query);
     if (query.telefonoId === null) query.telefonoId = "";
+    if (query.todofullLabels) {
+      query.todofullLabels = JSON.stringify(query.todofullLabels);
+    }
     if (query.pais) {
       //filtro pais
       let filterCountries = "";

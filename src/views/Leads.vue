@@ -106,6 +106,29 @@
                       v-show="rolPermisos['Write']"
                       >Agregar lead</v-btn
                     >
+
+                    <v-btn
+                      v-show="!isFilterEmptyActive"
+                      color="secondary"
+                      dark
+                      class="mb-2 ml-2"
+                      @click="
+                        showLeadsWithoutLabels();
+                        isFilterEmptyActive = true;
+                      "
+                      >Leads sin etiquetas</v-btn
+                    >
+                    <v-btn
+                      v-show="isFilterEmptyActive"
+                      color="primary"
+                      dark
+                      class="mb-2 ml-2"
+                      @click="
+                        showAllLeads();
+                        isFilterEmptyActive = false;
+                      "
+                      >Mostrar anterior</v-btn
+                    >
                   </template>
                   <v-card>
                     <v-card-title>
@@ -296,6 +319,9 @@
                   </v-card>
                 </v-dialog>
               </v-col>
+              <TodofullLabelsSelector
+                @onSelectTodofullLabels="onSelectTodofullLabels"
+              ></TodofullLabelsSelector>
             </v-row>
             <v-col cols="12" sm="12">
               <span>
@@ -473,6 +499,7 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/CleanLeads";
 import auth from "@/services/api/auth";
+import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 
 import {
   getRandomInt,
@@ -485,6 +512,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    TodofullLabelsSelector,
   },
   filters: {
     formatDate: function (value) {
@@ -494,6 +522,7 @@ export default {
     },
   },
   data: () => ({
+    isFilterEmptyActive: false,
     filterCountries: [],
     dataTableLoading: true,
     page: 1,
@@ -634,7 +663,11 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
-    async initialize(paginationPayload) {
+    async initialize(
+      paginationPayload,
+      selectedLabels,
+      showLeadsWithoutLabels
+    ) {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
@@ -643,6 +676,12 @@ export default {
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
+      if (selectedLabels && selectedLabels.length > 0) {
+        body["todofullLabels"] = selectedLabels.map((el) => el._id);
+      }
+      if (showLeadsWithoutLabels) {
+        body["showLeadsWithoutLabels"] = true;
+      }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
@@ -835,6 +874,42 @@ export default {
       lead.todofullLabels.splice(
         lead.todofullLabels.findIndex((el) => el._id === label._id),
         1
+      );
+    },
+    onSelectTodofullLabels(selectedLabels) {
+      this.initialize(
+        buildPayloadPagination(
+          {
+            page: 1,
+            itemsPerPage: this.$store.state.itemsPerPage,
+          },
+          this.buildSearch()
+        ),
+        selectedLabels
+      );
+    },
+    showLeadsWithoutLabels() {
+      this.initialize(
+        buildPayloadPagination(
+          {
+            page: 1,
+            itemsPerPage: this.$store.state.itemsPerPage,
+          },
+          this.buildSearch()
+        ),
+        null,
+        true
+      );
+    },
+    showAllLeads() {
+      this.initialize(
+        buildPayloadPagination(
+          {
+            page: 1,
+            itemsPerPage: this.$store.state.itemsPerPage,
+          },
+          this.buildSearch()
+        )
       );
     },
   },
