@@ -479,7 +479,11 @@ export default {
         : this.$t(this.entity + ".EDIT_ITEM");
     },
     items() {
-      return this[ENTITY];
+      if(this.search.length) {
+        return this[ENTITY]
+      }
+
+      return this[ENTITY].filter(item => item.stock_status !== 'outofstock');
     },
     entity() {
       return ENTITY;
@@ -540,6 +544,7 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "date_modified",
           order: -1,
+          listType: 'All'
         }),
       ]);
       //asignar al data del componente
