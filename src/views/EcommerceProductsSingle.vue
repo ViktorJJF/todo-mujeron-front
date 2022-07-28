@@ -46,6 +46,31 @@
               {{ item.attributesFormatted.color ? item.attributesFormatted.color.option : '' }}
             </span>
           </template>
+          <template v-slot:item.stock_quantity="{ item }">
+            <v-edit-dialog v-if="item.id"
+              large
+              persistent
+              @save="handleStockSave(item)"
+              @open="currentStock = item.stock_quantity"
+            >
+              <div>{{ item.stock_quantity }}</div>
+              <template v-slot:input>
+                <div class="mt-4 text-h6">
+                  Modificar Stock
+                </div>
+                <v-text-field
+                  ref="stockTextEdit"
+                  v-model="currentStock"
+                  label="Edit"
+                  type="number"
+                  min="0"
+                  :rules="stockRules" 
+                  single-line
+                  autofocus
+                ></v-text-field>
+              </template>
+            </v-edit-dialog>
+          </template>
         </v-data-table>
       </material-card>
     </v-row>
@@ -64,6 +89,12 @@ export default {
       product: null,
       variations: [],
       switchLoading: [],
+      currentStock: 0,
+      stockRules: [
+        val => /^[0-9]*$/.test(val) || "Debe ser un número",
+        val => val >=0 || "No puede ser negativo",
+        val => !!val || "El campo es requerido"
+      ],
       headers: [
         {
           text: "",
@@ -182,12 +213,9 @@ export default {
 
       const isProduct = 'idEcommerce' in item
       if(isProduct) {
-        // const attributes = this.getAttributes(active)
-
         let productChanges = {
           ...changes,
           catalog_visibility: active === true ? 'visible' : 'hidden',
-          // attributes
         }
 
         await ecommerces.update(item._id, productChanges)
@@ -195,7 +223,6 @@ export default {
         Object.assign(item, {
           ...productChanges,
           stock_quantity: null,
-          // attributesFormatted: this.getFormatAttributes(attributes)
         })
         
         this.switchLoading = this.switchLoading.filter(v => v !== id)
@@ -258,6 +285,19 @@ export default {
       attributes[index] = { ...talla, options }
 
       return attributes;
+    },
+    async handleStockSave(item) {
+      if(this.$refs.stockTextEdit.valid) {
+        this.switchLoading.push(item.id)
+        const changes = {
+          stock_quantity: this.currentStock,
+          stock_status: this.currentStock > 0 ? 'instock' : 'outofstock',
+          status: this.currentStock > 0 ? 'publish' : 'draft'
+        }
+        Object.assign(item, changes)
+        await ecommerces.updateVariation(this.product._id, item.id, changes)
+        this.switchLoading = this.switchLoading.filter(v => v !== item.id)
+      }
     }
   },
 }

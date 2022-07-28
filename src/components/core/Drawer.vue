@@ -171,84 +171,6 @@
             :value="false"
             no-action
             sub-group
-            @click="
-              checkAuth(
-                'Configuracion/Propiedades/Woocommerces',
-                'Woocommerces'
-              )
-                ? $router.push({ name: 'Woocommerce' })
-                : ''
-            "
-            v-if="checkAuth('Configuracion/Propiedades/Woocommerces')"
-          >
-            <template v-slot:activator>
-              <v-list-item-content>
-                <v-list-item-title>Woocommerce</v-list-item-title>
-              </v-list-item-content>
-            </template>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceProducts' }"
-              v-if="
-                checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')
-              "
-            >
-              <v-list-item-content> Productos </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceCategories' }"
-              v-if="
-                checkAuth(
-                  'Configuracion/Propiedades/Woocommerces',
-                  'Categorias'
-                )
-              "
-            >
-              <v-list-item-content> Categorías </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceTags' }"
-              v-if="
-                checkAuth('Configuracion/Propiedades/Woocommerces', 'Etiquetas')
-              "
-            >
-              <v-list-item-content> Etiquetas </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceContacts' }"
-              v-if="
-                checkAuth('Configuracion/Propiedades/Woocommerces', 'Contactos')
-              "
-            >
-              <v-list-item-content> Contactos </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceOrders' }"
-              v-if="
-                checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')
-              "
-            >
-              <v-list-item-content> Órdenes </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EcommerceAttributes' }"
-              v-if="
-                checkAuth('Configuracion/Propiedades/Woocommerces', 'Atributos')
-              "
-            >
-              <v-list-item-content> Atributos </v-list-item-content>
-            </v-list-item>
-          </v-list-group>
-          <v-list-group
-            color="white"
-            :value="false"
-            no-action
-            sub-group
             v-if="checkAuth('Configuracion/Propiedades/Genial')"
           >
             <template v-slot:activator>
@@ -630,6 +552,46 @@
           </v-list-item-icon>
 
           <v-list-item-content>Ordenes</v-list-item-content>
+        </v-list-item>
+        
+      </v-list-group>
+      
+      <v-list-group
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
+        no-action
+        @click="
+          checkAuth(
+            'Configuracion/Propiedades/Woocommerces',
+            'Woocommerces'
+          )
+            ? $router.push({ name: 'Woocommerce' })
+            : ''
+        "
+        v-if="checkAuth('Configuracion/Propiedades/Woocommerces')"
+      >
+        <template v-slot:activator>
+          <v-list-item-content>
+            <v-list-item-title>Woocommerce</v-list-item-title>
+          </v-list-item-content>
+        </template>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'EcommerceProducts' }"
+          v-if="
+            checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')
+          "
+        >
+          <v-list-item-content> Productos </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'EcommerceOrders' }"
+          v-if="
+            checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')
+          "
+        >
+          <v-list-item-content> Órdenes </v-list-item-content>
         </v-list-item>
       </v-list-group>
 
