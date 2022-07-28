@@ -1,6 +1,7 @@
 <template>
   <v-col cols="12" sm="12">
     <v-combobox
+      placeholder="Búsqueda por etiquetas"
       class="mt-3"
       item-text="name"
       :search-input.sync="searchLabel"

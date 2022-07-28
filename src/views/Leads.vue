@@ -22,6 +22,9 @@
         :options.sync="pagination"
         :server-items-length="totalItems"
       >
+        <template v-slot:[`header.checkbox`]>
+          <v-checkbox v-model="globalSelector"
+        /></template>
         <template v-slot:top>
           <v-container>
             <span class="font-weight-bold">Selecciona al agente</span>
@@ -128,6 +131,14 @@
                         isFilterEmptyActive = false;
                       "
                       >Mostrar anterior</v-btn
+                    >
+                    <v-btn
+                      v-show="selectedLeads.length > 0"
+                      color="success"
+                      dark
+                      class="mb-2 ml-2"
+                      @click.stop="openWhatsappTemplatesDialog"
+                      >Enviar plantilla</v-btn
                     >
                   </template>
                   <v-card>
@@ -386,6 +397,9 @@
             >Eliminar</v-btn
           >
         </template>
+        <template v-slot:[`item.checkbox`]="{ item }">
+          <v-checkbox v-model="selectedLeads" :value="item"></v-checkbox>
+        </template>
         <template v-slot:[`item.fuente`]="{ item }">
           <v-simple-table dense class="pa-6">
             <template v-slot:default>
@@ -489,6 +503,43 @@
         ></v-pagination>
       </div>
     </material-card>
+    <v-dialog v-model="whatsappDialog" max-width="690">
+      <v-card>
+        <v-card-title class="text-h5"> Mensajes de Plantilla </v-card-title>
+
+        <v-simple-table>
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">Estado</th>
+                <th class="text-left">Nombre</th>
+                <th class="text-left"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(template, idx) in templateMessages" :key="idx">
+                <td>{{ template.status }}</td>
+                <td>{{ template.name }}</td>
+                <td>
+                  <v-btn
+                    color="secondary"
+                    @click="sendTemplateMessage(template.name)"
+                    >Enviar</v-btn
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" text @click="whatsappDialog = false">
+            Listo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -500,6 +551,7 @@ import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/CleanLeads";
 import auth from "@/services/api/auth";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
+import graphApiService from "@/services/api/graphApi";
 
 import {
   getRandomInt,
@@ -522,6 +574,9 @@ export default {
     },
   },
   data: () => ({
+    templateMessages: [],
+    whatsappDialog: false,
+    globalSelector: false,
     selectedLabels: [],
     isFilterEmptyActive: false,
     filterCountries: [],
@@ -536,7 +591,14 @@ export default {
     isDataReady: false,
     selectedOrder: 0,
     pagination: {},
+    selectedLeads: [],
     headers: [
+      {
+        text: "checkbox",
+        align: "center",
+        sortable: false,
+        value: "checkbox",
+      },
       {
         text: "Última actualización",
         align: "left",
@@ -909,6 +971,30 @@ export default {
           this.buildSearch()
         )
       );
+    },
+    async openWhatsappTemplatesDialog() {
+      this.whatsappDialog = true;
+      // getting api data
+      const whats_app_business_account_id = "111896868194668";
+      this.templateMessages = (
+        await graphApiService.getWhatsappMessageTemplates(
+          whats_app_business_account_id
+        )
+      ).data.payload;
+    },
+    async sendTemplateMessage(
+      template_name,
+      language = "es",
+      phone_number_id = "105502328842482"
+    ) {
+      for (let i = 0; i < this.selectedLeads.length; i++) {
+        await graphApiService.sendWhatsappMessageTemplates(
+          template_name,
+          this.selectedLeads[i].telefono,
+          language,
+          phone_number_id
+        );
+      }
     },
   },
 };

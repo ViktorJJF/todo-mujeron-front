@@ -24,4 +24,17 @@ export default {
   deleteLabel(id, fanpageId) {
     return axios.delete(`/api/graph-api/labels/${id}?fanpageId=${fanpageId}`);
   },
+  getWhatsappMessageTemplates(whats_app_business_account_id) {
+    return axios.get(
+      `/api/graph-api/whatsapp/message-templates?whats_app_business_account_id=${whats_app_business_account_id}`
+    );
+  },
+  sendWhatsappMessageTemplates(template_name, to, language, phone_number_id) {
+    return axios.post(`/api/graph-api/whatsapp/send-message-templates?`, {
+      template_name,
+      to,
+      language,
+      phone_number_id,
+    });
+  },
 };
