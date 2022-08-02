@@ -354,6 +354,37 @@
               ></v-pagination>
             </div>
           </v-container>
+          <v-btn v-show="!isSegmentPreviewMode" color="primary" outlined
+            >Ver segmentos</v-btn
+          >
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            color="primary"
+            outlined
+            @click="segmentDialog = true"
+            >Nuevo segmento</v-btn
+          >
+          <div>
+            <v-alert
+              v-if="isSegmentPreviewMode"
+              v-model="alert"
+              border="left"
+              close-text="Close Alert"
+              color="deep-purple accent-4"
+              dark
+              dismissible
+              outlined
+            >
+              {{ $store.state.cleanLeadsModule.total }} Contactos cumplen las
+              condiciones
+              <template v-slot:[`close`]
+                ><v-btn color="primary" outlined>Guardar Segmento</v-btn>
+                <v-btn color="error" outlined @click="segmentDialog = true"
+                  >Cancelar</v-btn
+                ></template
+              >
+            </v-alert>
+          </div>
         </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
           <v-chip
@@ -540,6 +571,14 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="segmentDialog" max-width="700px">
+      <MarketingSegmentsForm
+        @onClose="segmentDialog = false"
+        @onSave="onSaveSegment"
+        :activatePreview="true"
+        @onPreview="onPreviewSegment"
+      ></MarketingSegmentsForm>
+    </v-dialog>
   </div>
 </template>
 
@@ -552,6 +591,7 @@ import Leads from "@/classes/CleanLeads";
 import auth from "@/services/api/auth";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 import graphApiService from "@/services/api/graphApi";
+import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 
 import {
   getRandomInt,
@@ -565,6 +605,7 @@ export default {
     MaterialCard,
     VTextFieldWithValidation,
     TodofullLabelsSelector,
+    MarketingSegmentsForm,
   },
   filters: {
     formatDate: function (value) {
@@ -574,6 +615,8 @@ export default {
     },
   },
   data: () => ({
+    isSegmentPreviewMode: false,
+    segmentDialog: false,
     templateMessages: [],
     whatsappDialog: false,
     globalSelector: false,
@@ -995,6 +1038,13 @@ export default {
           phone_number_id
         );
       }
+    },
+    onSaveSegment() {
+      this.segmentDialog = false;
+    },
+    onPreviewSegment() {
+      this.isSegmentPreviewMode = true;
+      this.segmentDialog = false;
     },
   },
 };

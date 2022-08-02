@@ -145,5 +145,21 @@
         "status": {
             "shipped": "Enviada"
         }
+    },
+    "marketingCampaigns": {
+        "TITLE": "Campañas",
+        "SUBTITLE": "Listado Campañas",
+        "NEW_ITEM": "Nueva Campañas",
+        "EDIT_ITEM": "Editar Campaña",
+        "NO_DATA": "Aún no cuentas con Campañas",
+        "NO_RESULTS": "No hay resultados"
+    },
+    "marketingSegments": {
+        "TITLE": "Segmentos",
+        "SUBTITLE": "Listado Segmentos",
+        "NEW_ITEM": "Nuevo Segmento",
+        "EDIT_ITEM": "Editar Segmento",
+        "NO_DATA": "Aún no cuentas con Segmentos",
+        "NO_RESULTS": "No hay resultados"
     }
 }

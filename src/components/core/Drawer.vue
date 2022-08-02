@@ -123,7 +123,10 @@
             :key="propiedad.id"
             active-class="primary custom2"
             :to="{ name: propiedad.to }"
-            v-show="propiedad.to==='MarketplaceFuentes' || checkAuth('Configuracion/Propiedades', propiedad.to)"
+            v-show="
+              propiedad.to === 'MarketplaceFuentes' ||
+              checkAuth('Configuracion/Propiedades', propiedad.to)
+            "
           >
             <v-list-item-content>
               {{ propiedad.text }}
@@ -546,25 +549,24 @@
         <template v-slot:activator>
           <v-list-item-title>Marketplace</v-list-item-title>
         </template>
-        <v-list-item active-class="primary custom2" :to="{ name: 'MarketplaceOrdenes' }">
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'MarketplaceOrdenes' }"
+        >
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Ordenes</v-list-item-content>
         </v-list-item>
-        
       </v-list-group>
-      
+
       <v-list-group
         prepend-icon="mdi-format-list-bulleted"
         color="white"
         no-action
         @click="
-          checkAuth(
-            'Configuracion/Propiedades/Woocommerces',
-            'Woocommerces'
-          )
+          checkAuth('Configuracion/Propiedades/Woocommerces', 'Woocommerces')
             ? $router.push({ name: 'Woocommerce' })
             : ''
         "
@@ -587,11 +589,38 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'EcommerceOrders' }"
-          v-if="
-            checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')
-          "
+          v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
         >
           <v-list-item-content> Órdenes </v-list-item-content>
+        </v-list-item>
+      </v-list-group>
+      <v-list-group
+        :value="false"
+        prepend-icon="mdi-format-list-bulleted"
+        color="white"
+      >
+        <template v-slot:activator>
+          <v-list-item-title>Marketing</v-list-item-title>
+        </template>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'MarketingSegments' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Segmentos</v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'MarketingCampaigns' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Campañas</v-list-item-content>
         </v-list-item>
       </v-list-group>
 
@@ -650,10 +679,10 @@ export default {
           text: "Drive",
           to: "Drive",
         },
-                {
+        {
           icon: "mdi-check",
           text: "Marketplace",
-          to: "MarketplaceFuentes"
+          to: "MarketplaceFuentes",
         },
         {
           icon: "mdi-check",
