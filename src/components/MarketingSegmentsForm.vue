@@ -6,7 +6,7 @@
     </v-card-title>
     <v-divider></v-divider>
     <ValidationObserver ref="obs" v-slot="{ passes }">
-      <v-container class="pa-5">
+      <v-container v-if="!isFinalStep" class="pa-5">
         <v-row>
           <v-col v-if="!activatePreview" cols="12" sm="12" md="12">
             <span class="font-weight-bold">Nombre del segmento</span>
@@ -41,11 +41,28 @@
           </v-col>
         </v-row>
       </v-container>
+      <v-container v-else class="pa-5">
+        <v-card-title class="text-h5">
+          ¿Cómo te gustaría llamar a tu nuevo segmento?
+        </v-card-title>
+        <VTextFieldWithValidation rules="required" v-model="editedItem.name" />
+        <p class="mt-2">
+          Estas guardando un segmento con los siguientes criterios
+        </p>
+        <div>
+          <b>Etiquetas: </b>
+          <v-chip
+            v-for="label in editedItem.todofullLabels"
+            color="primary"
+            :key="label._id"
+          >
+            <strong>{{ label.name }}</strong>
+          </v-chip>
+        </div>
+        <div><b>País: </b>{{ editedItem.target_countries.join(" ,") }}</div>
+      </v-container>
       <v-card-actions rd-actions>
         <div class="flex-grow-1"></div>
-        <v-btn outlined color="error" text @click="$emit('onClose')"
-          >Cancelar</v-btn
-        >
         <v-btn
           v-if="!activatePreview"
           :loading="loadingButton"
@@ -57,8 +74,16 @@
           v-else
           :loading="loadingButton"
           color="secondary"
-          @click="$emit('onPreview')"
+          @click="
+            $emit('onPreview', {
+              todofullLabels: editedItem.todofullLabels,
+              countries: editedItem.target_countries,
+            })
+          "
           >Previsualizar</v-btn
+        >
+        <v-btn outlined color="error" text @click="$emit('onClose')"
+          >Cancelar</v-btn
         >
       </v-card-actions>
     </ValidationObserver>
@@ -88,6 +113,10 @@ export default {
       }),
     },
     activatePreview: {
+      type: Boolean,
+      default: false,
+    },
+    isFinalStep: {
       type: Boolean,
       default: false,
     },

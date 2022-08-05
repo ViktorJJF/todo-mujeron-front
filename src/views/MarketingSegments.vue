@@ -23,9 +23,19 @@
             <v-container>
               <v-row>
                 <v-col cols="12" sm="6">
+                  <v-btn
+                    v-if="isSelectorMode"
+                    @click="$router.push({ name: 'MarketingSegments' })"
+                    color="primary"
+                    outlined
+                    dark
+                    class="mb-2"
+                    >Ver todos los segmentos</v-btn
+                  >
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
                       <v-btn
+                        v-if="!isSelectorMode"
                         color="primary"
                         dark
                         class="mb-2"
@@ -66,13 +76,28 @@
               small
               dark
               @click="editItem(item)"
-              v-if="rolPermisos['Edit']"
+              v-if="rolPermisos['Edit'] && !isSelectorMode"
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="error" fab small dark @click="deleteItem(item)">
+            <v-btn
+              v-if="!isSelectorMode"
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
+            <v-btn
+              small
+              outlined
+              v-if="isSelectorMode"
+              color="secondary"
+              @click="$emit('onSelectedSegment', item)"
+              >Previsualizar</v-btn
+            >
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">{{
@@ -148,6 +173,12 @@ import { es } from "date-fns/locale";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 
 export default {
+  props: {
+    isSelectorMode: {
+      type: Boolean,
+      default: false,
+    },
+  },
   components: {
     MaterialCard,
     MarketingSegmentsForm,
@@ -168,21 +199,6 @@ export default {
     pageCount: 0,
     search: "",
     dialog: false,
-    headers: [
-      {
-        text: "Última modificación",
-        align: "left",
-        sortable: false,
-        value: "updatedAt",
-      },
-      {
-        text: "Nombre",
-        align: "left",
-        sortable: false,
-        value: "name",
-      },
-      { text: "Acciones", value: "action", sortable: false },
-    ],
     [ENTITY]: [],
     advisors: [],
 
@@ -198,6 +214,33 @@ export default {
     },
     entity() {
       return ENTITY;
+    },
+    headers() {
+      return this.isSelectorMode
+        ? [
+            {
+              text: "Nombre",
+              align: "left",
+              sortable: false,
+              value: "name",
+            },
+            { text: "Acciones", value: "action", sortable: false },
+          ]
+        : [
+            {
+              text: "Última modificación",
+              align: "left",
+              sortable: false,
+              value: "updatedAt",
+            },
+            {
+              text: "Nombre",
+              align: "left",
+              sortable: false,
+              value: "name",
+            },
+            { text: "Acciones", value: "action", sortable: false },
+          ];
     },
   },
   watch: {

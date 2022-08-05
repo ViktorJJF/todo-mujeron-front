@@ -19,6 +19,7 @@
         v-slot="{ active, toggle }"
       >
         <v-btn
+          :disabled="disabled"
           class="mx-2"
           :input-value="active"
           active-class="purple white--text"
@@ -43,6 +44,10 @@ export default {
     initialData: {
       type: Array,
       default: () => [],
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

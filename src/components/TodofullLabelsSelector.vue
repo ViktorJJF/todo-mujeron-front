@@ -1,5 +1,6 @@
 <template>
   <v-combobox
+    :disabled="disabled"
     placeholder="Selecciona las etiquetas"
     class="mt-3"
     item-text="name"
@@ -35,6 +36,10 @@ export default {
     initialData: {
       type: Array,
       default: () => [],
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

@@ -61,24 +61,21 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <v-slide-group v-model="filterCountries" multiple show-arrows>
-                    <v-slide-item
-                      v-for="country in $store.state.countries"
-                      :key="country"
-                      v-slot="{ active, toggle }"
-                    >
-                      <v-btn
-                        class="mx-2"
-                        :input-value="active"
-                        active-class="purple white--text"
-                        depressed
-                        rounded
-                        @click="toggle"
-                      >
-                        {{ country }}
-                      </v-btn>
-                    </v-slide-item>
-                  </v-slide-group>
+                  <CountriesSelector
+                    :multiple="true"
+                    @onSelectedCountries="
+                      selectedCountries = $event;
+                      initialize(
+                        buildPayloadPagination(
+                          {
+                            page: 1,
+                            itemsPerPage: $store.state.itemsPerPage,
+                          },
+                          buildSearch()
+                        )
+                      );
+                    "
+                  ></CountriesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -316,23 +313,20 @@
                       </v-container>
                       <v-card-actions rd-actions>
                         <div class="flex-grow-1"></div>
-                        <v-btn outlined color="error" text @click="close"
-                          >Cancelar</v-btn
-                        >
                         <v-btn
                           :loading="loadingButton"
                           color="success"
                           @click="passes(save)"
                           >Guardar</v-btn
                         >
+                        <v-btn outlined color="error" text @click="close"
+                          >Cancelar</v-btn
+                        >
                       </v-card-actions>
                     </ValidationObserver>
                   </v-card>
                 </v-dialog>
               </v-col>
-              <TodofullLabelsSelector
-                @onSelectTodofullLabels="onSelectTodofullLabels"
-              ></TodofullLabelsSelector>
             </v-row>
             <v-col cols="12" sm="12">
               <span>
@@ -354,7 +348,18 @@
               ></v-pagination>
             </div>
           </v-container>
-          <v-btn v-show="!isSegmentPreviewMode" color="primary" outlined
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            @click="todofullLabelsDialog = true"
+            color="secondary"
+            outlined
+            >Filtrar por etiquetas</v-btn
+          >
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            @click="seeAllSegmentsDialog = true"
+            color="primary"
+            outlined
             >Ver segmentos</v-btn
           >
           <v-btn
@@ -366,8 +371,7 @@
           >
           <div>
             <v-alert
-              v-if="isSegmentPreviewMode"
-              v-model="alert"
+              v-if="isSegmentPreviewMode || selectedSegment"
               border="left"
               close-text="Close Alert"
               color="deep-purple accent-4"
@@ -375,11 +379,27 @@
               dismissible
               outlined
             >
+              <div v-if="selectedSegment">
+                <b>Segmento: </b>{{ selectedSegment.name }}
+              </div>
               {{ $store.state.cleanLeadsModule.total }} Contactos cumplen las
               condiciones
               <template v-slot:[`close`]
-                ><v-btn color="primary" outlined>Guardar Segmento</v-btn>
-                <v-btn color="error" outlined @click="segmentDialog = true"
+                ><v-btn
+                  v-show="!selectedSegment"
+                  color="primary"
+                  outlined
+                  @click="
+                    segmentDialog = true;
+                    activatePreview = false;
+                    isSegmentFinalStep = true;
+                  "
+                  >Guardar Segmento</v-btn
+                >
+                <v-btn v-show="selectedSegment" color="primary" outlined
+                  >Enviar Campaña</v-btn
+                >
+                <v-btn color="error" outlined @click="cancelSegmentPreview"
                   >Cancelar</v-btn
                 ></template
               >
@@ -429,7 +449,7 @@
           >
         </template>
         <template v-slot:[`item.checkbox`]="{ item }">
-          <v-checkbox v-model="selectedLeads" :value="item"></v-checkbox>
+          <v-checkbox :value="item"></v-checkbox>
         </template>
         <template v-slot:[`item.fuente`]="{ item }">
           <v-simple-table dense class="pa-6">
@@ -575,9 +595,47 @@
       <MarketingSegmentsForm
         @onClose="segmentDialog = false"
         @onSave="onSaveSegment"
-        :activatePreview="true"
+        :activatePreview="activatePreview"
+        :isFinalStep="isSegmentFinalStep"
         @onPreview="onPreviewSegment"
       ></MarketingSegmentsForm>
+    </v-dialog>
+    <v-dialog v-model="todofullLabelsDialog" max-width="700px">
+      <v-card>
+        <v-card-title class="text-h5"> Etiquetas Todofull </v-card-title>
+        <TodofullLabelsSelector
+          class="ma-3"
+          @onSelectTodofullLabels="onSelectTodofullLabels"
+        ></TodofullLabelsSelector>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="todofullLabelsDialog = false"
+          >
+            Listo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="seeAllSegmentsDialog" max-width="700px">
+      <v-card>
+        <MarketingSegments
+          @onSelectedSegment="onSelectedSegment"
+          :isSelectorMode="true"
+        ></MarketingSegments>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="seeAllSegmentsDialog = false"
+          >
+            Listo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
   </div>
 </template>
@@ -592,6 +650,8 @@ import auth from "@/services/api/auth";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 import graphApiService from "@/services/api/graphApi";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
+import CountriesSelector from "@/components/CountriesSelector.vue";
+import MarketingSegments from "@/views/MarketingSegments.vue";
 
 import {
   getRandomInt,
@@ -606,6 +666,8 @@ export default {
     VTextFieldWithValidation,
     TodofullLabelsSelector,
     MarketingSegmentsForm,
+    CountriesSelector,
+    MarketingSegments,
   },
   filters: {
     formatDate: function (value) {
@@ -615,6 +677,13 @@ export default {
     },
   },
   data: () => ({
+    selectedSegment: null,
+    seeAllSegmentsDialog: false,
+    todofullLabelsDialog: false,
+    selectedCountries: [],
+    activatePreview: true,
+    isSegmentFinalStep: false,
+    segmentName: "",
     isSegmentPreviewMode: false,
     segmentDialog: false,
     templateMessages: [],
@@ -781,6 +850,9 @@ export default {
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       if (this.selectedLabels && this.selectedLabels.length > 0) {
         body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
+      }
+      if (this.selectedCountries.length > 0) {
+        body["countries"] = this.selectedCountries;
       }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
@@ -1041,10 +1113,31 @@ export default {
     },
     onSaveSegment() {
       this.segmentDialog = false;
+      this.isSegmentPreviewMode = false;
+      this.selectedLabels = [];
+      this.selectedCountries = [];
+      this.isSegmentFinalStep = false;
+      this.activatePreview = true;
+      this.showAllLeads();
     },
-    onPreviewSegment() {
+    onPreviewSegment({ todofullLabels, countries }) {
       this.isSegmentPreviewMode = true;
       this.segmentDialog = false;
+      this.selectedCountries = countries;
+      this.onSelectTodofullLabels(todofullLabels);
+    },
+    cancelSegmentPreview() {
+      this.selectedSegment = null;
+      this.isSegmentPreviewMode = false;
+      this.selectedLabels = [];
+      this.selectedCountries = [];
+      this.showAllLeads();
+    },
+    onSelectedSegment(segment) {
+      this.selectedCountries = segment.target_countries;
+      this.seeAllSegmentsDialog = false;
+      this.selectedSegment = segment;
+      this.onSelectTodofullLabels(segment.todofullLabels);
     },
   },
 };
