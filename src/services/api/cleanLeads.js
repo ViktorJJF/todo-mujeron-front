@@ -8,15 +8,8 @@ export default {
     if (query.todofullLabels) {
       query.todofullLabels = JSON.stringify(query.todofullLabels);
     }
-    if (query.pais) {
-      //filtro pais
-      let filterCountries = "";
-      for (const paisIndex of query.pais) {
-        filterCountries += "pais=" + store.state.countries[paisIndex] + "&";
-      }
-      return axios.get("/api/clean-leads?" + filterCountries, {
-        params: query,
-      });
+    if (query.countries) {
+      query.countries = JSON.stringify(query.countries);
     }
     return axios.get("/api/clean-leads", { params: query });
   },

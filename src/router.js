@@ -336,6 +336,16 @@ let routes = [
         name: "FacebookAudiences",
         component: () => import("@/views/FacebookAudiences"),
       },
+      {
+        path: "/marketing/segmentos",
+        name: "MarketingSegments",
+        component: () => import("@/views/MarketingSegments"),
+      },
+      {
+        path: "/marketing/campañas",
+        name: "MarketingCampaigns",
+        component: () => import("@/views/MarketingCampaigns"),
+      },
     ],
   },
   {
