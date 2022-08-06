@@ -20,6 +20,20 @@
             <h3><b>Número: </b></h3>
             <span>{{ selectedTelefono.numero }}</span>
           </div>
+          <div>
+            <v-alert v-show="isTokenExpired == false" dense text type="success">
+              Agente conectado <strong>correctamente</strong> a Todofull
+            </v-alert>
+            <v-alert
+              v-show="isTokenExpired && isTokenExpired == true"
+              dense
+              outlined
+              type="error"
+            >
+              Agente <strong>no</strong> conectado a Todofull. Generar nuevas
+              credenciales
+            </v-alert>
+          </div>
           <v-dialog v-model="dialog" width="800">
             <template v-slot:activator="{ on: dialog }">
               <v-tooltip bottom>
@@ -63,21 +77,11 @@
                   <template v-slot:default>
                     <thead>
                       <tr>
-                        <th class="text-left">
-                          ID People
-                        </th>
-                        <th class="text-left">
-                          Nombres Completos
-                        </th>
-                        <th class="text-left">
-                          Nombres
-                        </th>
-                        <th class="text-left">
-                          Apellidos
-                        </th>
-                        <th class="text-left">
-                          Celular
-                        </th>
+                        <th class="text-left">ID People</th>
+                        <th class="text-left">Nombres Completos</th>
+                        <th class="text-left">Nombres</th>
+                        <th class="text-left">Apellidos</th>
+                        <th class="text-left">Celular</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -178,10 +182,12 @@ export default {
         )
       );
     }
-    api.list({ telefonoId: this.$route.params.id }).then((res) => {
-      if (res.data.payload.length > 0 && res.data.payload[0].percentage > 0)
-        this.contactsExport();
-    });
+    Promise.all([
+      api.list({ telefonoId: this.$route.params.id }).then((res) => {
+        if (res.data.payload.length > 0 && res.data.payload[0].percentage > 0)
+          this.contactsExport();
+      }, this.contactsPreview()),
+    ]);
   },
   data() {
     return {
@@ -194,6 +200,7 @@ export default {
       percentage: { percentage: 0 },
       bucle: false,
       bucleError: false,
+      isTokenExpired: null,
     };
   },
   computed: {
@@ -214,9 +221,11 @@ export default {
             this.totalItems = res.data.payload.totalItems;
             this.totalPeople = res.data.payload.totalPeople;
             this.contactsReady = true;
+            this.isTokenExpired = false;
           })
           .catch((err) => {
             console.error(err);
+            this.isTokenExpired = true;
           });
       }
     },

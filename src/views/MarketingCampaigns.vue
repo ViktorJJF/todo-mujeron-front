@@ -22,71 +22,15 @@
           <template v-slot:top>
             <v-container>
               <v-row>
-                <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="700px">
-                    <template v-slot:activator="{ on }">
-                      <v-btn
-                        color="primary"
-                        dark
-                        class="mb-2"
-                        v-show="rolPermisos['Write']"
-                        v-on="on"
-                        >{{ $t(entity + ".NEW_ITEM") }}</v-btn
-                      >
-                    </template>
-                    <v-card>
-                      <v-card-title>
-                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-                        <span class="headline">{{ formTitle }}</span>
-                      </v-card-title>
-                      <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-row>
-                            <v-col cols="12" sm="12" md="12">
-                              <span class="font-weight-bold">Api Key</span>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.apiKey"
-                                label="Coloca tu Api Key de Mailchimp "
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="12" md="12">
-                              <span class="font-weight-bold">Servidor</span>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.server"
-                                label="server. Ejemplo: us5"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un país"
-                                outlined
-                                :items="$store.state.countries"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
+                <v-col cols="12" sm="6"
+                  ><v-btn
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-show="rolPermisos['Write']"
+                    @click="$router.push({ name: 'MarketingCampaignsCreate' })"
+                    >{{ $t(entity + ".NEW_ITEM") }}</v-btn
+                  >
                 </v-col>
               </v-row>
               <v-row>
@@ -194,14 +138,12 @@ const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
     MaterialCard,
-    VTextFieldWithValidation,
   },
   filters: {
     formatDate: function (value) {

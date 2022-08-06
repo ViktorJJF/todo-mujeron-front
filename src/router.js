@@ -342,9 +342,14 @@ let routes = [
         component: () => import("@/views/MarketingSegments"),
       },
       {
-        path: "/marketing/campañas",
+        path: "/marketing/campaigns",
         name: "MarketingCampaigns",
         component: () => import("@/views/MarketingCampaigns"),
+      },
+      {
+        path: "/marketing/campaigns/crear",
+        name: "MarketingCampaignsCreate",
+        component: () => import("@/components/MarketingCampaignsForm"),
       },
     ],
   },
