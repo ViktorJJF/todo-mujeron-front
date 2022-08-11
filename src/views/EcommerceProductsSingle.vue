@@ -13,6 +13,7 @@
           hide-default-footer
           :headers="headers"
           :items="items"
+          items-per-page="50"
         >
           <template v-slot:item.switch="{ index, item }">
             <span class="format-breaklines">
