@@ -75,7 +75,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar contacto</v-btn
                       >
                     </template>
@@ -237,6 +242,9 @@
                 : " "
             }}
           </template>
+          <template v-slot:[`item.agenteCelular`]="{ item }">
+            {{ item.telefonoId && item.telefonoId.numero }}
+          </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
               class="mr-3 mb-1"
@@ -246,7 +254,12 @@
               v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn class="mb-1" small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              class="mb-1"
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -333,25 +346,7 @@ export default {
         value: "displayName",
       },
       {
-        text: "Primer Nombre",
-        align: "left",
-        sortable: false,
-        value: "nombre",
-      },
-      {
-        text: "Segundo Nombre",
-        align: "left",
-        sortable: false,
-        value: "segundoNombre",
-      },
-      {
-        text: "Apellidos",
-        align: "left",
-        sortable: false,
-        value: "apellido",
-      },
-      {
-        text: "Celular",
+        text: "📱 Celular",
         align: "left",
         sortable: false,
         value: "celular",
@@ -367,6 +362,12 @@ export default {
         align: "left",
         sortable: false,
         value: "agente",
+      },
+      {
+        text: "📱 Celular Agente",
+        align: "left",
+        sortable: false,
+        value: "agenteCelular",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -414,29 +415,23 @@ export default {
     },
   },
 
-
-
-
   mounted() {
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    this.rolAuth(); 
-
+    this.rolAuth();
   },
 
   methods: {
-    
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'GoogleContact/Contactos',
-          'model':'Contactos'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "GoogleContact/Contactos",
+          model: "Contactos",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     async initialize(paginationPayload) {
@@ -447,7 +442,8 @@ export default {
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       await Promise.all([
         this.$store.dispatch("contactosModule/list", body),
-        this.$store.dispatch("telefonosModule/list") ]);
+        this.$store.dispatch("telefonosModule/list"),
+      ]);
       this.$store.commit("loadingModule/showLoading", false);
 
       this.contactos = this.$store.state.contactosModule.contactos;
@@ -502,17 +498,16 @@ export default {
     },
 
     async deleteItem(item) {
-      const index = this.contactos.indexOf(item);
-      let itemId = this.contactos[index]._id;
+      const index = this.contactos.findIndex((el) => el._id == item._id);
+      console.log("🚀 Aqui *** -> index", index);
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
         await this.$store.dispatch("contactosModule/delete", {
-          id: itemId,
+          id: item._id,
           data: {
             telefonoId: this.contactos[index].telefonoId._id,
             resourceName: this.contactos[index].resourceName,
           },
         });
-        this.contactos.splice(index, 1);
       }
     },
 

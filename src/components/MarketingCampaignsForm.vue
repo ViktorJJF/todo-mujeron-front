@@ -6,61 +6,97 @@
     </v-card-title>
     <v-divider></v-divider>
     <ValidationObserver ref="obs" v-slot="{ passes }">
-      <v-container v-if="!isFinalStep" class="pa-5">
+      <v-container class="pa-5" v-show="step == 1">
         <v-row>
-          <v-col v-if="!activatePreview" cols="12" sm="12" md="12">
-            <span class="font-weight-bold">Para</span>
+          <v-col cols="12" sm="12" md="12">
+            <div class="body-1 font-weight-bold">Nombre de la campaña</div>
+            <VTextFieldWithValidation
+              rules="required"
+              v-model="editedItem.name"
+              label="Ingresa el nombre"
+            />
           </v-col>
-          <v-col v-if="!activatePreview" cols="12" sm="12">
-            <span class="font-weight-bold">Descripción</span>
-            <v-textarea
-              placeholder="descripcion"
+          <v-col cols="12" sm="12" md="12">
+            <div class="body-1 font-weight-bold">Segmento</div>
+            <v-autocomplete
+              v-model="editedItem.segment"
+              :items="segments"
+              :filter="customFilter"
+              item-text="name"
+              item-value="_id"
               outlined
-              v-model="editedItem.description"
-            ></v-textarea>
+              dense
+              placeholder="Selecciona un segmento"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold">Fecha de envío</span>
+            <v-menu
+              v-model="menu2"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="date"
+                  prepend-icon="mdi-calendar"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined
+                  dense
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="date"
+                @input="menu2 = false"
+              ></v-date-picker>
+            </v-menu>
+          </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold">Hora de envío</span>
+            <v-menu
+              ref="menu"
+              v-model="menu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              :return-value.sync="time"
+              transition="scale-transition"
+              offset-y
+              max-width="290px"
+              min-width="290px"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="time"
+                  label="Seleccione hora de envío"
+                  prepend-icon="mdi-clock-time-four-outline"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined
+                  dense
+                ></v-text-field>
+              </template>
+              <v-time-picker
+                v-if="menu"
+                v-model="time"
+                full-width
+                @click:minute="$refs.menu.save(time)"
+              ></v-time-picker>
+            </v-menu>
           </v-col>
         </v-row>
       </v-container>
-      <v-container v-else class="pa-5">
-        <v-card-title class="text-h5">
-          ¿Cómo te gustaría llamar a tu nuevo segmento?
-        </v-card-title>
-        <VTextFieldWithValidation rules="required" v-model="editedItem.name" />
-        <p class="mt-2">
-          Estas guardando un segmento con los siguientes criterios
-        </p>
-        <div>
-          <b>Etiquetas: </b>
-          <v-chip
-            v-for="label in editedItem.todofullLabels"
-            color="primary"
-            :key="label._id"
-          >
-            <strong>{{ label.name }}</strong>
-          </v-chip>
-        </div>
-        <div><b>País: </b>{{ editedItem.target_countries.join(" ,") }}</div>
-      </v-container>
+      <TemplateMessagesList v-show="step == 2"></TemplateMessagesList>
       <v-card-actions rd-actions>
         <div class="flex-grow-1"></div>
-        <v-btn
-          v-if="!activatePreview"
-          :loading="loadingButton"
-          color="success"
-          @click="passes(save)"
+        <v-btn color="secondary" :step="step + 1">Continuar</v-btn>
+        <v-btn :loading="loadingButton" color="success" @click="passes(save)"
           >Guardar</v-btn
-        >
-        <v-btn
-          v-else
-          :loading="loadingButton"
-          color="secondary"
-          @click="
-            $emit('onPreview', {
-              todofullLabels: editedItem.todofullLabels,
-              countries: editedItem.target_countries,
-            })
-          "
-          >Previsualizar</v-btn
         >
         <v-btn outlined color="error" text @click="$emit('onClose')"
           >Cancelar</v-btn
@@ -71,22 +107,33 @@
 </template>
 
 <script>
-const ENTITY = "marketingCampaigns"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "marketingCampaigns"; //  nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import TemplateMessagesList from "@/components/TemplateMessagesList";
+
 export default {
   props: {},
   components: {
     VTextFieldWithValidation,
+    TemplateMessagesList,
   },
   data() {
     return {
+      step: 2,
+      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .substr(0, 10),
+      time: null,
+      menu: false,
+      menu2: false,
       dialog: false,
       loadingButton: false,
       defaultItem: CLASS_ITEMS(),
       selectedSegment: null,
       editedItem: CLASS_ITEMS(),
+      segments: [],
     };
   },
 
@@ -107,11 +154,14 @@ export default {
     },
   },
   mounted() {
-    this.initialData();
+    this.initialize();
   },
   methods: {
-    initialData() {
-      // f
+    async initialize() {
+      // getting segments
+      await Promise.all([this.$store.dispatch("marketingSegmentsModule/list")]);
+      this.segments =
+        this.$store.state.marketingSegmentsModule.marketingSegments;
     },
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
@@ -139,6 +189,15 @@ export default {
         }
       }
       this.$emit("onSave");
+    },
+    customFilter(item, queryText) {
+      const textOne = item.name.toLowerCase();
+      const textTwo = item.abbr.toLowerCase();
+      const searchText = queryText.toLowerCase();
+
+      return (
+        textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
+      );
     },
   },
 };

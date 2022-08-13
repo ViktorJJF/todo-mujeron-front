@@ -141,6 +141,7 @@ import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
+
 export default {
   components: {
     MaterialCard,

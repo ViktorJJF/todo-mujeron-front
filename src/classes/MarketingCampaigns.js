@@ -1,7 +1,7 @@
 export default () => ({
   name: "",
   description: "",
-  segments: [],
+  segment: [],
   opens: "",
   clicks: [],
 });
