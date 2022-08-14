@@ -1,7 +1,10 @@
 export default () => ({
+  from: "",
   name: "",
   description: "",
-  segment: [],
+  segment: "",
   opens: "",
   clicks: [],
+  templateMessage: "",
+  // scheduleDateTime: "",
 });
