@@ -13,11 +13,13 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="items"
+          :items="ecommerces"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -66,6 +68,7 @@
                     }}</v-btn
                   >
                 </v-col>
+
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
                     <!-- <template v-slot:activator="{ on }">
@@ -124,11 +127,11 @@
                   <span>
                     <strong>Mostrando:</strong>
                     {{
-                      $store.state.itemsPerPage > items.length
-                        ? items.length
+                      $store.state.itemsPerPage > ecommerces.length
+                        ? ecommerces.length
                         : $store.state.itemsPerPage
                     }}
-                    de {{ items.length }} registros
+                    de {{ $store.state.ecommercesModule.total }} registros
                   </span>
                 </v-col>
               </v-row>
@@ -177,6 +180,16 @@
                     >
                   </v-progress-linear>
                 </v-col>
+                <v-col cols="12" sm="12">
+                  <div class="text-center pt-2">
+                    <v-pagination
+                      @input="initialize(page)"
+                      v-model="page"
+                      :length="pageCount"
+                      :total-visible="$store.state.maxPaginationButtons"
+                    ></v-pagination>
+                  </div>
+                </v-col>
               </v-row>
             </v-container>
           </template>
@@ -191,7 +204,14 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']">
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -240,12 +260,7 @@
               Insertar Imagen
             </v-btn>
             <a :href="`/ecommerce/productos/${item._id}`" target="_blank">
-              <v-btn
-                style="display: block;"
-                class="mt-1"
-                color="primary"
-                small
-              >
+              <v-btn style="display: block" class="mt-1" color="primary" small>
                 Editar
               </v-btn>
             </a>
@@ -294,15 +309,20 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > items.length
-                ? items.length
+              $store.state.itemsPerPage > ecommerces.length
+                ? ecommerces.length
                 : $store.state.itemsPerPage
             }}
-            de {{ items.length }} registros
+            de {{ $store.state.ecommercesModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            @input="initialize(page)"
+            v-model="page"
+            :length="pageCount"
+            :total-visible="$store.state.maxPaginationButtons"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -399,6 +419,16 @@ export default {
     templateCountry: null,
     dialogTemplate: false,
     page: 1,
+    pagination: {},
+    fieldsToSearch: [
+      "name",
+      "permalink",
+      "ref",
+      "stock_status",
+      "status",
+      "sku",
+      "url",
+    ],
     pageCount: 0,
     loadingButton: false,
     search: "",
@@ -473,17 +503,23 @@ export default {
     rolPermisos: {},
   }),
   computed: {
+    totalItems() {
+      return this.$store.state["ecommercesModule"].total;
+    },
+    totalPages() {
+      return this.$store.state["ecommercesModule"].totalPages;
+    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
         : this.$t(this.entity + ".EDIT_ITEM");
     },
     items() {
-      if(this.search.length) {
-        return this[ENTITY]
+      if (this.search.length) {
+        return this[ENTITY];
       }
 
-      return this[ENTITY].filter(item => item.stock_status !== 'outofstock');
+      return this[ENTITY].filter((item) => item.stock_status !== "outofstock");
     },
     entity() {
       return ENTITY;
@@ -499,33 +535,34 @@ export default {
     dialog(val) {
       val || this.close();
     },
-    search() {
-      this.updateCheckbox += 1;
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
     },
   },
   mounted() {
-    this.$store.commit("loadingModule/showLoading")
+    this.$store.commit("loadingModule/showLoading");
     this.initialize();
     // se verifica si se estuvo sincronizando
     if (localStorage.getItem("syncStarted")) {
       this.syncAll();
     }
-    this.rolAuth(); 
+    this.rolAuth();
   },
   methods: {
-
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades/Woocommerces',
-          'model':'Productos'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades/Woocommerces",
+          model: "Productos",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     filterWithoutRefMethods() {
@@ -538,13 +575,16 @@ export default {
           JSON.stringify(this.$store.state.ecommercesModule.ecommerces)
         );
     },
-    async initialize() {
+    async initialize(page = 1) {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", {
+          page,
+          search: this.search,
+          fieldsToSearch: this.fieldsToSearch,
           sort: "date_modified",
           order: -1,
-          listType: 'All'
+          listType: "All",
         }),
       ]);
       //asignar al data del componente

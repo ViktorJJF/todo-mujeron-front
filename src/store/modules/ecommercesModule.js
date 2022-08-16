@@ -10,6 +10,8 @@ const module = {
   namespaced: true,
   state: {
     ecommerces: [],
+    total: 0,
+    totalPages: 0,
   },
   actions: {
     list({ commit }, query) {
@@ -20,6 +22,8 @@ const module = {
           .list(finalQuery)
           .then((response) => {
             commit("list", response.data.payload);
+            commit("totalItems", response.data.totalDocs);
+            commit("totalPages", response.data.totalPages);
             commit("loadingModule/showLoading", false, { root: true });
             resolve(response.data.payload);
           })
@@ -85,6 +89,7 @@ const module = {
     create(state, data) {
       state.ecommerces.unshift(data);
     },
+
     update(state, { id, data }) {
       let indexToUpdate = state.ecommerces.findIndex(
         (member) => member._id == id
@@ -98,6 +103,12 @@ const module = {
         (member) => member._id == id
       );
       state.ecommerces.splice(indexToDelete, 1);
+    },
+    totalItems(state, data) {
+      state.total = data;
+    },
+    totalPages(state, data) {
+      state.totalPages = data;
     },
   },
   getters: {},
