@@ -396,6 +396,7 @@ import _ from 'lodash'
 
 const COUNTRIES = ['Chile', 'Peru']
 const DEFAULT_COUNTRY = 'Chile'
+const ITEMS_PER_PAGE = 30
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -768,13 +769,33 @@ export default {
       const query = {country: this.country}
 
       let [productsRes, categoriesRes] = await Promise.all([
-        EcommercesApi.list(query),
+        EcommercesApi.list({ ...query, page: 1, limit: ITEMS_PER_PAGE}),
         EcommercesCategoriesApi.list(query)
       ])
 
       this.categories = categoriesRes.data.payload
 
       this.products = this.getAvailableProducts(productsRes.data.payload)
+
+      let products = []
+      let currentPage = 1
+      const perPage = Math.ceil(productsRes.data.totalDocs / 2)
+      const validation = true
+      while(validation) {
+        let res = await EcommercesApi.list({
+          ...query,
+          page: currentPage++,
+          limit: perPage
+        })
+
+        products.push(...res.data.payload)
+
+        if(!res.data.nextPage) {
+          break;
+        }
+      }
+      
+      this.products = this.getAvailableProducts(products)
 
       this.$nextTick(() => {
         this.countryLoaded = true;
@@ -817,7 +838,7 @@ export default {
         }
 
         const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
-        if(tallas.includes(attr.option)) {
+        if(attr && tallas.includes(attr.option)) {
           return true;
         }
       }
