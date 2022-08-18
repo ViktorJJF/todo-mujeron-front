@@ -664,20 +664,11 @@ export default {
     },
     tallas() {
       let res = this.productsByCategory.reduce((tallas, product) => {
-        const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-        const tallasAvailable = tallaAttr && tallaAttr.options.length
-        if(!tallasAvailable) {
-          return tallas;
+        const productTallas = this.getTallas(product)
+        for(const talla of productTallas) {
+          tallas[talla] = true
         }
-
-        for(const [index, talla] of tallaAttr.options.entries()) {
-          const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
-          if(inStock) {
-            tallas[talla] = true
-          }
-        }
-
-        return tallas;
+        return tallas
       }, {})
 
       return Object.keys(res)
