@@ -566,26 +566,26 @@ export default {
     },
 
     filterWithoutRefMethods() {
-      if (this.filterWithoutRef) {
-        this[ENTITY] = this[ENTITY].filter(
-          (el) => el.ref == "" || !el.ref || el.ref == " "
-        );
-      } else
-        this[ENTITY] = JSON.parse(
-          JSON.stringify(this.$store.state.ecommercesModule.ecommerces)
-        );
+      this.initialize();
     },
     async initialize(page = 1) {
       //llamada asincrona de items
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "date_modified",
+        order: -1,
+        listType: "All",
+      };
+      if (this.filterWithoutRef) {
+        payload["products_without_ref"] = true;
+      }
+      if (this.filterWithoutImage) {
+        payload["products_without_image"] = true;
+      }
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          page,
-          search: this.search,
-          fieldsToSearch: this.fieldsToSearch,
-          sort: "date_modified",
-          order: -1,
-          listType: "All",
-        }),
+        this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
@@ -674,19 +674,7 @@ export default {
     },
     filterWithoutImageMethods() {
       // filtrando productos sin imagen
-      if (this.filterWithoutImage) {
-        this[ENTITY] = this[ENTITY].filter(
-          (el) =>
-            (el.customImage == "" ||
-              !el.customImage ||
-              el.customImage == " ") &&
-            el.attributes.find((attr) => attr.name.toLowerCase() === "talla") &&
-            el.status === "publish"
-        );
-      } else
-        this[ENTITY] = JSON.parse(
-          JSON.stringify(this.$store.state.ecommercesModule.ecommerces)
-        );
+      this.initialize();
     },
     /**
      * @description Se sincronizan todos los productos desde Woocommerce

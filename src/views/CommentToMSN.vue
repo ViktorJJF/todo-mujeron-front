@@ -814,14 +814,13 @@ export default {
       ]);
       //asignar al data del componente
 
+      // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
       this.rawProducts = this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
-      )
-        .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
-        .map((el) => ({
-          ...el,
-          nameWithCountry: el.name + ` (${el.country})`,
-        }));
+      ).map((el) => ({
+        ...el,
+        nameWithCountry: el.name + ` (${el.country})`,
+      }));
     },
     deleteCurrentSearch() {
       this.searchProduct = "";
