@@ -500,6 +500,7 @@ import _ from 'lodash'
 
 const COUNTRIES = ['Chile', 'Peru']
 const DEFAULT_COUNTRY = 'Chile'
+const ITEMS_PER_PAGE = 30
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -663,20 +664,11 @@ export default {
     },
     tallas() {
       let res = this.productsByCategory.reduce((tallas, product) => {
-        const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-        const tallasAvailable = tallaAttr && tallaAttr.options.length
-        if(!tallasAvailable) {
-          return tallas;
+        const productTallas = this.getTallas(product)
+        for(const talla of productTallas) {
+          tallas[talla] = true
         }
-
-        for(const [index, talla] of tallaAttr.options.entries()) {
-          const inStock = product.variations[index]?.status==="publish" && product.variations[index]?.stock_status==="instock"
-          if(inStock) {
-            tallas[talla] = true
-          }
-        }
-
-        return tallas;
+        return tallas
       }, {})
 
       return Object.keys(res)
@@ -886,13 +878,33 @@ export default {
       const query = {country: this.country}
 
       let [productsRes, categoriesRes] = await Promise.all([
-        EcommercesApi.list(query),
+        EcommercesApi.list({ ...query, page: 1, limit: ITEMS_PER_PAGE}),
         EcommercesCategoriesApi.list(query)
       ])
 
       this.categories = categoriesRes.data.payload
 
       this.products = this.getAvailableProducts(productsRes.data.payload)
+
+      let products = []
+      let currentPage = 1
+      const perPage = Math.ceil(productsRes.data.totalDocs / 2)
+      const validation = true
+      while(validation) {
+        let res = await EcommercesApi.list({
+          ...query,
+          page: currentPage++,
+          limit: perPage
+        })
+
+        products.push(...res.data.payload)
+
+        if(!res.data.nextPage) {
+          break;
+        }
+      }
+
+      this.products = this.getAvailableProducts(products)
 
       this.$nextTick(() => {
         this.countryLoaded = true;
