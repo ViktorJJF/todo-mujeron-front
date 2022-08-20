@@ -12,5 +12,9 @@ export default {
 
   listDocument(id, DocumentType) {
     return axios.get(`/api/marketplace-orders/${id}/documents`, { params: { DocumentType } })
+  },
+
+  genialRetry(id) {
+    return axios.post(`/api/marketplace-orders/${id}/genial-retry`)
   }
 };

@@ -80,6 +80,17 @@
             {{item.externalNumber || item.packId || item.externalId}}
           </template>
           
+          <template v-slot:item.odooOrderName="{ item }">
+            <div v-if="item.odooOrderName">
+              {{item.odooOrderName}}
+            </div>
+            <div v-else>
+              <v-btn icon @click="handleGenialRetry(item)">
+                <v-icon>mdi-cached</v-icon>
+              </v-btn>
+            </div>
+          </template>
+
           <template v-slot:item.customer="{ item }">
             <div class="text-capitalize">
               {{item.customer.firstname}} {{item.customer.lastname}}
@@ -244,7 +255,6 @@ export default {
         orders = orders.filter(order => this.selectedSources.includes(order.source))
       }
 
-      console.log(this.fulfillmentFilter)
       if(this.fulfillmentFilter.length) {
         orders = orders.filter(order => this.fulfillmentFilter.includes(order.isFulfillment))
       }
@@ -275,6 +285,23 @@ export default {
     openDetails(order) {
       this.currentOrder = order
       this.detailsModal = true
+    },
+
+    async handleGenialRetry(order) {
+      const res = await marketplaceOrdersApi.genialRetry(order._id)
+      if(res.data.ok === true) {
+        Object.assign(order, {
+          odooOrderId: res.data.payload.order_new_id,
+          odooOrderName: res.data.payload.order_new_name
+        })
+
+        let index = this.orders.findIndex(o => o._id === order._id)
+
+        this.orders.splice(index, 1, order)
+        return;
+      }
+      
+      return res.data;
     },
 
     async formatPdf(pdfBytes, order) {
