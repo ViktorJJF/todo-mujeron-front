@@ -56,7 +56,14 @@
 
       <v-row dense class="my-4">
         <v-col>
-          <div class="text-h5">Variaciones</div>
+          <div class="d-flex">
+            <div class="text-h5">Variaciones</div>
+            <div class="ml-2">
+              <v-btn icon @click="editing=!editing">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </div>
+          </div>
         </v-col>
       </v-row>
       <v-row>
@@ -64,11 +71,47 @@
           <v-data-table
             no-results-text="No se encontraron resultados"
             hide-default-footer
-            :headers="headers"
+            :headers="headersSource"
             :items="product.variations"
           >
+            <template v-slot:item.switch="{ item }">
+              <span class="format-breaklines">
+                <v-switch
+                  :input-value="item.stock > 0"
+                  :loading="false"
+                  @change="val => handleSwitchChange(val, item)"
+                />
+              </span>
+            </template>
+
             <template v-slot:item.price="{ item }">
               {{item.price | currency}}
+            </template>
+
+            <template v-slot:item.stock="{ item }" v-if="editing">
+              <v-edit-dialog
+                large
+                persistent
+                @save="handleStockSave(item)"
+                @open="currentStock = item.stock"
+              >
+                <div>{{ item.stock }}</div>
+                <template v-slot:input>
+                  <div class="mt-4 text-h6">
+                    Modificar Stock
+                  </div>
+                  <v-text-field
+                    ref="stockTextEdit"
+                    v-model="currentStock"
+                    label="Edit"
+                    type="number"
+                    min="0"
+                    :rules="stockRules" 
+                    single-line
+                    autofocus
+                  ></v-text-field>
+                </template>
+              </v-edit-dialog>
             </template>
           </v-data-table>
         </v-col>
@@ -78,6 +121,8 @@
 </template>
 
 <script>
+import productsApi from '@/services/api/marketplaceProducts'
+
 export default {
   props: {
     product: {
@@ -96,6 +141,13 @@ export default {
   },
   data() {
     return {
+      editing: false,
+      currentStock: 0,
+      stockRules: [
+        val => /^[0-9]*$/.test(val) || "Debe ser un número",
+        val => val >=0 || "No puede ser negativo",
+        val => !!val || "El campo es requerido"
+      ],
       headers: [
         {
           text: "Identificador",
@@ -118,6 +170,45 @@ export default {
           value: "price",
         },
       ]
+    }
+  },
+  computed: {
+    headersSource() {
+      if(this.editing) {
+        return [
+          {
+            text: "",
+            align: "left",
+            sortable: false,
+            value: "switch",
+          },
+          ...this.headers
+        ]
+      }
+
+      return this.headers;
+    }
+  },
+  methods: {
+    async handleStockSave(item) {
+      if(this.$refs.stockTextEdit.valid) {
+        const changes = {
+          stock: this.currentStock
+        }
+
+        await productsApi.updateVariation(this.product._id, item._id, changes)
+
+        Object.assign(item, changes)
+      }
+    },
+    async handleSwitchChange(value, item) {
+      const changes = {
+        stock: value === true ? item.stock + 1 : 0
+      }
+
+      await productsApi.updateVariation(this.product._id, item._id, changes)
+
+      Object.assign(item, changes)
     }
   }
 }
