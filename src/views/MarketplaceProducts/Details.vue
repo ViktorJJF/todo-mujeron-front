@@ -72,7 +72,7 @@
             no-results-text="No se encontraron resultados"
             hide-default-footer
             :headers="headersSource"
-            :items="product.variations"
+            :items="variations"
           >
             <template v-slot:item.switch="{ item }">
               <span class="format-breaklines">
@@ -143,6 +143,7 @@ export default {
     return {
       editing: false,
       currentStock: 0,
+      variations: [],
       stockRules: [
         val => /^[0-9]*$/.test(val) || "Debe ser un número",
         val => val >=0 || "No puede ser negativo",
@@ -196,7 +197,7 @@ export default {
           stock: this.currentStock
         }
 
-        await productsApi.updateVariation(this.product._id, item._id, changes)
+        await productsApi.updateVariation(item._id, changes)
 
         Object.assign(item, changes)
       }
@@ -206,9 +207,19 @@ export default {
         stock: value === true ? item.stock + 1 : 0
       }
 
-      await productsApi.updateVariation(this.product._id, item._id, changes)
+      await productsApi.updateVariation(item._id, changes)
 
       Object.assign(item, changes)
+    }
+  },
+  watch: {
+    product: {
+      immediate: true,
+      handler: function(product) {
+        productsApi.listProductVariations(product._id).then(res => {
+          this.variations = res.data.payload
+        })
+      }
     }
   }
 }

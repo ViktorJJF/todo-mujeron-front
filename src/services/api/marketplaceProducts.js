@@ -6,7 +6,11 @@ export default {
     return axios.get(`/api/marketplace-products`)
   },
 
-  updateVariation(productId, variationId, data) {
-    return axios.patch(`/api/marketplace-products/${productId}/variations/${variationId}`, data)
+  listProductVariations(productId) {
+    return axios.get(`/api/marketplace-products/${productId}/variations`)
+  },
+
+  updateVariation(variationId, data) {
+    return axios.patch(`/api/marketplace-products/variations/${variationId}`, data)
   }
 };
