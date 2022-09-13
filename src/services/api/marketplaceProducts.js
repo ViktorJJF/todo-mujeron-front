@@ -6,6 +6,10 @@ export default {
     return axios.get(`/api/marketplace-products`)
   },
 
+  listVariations() {
+    return axios.get(`/api/marketplace-products/variations`)
+  },
+
   listProductVariations(productId) {
     return axios.get(`/api/marketplace-products/${productId}/variations`)
   },

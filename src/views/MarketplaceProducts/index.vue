@@ -5,7 +5,7 @@
         width="99%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Ordenes"
+        title="Productos"
         text="Resumen de Products"
       >
         <v-data-table
@@ -62,9 +62,6 @@
             <div class="d-flex">
               <v-btn small color="secondary" @click="openDetails(item)">
                 Detalles
-              </v-btn>
-              <v-btn class="ml-3" small color="primary">
-                Editar
               </v-btn>
             </div>
           </template>
