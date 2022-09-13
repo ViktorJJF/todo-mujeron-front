@@ -107,7 +107,7 @@ let routes = [
         component: () => import("@/views/MarketplaceProducts/index.vue"),
       },
       {
-        path: "/marketplaces/productos/variaciones",
+        path: "/marketplaces/productos-variaciones",
         name: "MarketplaceProductosVariaciones",
         component: () => import("@/views/MarketplaceProducts/Variations.vue"),
       },
