@@ -50,7 +50,7 @@
 
           <template v-slot:item.sku="{ item }">
             <span>
-              {{ item.sku || item.variations[0].sku.split('-')[0] }}
+              {{ item.sku }}
             </span>
           </template>
           
