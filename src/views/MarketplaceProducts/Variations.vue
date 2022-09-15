@@ -70,7 +70,7 @@
             <span class="format-breaklines">
               <v-switch
                 :input-value="item.stock > 0"
-                :loading="false"
+                :loading="loading.includes(item._id)"
                 @change="val => handleSwitchChange(val, item)"
               />
             </span>
@@ -159,6 +159,7 @@ export default {
     search: "",
     detailsModal: false,
     currentStock: 0,
+    loading: [],
     variations: [],
     variationsSelected: [],
     stockRules: [
@@ -228,6 +229,13 @@ export default {
       }
     },
     async handleSwitchChange(value, item) {
+      const loadingItemIndex = this.loading.indexOf(item._id)
+      if(loadingItemIndex !== -1) {
+        return;
+      }
+
+      this.loading.push(item._id)
+      
       const changes = {
         stock: value === true ? item.stock + 1 : 0
       }
@@ -235,6 +243,8 @@ export default {
       await productsApi.updateVariation(item._id, changes)
 
       Object.assign(item, changes)
+
+      this.loading.splice(loadingItemIndex, 1)
     },
     getCheckboxValue(item) {
       return this.variationsSelected.findIndex(variation => variation._id === item._id) !== -1
@@ -249,28 +259,19 @@ export default {
       this.variationsSelected.splice(index, 1)
     },
     async batchUpdate(value) {
-      if(value === true) {
-        // Only turn on products that are off
-        const variations = this.variationsSelected.filter(variation => variation.stock === 0)
+      const promises = this.variationsSelected.map(async (variation) => {
+         const shouldProceed = value === true 
+          ? variation.stock === 0   // Only turn on products that are off
+          : variation.stock > 0     // Only turn off products that are on
 
-        const changes = variations.map(variation => ({
-          id: variation._id,
-          stock: 1
-        }))
+        if(!shouldProceed) {
+          return;
+        }
+        
+        await this.handleSwitchChange(value, variation)
+      })
 
-        console.log(changes)
-        return;
-      }
-
-      // Only turn off products that are on
-        const variations = this.variationsSelected.filter(variation => variation.stock > 0)
-
-        const changes = variations.map(variation => ({
-          id: variation._id,
-          stock: 0
-        }))
-
-        console.log(changes)
+      await Promise.allSettled(promises)
     }
   },
 };
