@@ -1,5 +1,5 @@
 import api from "@/services/api/marketplaceProducts";
-import { handleError } from "@/utils/utils.js";
+import { handleError, buildQueryWithPagination } from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
@@ -23,9 +23,10 @@ const module = {
         });
       });
     },
-    fetchVariations({ commit }) {
+    fetchVariations({ commit }, query) {
+      query = buildQueryWithPagination(query)
       return new Promise((resolve, reject) => {
-        api.listVariations().then((response) => {
+        api.listVariations(query).then((response) => {
           commit("setVariations", response.data.payload);
           commit("totalItems", response.data.totalDocs);
           commit("totalPages", response.data.totalPages);

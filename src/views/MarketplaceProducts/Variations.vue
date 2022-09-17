@@ -17,11 +17,13 @@
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold">
-                Filtrar por nombre: {{ search }}
+                Filtrar: {{ search }}
               </span>
               <v-row>
                 <v-col cols="12" sm="5">
@@ -32,6 +34,7 @@
                     placeholder="Escribe el texto"
                     single-line
                     outlined
+                    @input="handleSearchUpdate"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -130,7 +133,12 @@
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            @input="initialize(page)"
+            v-model="page"
+            :length="pageCount"
+            :total-visible="$store.state.maxPaginationButtons"
+          />
         </div>
       </material-card>
     </v-row>
@@ -157,10 +165,16 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
+    debounceTimer: null,
     detailsModal: false,
+    pagination: {},
     currentStock: 0,
     loading: [],
     variations: [],
+    fieldsToSearch: [
+      "externalId",
+      "sku",
+    ],
     variationsSelected: [],
     stockRules: [
       val => /^[0-9]*$/.test(val) || "Debe ser un número",
@@ -208,14 +222,41 @@ export default {
     ]
   }),
 
+  computed: {
+    totalItems() {
+      return this.$store.state["marketplaceProductsModule"].total;
+    },
+    totalPages() {
+      return this.$store.state["marketplaceProductsModule"].totalPages;
+    },
+  },
+
   mounted() {
     this.initialize();
   },
 
   methods: {
-    async initialize() {
-      await Promise.all([this.$store.dispatch("marketplaceProductsModule/fetchVariations", { catalog: this.$route.params.id })]);
+    async initialize(page = 1) {
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "date_modified",
+        order: -1,
+      };
+      await this.$store.dispatch("marketplaceProductsModule/fetchVariations", payload);
       this.variations = this.$deepCopy(this.$store.state.marketplaceProductsModule.variations)
+    },
+    debounce(cb, timeout = 500) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(() => {
+        cb()
+      }, timeout)
+    },
+    handleSearchUpdate(value) {
+      this.search = value
+
+      this.debounce(() => this.initialize(this.page), 2000)
     },
     async handleStockSave(item) {
       if(this.$refs.stockTextEdit.valid) {
