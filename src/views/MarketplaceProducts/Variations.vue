@@ -247,7 +247,7 @@ export default {
       await this.$store.dispatch("marketplaceProductsModule/fetchVariations", payload);
       this.variations = this.$deepCopy(this.$store.state.marketplaceProductsModule.variations)
     },
-    debounce(cb, timeout = 500) {
+    debounce(cb, timeout = 600) {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
         cb()
@@ -256,7 +256,7 @@ export default {
     handleSearchUpdate(value) {
       this.search = value
 
-      this.debounce(() => this.initialize(this.page), 2000)
+      this.debounce(() => this.initialize(this.page))
     },
     async handleStockSave(item) {
       if(this.$refs.stockTextEdit.valid) {
