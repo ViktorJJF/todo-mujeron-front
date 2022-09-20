@@ -257,7 +257,7 @@
               "
               small
             >
-              Insertar Imagen
+              Multimedia
             </v-btn>
             <a :href="`/ecommerce/productos/${item._id}`" target="_blank">
               <v-btn style="display: block" class="mt-1" color="primary" small>
@@ -343,16 +343,51 @@
     <v-dialog v-model="dialogImage" max-width="890">
       <v-card v-if="currentProduct" class="pa-5">
         <v-card-title>
-          <span class="text-h5">Insertar Imagen Personalizada</span>
+          <span class="text-h5">Multimedia</span>
         </v-card-title>
-        <v-text-field
-          dense
-          hide-details
-          v-model="currentProduct.customImage"
-          placeholder="Escribe la url de la imagen"
-          single-line
-          outlined
-        ></v-text-field>
+        
+        <div class="px-5">
+          <v-row
+            align="center"
+            v-for="(image, index) of currentProduct.customImages"
+            :key="index"
+          >
+            <v-col style="width: 100%">
+              <div class="d-flex align-center">
+                <div class="mr-2">
+                  {{index + 1}}
+                </div>
+                <v-text-field
+                  dense
+                  hide-details
+                  v-model="currentProduct.customImages[index]"
+                  placeholder="Escribe la url de la imagen"
+                  single-line
+                  outlined
+                />
+              </div>
+            </v-col>
+            <v-col cols="1">
+              <v-btn
+                v-if="index !== 0"
+                icon
+                outlined
+                @click="handleRemoveCustomImage(index)"
+              >
+                <v-icon>mdi-minus</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
+          <div class="mt-3 ml-4">
+             <v-btn
+                color="primary"
+                @click="handleAddCustomImage"
+              >
+                <v-icon>mdi-plus</v-icon>
+                Añadir
+              </v-btn>
+          </div>
+        </div>
         <v-row class="mt-3 mb-3">
           <v-img
             v-if="currentProduct.customImage"
@@ -612,6 +647,12 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       }, 300);
+    },
+    handleAddCustomImage() {
+      this.currentProduct.customImages.push('')
+    },
+    handleRemoveCustomImage(index) {
+      this.currentProduct.customImages.splice(index, 1)
     },
     async save() {
       this.loadingButton = true;
