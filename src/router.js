@@ -297,9 +297,14 @@ let routes = [
         component: () => import("@/views/EcommerceProducts"),
       },
       {
+        path: "/ecommerce/productos-variaciones",
+        name: "EcommerceProductsVariations",
+        component: () => import("@/views/EcommerceProducts/Variations"),
+      },
+      {
         path: "/ecommerce/productos/:id",
         name: "EcommerceProducts",
-        component: () => import("@/views/EcommerceProductsSingle"),
+        component: () => import("@/views/EcommerceProducts/Single"),
       },
       {
         path: "/etiquetas-facebook",

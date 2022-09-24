@@ -613,6 +613,13 @@
         >
           <v-list-item-content> Órdenes </v-list-item-content>
         </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'EcommerceProductsVariations' }"
+          v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
+        >
+          <v-list-item-content> Variaciones </v-list-item-content>
+        </v-list-item>
       </v-list-group>
       <v-list-group
         :value="false"
