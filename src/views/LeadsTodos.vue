@@ -116,6 +116,12 @@
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row dense>
+                          <v-col cols="12" sm="12">
+                            <TodofullLabelsSelector
+                              :initialData="initialTodofullLabels"
+                              @onSelectTodofullLabels="onSelectTodofullLabels"
+                            ></TodofullLabelsSelector>
+                          </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">
                               ID de Contacto
@@ -378,10 +384,12 @@ import auth from "@/services/api/auth";
 
 import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
+import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    TodofullLabelsSelector,
   },
   filters: {
     formatDate: function (value) {
@@ -495,6 +503,9 @@ export default {
           })
         ),
       ];
+    },
+    initialTodofullLabels() {
+      return this.editedIndex === -1 ? [] : this.editedItem.todofullLabels;
     },
   },
 
@@ -626,7 +637,9 @@ export default {
         delete this.editedItem._id;
         delete this.editedItem.createdAt;
         delete this.editedItem.updatedAt;
-        this.editedItem.estado = "SIN ASIGNAR";
+        this.editedItem.estado = this.editedItem.telefonoId
+          ? "RE-CONECTAR"
+          : "SIN ASIGNAR";
         //ASIGNANDO PAIS POR DEFECTO
         this.editedItem.details = [{}];
         this.editedItem.pais = this.editedItem.pais || "Peru";
@@ -649,8 +662,6 @@ export default {
         this.editedItem.details[0].ciudad = this.editedItem.ciudad;
         this.editedItem.details[0].asunto = this.editedItem.asunto;
         this.editedItem.details[0].nota = this.editedItem.nota;
-        this.editedItem.details[0].todofullLabels =
-          this.editedItem.todofullLabels;
         this.editedItem.details[0].pais =
           fuente == "www.mujeron.cl" ||
           fuente == "www.pushup.cl" ||
@@ -675,6 +686,9 @@ export default {
         this.loadingButton = false;
         // }
       }
+    },
+    onSelectTodofullLabels(selectedLabels) {
+      this.editedItem.todofullLabels = selectedLabels;
     },
   },
 };

@@ -808,7 +808,7 @@ export default {
           sort: "name",
           page,
           search: this.searchProduct,
-          fieldsToSearch: ["name"],
+          fieldsToSearch: ["name","ref"],
           listType: "All",
         }),
       ]);

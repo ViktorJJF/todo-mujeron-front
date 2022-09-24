@@ -17,23 +17,14 @@
               <!-- Sidebar Menu -->
               <div class="dt-module__sidebar-content">
                 <!-- Card Header -->
-                <div class="card-header card-nav bg-transparent border-bottom">
-                  <ul
-                    class="card-header-links nav nav-underline text-uppercase"
-                    role="tablist"
-                  >
-                    <li class="nav-item">
-                      <a
-                        class="nav-link"
-                        data-toggle="tab"
-                        role="tab"
-                        aria-controls="tab-pane2"
-                        aria-selected="true"
-                        >Contactos</a
-                      >
-                    </li>
-                  </ul>
-                </div>
+                <input
+                  class="form-control form-control-lg"
+                  id="address-1"
+                  name="address-1"
+                  placeholder="Buscar"
+                  type="search"
+                  v-model="search"
+                />
                 <!-- /card header -->
 
                 <!-- Tab Content-->
@@ -50,52 +41,54 @@
                           <!-- /contact heading -->
 
                           <!-- Contact -->
-                          <div
-                            class="dt-contact tf-wrapper"
-                            v-for="chat in chats"
-                            :key="chat._id"
-                            @click="selectChat(chat)"
-                          >
-                            <!-- Avatar -->
-                            <img
-                              class="dt-avatar"
-                              src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
-                              alt="Steve Smith"
-                            />
-                            <!-- /avatar -->
+                          <InfiniteScroll
+                            ><div
+                              class="dt-contact tf-wrapper"
+                              v-for="chat in chats"
+                              :key="chat._id"
+                              @click="selectChat(chat)"
+                            >
+                              <!-- Avatar -->
+                              <img
+                                class="dt-avatar"
+                                src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
+                                alt="Steve Smith"
+                              />
+                              <!-- /avatar -->
 
-                            <!-- Contact Info -->
-                            <div class="dt-contact__info">
-                              <h4
-                                class="dt-contact__title"
-                                style="font-size: 17px"
-                              >
-                                {{
-                                  chat.cleanLeadId
-                                    ? chat.cleanLeadId.details[0].nombre
-                                    : "Cliente"
-                                }}
-                              </h4>
-                              <p
-                                class="dt-contact__desc"
-                                style="font-size: 14px"
-                              >
-                                {{
-                                  chat.last_message &&
+                              <!-- Contact Info -->
+                              <div class="dt-contact__info">
+                                <h4
+                                  class="dt-contact__title"
+                                  style="font-size: 17px"
+                                >
+                                  {{
+                                    chat.cleanLeadId
+                                      ? chat.cleanLeadId.details[0].nombre
+                                      : "Cliente"
+                                  }}
+                                </h4>
+                                <p
+                                  class="dt-contact__desc"
+                                  style="font-size: 14px"
+                                >
+                                  {{
+                                    chat.last_message &&
+                                    chat.last_message.length > 0
+                                      ? chat.last_message[0].text
+                                      : ""
+                                  }}
+                                </p>
+                                <small>{{
+                                  (chat.last_message &&
                                   chat.last_message.length > 0
-                                    ? chat.last_message[0].text
-                                    : ""
-                                }}
-                              </p>
-                              <small>{{
-                                (chat.last_message &&
-                                chat.last_message.length > 0
-                                  ? chat.last_message[0].createdAt
-                                  : new Date()) | formatDate
-                              }}</small>
-                            </div>
-                            <!-- /contact info -->
-                          </div>
+                                    ? chat.last_message[0].createdAt
+                                    : new Date()) | formatDate
+                                }}</small>
+                              </div>
+                              <!-- /contact info -->
+                            </div></InfiniteScroll
+                          >
 
                           <!-- /contact -->
 
@@ -1009,8 +1002,12 @@ import messagesService from "@/services/api/messages";
 import { scrollBottom } from "@/utils/utils";
 import socket from "@/plugins/sockets";
 import { es } from "date-fns/locale";
+import InfiniteScroll from "@/components/InfiniteScroll.vue";
 
 export default {
+  components: {
+    InfiniteScroll,
+  },
   filters: {
     formatDate: function (value) {
       let date = new Date(value);
@@ -1027,21 +1024,30 @@ export default {
       dialog: null,
       isErrorStory: false,
       selectedMessage: null,
+      search: "",
+      fieldsToSearch: ["foreign_telefono", "foreign_name"],
+      page: 1,
+      pageCount: 0,
     };
   },
   mounted() {
     this.initialize();
   },
   methods: {
-    async initialize() {
+    async initialize(page = 1) {
       // traer listado de chats
-      this.chats = (
-        await chatsService.list({
-          sort: "createdAt",
+      await Promise.all([
+        this.$store.dispatch("chatsModule/list", {
+          page,
+          search: this.search,
+          fieldsToSearch: this.fieldsToSearch,
+          sort: "updatedAt",
           order: "desc",
-        })
-      ).data.payload;
-      this.$store.commit("chatsModule/setChats", this.chats);
+        }),
+      ]);
+      // this.$store.commit("chatsModule/setChats", this.chats);
+      this.chats = this.$store.state.chatsModule.chats;
+      console.log("🚀 Aqui *** -> this.chats", this.chats);
     },
     async selectChat(chat) {
       this.selectedChat = chat;
@@ -1092,12 +1098,12 @@ export default {
         // se cambia estado de atendiendo agente en bd
         chatsService.update(this.selectedChat._id, { userId: user._id });
         scrollBottom();
-        // socket.emit("CONNECT_AGENT", {
-        //   senderId: this.selectedChat.leadId.contactId,
-        //   chatId: this.selectedChat._id,
-        //   text: message,
-        //   pageID: this.selectedChat.pageID,
-        // });
+        socket.emit("CONNECT_AGENT", {
+          senderId: this.selectedChat.leadId.contactId,
+          chatId: this.selectedChat._id,
+          text: message,
+          pageID: this.selectedChat.pageID,
+        });
       }
     },
     endConversation() {
@@ -1125,6 +1131,12 @@ export default {
   watch: {
     messages() {
       scrollBottom();
+    },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
     },
   },
 };

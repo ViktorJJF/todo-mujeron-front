@@ -267,9 +267,7 @@ export default {
       //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
       // );
       //asignar al data del componente
-      this[ENTITY] = this.$deepCopy(
-        this.$store.state[ENTITY + "Module"][ENTITY]
-      );
+      this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -277,10 +275,8 @@ export default {
       this.dialog = true;
     },
     async deleteItem(item) {
-      const index = this[ENTITY].indexOf(item);
-      let itemId = this[ENTITY][index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
+        await this.$store.dispatch("marketingCampaignsModule/delete", item._id);
       }
     },
     close() {
