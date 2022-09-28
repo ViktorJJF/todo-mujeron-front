@@ -5,8 +5,8 @@
         width="98%"
         icon="mdi-cellphone-dock"
         color="primary"
-        :title="$t(entity + '.TITLE')"
-        :text="$t(entity + '.SUBTITLE')"
+        :title="$t('variations.TITLE')"
+        :text="$t('variations.SUBTITLE')"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
@@ -254,11 +254,6 @@ export default {
     },
     totalPages() {
       return this.$store.state["ecommercesModule"].totalPages;
-    },
-    formTitle() {
-      return this.editedIndex === -1
-        ? this.$t(this.entity + ".NEW_ITEM")
-        : this.$t(this.entity + ".EDIT_ITEM");
     },
     entity() {
       return ENTITY;
