@@ -794,7 +794,8 @@ export default {
     },
     getAvailableProducts(products) {
       return products.filter(product => {
-        const imageAvailable = product.customImage && product.customImage.trim().length > 0
+        const headerImage = product.customImages[0]
+        const imageAvailable = headerImage && headerImage.trim().length > 0
         
         const tallas = this.getTallas(product)
         
@@ -942,8 +943,8 @@ export default {
 
       return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`
     },
-    getProductImageUrl({customImage}) {
-      return `/api/wp-image?url=${customImage}`
+    getProductImageUrl({ customImages }) {
+      return `/api/wp-image?url=${customImages[0]}`
     },
     async setFilterFromQuery() {
       const query = this.$route.query
