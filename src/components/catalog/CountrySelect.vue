@@ -5,6 +5,7 @@
       :items="countries"
       label="Paises"
       hide-details
+      clearable
       outlined
       solo
       dense
@@ -18,6 +19,10 @@ export default {
   props: {
     value: {
       type: String
+    },
+    clearable: {
+      type: Boolean,
+      default: false
     }
   },
   data() {

@@ -31,10 +31,19 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de producto"
+                    placeholder="Escriba el texto"
                     single-line
                     outlined
-                  ></v-text-field>
+                  />
+                </v-col>
+                <v-col>
+                  <country-select
+                    class="mr-2 d-flex"
+                    style="max-width: 200px;"
+                    v-model="country"
+                    clearable
+                    @input="() => initialize(page)"
+                  />
                 </v-col>
               </v-row>
               <v-row>
@@ -143,10 +152,12 @@ import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
 import EcommercesApi from '@/services/api/ecommerces'
+import CountrySelect from '@/components/catalog/CountrySelect'
 
 export default {
   components: {
     MaterialCard,
+    CountrySelect
   },
   filters: {
     formatDate: function (value) {
@@ -161,6 +172,7 @@ export default {
     switchLoading: [],
     currentStock: 0,
     items: [],
+    country: null,
     stockRules: [
       val => /^[0-9]*$/.test(val) || "Debe ser un número",
       val => val >=0 || "No puede ser negativo",
@@ -168,6 +180,7 @@ export default {
     ],
     fieldsToSearch: [
       "name",
+      "country",
       "permalink",
       "ref",
       "stock_status",
@@ -195,6 +208,12 @@ export default {
         align: "left",
         sortable: false,
         value: "title",
+      },
+      {
+        text: "Ciudad",
+        align: "left",
+        sortable: false,
+        value: "country",
       },
       {
         text: "SKU",
@@ -272,6 +291,7 @@ export default {
         this.initialize(this.page);
       }, 600);
     },
+
   },
   mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -295,7 +315,7 @@ export default {
       //llamada asincrona de items
       let payload = {
         page,
-        search: this.search,
+        search: this.country || this.search,
         fieldsToSearch: this.fieldsToSearch,
         sort: "date_modified",
         order: -1,
@@ -328,6 +348,9 @@ export default {
       })
     },
     getFormatAttributes(attributes) {
+      if(!attributes) {
+        return {}
+      }
       return attributes.reduce((attributes, current) => ({
         ...attributes,
         [current.name.toLowerCase()]: current
