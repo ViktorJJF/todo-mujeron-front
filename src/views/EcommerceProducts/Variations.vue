@@ -315,11 +315,12 @@ export default {
       //llamada asincrona de items
       let payload = {
         page,
-        search: this.country || this.search,
+        search: this.search,
         fieldsToSearch: this.fieldsToSearch,
         sort: "date_modified",
         order: -1,
         listType: "All",
+        country: this.country
       };
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", payload),
