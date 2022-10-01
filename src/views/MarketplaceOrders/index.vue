@@ -10,7 +10,6 @@
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
-          :search="search"
           hide-default-footer
           :headers="headers"
           :items="dataTableSoure"
@@ -257,6 +256,22 @@ export default {
 
       if(this.fulfillmentFilter.length) {
         orders = orders.filter(order => this.fulfillmentFilter.includes(order.isFulfillment))
+      }
+
+      if(this.search) {
+        const getName = (order) => `${order.customer.firstname.toLowerCase()} ${order.customer.lastname.toLowerCase()}`
+        const fieldsToSearch = ['externalNumber', 'odooOrderName', 'source', 'status', 'price', 'total', 'itemsCount']
+        orders = orders.filter(order => {
+          for(const key in order) {
+            if(key === 'customer') {
+              if(getName(order).indexOf(this.search.toLowerCase()) !== -1) return true
+            }
+
+            if(fieldsToSearch.includes(key)) {
+              if(new String(order[key]).toLowerCase().indexOf(this.search.toLowerCase()) !== -1) return true
+            }
+          }
+        })
       }
 
       return orders;
