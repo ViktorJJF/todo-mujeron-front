@@ -34,6 +34,11 @@
                     outlined
                   ></v-text-field>
                 </v-col>
+                <v-col>
+                  <v-btn to="/marketplaces/productos/crear" color="primary">
+                    Agregar Producto
+                  </v-btn>
+                </v-col>
               </v-row>
             </v-container>
           </template>

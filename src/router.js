@@ -97,6 +97,16 @@ let routes = [
         component: () => import("@/views/Orders/index.vue"),
       },
       {
+        path: "/marketplaces/categorias",
+        name: "MarketplaceCategorias",
+        component: () => import("@/views/MarketplaceCategories/index.vue"),
+      },
+      {
+        path: "/marketplaces/atributos",
+        name: "MarketplaceAtributos",
+        component: () => import("@/views/MarketplaceAttributes/index.vue"),
+      },
+      {
         path: "/marketplaces/ordenes",
         name: "MarketplaceOrdenes",
         component: () => import("@/views/MarketplaceOrders/index.vue"),
@@ -105,6 +115,11 @@ let routes = [
         path: "/marketplaces/productos",
         name: "MarketplaceProductos",
         component: () => import("@/views/MarketplaceProducts/index.vue"),
+      },
+      {
+        path: "/marketplaces/productos/crear",
+        name: "MarketplaceProductosCrear",
+        component: () => import("@/views/MarketplaceProducts/Create.vue"),
       },
       {
         path: "/marketplaces/productos-variaciones",
