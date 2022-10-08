@@ -617,7 +617,7 @@ export default {
         .map(category => ({
           ...category,
           products: this.products.filter(product => {
-            return product.categories.find(productCat => productCat._id === category._id)
+            return product.categories.find(productCat => productCat.id == category.idCategory)
           })
         }))
         .filter(category => category.products.length > 0)
