@@ -34,26 +34,7 @@
       </v-tab-item>
 
       <v-tab-item>
-        <v-container>
-          <v-row>
-            <v-col>
-              <div>Woocommerce</div>
-              <div>...</div>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <div>Mercadolibre</div>
-              <div>...</div>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <div>Dafiti</div>
-              <div>...</div>
-            </v-col>
-          </v-row>
-        </v-container>
+        <marketplaces-tab/>
       </v-tab-item>
     </v-tabs-items>
   </v-container>
@@ -63,9 +44,10 @@
 import GeneralTab from "./tabs/General.vue";
 import AttributesTab from "./tabs/Attributes.vue";
 import VariationsTab from "./tabs/Variations.vue";
+import MarketplacesTab from './tabs/Marketplaces.vue';
 
 export default {
-  components: { GeneralTab, AttributesTab, VariationsTab },
+  components: { GeneralTab, AttributesTab, VariationsTab, MarketplacesTab },
   data() {
     return {
       tab: 0,

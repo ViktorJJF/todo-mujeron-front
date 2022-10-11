@@ -17,9 +17,9 @@
         <v-col cols="12" sm="12" md="12">
           <div class="body-1 font-weight-bold">Nombre</div>
           <VTextFieldWithValidation
-            rules="required"
             v-model="product.name"
             label="Ingresa el nombre"
+            rules="required"
           />
         </v-col>
       </v-row>
@@ -29,18 +29,21 @@
           <VTextFieldWithValidation
             v-model="product.shortname"
             label="Ingresa el nombre"
+            rules="required"
           />
         </v-col>
         <v-col>
           <div class="body-1 font-weight-bold">Categorias</div>
-          <v-select
+          <VSelectWithValidation
             :items="categoryOptions"
+            rules="required"
             item-text="name"
             return-object
             hide-details
             multiple
             outlined
             dense
+            :solo="false"
           />
         </v-col>
       </v-row>
@@ -95,10 +98,12 @@
 
 <script>
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import marketplaceCategoriesApi from '@/services/api/marketplaceCategories'
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
+import marketplaceCategoriesApi from '@/services/api/marketplaceCategories';
+import marketplaceProductsApi from '@/services/api/marketplaceProducts';
 
 export default {
-  components: { VTextFieldWithValidation },
+  components: { VTextFieldWithValidation, VSelectWithValidation },
   props: {
     product: {
       type: Object,
@@ -115,13 +120,14 @@ export default {
     }
   },
   created() {
+    console.log(this.product)
     marketplaceCategoriesApi.list().then(res => {
       this.categoryOptions = res.data.payload
     })
   },
   methods: {
     handleSubmit() {
-
+      marketplaceProductsApi;
     }
   }
 }

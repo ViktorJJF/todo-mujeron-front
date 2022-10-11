@@ -551,6 +551,16 @@
         </template>
         <v-list-item
           active-class="primary custom2"
+          :to="{ name: 'MarketplaceDestinos' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Destinos</v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
           :to="{ name: 'MarketplaceOrdenes' }"
         >
           <v-list-item-icon>
