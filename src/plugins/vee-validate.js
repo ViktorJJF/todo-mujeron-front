@@ -1,11 +1,16 @@
 import Vue from "vue";
 import { ValidationObserver, ValidationProvider, extend } from "vee-validate";
-import { required, confirmed, length, email } from "vee-validate/dist/rules";
+import { required, confirmed, length, email, alpha_dash } from "vee-validate/dist/rules";
 
 extend("required", {
   ...required,
   message: "Este campo es requerido",
 });
+
+extend("alpha_dash", {
+  ...alpha_dash,
+  message: "El campo no permite espacios"
+})
 
 extend("email", {
   ...email,

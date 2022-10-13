@@ -14,11 +14,11 @@
         </v-row>
         <v-row>
           <v-col cols="12" sm="12" md="12">
-            <div class="body-1 font-weight-bold">Nombre</div>
+            <div class="body-1 font-weight-bold">Nombre atributo</div>
             <VTextFieldWithValidation
               rules="required"
               v-model="editedItem.name"
-              label="Ingresa el nombre"
+              placeholder="Ingresa el nombre"
             />
           </v-col>
         </v-row>
@@ -48,7 +48,7 @@
             <div class="body-1 font-weight-bold">Nombre</div>
             <v-text-field
               v-model="term.name"
-              label="Ingresa el nombre"
+              placeholder="Ingresa el nombre"
               hide-details
               dense
               outlined
@@ -60,7 +60,7 @@
             <div class="body-1 font-weight-bold">Descripción</div>
             <v-text-field
               v-model="term.description"
-              label="Ingresa el nombre"
+              placeholder="Ingresa el nombre"
               hide-details
               dense
               outlined
@@ -128,7 +128,7 @@ export default {
   },
   computed: {
     formTitle() {
-      return 'Agregar categoria'
+      return this.attribute ? 'Modificar Atributo' : 'Agregar Nuevo Atributo'
     }
   },
   methods: {

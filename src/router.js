@@ -122,7 +122,7 @@ let routes = [
         component: () => import("@/views/MarketplaceProducts/index.vue"),
       },
       {
-        path: "/marketplaces/productos/crear",
+        path: "/marketplaces/productos/crear/:id?",
         name: "MarketplaceProductosCrear",
         component: () => import("@/views/MarketplaceProducts/Create.vue"),
       },

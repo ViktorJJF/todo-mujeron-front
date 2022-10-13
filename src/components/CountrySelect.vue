@@ -1,5 +1,6 @@
 <template>
   <v-select
+    :items="options"
     v-on="listeners"
     v-bind="attrs"
   />
@@ -25,10 +26,6 @@ export default {
         },
         // We add all attrs from the parent and override defaults
         this.$attrs,
-        // Make sure that items can't be overrided
-        {
-          items: this.options
-        }
       )
     },
     listeners: function () {

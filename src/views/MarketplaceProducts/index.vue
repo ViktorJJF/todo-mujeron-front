@@ -35,7 +35,7 @@
                   ></v-text-field>
                 </v-col>
                 <v-col>
-                  <v-btn to="/marketplaces/productos/crear" color="primary">
+                  <v-btn :to="{name: 'MarketplaceProductosCrear'}" color="primary">
                     Agregar Producto
                   </v-btn>
                 </v-col>
@@ -64,11 +64,12 @@
           </template>
 
           <template v-slot:item.action="{ item }">
-            <div class="d-flex">
-              <v-btn small color="secondary" @click="openDetails(item)">
-                Detalles
-              </v-btn>
-            </div>
+            <v-btn small color="secondary" @click="openDetails(item)">
+              Detalles
+            </v-btn>
+            <v-btn class="ml-2" small color="primary" @click="updateProduct(item)">
+              Modificar
+            </v-btn>
           </template>
 
           <template v-slot:no-data>
@@ -105,6 +106,7 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import ProductDetails from './Details.vue'
+import marketplaceProductsV2Api from '@/services/api/marketplaceProductsV2'
 
 export default {
   components: { MaterialCard, ProductDetails },
@@ -133,12 +135,9 @@ export default {
         value: "updatedAt",
       },
       {
-        text: "Identificador",
-        value: "externalId"
-      },
-      {
-        text: "Fuente",
-        value: "source"
+        text: "Tipo",
+        align: "left",
+        value: "type",
       },
       {
         text: "Nombre",
@@ -155,7 +154,7 @@ export default {
         sortable: false,
         value: 'price',
       },
-      { text: "Acciones", value: "action", sortable: false },
+      { text: "Acciones", value: "action", align: 'center', sortable: false },
     ]
   }),
 
@@ -165,8 +164,18 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("marketplaceProductsModule/list", { catalog: this.$route.params.id })]);
-      this.products = this.$deepCopy(this.$store.state.marketplaceProductsModule.products)
+      marketplaceProductsV2Api.listAll().then((res) => {
+        this.products = res.data.payload
+      })
+    },
+
+    updateProduct(product) {
+      this.$router.replace({
+        name: 'MarketplaceProductosCrear',
+        params: {
+          id: product._id
+        }
+      })
     },
 
     openDetails(product) {

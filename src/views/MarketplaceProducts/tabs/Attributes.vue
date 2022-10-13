@@ -20,16 +20,14 @@
 
     <v-divider class="my-5" />
 
-    <template v-for="attribute of attributes">
+    <template v-for="attribute of productAttributes">
       <v-row :key="attribute._id">
         <v-col cols="4">
-          <div class="body-1 font-weight-bold">{{attribute.name}}</div>
-          <v-select 
+          <div class="body-1 font-weight-bold">{{ attribute.name }}</div>
+          <v-select
             :items="attribute.terms"
-            item-text="name"
-            return-object
             v-model="attribute.options"
-            hide-details=""
+            hide-details
             outlined
             dense
             chips
@@ -37,7 +35,9 @@
             clearable
           />
           <div class="mt-2">
-            <v-btn @click="attribute.options = [...attribute.terms]">Seleccionar Todos</v-btn>
+            <v-btn @click="attribute.options = [...attribute.terms]"
+              >Seleccionar Todos</v-btn
+            >
           </div>
           <div>
             <v-checkbox
@@ -56,12 +56,11 @@
         </v-col>
       </v-row>
 
-      <v-divider class="my-5" :key="'d-'+attribute._id" />
+      <v-divider class="my-5" :key="'d-' + attribute._id" />
     </template>
 
     <v-card-actions rd-actions>
-      <div class=""></div>
-      <v-btn color="success">
+      <v-btn color="success" @click="handleSubmit">
         Guardar
       </v-btn>
     </v-card-actions>
@@ -69,39 +68,95 @@
 </template>
 
 <script>
-import marketplaceAttributesApi from '@/services/api/marketplaceAttributes'
+import marketplaceAttributesApi from "@/services/api/marketplaceAttributes";
+import marketplaceProductsAttributesApi from "@/services/api/marketplaceProductsV2Attributes";
 
 export default {
   props: {
     product: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      attributes: [],
+      productAttributes: [],
       attributesOptions: [],
       selectedAttribute: null,
-    }
+    };
   },
-  created() {
-    marketplaceAttributesApi.list().then(res => {
-      this.attributesOptions = res.data.payload;
-    })
+  async created() {
+    await this.fetchAttributes(), await this.fetchProductAttributes();
   },
   methods: {
+    async fetchAttributes() {
+      const res = await marketplaceAttributesApi.list();
+      this.attributesOptions = res.data.payload;
+    },
+    async fetchProductAttributes() {
+      const res = await marketplaceProductsAttributesApi.listByProduct(
+        this.product._id
+      );
+      this.productAttributes = res.data.payload.map((attribute) => {
+        return {
+          ...attribute,
+          terms: this.getTerms(attribute),
+        };
+      });
+    },
     handleAddAttribute() {
-      const alreadyAdded = this.attributes.find(attr => attr._id === this.selectedAttribute._id)
-      if(!alreadyAdded) {
-        this.attributes.push({ ...this.selectedAttribute, options: [], variation: false, visible: true })
+      const alreadyAdded = this.productAttributes.find(
+        (attr) => attr._id === this.selectedAttribute._id
+      );
+      if (!alreadyAdded) {
+        this.productAttributes.unshift({
+          options: [],
+          variation: false,
+          visible: true,
+          product: this.product._id,
+          // Terms from global attributes
+          terms: this.getTerms(this.selectedAttribute),
+        });
       }
       this.selectedAttribute = null;
-    }
-  }
-}
+    },
+
+    getTerms(attribute) {
+      const attributeOption = this.attributesOptions.find(
+        (opt) => opt.name === attribute.name
+      );
+      if (attributeOption) {
+        return attributeOption.terms.map((term) => term.name);
+      }
+
+      return [];
+    },
+
+    async handleSubmit() {
+      for (const [index, attribute] of this.productAttributes.entries()) {
+        let res;
+        const isUpdate = attribute._id;
+        if (isUpdate) {
+          res = await marketplaceProductsAttributesApi.update(
+            attribute._id,
+            attribute
+          );
+        } else {
+          res = await marketplaceProductsAttributesApi.create(attribute);
+        }
+
+        if (res && res.data) {
+          this.productAttributes.splice(index, 1, {
+            ...res.data.payload,
+            terms: this.getTerms(attribute),
+          });
+          console.log(this.productAttributes);
+          // Should show a success message
+        }
+      }
+    },
+  },
+};
 </script>
 
-<style>
-
-</style>
+<style></style>

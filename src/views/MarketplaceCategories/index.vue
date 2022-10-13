@@ -19,9 +19,7 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold">
-                Filtrar: {{ search }}
-              </span>
+              <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
                 <v-col cols="5">
                   <v-text-field
@@ -42,14 +40,18 @@
               </v-row>
             </v-container>
           </template>
-          
+
           <template v-slot:item.createdAt="{ item }">
-            {{item.createdAt | formatDate}}
+            {{ item.createdAt | formatDate }}
           </template>
-          
+
           <template v-slot:item.action="{ item }">
             <div class="d-flex">
-              <v-btn small color="secondary" @click="openCreateUpdateDialog(item)">
+              <v-btn
+                small
+                color="secondary"
+                @click="openCreateUpdateDialog(item)"
+              >
                 Modificar
               </v-btn>
             </div>
@@ -79,19 +81,23 @@
       </material-card>
     </v-row>
     <v-dialog v-model="isOpenCreateUpdateDialog" max-width="600px">
-      <create-update-category :category="selectedCategory" @save="handleCreateUpdateSave"/>
+      <create-update-category
+        :categories="categories"
+        :category="selectedCategory"
+        @save="handleCreateUpdateSave"
+      />
     </v-dialog>
   </v-container>
 </template>
 
 <script>
 import MaterialCard from "@/components/material/Card";
-import CreateUpdateCategory from "./CreateUpdate.vue"
+import CreateUpdateCategory from "./CreateUpdate.vue";
 
 export default {
   components: {
     MaterialCard,
-    CreateUpdateCategory
+    CreateUpdateCategory,
   },
   data: () => ({
     page: 1,
@@ -109,7 +115,7 @@ export default {
       },
       {
         text: "Nombre",
-        value: "name"
+        value: "name",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -121,23 +127,29 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("marketplaceCategoriesModule/list", { catalog: this.$route.params.id })]);
-      this.categories = this.$deepCopy(this.$store.state.marketplaceCategoriesModule.categories)
+      await Promise.all([
+        this.$store.dispatch("marketplaceCategoriesModule/list", {
+          catalog: this.$route.params.id,
+        }),
+      ]);
+      this.categories = this.$deepCopy(
+        this.$store.state.marketplaceCategoriesModule.categories
+      );
     },
     openCreateUpdateDialog(item) {
-      this.selectedCategory = item
-      this.isOpenCreateUpdateDialog = true
+      this.selectedCategory = item;
+      this.isOpenCreateUpdateDialog = true;
     },
     handleCreateUpdateSave({ updated, item }) {
-      if(updated) {
-        const index = this.categories.findIndex(cat => cat._id === item._id)
-        this.categories.splice(index, 1, item)
-      }else {
-        this.categories.unshift(item)
+      if (updated) {
+        const index = this.categories.findIndex((cat) => cat._id === item._id);
+        this.categories.splice(index, 1, item);
+      } else {
+        this.categories.unshift(item);
       }
 
-      this.isOpenCreateUpdateDialog = false
-    }
+      this.isOpenCreateUpdateDialog = false;
+    },
   },
 };
 </script>

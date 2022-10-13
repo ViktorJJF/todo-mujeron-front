@@ -18,7 +18,22 @@
             <VTextFieldWithValidation
               rules="required"
               v-model="editedItem.name"
-              label="Ingresa el nombre"
+              placeholder="Ingresa el nombre"
+            />
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <div class="body-1 font-weight-bold">Categoria Padre</div>
+            <v-select
+              :items="categories"
+              v-model="editedItem.parent"
+              item-text="name"
+              item-value="_id"
+              outlined
+              dense
+              hide-details
+              clearable
             />
           </v-col>
         </v-row>
@@ -44,14 +59,15 @@ export default {
   props: {
     category: {
       type: Object
+    },
+    categories: {
+      type: Array
     }
   },
   data() {
     return {
       loadingButton: false,
-      editedItem: {
-        name: ''
-      }
+      editedItem: null
     }
   },
   computed: {
@@ -84,7 +100,8 @@ export default {
       immediate: true,
       handler: function(val) {
         this.editedItem = val ? { ...val } : {
-          name: ''
+          name: '',
+          parent: null
         }
       }
     }
