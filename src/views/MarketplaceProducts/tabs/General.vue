@@ -24,7 +24,10 @@
         </v-col>
         <v-col>
           <div class="body-1 font-weight-bold">Categorias</div>
-          <CategoriesSelect value="outside"/>
+          <CategoriesSelect
+            v-model="localProduct.categories"
+            rules="required"
+          />
         </v-col>
       </v-row>
       <v-row>
@@ -78,52 +81,58 @@
 
 <script>
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import CategoriesSelect from '@/components/CategoriesSelect.vue';
-import marketplaceProductsApi from '@/services/api/marketplaceProductsV2';
+import CategoriesSelect from "@/components/CategoriesSelect.vue";
+import marketplaceProductsApi from "@/services/api/marketplaceProductsV2";
 
 export default {
   components: { VTextFieldWithValidation, CategoriesSelect },
   props: {
     product: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
       localProduct: null,
       productTypeOptions: [
-        { text: 'Simple', value: 'simple' },
-        { text: 'Variation', value: 'variation' },
+        { text: "Simple", value: "simple" },
+        { text: "Variation", value: "variation" },
       ],
-      categoryOptions: []
-    }
+      categoryOptions: [],
+    };
   },
   methods: {
     async handleSubmit() {
       let res;
-      const isUpdate = this.localProduct._id
-      if(isUpdate) {
-        res = await marketplaceProductsApi.update(this.localProduct._id, this.localProduct)
+
+      const product = {
+        ...this.localProduct,
+        categories: this.localProduct.categories.map((cat) => cat._id),
+      };
+
+      const isUpdate = this.localProduct._id;
+      if (isUpdate) {
+        res = await marketplaceProductsApi.update(product._id, product);
       } else {
-        res = await marketplaceProductsApi.create(this.localProduct)
+        res = await marketplaceProductsApi.create(product);
       }
 
-      if(res && res.data) {
-        this.$emit('update', res.data.payload)
+      if (res && res.data) {
+        this.$emit("update", res.data.payload);
         // Should show a success message
       }
-    }
+    },
   },
   watch: {
     product: {
       immediate: true,
       handler: function(val) {
-        this.localProduct = { ...val }
-      }
-    }
-  }
-}
+        this.localProduct = { ...val };
+      },
+    },
+  },
+};
 </script>
 
 <style></style>

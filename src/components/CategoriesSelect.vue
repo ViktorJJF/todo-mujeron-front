@@ -6,24 +6,25 @@
       @click.stop="isOpen = true"
       v-bind="attrs"
     />
-    <v-dialog v-model="isOpen" scrollable max-width="300px">
+    <v-dialog v-model="isOpen" scrollable max-width="300px" @input="handleDialogChange">
       <v-card>
         <v-card-title>Seleccionar Categorias</v-card-title>
         <v-divider></v-divider>
         <v-card-text class="" style="height: 300px;">
           <v-treeview
             :items="categoriesTree"
-            v-model="selected"
             item-key="_id"
             selectable
+            v-model="selected"
+            return-object
           />
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
-          <v-btn color="blue darken-1" text @click="dialog = false">
+          <v-btn color="blue darken-1" text @click="handleCancel">
             Cancelar
           </v-btn>
-          <v-btn color="blue darken-1" text @click="dialog = false">
+          <v-btn color="blue darken-1" text @click="handleSave">
             Guardar
           </v-btn>
         </v-card-actions>
@@ -38,23 +39,30 @@ import marketplaceCategoriesApi from "@/services/api/marketplaceCategories";
 
 export default {
   components: { VTextFieldWithValidation },
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
   data() {
     return {
-      categoriesTree: [],
       isOpen: false,
-      textFieldValue: "",
-      selected: []
+      categories: [],
+      categoriesTree: [],
+      selected: [],
+      localValue: []
     };
   },
   created() {
-    marketplaceCategoriesApi.list().then((res) => {
-      const tree = this.buildTreeItems(res.data.payload);
-      for(let i=0 ; i< 20 ; i++) {
-        this.categoriesTree.push(...tree)
-      }
-    });
+    this.fetchCategories().then(() => {
+      this.localValue = this.parseValue(this.value)
+    })
   },
   computed: {
+    textFieldValue() {
+      return this.localValue.map(cat => cat.name).join(', ')
+    },
     attrs: function() {
       return Object.assign(
         {},
@@ -71,19 +79,62 @@ export default {
     },
   },
   methods: {
+    async fetchCategories() {
+      const res = await marketplaceCategoriesApi.list()
+      const categories = res.data.payload;
+      this.categories = categories
+      // pass array by value to avoid mutation
+      this.categoriesTree = this.buildTreeItems(categories.slice());
+    },
     handleSave() {
-      this.$emit("input", []);
+      const value = []
+
+      for(const category of this.selected) {
+        value.push(category)
+        let parentId = category.parent
+        while(parentId) {
+          const item = this.categories.find(c => c._id === parentId)
+          value.push(item)
+          parentId = item.parent
+        }
+      }
+      
+      this.localValue = value;
+      this.$emit("input", value);
+      this.isOpen = false;
+    },
+    handleCancel() {
+      this.isOpen = false;
+    },
+    handleDialogChange(value) {
+      // clear unsaved changes
+      if(value === false) {
+        this.selected = this.localValue
+      }
+    },
+    parseValue(value) {
+      const parseValue = []
+      for(const item of value) {
+        const category = typeof item === 'string'
+          ? this.categories.find(cat => cat._id === item)
+          : item
+
+        if(category) {
+          parseValue.push(category)
+        }
+      }
+
+      return parseValue;
     },
     buildTreeItems(categories) {
       const items = [];
-      // Find roots categories and remove them from base array
+      // find roots categories and remove them from base array
       for (const [index, category] of categories.entries()) {
         if (category.parent === null) {
           categories.splice(index, 1);
-          items.push({
-            ...category,
-            children: this.getChildren(category, categories),
-          });
+          // mutating the object to avoid creating new space in memory
+          Object.assign(category, { children: this.getChildren(category, categories)})
+          items.push(category);
         }
       }
 
@@ -94,7 +145,9 @@ export default {
       for (const [index, item] of list.entries()) {
         if (category._id === item.parent) {
           list.splice(index, 1);
-          childrens.push({ ...item, children: this.getChildren(item, list) });
+          // mutating the object to avoid creating new space in memory
+          Object.assign(item, { children: this.getChildren(item, list) })
+          childrens.push(item);
         }
       }
 
@@ -102,8 +155,8 @@ export default {
     },
   },
   watch: {
-    selected: function(val) {
-      console.log(val)
+    value: function(val) {
+      this.localValue = this.parseValue(val)
     }
   }
 };

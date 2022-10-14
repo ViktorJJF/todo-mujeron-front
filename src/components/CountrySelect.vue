@@ -36,8 +36,8 @@ export default {
         this.$listeners,
         {
           // This ensures that the component works with v-model
-          input: function (vehicle) {
-            vm.$emit('input', vehicle)
+          input: function (val) {
+            vm.$emit('input', val)
           }
         }
       )

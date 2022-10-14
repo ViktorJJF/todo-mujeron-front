@@ -60,13 +60,14 @@ export default {
       tab: 0,
       product: {
         type: "variation",
-        name: "Mi Producto ref 123",
-        shortName: "Mi Producto",
+        name: "",
+        shortName: "",
+        categories: [],
         description: "",
         shortDescription: "",
-        sku: "1234",
+        sku: "",
         price: 1,
-        brand: "Any",
+        brand: "",
       },
     };
   },
