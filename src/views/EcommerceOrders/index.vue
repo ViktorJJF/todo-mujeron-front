@@ -341,11 +341,9 @@ export default {
   data: () => ({
     //datos del componente
     fieldsToSearch: [
-      "foreign_first_name",
-      "foreign_last_name",
+      "odooOrderName",
       "status",
-      "number_idOrder",
-      "foreign_phone",
+      "phone",
     ],
     headers: [
       {

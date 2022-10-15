@@ -39,6 +39,12 @@
         "NO_DATA": "Aún no cuentas con Productos",
         "NO_RESULTS": "No hay resultados"
     },
+    "variations": {
+        "TITLE": "Variaciones",
+        "SUBTITLE": "Listado de Variaciones",
+        "NO_DATA": "Aún no cuentas con Variaciones",
+        "NO_RESULTS": "No hay resultados"
+    },
     "ecommercesCategories": {
         "TITLE": "Categorías",
         "SUBTITLE": "Listado de Categorías",

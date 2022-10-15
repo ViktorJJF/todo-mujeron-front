@@ -13,7 +13,7 @@
           hide-default-footer
           :headers="headers"
           :items="items"
-          items-per-page="50"
+          :items-per-page="50"
         >
           <template v-slot:item.switch="{ index, item }">
             <span class="format-breaklines">
@@ -81,7 +81,6 @@
 <script>
 import MaterialCard from "@/components/material/Card";
 import EcommercesApi from '@/services/api/ecommerces'
-import ecommerces from '@/services/api/ecommerces';
 
 export default {
   components: { MaterialCard },
@@ -219,7 +218,7 @@ export default {
           catalog_visibility: active === true ? 'visible' : 'hidden',
         }
 
-        await ecommerces.update(item._id, productChanges)
+        await EcommercesApi.update(item._id, productChanges)
 
         Object.assign(item, {
           ...productChanges,
@@ -237,7 +236,7 @@ export default {
             ...changes
           }))
 
-          await ecommerces.updateVariationBatch(this.product._id, payload)
+          await EcommercesApi.updateVariationBatch(this.product._id, payload)
 
           this.switchLoading = []
 
@@ -248,7 +247,7 @@ export default {
       }
 
       // is a variation
-      await ecommerces.updateVariation(this.product._id, item.id, changes)
+      await EcommercesApi.updateVariation(this.product._id, item.id, changes)
 
       this.switchLoading = this.switchLoading.filter(v => v !== id)
 
@@ -267,26 +266,6 @@ export default {
         this.changeItemStatus(false, this.product)
       }
     },
-    getAttributes(active) {
-      let attributes = [...this.product.attributes]
-
-      const index = attributes.findIndex(attr => attr.name.toLowerCase() === 'talla')
-      const talla = attributes[index]
-
-      let options = []
-      
-      if(active) {
-        for(const variation of this.variations) {
-          if(variation.stock_status === 'instock') {
-            options.push(variation.attributesFormatted.talla.option)
-          }
-        }
-      }
-
-      attributes[index] = { ...talla, options }
-
-      return attributes;
-    },
     async handleStockSave(item) {
       if(this.$refs.stockTextEdit.valid) {
         this.switchLoading.push(item.id)
@@ -296,7 +275,7 @@ export default {
           status: this.currentStock > 0 ? 'publish' : 'draft'
         }
         Object.assign(item, changes)
-        await ecommerces.updateVariation(this.product._id, item.id, changes)
+        await EcommercesApi.updateVariation(this.product._id, item.id, changes)
         this.switchLoading = this.switchLoading.filter(v => v !== item.id)
       }
     }
