@@ -7,7 +7,6 @@ const module = {
     users: [],
   },
   actions: {
-
     list({ commit }, query) {
       return new Promise((resolve, reject) => {
         api
@@ -23,6 +22,7 @@ const module = {
     },
 
     listOne({ commit }, id) {
+      console.log("🚀 Aqui *** -> id", id);
       return new Promise((resolve, reject) => {
         api
           .listOne(id)
@@ -37,56 +37,55 @@ const module = {
     },
 
     update({ commit }, { id, data }) {
-        return new Promise((resolve, reject) => {
-          api
-            .update(id, data)
-            .then((res) => {
-              commit("loadingModule/showLoading", true, { root: true });
-              buildSuccess("Registro actualizado con éxito", commit);
-              commit("update", {
-                id,
-                data: res.data.payload,
-              });
-              resolve(res.data.payload);
-            })
-            .catch((error) => {
-              handleError(error, commit, reject);
+      return new Promise((resolve, reject) => {
+        api
+          .update(id, data)
+          .then((res) => {
+            commit("loadingModule/showLoading", true, { root: true });
+            buildSuccess("Registro actualizado con éxito", commit);
+            commit("update", {
+              id,
+              data: res.data.payload,
             });
-        });
-      },
+            resolve(res.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
 
-      create({ commit }, data) {
-        return new Promise((resolve, reject) => {
-          api
-            .create(data)
-            .then((res) => {
-              commit("loadingModule/showLoading", true, { root: true });
-              buildSuccess("Registro guardado con éxito", commit);
-              commit("create", res.data.payload);
-              resolve(res.data.payload);
-            })
-            .catch((error) => {
-              handleError(error, commit, reject);
-            });
-        });
-      },
+    create({ commit }, data) {
+      return new Promise((resolve, reject) => {
+        api
+          .create(data)
+          .then((res) => {
+            commit("loadingModule/showLoading", true, { root: true });
+            buildSuccess("Registro guardado con éxito", commit);
+            commit("create", res.data.payload);
+            resolve(res.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
 
-      delete({ commit }, id) {
-        return new Promise((resolve, reject) => {
-          api
-            .delete(id)
-            .then(() => {
-              commit("loadingModule/showLoading", true, { root: true });
-              buildSuccess("Registro eliminado con éxito", commit);
-              commit("delete", id);
-              resolve();
-            })
-            .catch((error) => {
-              handleError(error, commit, reject);
-            });
-        });
-      },
-
+    delete({ commit }, id) {
+      return new Promise((resolve, reject) => {
+        api
+          .delete(id)
+          .then(() => {
+            commit("loadingModule/showLoading", true, { root: true });
+            buildSuccess("Registro eliminado con éxito", commit);
+            commit("delete", id);
+            resolve();
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
   },
   mutations: {
     list(state, data) {
@@ -99,8 +98,14 @@ const module = {
       let indexToDelete = state.users.findIndex((member) => member._id == id);
       state.users.splice(indexToDelete, 1);
     },
-
-
+    update() {
+      // let indexToUpdate = state.users.findIndex((member) => {
+      //   return member._id == id;
+      // });
+      // state.users.splice(indexToUpdate, 1, {
+      //   ...data,
+      // });
+    },
   },
   getters: {},
 };
