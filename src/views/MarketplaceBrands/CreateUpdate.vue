@@ -24,9 +24,9 @@
         </v-row>
         <v-row>
           <v-col>
-            <div class="body-1 font-weight-bold">Categoria Padre</div>
+            <div class="body-1 font-weight-bold">Marca Padre</div>
             <v-select
-              :items="categories"
+              :items="brands"
               v-model="editedItem.parent"
               item-text="name"
               item-value="_id"
@@ -57,10 +57,10 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 export default {
   components: { VTextFieldWithValidation },
   props: {
-    category: {
+    brand: {
       type: Object
     },
-    categories: {
+    brands: {
       type: Array
     }
   },
@@ -73,21 +73,21 @@ export default {
   computed: {
     formTitle() {
       const actionText = this.editedItem._id ? 'Modificar ' : 'Crear Nueva'
-      return `${actionText} Categoria`;
+      return `${actionText} Marca / Linea`;
     }
   },
   methods: {
     async save() {
       this.loadingButton = true;
       if(this.editedItem._id) {
-        await this.$store.dispatch("marketplaceCategoriesModule/update", {
-          id: this.category._id,
+        await this.$store.dispatch("marketplaceBrandsModule/update", {
+          id: this.brand._id,
           data: this.editedItem,
         });
         this.$emit('save', { updated: true, item: this.editedItem })
       } else {
         let newItem = await this.$store.dispatch(
-          "marketplaceCategoriesModule/create",
+          "marketplaceBrandsModule/create",
           this.editedItem
         );
         this.$emit('save', { updated: false, item: newItem })
@@ -97,7 +97,7 @@ export default {
     }
   },
   watch: {
-    category: {
+    brand: {
       immediate: true,
       handler: function(val) {
         this.editedItem = val ? { ...val } : {

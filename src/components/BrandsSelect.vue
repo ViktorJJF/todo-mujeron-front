@@ -8,13 +8,14 @@
     />
     <v-dialog v-model="isOpen" scrollable max-width="300px" @input="handleDialogChange">
       <v-card>
-        <v-card-title>Seleccionar Categorias</v-card-title>
+        <v-card-title>Seleccionar Marcas</v-card-title>
         <v-divider></v-divider>
         <v-card-text class="px-0" style="height: 300px;">
           <v-treeview
-            :items="categoriesTree"
+            :items="brandsTree"
             item-key="_id"
             selectable
+            selection-type="independent"
             v-model="selected"
             return-object
           />
@@ -48,8 +49,8 @@ export default {
   data() {
     return {
       isOpen: false,
-      categories: [],
-      categoriesTree: [],
+      brands: [],
+      brandsTree: [],
       selected: [],
       localValue: []
     };
@@ -71,7 +72,7 @@ export default {
           outlined: true,
           hideDetails: true,
           dense: true,
-          placeholder: "Seleccionar Categorias",
+          placeholder: "Seleccionar Marcas",
         },
         // We add all attrs from the parent and override defaults
         this.$attrs
@@ -81,19 +82,19 @@ export default {
   methods: {
     async fetchCategories() {
       const res = await marketplaceCategoriesApi.list()
-      const categories = res.data.payload;
-      this.categories = categories
+      const brands = res.data.payload;
+      this.brands = brands
       // pass array by value to avoid mutation
-      this.categoriesTree = this.buildTreeItems(categories.slice());
+      this.brandsTree = this.buildTreeItems(brands.slice());
     },
     handleSave() {
       const value = []
 
-      for(const category of this.selected) {
-        value.push(category)
-        let parentId = category.parent
+      for(const brand of this.selected) {
+        value.push(brand)
+        let parentId = brand.parent
         while(parentId) {
-          const item = this.categories.find(c => c._id === parentId)
+          const item = this.brands.find(c => c._id === parentId)
           value.push(item)
           parentId = item.parent
         }
@@ -115,35 +116,35 @@ export default {
     parseValue(value) {
       const parseValue = []
       for(const item of value) {
-        const category = typeof item === 'string'
-          ? this.categories.find(cat => cat._id === item)
+        const brand = typeof item === 'string'
+          ? this.brands.find(el => el._id === item)
           : item
 
-        if(category) {
-          parseValue.push(category)
+        if(brand) {
+          parseValue.push(brand)
         }
       }
 
       return parseValue;
     },
-    buildTreeItems(categories) {
+    buildTreeItems(brands) {
       const items = [];
-      // find roots categories and remove them from base array
-      for (const [index, category] of categories.entries()) {
-        if (category.parent === null) {
-          categories.splice(index, 1);
+      // find roots brands and remove them from base array
+      for (const [index, brand] of brands.entries()) {
+        if (brand.parent === null) {
+          brands.splice(index, 1);
           // mutating the object to avoid creating new space in memory
-          Object.assign(category, { children: this.getChildren(category, categories)})
-          items.push(category);
+          Object.assign(brand, { children: this.getChildren(brand, brands)})
+          items.push(brand);
         }
       }
 
       return items;
     },
-    getChildren(category, list) {
+    getChildren(brand, list) {
       const childrens = [];
       for (const [index, item] of list.entries()) {
-        if (category._id === item.parent) {
+        if (brand._id === item.parent) {
           list.splice(index, 1);
           // mutating the object to avoid creating new space in memory
           Object.assign(item, { children: this.getChildren(item, list) })
