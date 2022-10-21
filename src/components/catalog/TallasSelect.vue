@@ -30,7 +30,6 @@ export default {
   },
   methods: {
     onInput(value) {
-      console.log(this.tallas)
       this.$emit('input', value)
     }
   }

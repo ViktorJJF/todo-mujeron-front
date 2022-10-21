@@ -393,7 +393,7 @@
               @flip-left-end="onFlipLeftEnd"
               @flip-right-end="onFlipRightEnd"
             >
-              <div class="buy-button button-left">
+              <div class="buy-button button-left" v-if="currentPageProduct">
                 <v-menu top offset-y>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -415,13 +415,13 @@
                   </template>
                   <v-list>
                     <v-list-item
-                      v-for="variation of currentPageProductVariations"
+                      v-for="variation of currentPageProduct.variations"
                       link
                       :key="variation.id"
                       @click="cartAddItem(currentPageProduct, variation)"
                     >
                       <div style="text-transform: capitalize">
-                        {{getVariationLabel(variation)}}
+                        {{variation.label}}
                       </div>
                     </v-list-item>
                   </v-list>
@@ -587,11 +587,6 @@ export default {
         : 0
       return this.productsSource[index]
     },
-    currentPageProductVariations() {
-      return this.currentPageProduct
-        ? this.getVariations(this.currentPageProduct)
-        : []
-    },
     currencyCode() {
       if(this.country === COUNTRIES[0]) {
         return 'CLP'
@@ -663,15 +658,17 @@ export default {
       return this.products;
     },
     tallas() {
-      let res = this.productsByCategory.reduce((tallas, product) => {
+      const tallas = []
+      for(const product of this.productsByCategory) {
         const productTallas = this.getTallas(product)
         for(const talla of productTallas) {
-          tallas[talla] = true
+          const isDuplicated = tallas.includes(talla.option)
+          if(!isDuplicated) {
+            tallas.push(talla)
+          }
         }
-        return tallas
-      }, {})
-
-      return Object.keys(res)
+      }
+      return tallas;
     },
     marcas() {
       let res = this.productsByCategory.reduce((marcas, product) => {
@@ -822,19 +819,9 @@ export default {
         return [];
       }
 
-      let tallas = []
+      const tallas = []
       for(const variation of product.variations) {
-        const available = variation.status === 'publish' && variation.stock_status === 'instock'
-        if(!available) {
-          continue;
-        }
-
-        const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
-        if(!attr) {
-          continue;
-        }
-
-        const talla = attr.option
+        const talla = variation.attributes.talla.option
         const isDuplicated = tallas.includes(talla)
         if(!isDuplicated) {
           tallas.push(talla)
@@ -842,6 +829,31 @@ export default {
       }
 
       return tallas;
+    },
+    getAvailableVariations(product) {
+      const variations = []
+
+      for(const variation of product.variations) {
+        const available =
+          variation.status === 'publish' &&
+          variation.stock_status === 'instock' &&
+          variation.attributes
+        
+        if (available) {
+          const variationFormatted = {
+            ...variation,
+            attributes: this.getFormatAttributes(variation.attributes),
+          };
+
+          Object.assign(variationFormatted, {
+            label: this.getVariationLabel(variationFormatted),
+          });
+
+          variations.push(variationFormatted);
+        }
+      }
+
+      return variations;
     },
     getVariationLabel (variation) {
       const talla = variation.attributes.talla.option
@@ -853,58 +865,33 @@ export default {
 
       return talla;
     },
-    getVariations(product) {
-      let variations = []
-
-      for(const variation of product.variations) {
-        const available = variation.status === 'publish' && variation.stock_status === 'instock'
-        if(available) {
-          variations.push({
-            ...variation,
-            attributes: this.getFormatAttributes(variation.attributes)
-          })
-        }
-      }
-
-      return variations;
-    },
     getFormatAttributes(attributes) {
       return attributes.reduce((attributes, current) => ({
         ...attributes,
         [current.name.toLowerCase()]: current
       }), {})
     },
+    getFormatProduct(product) {
+      Object.assign(product, { variations: this.getAvailableVariations(product)})
+      return product;
+    },
     async getByCountry() {
-      const query = {country: this.country}
+      const query = { country: this.country }
+      const ecommercesQuery = { ...query, products_available: true }
 
       let [productsRes, categoriesRes] = await Promise.all([
-        EcommercesApi.list({ ...query, page: 1, limit: ITEMS_PER_PAGE}),
+        EcommercesApi.list({ ...ecommercesQuery, page: 1, limit: ITEMS_PER_PAGE }),
         EcommercesCategoriesApi.list(query)
       ])
 
       this.categories = categoriesRes.data.payload
 
-      this.products = this.getAvailableProducts(productsRes.data.payload)
+      this.products = productsRes.data.payload.map(this.getFormatProduct)
 
-      let products = []
-      let currentPage = 1
-      const perPage = Math.ceil(productsRes.data.totalDocs / 2)
-      const validation = true
-      while(validation) {
-        let res = await EcommercesApi.list({
-          ...query,
-          page: currentPage++,
-          limit: perPage
-        })
+      // get remaining products
+      productsRes = await EcommercesApi.list(ecommercesQuery),
 
-        products.push(...res.data.payload)
-
-        if(!res.data.nextPage) {
-          break;
-        }
-      }
-
-      this.products = this.getAvailableProducts(products)
+      this.products = productsRes.data.payload.map(this.getFormatProduct)
 
       this.$nextTick(() => {
         this.countryLoaded = true;
@@ -942,17 +929,11 @@ export default {
       }
 
       for(const variation of product.variations) {
-        const available = variation.status === 'publish' && variation.stock_status === 'instock'
-        if(!available) {
-          continue;
-        }
-
-        const attr = variation.attributes?.find(attr => attr.id == tallaAttr.id)
-        if(tallas.includes(attr.option)) {
+        const hasSome = tallas.includes(variation.attributes.talla.option)
+        if(hasSome) {
           return true;
         }
       }
-
 
       return false;
     },
