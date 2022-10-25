@@ -580,10 +580,6 @@ export default {
   mounted() {
     this.$store.commit("loadingModule/showLoading");
     this.initialize();
-    // se verifica si se estuvo sincronizando
-    if (localStorage.getItem("syncStarted")) {
-      this.syncAll();
-    }
     this.rolAuth();
   },
   methods: {
@@ -724,7 +720,6 @@ export default {
       try {
         await ecommercesApi.syncAll();
         this.syncStarted = true;
-        localStorage.setItem("syncStarted", true);
         // si todo fue bien, activar el endpoint empezara a retornar la cantidad de productos sincronizados
         await timeout(3000);
         while (this.syncStarted) {
@@ -735,7 +730,8 @@ export default {
             ).data.payload.countProductSync;
             // si se llega al límite, eliminar de localStorage
             if (this.countProductSync >= this.items.length) {
-              localStorage.removeItem("syncStarted");
+              this.syncStarted = false;
+              break;
             }
           } catch (error) {
             console.log(error);
