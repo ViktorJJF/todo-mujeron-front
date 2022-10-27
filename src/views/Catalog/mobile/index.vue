@@ -88,7 +88,7 @@
               rounded
             >
               <template v-slot:label="{item}">
-                {{item.name}} <span class="caption">({{item.products.length}})</span>
+                {{item.name}} <span v-if="item.products" class="caption">({{item.products}})</span>
               </template>
             </v-treeview>
           </v-list-item>
@@ -136,10 +136,10 @@
           </template>
 
           <v-list-item-group
-            v-model="filter.marcas"
+            v-model="filter.brands"
             multiple
           >
-            <template v-for="(item, i) in marcas">
+            <template v-for="(item, i) in brands">
               <v-divider
                 v-if="!item"
                 :key="`divider-${i}`"
@@ -367,7 +367,7 @@
                 <v-icon size="35">mdi-chevron-left</v-icon>
               </v-btn>
               <div style="min-width: 50px;" class="d-flex justify-center">
-                {{pages.length ? currentPage : 0}} / {{pages.length}}
+                {{pages.length ? currentPageIndex : 0}} / {{productsDocs.total}}
               </div>
               <v-btn
                 class="ml-1"
@@ -489,14 +489,12 @@
 <script>
 import Flipbook from 'flipbook-vue'
 import EcommercesApi from "@/services/api/ecommerces";
-import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
 import TallasSelect from '@/components/catalog/TallasSelect'
 import BottomNavigation from './BottomNavigation'
 import MarqueeText from 'vue-marquee-text-component'
 import BuyForm from "../BuyForm"
 import PersonaR from './persona.jpg'
 import { jsPDF } from "jspdf";
-import _ from 'lodash'
 
 const COUNTRIES = ['Chile', 'Peru']
 const DEFAULT_COUNTRY = 'Chile'
@@ -518,22 +516,27 @@ export default {
     return {
       buyModal: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
-      countryLoaded: false,
       search: '',
       hideCountrySelect: true,
       drawerFilter: false,
       drawerCart: false,
       products: [],
       categories: [],
+      tallas: [],
+      brands: [],
       cartItems: [],
+      productsDocs: {
+        total: 0,
+        nextPage: 1
+      },
       productsSelected: [],
-      filterInitialized: false,
+      filterInitialized: false, // when true allows watching for filter changes
       filter: {
         categories: [],
         tallas: [],
-        marcas: [],
+        brands: [],
       },
-      currentPage: 1,
+      currentPageIndex: 0,
       showGesture: false,
       personResource: PersonaR,
       isAppBarHidden: false,
@@ -568,9 +571,10 @@ export default {
       this.country = country
     }
     
-    this.getByCountry().then(() => {
-      this.setFilterFromQuery()
-    })
+    this.setFilterFromQuery()
+      .then(() => this.fetchAll())
+      .then(() => this.setFilterFromQuery())
+      .then(() => this.filterInitialized = true)
   },
   filters: {
     currency(val) {
@@ -579,13 +583,13 @@ export default {
   },
   computed: {
     pages() {
-      return this.productsSource.map(this.getProductImageUrl)
+      return this.products.map(this.getProductImageUrl)
     },
     currentPageProduct() {
-      const index = this.currentPage > 0
-        ? this.currentPage-1
+      const index = this.currentPageIndex > 0
+        ? this.currentPageIndex-1
         : 0
-      return this.productsSource[index]
+      return this.products[index]
     },
     currencyCode() {
       if(this.country === COUNTRIES[0]) {
@@ -603,89 +607,17 @@ export default {
       return (
         this.filter.categories.length ||
         this.filter.tallas.length ||
-        this.filter.marcas.length ||
+        this.filter.brands.length ||
         this.productsSelected.length
       )
     },
-    allCategories() {
-      return this.categories
-        .map(category => ({
-          ...category,
-          products: this.products.filter(product => {
-            return product.categories.find(productCat => productCat.id == category.idCategory)
-          })
-        }))
-        .filter(category => category.products.length > 0)
-    },
-    rootCategories() {
-      return this.allCategories.filter(cat => cat.parent===0)
-    },
     categoriesTree() {
-      return this.rootCategories.map(category => ({
+      const rootCategories = this.categories.filter(cat => cat.parent===0)
+
+      return rootCategories.map(category => ({
         ...category,
-        children: this.allCategories.filter(cat => cat.parent === category.idCategory)
+        children: this.categories.filter(cat => cat.parent === category.idCategory)
       }))
-    },
-    productsSource() {
-      if(this.productsSelected.length) {
-        return this.productsSelected;
-      }
-
-      let filteredProducts = [...this.productsByCategory];
-
-      if(this.filter.tallas.length) {
-        filteredProducts = filteredProducts.filter(product => {
-          return this.hasSomeTalla(product, this.filter.tallas)
-        })
-      }
-
-      if(this.filter.marcas.length) {
-        filteredProducts = filteredProducts.filter(product => {
-          return this.hasSomeAttribute(product, 'marca', this.filter.marcas)
-        })
-      }
-
-      return filteredProducts.sort((a, b) => {
-        return new Date(b.createdAt) - new Date(a.createdAt)
-      });
-    },
-    productsByCategory() {
-      if(this.filter.categories.length) {
-        let categories = this.allCategories.filter(c => this.filter.categories.includes(c.idCategory))
-        return _.chain(categories).flatMap('products').uniqBy('_id').value()
-      }
-
-      return this.products;
-    },
-    tallas() {
-      const tallas = []
-      for(const product of this.productsByCategory) {
-        const productTallas = this.getTallas(product)
-        for(const talla of productTallas) {
-          const isDuplicated = tallas.includes(talla.option)
-          if(!isDuplicated) {
-            tallas.push(talla)
-          }
-        }
-      }
-      return tallas;
-    },
-    marcas() {
-      let res = this.productsByCategory.reduce((marcas, product) => {
-        const marcaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'marca')
-        const marcasAvailable = marcaAttr && marcaAttr.options.length
-        if(!marcasAvailable) {
-          return marcas;
-        }
-
-        for(const marca of marcaAttr.options) {
-          marcas[marca] = true
-        }
-
-        return marcas;
-      }, {})
-
-      return Object.keys(res)
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => {
@@ -696,57 +628,62 @@ export default {
   },
   watch: {
     'country': function() {
-      if(!this.countryLoaded) return;
-
       this.filterInitialized = false
 
       this.filter = {
         tallas: [],
-        marcas: [],
+        brands: [],
         categories: []
       }
 
-      let query = {
+      const query = {
         ...this.$route.query,
         country: this.country
       }
 
-      this.$router.push({ name: 'Catalog', query })
+      this.$router.replace({ query })
 
-      this.getByCountry().then(() => {
+      this.fetchAll().then(() => {
         this.filterInitialized = true
       })
+    },
+    'filter.categories': function() {
+      if(!this.filterInitialized) return;
+      Object.assign(this.filter, {tallas: [], brands: []})
+      this.fetchAttributes();
     },
     'filter': {
       deep: true,
       handler: function(val) {
         if(!this.filterInitialized) return;
 
-        this.currentPage = this.pages.length ? 1 : 0
-        this.$refs.flipbook.goToPage(this.currentPage)
+        this.fetchProducts()
 
-        let query = {
+        const query = {
           ...this.$route.query,
           categories: val.categories.join(','),
           tallas: val.tallas.join(','),
-          marcas: val.marcas.join(',')
+          brands: val.brands.join(',')
         }
 
-        this.$router.push({ name: 'Catalog', query })
+        this.$router.replace({ query })
       }
     },
-    'filter.categories': function() {
-      if(!this.filterInitialized) return;
-
-      Object.assign(this.filter, {tallas: [], marcas: []})
-    },    
+    'currentPageIndex': function(val) {
+      // fetch products 2 pages before last
+      if(val === this.products.length - 3) {
+        if(this.productsDocs.nextPage) {
+          this.fetchProducts(this.productsDocs.nextPage)
+        }
+      }
+    }
   },
   methods: {
     onScroll () {
       this.isAppBarHidden = window.scrollY >= 95
     },
     async downloadPdf(maxSize, price) {
-      if(!this.productsSource.length) {
+      if(!this.products.length) {
         return;
       }
 
@@ -757,7 +694,7 @@ export default {
       let height = doc.internal.pageSize.getHeight() - (y * 2);
       
 
-      for(const [index, product] of this.productsSource.entries()) {
+      for(const [index, product] of this.products.entries()) {
         let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product).join(', ')}`
         doc.text(leftText, x-3, height+y, {angle: 90});
 
@@ -782,7 +719,7 @@ export default {
 
         const filename = `${Date.now()}.pdf`
 
-        const isLast = index === this.productsSource.length-1
+        const isLast = index === this.products.length-1
         if(isLast) {
           return doc.output('save', filename);
         }
@@ -813,12 +750,6 @@ export default {
       this.productsSelected = []
     },
     getTallas(product) {
-      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const hasVariations = tallaAttr && tallaAttr.variation === true
-      if(!hasVariations) {
-        return [];
-      }
-
       const tallas = []
       for(const variation of product.variations) {
         const talla = variation.attributes.talla.option
@@ -875,27 +806,62 @@ export default {
       Object.assign(product, { variations: this.getAvailableVariations(product)})
       return product;
     },
-    async getByCountry() {
-      const query = { country: this.country }
-      const ecommercesQuery = { ...query, products_available: true }
+    async fetchAll() {
+      const query = { country: this.country, products_available: true }
 
-      let [productsRes, categoriesRes] = await Promise.all([
-        EcommercesApi.list({ ...ecommercesQuery, page: 1, limit: ITEMS_PER_PAGE }),
-        EcommercesCategoriesApi.list(query)
+      const [categoriesRes] = await Promise.all([
+        EcommercesApi.listCategories(query),
+        this.fetchAttributes(),
+        this.fetchProducts()
       ])
 
       this.categories = categoriesRes.data.payload
+    },
+    async fetchProducts(page = 1) {
+      const query = {
+        country: this.country,
+        products_available: true,
+        categories: this.filter.categories.join(','),
+        tallas: this.filter.tallas.join(','),
+        brands: this.filter.brands.join(','),
+        limit: ITEMS_PER_PAGE,
+        page,
+      }
 
-      this.products = productsRes.data.payload.map(this.getFormatProduct)
+      const productsRes = await EcommercesApi.list(query)
+      
+      const products = productsRes.data.payload.map(this.getFormatProduct)
+      if(page === 1) {
+        this.products = products
+      } else {
+        this.products.push(...products)
+      }
 
-      // get remaining products
-      productsRes = await EcommercesApi.list(ecommercesQuery),
+      this.productsDocs = {
+        total: productsRes.data.totalDocs,
+        nextPage: productsRes.data.nextPage
+      }
 
-      this.products = productsRes.data.payload.map(this.getFormatProduct)
+      if(page === 1) {
+        this.currentPageIndex = 1;
+        this.$refs.flipbook.goToPage(this.currentPageIndex)
+      }
+    },
+    async fetchAttributes() {
+      const query = {
+        country: this.country,
+        products_available: true,
+        categories: this.filter.categories.join(',')
+      }
+      
+      const [sizesRes, attributesRes] = await Promise.all([
+        EcommercesApi.listSizes(query),
+        EcommercesApi.listAttributes({ ...query, name: 'marca' }),
 
-      this.$nextTick(() => {
-        this.countryLoaded = true;
-      })
+      ])
+      
+      this.tallas = sizesRes.data.payload.map(talla => talla.option);
+      this.brands = attributesRes.data.payload.map(attr => attr.options)
     },
     getAvailableProducts(products) {
       return products.filter(product => {
@@ -906,36 +872,6 @@ export default {
         
         return imageAvailable && tallas.length;
       })
-    },
-    hasSomeAttribute(product, attributeName, attrs) {
-      let attribute = product.attributes.find(attr => attr.name.trim().toLowerCase() === attributeName)
-
-      if(attribute && attribute.options.length) {
-        for(const needle of attrs) {
-          if(attribute.options.includes(needle)) {
-            return true;
-          }
-        }
-      }
-
-      return false;
-    },
-    // Return true if has some of the talla from the array
-    hasSomeTalla(product, tallas) {
-      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const hasVariations = tallaAttr && tallaAttr.variation === true
-      if(!hasVariations) {
-        return false;
-      }
-
-      for(const variation of product.variations) {
-        const hasSome = tallas.includes(variation.attributes.talla.option)
-        if(hasSome) {
-          return true;
-        }
-      }
-
-      return false;
     },
     handleSearchItemClick() {
       this.search = ''
@@ -1010,10 +946,10 @@ export default {
       this.$refs.flipbook[`flip${direction}`]()
     },
     onFlipLeftEnd(page) {
-      this.currentPage = page
+      this.currentPageIndex = page
     },
     onFlipRightEnd(page) {
-      this.currentPage = page
+      this.currentPageIndex = page
     },
     getDate() {
       const now = new Date();
@@ -1032,18 +968,14 @@ export default {
 
       let categories = query.categories ? query.categories.split(',').map(c=>parseInt(c, 10)) : []
       let tallas = query.tallas ? query.tallas.split(',') : []
-      let marcas = query.marcas ? query.marcas.split(',') : []
+      let brands = query.brands ? query.brands.split(',') : []
 
 
       this.filter.categories = categories
 
       await this.$nextTick()
 
-      Object.assign(this.filter, {tallas, marcas})
-      
-      await this.$nextTick()
-
-      this.filterInitialized = true
+      Object.assign(this.filter, { tallas, brands })
     },
   }
 }
