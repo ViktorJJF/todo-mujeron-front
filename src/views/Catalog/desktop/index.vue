@@ -687,12 +687,6 @@ export default {
     async fetchAll() {
       const query = { country: this.country, products_available: true }
 
-      this.products = []
-      this.productsDocs = {
-        total: 0,
-        nextPage: 1
-      }
-
       const [categoriesRes] = await Promise.all([
         EcommercesApi.listCategories(query),
         this.fetchAttributes(),
@@ -870,8 +864,6 @@ export default {
       await this.$nextTick()
 
       Object.assign(this.filter, { tallas, brands })
-      
-      await this.$nextTick()
     },
   }
 }
