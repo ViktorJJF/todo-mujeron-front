@@ -204,13 +204,13 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click="downloadPdf()">
+            <v-list-item @click="handleDownloadPdf()">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="downloadPdf(13)">
+            <v-list-item @click="handleDownloadPdf(13)">
               <v-list-item-title>Descargar para whatsapp</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="downloadPdf(undefined, true)">
+            <v-list-item @click="handleDownloadPdf(undefined, true)">
               <v-list-item-title>Descargar con precio</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -348,6 +348,18 @@
     <v-dialog v-model="buyModal" width="500">
       <buy-form :items="cartItems" :catalog="catalog" />
     </v-dialog>
+    <v-dialog v-model="downloadLoading" persistent width="300">
+      <v-card color="primary" dark>
+        <v-card-text>
+          Descargando productos
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -388,6 +400,7 @@ export default {
   data() {
     return {
       buyModal: false,
+      downloadLoading: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
       hideCountrySelect: true,
       drawerFilter: true,
@@ -564,8 +577,10 @@ export default {
         if (price) {
           let productPrice =
             product.regular_price || product.variations[0].regular_price;
+
           productPrice = new Intl.NumberFormat().format(productPrice);
-          let priceText = `Precio: ${productPrice}`;
+
+          const priceText = `Precio: ${productPrice}`;
 
           doc
             .setFontSize(doc.getFontSize() + 2)
@@ -588,14 +603,15 @@ export default {
 
         const isLast = index === this.products.length - 1;
         if (isLast) {
-          return doc.output("save", filename);
+          doc.save(filename)
+          return await this.delay(500);
         }
 
         if (maxSize) {
           let size = doc.output().length;
           let sizeMb = size / (1024 * 1024);
           if (sizeMb >= maxSize) {
-            doc.output("save", filename);
+            doc.save(filename)
             await this.delay(500);
             doc = new jsPDF(); // reset pdf
             continue;
@@ -604,6 +620,17 @@ export default {
 
         doc.addPage();
       }
+    },
+    async handleDownloadPdf(...args) {
+      this.downloadLoading = true;
+
+      while (this.productsDocs.nextPage) {
+        await this.fetchProducts(this.productsDocs.nextPage, false);
+      }
+
+      await this.downloadPdf(...args);
+
+      this.downloadLoading = false;
     },
     delay(time = 1000) {
       return new Promise((resolve) => {
@@ -689,7 +716,7 @@ export default {
 
       this.categories = categoriesRes.data.payload;
     },
-    async fetchProducts(page = 1) {
+    async fetchProducts(page = 1, setInitialPage = true) {
       const query = {
         country: this.country,
         products_available: true,
@@ -714,7 +741,7 @@ export default {
         nextPage: productsRes.data.nextPage,
       };
 
-      if (page === 1) {
+      if (setInitialPage) {
         this.setInitialPage();
       }
     },
