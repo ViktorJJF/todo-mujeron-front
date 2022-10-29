@@ -9,6 +9,15 @@ export default {
   listOne(id, params) {
     return axios.get(`/api/ecommerces/${id}`, { params });
   },
+  listSizes(query) {
+    return axios.get(`/api/ecommerces/sizes`, { params: query });
+  },
+  listCategories(query) {
+    return axios.get(`/api/ecommerces/categories`, { params: query });
+  },
+  listAttributes(query) {
+    return axios.get(`/api/ecommerces/attributes`, { params: query });
+  },
   update(id, payload) {
     return axios.put(`/api/ecommerces/${id}`, payload);
   },

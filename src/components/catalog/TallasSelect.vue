@@ -11,6 +11,7 @@
       dense
       outlined
       flat
+      clearable
     >
   </v-select>
 </template>

@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <v-navigation-drawer
       v-model="drawerFilter"
       app
@@ -8,13 +7,7 @@
       touchless
       width="350"
     >
-      <v-btn
-        icon
-        absolute
-        right
-        class="mt-1"
-        @click="drawerFilter = false"
-      >
+      <v-btn icon absolute right class="mt-1" @click="drawerFilter = false">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
@@ -27,8 +20,11 @@
             item-key="idCategory"
             selectable
           >
-            <template v-slot:label="{item}">
-              {{item.name}} <span class="caption">({{item.products.length}})</span>
+            <template v-slot:label="{ item }">
+              {{ item.name }}
+              <span v-if="item.products" class="caption"
+                >({{ item.products }})</span
+              >
             </template>
           </v-treeview>
         </v-list-item>
@@ -43,61 +39,56 @@
       touchless
       width="500"
     >
-        <v-btn
-          icon
-          absolute
-          right
-          @click="drawerCart = false"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+      <v-btn icon absolute right @click="drawerCart = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
 
-      <v-list
-        flat
-        subheader
-      >
+      <v-list flat subheader>
         <v-subheader>Tus Artículos</v-subheader>
-        
+
         <v-list-item
           v-for="(item, index) in cartItems"
           three-line
           :key="item.product._id"
         >
-           <v-list-item-avatar tile height="63" width="63">
-              <img :src="item.product.images && item.product.images[0].src">
-            </v-list-item-avatar>
-            <v-list-item-content>
-              <v-list-item-title>{{item.product.name}}</v-list-item-title>
-              <div>
-                <div>{{item.product.ref}}</div>
-                <div v-if="item.color" style="text-transform: capitalize;">
-                  Color: {{item.color}}
-                </div>
-                <div>Talla: {{item.tallas.join(', ')}}</div>
-                <strong>{{item.price * item.quantity | currency}}</strong>
+          <v-list-item-avatar tile height="63" width="63">
+            <img :src="item.product.images && item.product.images[0].src" />
+          </v-list-item-avatar>
+          <v-list-item-content>
+            <v-list-item-title>{{ item.product.name }}</v-list-item-title>
+            <div>
+              <div>{{ item.product.ref }}</div>
+              <div v-if="item.color" style="text-transform: capitalize;">
+                Color: {{ item.color }}
               </div>
-            </v-list-item-content>
-            <div class="d-flex align-center">
-              <v-text-field
-                v-model="item.quantity"
-                style="max-width: 65px;"
-                type="number"
-                min="1"
-                hide-details
-                dense
-                outlined
-              />
-              <v-btn icon @click="cartRemoveItem(index)">
-                <v-icon color="grey lighten-1">mdi-delete</v-icon>
-              </v-btn>
+              <div>Talla: {{ item.tallas.join(", ") }}</div>
+              <strong>{{ (item.price * item.quantity) | currency }}</strong>
             </div>
+          </v-list-item-content>
+          <div class="d-flex align-center">
+            <v-text-field
+              v-model="item.quantity"
+              style="max-width: 65px;"
+              type="number"
+              min="1"
+              hide-details
+              dense
+              outlined
+            />
+            <v-btn icon @click="cartRemoveItem(index)">
+              <v-icon color="grey lighten-1">mdi-delete</v-icon>
+            </v-btn>
+          </div>
         </v-list-item>
       </v-list>
       <div class="cart-bottom">
         <div class="text-h4 text-center font-weight-bold mb-1">
           Total: {{ cartTotal | currency }}
         </div>
-        <div class="pa-3 d-flex align-center" :style="`background-color: ${mainColor}`">
+        <div
+          class="pa-3 d-flex align-center"
+          :style="`background-color: ${mainColor}`"
+        >
           <v-icon size="50" dark class="mr-1">
             mdi-whatsapp
           </v-icon>
@@ -123,7 +114,10 @@
               :style="`color: ${mainColor}`"
               block
               depressed
-              @click="drawerCart = false; buyModal = true"
+              @click="
+                drawerCart = false;
+                buyModal = true;
+              "
               :disabled="!cartItems.length"
             >
               Pagar
@@ -132,13 +126,8 @@
         </template>
       </div>
     </v-navigation-drawer>
-    
-    <v-app-bar
-      app
-      color="white"
-      flat
-      clipped-left
-    >
+
+    <v-app-bar app color="white" flat clipped-left>
       <country-select
         v-if="!hideCountrySelect"
         class="mr-2 d-flex"
@@ -172,13 +161,13 @@
             {{ data.item.ref }}
           </v-chip>
         </template>
-        <template v-slot:item="{item}">
+        <template v-slot:item="{ item }">
           <template>
             <v-list-item-avatar tile height="63" width="63">
-              <img :src="item.images && item.images[0].src">
+              <img :src="item.images && item.images[0].src" />
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title>{{item.name}}</v-list-item-title>
+              <v-list-item-title>{{ item.name }}</v-list-item-title>
             </v-list-item-content>
           </template>
         </template>
@@ -202,11 +191,7 @@
         >
           <v-icon>mdi-filter-remove-outline</v-icon>
         </v-btn>
-        <v-menu
-          open-on-hover
-          close-delay="200"
-          offset-y
-        >
+        <v-menu open-on-hover close-delay="200" offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               class="mr-1"
@@ -218,35 +203,26 @@
               <v-icon>mdi-arrow-collapse-down</v-icon>
             </v-btn>
           </template>
-        <v-list>
-          <v-list-item @click="downloadPdf()">
-            <v-list-item-title>Descargar normal</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="downloadPdf(13)">
-            <v-list-item-title>Descargar para whatsapp</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="downloadPdf(undefined, true)">
-            <v-list-item-title>Descargar con precio</v-list-item-title>
-          </v-list-item>
-        </v-list>
-        </v-menu>   
-        <v-btn
-          class="mr-1"
-          icon
-          color="grey"
-          @click="flipPage('Left')"
-        >
+          <v-list>
+            <v-list-item @click="handleDownloadPdf()">
+              <v-list-item-title>Descargar normal</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleDownloadPdf(13)">
+              <v-list-item-title>Descargar para whatsapp</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleDownloadPdf(undefined, true)">
+              <v-list-item-title>Descargar con precio</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-btn class="mr-1" icon color="grey" @click="flipPage('Left')">
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
         <div style="min-width: 50px;" class="d-flex justify-center">
-          {{pages.length ? currentPage + 1 : 0}} / {{pages.length}}
+          {{ pages.length ? currentPageIndex + 1 : 0 }} /
+          {{ productsDocs.total }}
         </div>
-        <v-btn
-          class="ml-1"
-          icon
-          color="grey"
-          @click="flipPage('Right')"
-        >
+        <v-btn class="ml-1" icon color="grey" @click="flipPage('Right')">
           <v-icon>mdi-chevron-right</v-icon>
         </v-btn>
         <v-btn
@@ -259,7 +235,7 @@
         </v-btn>
       </div>
       <v-spacer />
-      
+
       <div class="d-flex">
         <tallas-select
           style="max-width: 200px;"
@@ -270,8 +246,8 @@
         <v-select
           class="ml-2"
           style="max-width: 250px"
-          v-model="filter.marcas"
-          :items="marcas"
+          v-model="filter.brands"
+          :items="brands"
           label="Marcas"
           no-data-text="No hay datos disponibles"
           multiple
@@ -280,19 +256,17 @@
           dense
           outlined
           flat
+          clearable
         />
       </div>
-
     </v-app-bar>
 
     <v-main class="grey lighten-3">
       <v-container>
         <v-row>
-          <v-col
-            cols="12"
-          >
-            <flipbook 
-              class="flipbook" 
+          <v-col cols="12">
+            <flipbook
+              class="flipbook"
               ref="flipbook"
               :pages="pages"
               :clickToZoom="false"
@@ -309,9 +283,7 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                      <v-icon
-                        dark
-                      >
+                      <v-icon dark>
                         mdi-whatsapp
                       </v-icon>
                       <span class="ml-1">
@@ -327,13 +299,13 @@
                       @click="cartAddItem(leftPageProduct, variation)"
                     >
                       <div style="text-transform: capitalize">
-                        {{variation.label}}
+                        {{ variation.label }}
                       </div>
                     </v-list-item>
                   </v-list>
                 </v-menu>
               </div>
-              
+
               <div
                 v-if="rightPageProduct"
                 class="buy-button button-right d-flex"
@@ -347,9 +319,7 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                      <v-icon
-                        dark
-                      >
+                      <v-icon dark>
                         mdi-whatsapp
                       </v-icon>
                       <span class="ml-1">
@@ -364,358 +334,336 @@
                       @click="cartAddItem(rightPageProduct, variation)"
                     >
                       <div style="text-transform: capitalize">
-                        {{variation.label}}
+                        {{ variation.label }}
                       </div>
                     </v-list-item>
                   </v-list>
                 </v-menu>
-              </div>            
+              </div>
             </flipbook>
           </v-col>
         </v-row>
       </v-container>
     </v-main>
-    <v-dialog
-      v-model="buyModal"
-      width="500"
-    >
+    <v-dialog v-model="buyModal" width="500">
       <buy-form :items="cartItems" :catalog="catalog" />
+    </v-dialog>
+    <v-dialog v-model="downloadLoading" persistent width="300">
+      <v-card color="primary" dark>
+        <v-card-text>
+          Descargando productos
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
     </v-dialog>
   </div>
 </template>
 
 <script>
-import Flipbook from 'flipbook-vue'
+import Flipbook from "flipbook-vue";
 import EcommercesApi from "@/services/api/ecommerces";
-import EcommercesCategoriesApi from "@/services/api/ecommercesCategories";
-import CountrySelect from '@/components/catalog/CountrySelect'
-import TallasSelect from '@/components/catalog/TallasSelect'
-import BuyForm from '../BuyForm.vue'
+import CountrySelect from "@/components/catalog/CountrySelect";
+import TallasSelect from "@/components/catalog/TallasSelect";
+import BuyForm from "../BuyForm.vue";
 import { jsPDF } from "jspdf";
-import _ from 'lodash'
 
-const COUNTRIES = ['Chile', 'Peru']
-const DEFAULT_COUNTRY = 'Chile'
-const ITEMS_PER_PAGE = 30
+const COUNTRIES = ["Chile", "Peru"];
+const DEFAULT_COUNTRY = "Chile";
+const ITEMS_PER_PAGE = 30;
 
 const MONTHS = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
 ];
 
 export default {
   components: { Flipbook, CountrySelect, TallasSelect, BuyForm },
   props: {
     catalog: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   data() {
     return {
       buyModal: false,
+      downloadLoading: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
-      countryLoaded: false,
       hideCountrySelect: true,
       drawerFilter: true,
       drawerCart: false,
       products: [],
       categories: [],
+      tallas: [],
+      brands: [],
       cartItems: [],
+      productsDocs: {
+        total: 0,
+        nextPage: 1,
+      },
       productsSelected: [],
-      filterInitialized: false,
+      filterInitialized: false, // when true allows watching for filter changes
       filter: {
         categories: [],
         tallas: [],
-        marcas: [],
+        brands: [],
       },
-      currentPage: 0,
-      mainColor: 'purple',
-    }
+      currentPageIndex: 0,
+      mainColor: "purple",
+    };
   },
   created() {
-    if(this.catalog.mainColor) {
-      this.mainColor = this.catalog.mainColor
+    if (this.catalog.mainColor) {
+      this.mainColor = this.catalog.mainColor;
     }
 
-    this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
+    this.hideCountrySelect = "hide_country" in this.$route.query ? true : false;
 
-    const country = this.$route.query.country
+    const country = this.$route.query.country;
 
-    if(country && COUNTRIES.includes(country)) {
-      this.country = country
+    if (country && COUNTRIES.includes(country)) {
+      this.country = country;
     }
-    
-    this.getByCountry().then(() => {
-      this.setInitialPage()
-      this.setFilterFromQuery()
-    })
+
+    this.setFilterFromQuery()
+      .then(() => this.fetchAll())
+      .then(() => this.setFilterFromQuery())
+      .then(() => (this.filterInitialized = true));
   },
   filters: {
     currency(val) {
-      return new Intl.NumberFormat().format(val)
-    }
+      return new Intl.NumberFormat().format(val);
+    },
   },
   computed: {
     pages() {
-      return this.productsSource.map(this.getProductImageUrl)
+      return this.products.map(this.getProductImageUrl);
     },
     leftPageProduct() {
-      const index = this.currentPage > 0
-        ? this.currentPage-1
-        : 0
-      return this.productsSource[index]
+      const index = this.currentPageIndex > 0 ? this.currentPageIndex - 1 : 0;
+      return this.products[index];
     },
     rightPageProduct() {
-      return this.productsSource[this.currentPage]
+      return this.products[this.currentPageIndex];
     },
     currencyCode() {
-      if(this.country === COUNTRIES[0]) {
-        return 'CLP'
+      if (this.country === COUNTRIES[0]) {
+        return "CLP";
       }
 
-      return 'PEN'
+      return "PEN";
     },
     mercadopagoAvailable() {
       return (
-        this.catalog.mercadopagoAccessToken && this.catalog.mercadopagoAccessToken.trim().length > 0
-      )
+        this.catalog.mercadopagoAccessToken &&
+        this.catalog.mercadopagoAccessToken.trim().length > 0
+      );
     },
     filtersActive() {
       return (
         this.filter.categories.length ||
         this.filter.tallas.length ||
-        this.filter.marcas.length ||
+        this.filter.brands.length ||
         this.productsSelected.length
-      )
-    },
-    allCategories() {
-      return this.categories
-        .map(category => ({
-          ...category,
-          products: this.products.filter(product => {
-            return product.categories.find(productCat => productCat.id == category.idCategory)
-          })
-        }))
-        .filter(category => category.products.length > 0)
-    },
-    rootCategories() {
-      return this.allCategories.filter(cat => cat.parent===0)
+      );
     },
     categoriesTree() {
-      return this.rootCategories.map(category => ({
+      const rootCategories = this.categories.filter((cat) => cat.parent === 0);
+
+      return rootCategories.map((category) => ({
         ...category,
-        children: this.allCategories.filter(cat => cat.parent === category.idCategory)
-      }))
-    },
-    productsSource() {
-      if(this.productsSelected.length) {
-        return this.productsSelected;
-      }
-
-      let filteredProducts = [...this.productsByCategory];
-
-      if(this.filter.tallas.length) {
-        filteredProducts = filteredProducts.filter(product => {
-          return this.hasSomeTalla(product, this.filter.tallas)
-        })
-      }
-
-      if(this.filter.marcas.length) {
-        filteredProducts = filteredProducts.filter(product => {
-          return this.hasSomeAttribute(product, 'marca', this.filter.marcas)
-        })
-      }
-
-      return filteredProducts;
-    },
-    productsByCategory() {
-      if(this.filter.categories.length) {
-        let categories = this.allCategories.filter(c => this.filter.categories.includes(c.idCategory))
-        return _.chain(categories).flatMap('products').uniqBy('_id').value()
-      }
-
-      return this.products;
-    },
-    tallas() {
-      const tallas = []
-      for(const product of this.productsByCategory) {
-        const productTallas = this.getTallas(product)
-        for(const talla of productTallas) {
-          const isDuplicated = tallas.includes(talla.option)
-          if(!isDuplicated) {
-            tallas.push(talla)
-          }
-        }
-      }
-      return tallas;
-    },
-    marcas() {
-      let res = this.productsByCategory.reduce((marcas, product) => {
-        const marcaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'marca')
-        const marcasAvailable = marcaAttr && marcaAttr.options.length
-        if(!marcasAvailable) {
-          return marcas;
-        }
-
-        for(const marca of marcaAttr.options) {
-          marcas[marca] = true
-        }
-
-        return marcas;
-      }, {})
-
-      return Object.keys(res)
+        children: this.categories.filter(
+          (cat) => cat.parent === category.idCategory
+        ),
+      }));
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => {
-        const price = item.product.regular_price || item.product.variations[0].regular_price
-        return total + (price * item.quantity)
-      }, 0)
-    }
+        const price =
+          item.product.regular_price ||
+          item.product.variations[0].regular_price;
+        return total + price * item.quantity;
+      }, 0);
+    },
   },
   watch: {
-    'country': function() {
-      if(!this.countryLoaded) return;
-
-      this.filterInitialized = false
+    country: function() {
+      this.filterInitialized = false;
 
       this.filter = {
         tallas: [],
-        marcas: [],
-        categories: []
-      }
+        brands: [],
+        categories: [],
+      };
 
-      let query = {
+      const query = {
         ...this.$route.query,
-        country: this.country
-      }
+        country: this.country,
+      };
 
-      this.$router.push({ name: 'Catalog', query })
+      this.$router.replace({ query });
 
-      this.getByCountry().then(() => {
-        this.filterInitialized = true
-      })
+      this.fetchAll().then(() => {
+        this.filterInitialized = true;
+      });
     },
-    'filter': {
+    "filter.categories": function() {
+      if (!this.filterInitialized) return;
+      Object.assign(this.filter, { tallas: [], brands: [] });
+      this.fetchAttributes();
+    },
+    filter: {
       deep: true,
       handler: function(val) {
-        if(!this.filterInitialized) return;
+        if (!this.filterInitialized) return;
 
-        if(this.currentPage > this.pages.length) {
-          this.currentPage = this.pages.length-1
-          this.$refs.flipbook.goToPage(this.currentPage)
-        }
-        let query = {
+        this.fetchProducts();
+
+        const query = {
           ...this.$route.query,
-          categories: val.categories.join(','),
-          tallas: val.tallas.join(','),
-          marcas: val.marcas.join(',')
-        }
+          categories: val.categories.join(","),
+          tallas: val.tallas.join(","),
+          brands: val.brands.join(","),
+        };
 
-        this.$router.push({ name: 'Catalog', query })
+        this.$router.replace({ query });
+      },
+    },
+    currentPageIndex: function(val) {
+      // fetch products 2 pages before last
+      if (val === this.products.length - 3) {
+        if (this.productsDocs.nextPage) {
+          this.fetchProducts(this.productsDocs.nextPage);
+        }
       }
     },
-    'filter.categories': function() {
-      if(!this.filterInitialized) return;
-
-      Object.assign(this.filter, {tallas: [], marcas: []})
-    },    
   },
   methods: {
     async downloadPdf(maxSize, price) {
-      if(!this.productsSource.length) {
+      if (!this.products.length) {
         return;
       }
 
       let doc = new jsPDF();
 
-      const [x, y] = [30, 7]
-      let width = doc.internal.pageSize.getWidth() - (x * 2);
-      let height = doc.internal.pageSize.getHeight() - (y * 2);
-      
+      const [x, y] = [30, 7];
+      let width = doc.internal.pageSize.getWidth() - x * 2;
+      let height = doc.internal.pageSize.getHeight() - y * 2;
 
-      for(const [index, product] of this.productsSource.entries()) {
-        let leftText = `Rerefencia: ${product.ref} - Tallas disponibles: ${this.getTallas(product).join(', ')}`
-        doc.text(leftText, x-3, height+y, {angle: 90});
+      for (const [index, product] of this.products.entries()) {
+        let leftText = `Rerefencia: ${
+          product.ref
+        } - Tallas disponibles: ${this.getTallas(product).join(", ")}`;
+        doc.text(leftText, x - 3, height + y, { angle: 90 });
 
-        let rightText = `Actualizado al ${this.getDate()} - Pais: ${this.country}`
-        doc.text(rightText, width+x+6, height+y, {angle: 90});
+        let rightText = `Actualizado al ${this.getDate()} - Pais: ${
+          this.country
+        }`;
+        doc.text(rightText, width + x + 6, height + y, { angle: 90 });
 
-        if(price) {
-          let productPrice = product.regular_price || product.variations[0].regular_price
-          productPrice = new Intl.NumberFormat().format(productPrice)
-          let priceText = `Precio: ${productPrice}`
+        if (price) {
+          let productPrice =
+            product.regular_price || product.variations[0].regular_price;
 
-          doc.setFontSize(doc.getFontSize() + 2)
-             .setFont(undefined, 'bold')
-             .text(priceText, width+x+6, height+y - (rightText.length * 2.65), {angle: 90});
+          productPrice = new Intl.NumberFormat().format(productPrice);
+
+          const priceText = `Precio: ${productPrice}`;
+
+          doc
+            .setFontSize(doc.getFontSize() + 2)
+            .setFont(undefined, "bold")
+            .text(
+              priceText,
+              width + x + 6,
+              height + y - rightText.length * 2.65,
+              { angle: 90 }
+            );
 
           // return font to normal
-          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
+          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, "normal");
         }
 
-        let image = this.getProductImageUrl(product)
-        doc.addImage(image, "JPEG", x, y, width, height)
+        let image = this.getProductImageUrl(product);
+        doc.addImage(image, "JPEG", x, y, width, height);
 
-        const filename = `${Date.now()}.pdf`
+        const filename = `${Date.now()}.pdf`;
 
-        const isLast = index === this.productsSource.length-1
-        if(isLast) {
-          return doc.output('save', filename);
+        const isLast = index === this.products.length - 1;
+        if (isLast) {
+          doc.save(filename)
+          return await this.delay(500);
         }
 
-        if(maxSize) {
-          let size = doc.output().length
-          let sizeMb = size / (1024*1024)
-          if(sizeMb >= maxSize) {
-            doc.output('save', filename);
-            await this.delay(500)
-            doc = new jsPDF();  // reset pdf
+        if (maxSize) {
+          let size = doc.output().length;
+          let sizeMb = size / (1024 * 1024);
+          if (sizeMb >= maxSize) {
+            doc.save(filename)
+            await this.delay(500);
+            doc = new jsPDF(); // reset pdf
             continue;
-          } 
+          }
         }
 
-        doc.addPage()
+        doc.addPage();
       }
     },
-    delay(time=1000) {
+    async handleDownloadPdf(...args) {
+      this.downloadLoading = true;
+
+      while (this.productsDocs.nextPage) {
+        await this.fetchProducts(this.productsDocs.nextPage, false);
+      }
+
+      await this.downloadPdf(...args);
+
+      this.downloadLoading = false;
+    },
+    delay(time = 1000) {
       return new Promise((resolve) => {
         setTimeout(() => {
-          resolve()
-        }, time)
-      })
+          resolve();
+        }, time);
+      });
     },
     clearFilters() {
-      this.filter.categories = []
-      this.productsSelected = []
+      this.filter.categories = [];
+      this.productsSelected = [];
     },
     getTallas(product) {
-      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const hasVariations = tallaAttr && tallaAttr.variation === true
-      if(!hasVariations) {
-        return [];
-      }
-
-      const tallas = []
-      for(const variation of product.variations) {
-        const talla = variation.attributes.talla.option
-        const isDuplicated = tallas.includes(talla)
-        if(!isDuplicated) {
-          tallas.push(talla)
+      const tallas = [];
+      for (const variation of product.variations) {
+        const talla = variation.attributes.talla.option;
+        const isDuplicated = tallas.includes(talla);
+        if (!isDuplicated) {
+          tallas.push(talla);
         }
       }
 
       return tallas;
     },
     getAvailableVariations(product) {
-      const variations = []
+      const variations = [];
 
-      for(const variation of product.variations) {
+      for (const variation of product.variations) {
         const available =
-          variation.status === 'publish' &&
-          variation.stock_status === 'instock' &&
-          variation.attributes
-        
+          variation.status === "publish" &&
+          variation.stock_status === "instock" &&
+          variation.attributes;
+
         if (available) {
           const variationFormatted = {
             ...variation,
@@ -732,96 +680,106 @@ export default {
 
       return variations;
     },
-    getVariationLabel (variation) {
-      const talla = variation.attributes.talla.option
-      const color = variation.attributes.color?.option
+    getVariationLabel(variation) {
+      const talla = variation.attributes.talla.option;
+      const color = variation.attributes.color?.option;
 
-      if(color) {
-        return `${talla} - ${color}`
+      if (color) {
+        return `${talla} - ${color}`;
       }
 
       return talla;
     },
     getFormatAttributes(attributes) {
-      return attributes.reduce((attributes, current) => ({
-        ...attributes,
-        [current.name.toLowerCase()]: current
-      }), {})
+      return attributes.reduce(
+        (attributes, current) => ({
+          ...attributes,
+          [current.name.toLowerCase()]: current,
+        }),
+        {}
+      );
     },
     getFormatProduct(product) {
-      Object.assign(product, { variations: this.getAvailableVariations(product)})
+      Object.assign(product, {
+        variations: this.getAvailableVariations(product),
+      });
       return product;
     },
-    async getByCountry() {
-      const query = { country: this.country }
-      const ecommercesQuery = { ...query, products_available: true }
+    async fetchAll() {
+      const query = { country: this.country, products_available: true };
 
-      let [productsRes, categoriesRes] = await Promise.all([
-        EcommercesApi.list({ ...ecommercesQuery, page: 1, limit: ITEMS_PER_PAGE }),
-        EcommercesCategoriesApi.list(query)
-      ])
+      const [categoriesRes] = await Promise.all([
+        EcommercesApi.listCategories(query),
+        this.fetchAttributes(),
+        this.fetchProducts(),
+      ]);
 
-      this.categories = categoriesRes.data.payload
-
-      this.products = productsRes.data.payload.map(this.getFormatProduct)
-
-      // get remaining products
-      productsRes = await EcommercesApi.list(ecommercesQuery),
-
-      this.products = productsRes.data.payload.map(this.getFormatProduct)
-
-      this.$nextTick(() => {
-        this.countryLoaded = true;
-      })
+      this.categories = categoriesRes.data.payload;
     },
-    hasSomeAttribute(product, attributeName, attrs) {
-      let attribute = product.attributes.find(attr => attr.name.trim().toLowerCase() === attributeName)
+    async fetchProducts(page = 1, setInitialPage = true) {
+      const query = {
+        country: this.country,
+        products_available: true,
+        categories: this.filter.categories.join(","),
+        tallas: this.filter.tallas.join(","),
+        brands: this.filter.brands.join(","),
+        limit: ITEMS_PER_PAGE,
+        page,
+      };
 
-      if(attribute && attribute.options.length) {
-        for(const needle of attrs) {
-          if(attribute.options.includes(needle)) {
-            return true;
-          }
-        }
+      const productsRes = await EcommercesApi.list(query);
+
+      const products = productsRes.data.payload.map(this.getFormatProduct);
+      if (page === 1) {
+        this.products = products;
+      } else {
+        this.products.push(...products);
       }
 
-      return false;
-    },
-    // Return true if has some of the talla from the array
-    hasSomeTalla(product, tallas) {
-      const tallaAttr = product.attributes.find(attr => attr.name.trim().toLowerCase() === 'talla')
-      const hasVariations = tallaAttr && tallaAttr.variation === true
-      if(!hasVariations) {
-        return false;
-      }
+      this.productsDocs = {
+        total: productsRes.data.totalDocs,
+        nextPage: productsRes.data.nextPage,
+      };
 
-      for(const variation of product.variations) {
-        const hasSome = tallas.includes(variation.attributes.talla.option)
-        if(hasSome) {
-          return true;
-        }
+      if (setInitialPage) {
+        this.setInitialPage();
       }
-
-      return false;
     },
-    removeSelectedProduct (item) {
-      const index = this.productsSelected.findIndex(p => p._id===item._id)
-      if (index >= 0) this.productsSelected.splice(index, 1)
+    async fetchAttributes() {
+      const query = {
+        country: this.country,
+        products_available: true,
+        categories: this.filter.categories.join(","),
+      };
+
+      const [sizesRes, attributesRes] = await Promise.all([
+        EcommercesApi.listSizes(query),
+        EcommercesApi.listAttributes({ ...query, name: "marca" }),
+      ]);
+
+      this.tallas = sizesRes.data.payload.map((talla) => talla.option);
+      this.brands = attributesRes.data.payload.map((attr) => attr.options);
+    },
+    removeSelectedProduct(item) {
+      const index = this.productsSelected.findIndex((p) => p._id === item._id);
+      if (index >= 0) this.productsSelected.splice(index, 1);
     },
     handleSendWs() {
-      let message = 'Hola, estos son los productos que me gustaría pedir\n';
-    
-      let total = 0
-      let items = []
-      for(const item of this.cartItems) {
-        const tallas = item.tallas.join(', ')
-        const price = (item.product.regular_price || item.product.variations[0].regular_price)
-        const productTotal = price * item.quantity
-        const totalFormat = new Intl.NumberFormat().format(productTotal)
-        total += productTotal
-        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
-        if(item.color) {
-          message += ` | Color: ${item.color}`
+      let message = "Hola, estos son los productos que me gustaría pedir\n";
+
+      let total = 0;
+      let items = [];
+      for (const item of this.cartItems) {
+        const tallas = item.tallas.join(", ");
+        const price =
+          item.product.regular_price ||
+          item.product.variations[0].regular_price;
+        const productTotal = price * item.quantity;
+        const totalFormat = new Intl.NumberFormat().format(productTotal);
+        total += productTotal;
+        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`;
+        if (item.color) {
+          message += ` | Color: ${item.color}`;
         }
 
         // Google Analytics items
@@ -830,41 +788,47 @@ export default {
           item_name: item.product.name,
           item_variant: tallas,
           price,
-          quantity: item.quantity
-        })
+          quantity: item.quantity,
+        });
       }
 
-      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
+      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`;
 
-      this.$gtag.event('begin_checkout', {
+      this.$gtag.event("begin_checkout", {
         currency: this.currencyCode,
         value: total,
-        items
-      })
+        items,
+      });
 
-      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
-      
-      window.open(url, "_blank");  
+      let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+        message
+      )}`;
+
+      window.open(url, "_blank");
     },
     cartAddItem(product, variation) {
-      const talla = variation.attributes.talla.option
-      const color = variation.attributes.color?.option
+      const talla = variation.attributes.talla.option;
+      const color = variation.attributes.color?.option;
 
-      this.$gtag.event('agrego_al_carrito', {
+      this.$gtag.event("agrego_al_carrito", {
         currency: this.currencyCode,
         value: variation.regular_price,
-        items: [{
-          item_id: product.idEcommerce,
-          item_name: product.name,
-          item_variant: talla,
-          price: variation.regular_price,
-          quantity: 1,
-        }]
-      })
+        items: [
+          {
+            item_id: product.idEcommerce,
+            item_name: product.name,
+            item_variant: talla,
+            price: variation.regular_price,
+            quantity: 1,
+          },
+        ],
+      });
 
-      let item = this.cartItems.find(item => item.product._id === product._id & item.color === color)
-      if(item) {
-        return item.tallas.push(talla)
+      let item = this.cartItems.find(
+        (item) => (item.product._id === product._id) & (item.color === color)
+      );
+      if (item) {
+        return item.tallas.push(talla);
       }
 
       this.cartItems.push({
@@ -873,32 +837,33 @@ export default {
         color,
         quantity: 1,
         price: variation.regular_price,
-      })
+      });
     },
     cartRemoveItem(index) {
-      this.cartItems.splice(index, 1)
-      if(this.cartItems.length === 0) {
+      this.cartItems.splice(index, 1);
+      if (this.cartItems.length === 0) {
         this.drawerCart = false;
       }
     },
     flipPage(direction) {
-      this.$refs.flipbook[`flip${direction}`]()
+      this.$refs.flipbook[`flip${direction}`]();
     },
     setInitialPage() {
-      if(this.$vuetify.breakpoint.mobile) {
-        this.currentPage = 0;
+      // Mobile only shows one page at a time
+      if (this.$vuetify.breakpoint.mobile) {
+        this.currentPageIndex = 0;
         return;
       }
 
-      this.currentPage = this.productsSource.length >= 1
-        ? 1
-        : 0
+      this.currentPageIndex = this.products.length >= 2 ? 1 : 0;
+
+      this.$refs.flipbook.goToPage(this.currentPageIndex);
     },
     onFlipLeftEnd(page) {
-      this.currentPage = page
+      this.currentPageIndex = page;
     },
     onFlipRightEnd(page) {
-      this.currentPage = page
+      this.currentPageIndex = page;
     },
     getDate() {
       const now = new Date();
@@ -907,31 +872,28 @@ export default {
       let month = now.getMonth();
       let year = now.getFullYear();
 
-      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`
+      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
     },
     getProductImageUrl({ customImages }) {
-      return `/api/wp-image?url=${customImages[0]}`
+      return `/api/wp-image?url=${customImages[0]}`;
     },
     async setFilterFromQuery() {
-      const query = this.$route.query
+      const query = this.$route.query;
 
-      let categories = query.categories ? query.categories.split(',').map(c=>parseInt(c, 10)) : []
-      let tallas = query.tallas ? query.tallas.split(',') : []
-      let marcas = query.marcas ? query.marcas.split(',') : []
+      let categories = query.categories
+        ? query.categories.split(",").map((c) => parseInt(c, 10))
+        : [];
+      let tallas = query.tallas ? query.tallas.split(",") : [];
+      let brands = query.brands ? query.brands.split(",") : [];
 
+      this.filter.categories = categories;
 
-      this.filter.categories = categories
+      await this.$nextTick();
 
-      await this.$nextTick()
-
-      Object.assign(this.filter, {tallas, marcas})
-      
-      await this.$nextTick()
-
-      this.filterInitialized = true
+      Object.assign(this.filter, { tallas, brands });
     },
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -969,5 +931,4 @@ export default {
   flex: unset;
   white-space: normal;
 }
-
 </style>
