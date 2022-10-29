@@ -14,4 +14,5 @@ export default () => ({
   googleClientEmail: "",
   googlePrivateKey: "",
   country: "",
+  autoActivateAfter: 0,
 });

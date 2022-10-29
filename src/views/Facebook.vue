@@ -253,6 +253,50 @@
                               />
                             </v-col>
                           </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">
+                                Tiempo autoreconexión (hh:mm)
+                              </p>
+                              <v-menu
+                                ref="menu"
+                                v-model="menu2"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                :return-value.sync="
+                                  editedItem.autoActivateAfter
+                                "
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                              >
+                                <template v-slot:activator="{ on, attrs }">
+                                  <v-text-field
+                                    v-model="editedItem.autoActivateAfter"
+                                    prepend-icon="mdi-clock-time-four-outline"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    dense
+                                    outlined
+                                    hide-details="auto"
+                                  ></v-text-field>
+                                </template>
+                                <v-time-picker
+                                  v-if="menu2"
+                                  v-model="editedItem.autoActivateAfter"
+                                  full-width
+                                  @click:minute="
+                                    $refs.menu.save(
+                                      editedItem.autoActivateAfter
+                                    )
+                                  "
+                                  format="24hr"
+                                ></v-time-picker>
+                              </v-menu>
+                            </v-col>
+                          </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -328,6 +372,7 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import Bots from "@/classes/Bots";
 import auth from "@/services/api/auth";
+import { convertMsToTime } from "@/utils/utils";
 export default {
   components: {
     MaterialCard,
@@ -339,6 +384,7 @@ export default {
     },
   },
   data: () => ({
+    menu2: false,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -407,6 +453,12 @@ export default {
     async initialize() {
       await Promise.all([this.$store.dispatch("botsModule/list")]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
+      // dar formato a autoActivateAfter
+      for (const bot of this.bots) {
+        if (bot.autoActivateAfter) {
+          bot.autoActivateAfter = convertMsToTime(bot.autoActivateAfter);
+        }
+      }
       // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
@@ -434,12 +486,17 @@ export default {
 
     async save() {
       this.loadingButton = true;
+      let autoActivateAfter;
+      if (this.editedItem.autoActivateAfter) {
+        let [hours, minutes] = this.editedItem.autoActivateAfter.split(":"); // 10:30
+        autoActivateAfter = hours * 60 * 60 * 1000 + minutes * 60 * 1000;
+      }
       if (this.editedIndex > -1) {
         let itemId = this.bots[this.editedIndex]._id;
         try {
           await this.$store.dispatch("botsModule/update", {
             id: itemId,
-            data: this.editedItem,
+            data: { ...this.editedItem, autoActivateAfter },
           });
           Object.assign(this.bots[this.editedIndex], this.editedItem);
           this.close();
@@ -449,10 +506,10 @@ export default {
       } else {
         //create item
         try {
-          let newItem = await this.$store.dispatch(
-            "botsModule/create",
-            this.editedItem
-          );
+          let newItem = await this.$store.dispatch("botsModule/create", {
+            ...this.editedItem,
+            autoActivateAfter,
+          });
           this.bots.push(newItem);
           this.close();
         } finally {
