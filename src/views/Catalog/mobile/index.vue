@@ -288,13 +288,13 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click="downloadPdf()">
+            <v-list-item @click="handleDownloadPdf()">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="downloadPdf(13)">
+            <v-list-item @click="handleDownloadPdf(13)">
               <v-list-item-title>Descargar para whatsapp</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="downloadPdf(undefined, true)">
+            <v-list-item @click="handleDownloadPdf(undefined, true)">
               <v-list-item-title>Descargar con precio</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -493,6 +493,19 @@
     <v-dialog v-model="buyModal" width="500">
       <buy-form :items="cartItems" :catalog="catalog" />
     </v-dialog>
+
+    <v-dialog v-model="downloadLoading" persistent width="300">
+      <v-card color="primary" dark>
+        <v-card-text>
+          Descargando productos
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -541,6 +554,7 @@ export default {
   data() {
     return {
       buyModal: false,
+      downloadLoading: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
       search: "",
       hideCountrySelect: true,
@@ -761,7 +775,8 @@ export default {
 
         const isLast = index === this.products.length - 1;
         if (isLast) {
-          return doc.output("save", filename);
+          doc.output("save", filename);
+          return await this.delay(500);
         }
 
         if (maxSize) {
@@ -777,6 +792,17 @@ export default {
 
         doc.addPage();
       }
+    },
+    async handleDownloadPdf(...args) {
+      this.downloadLoading = true;
+
+      while (this.productsDocs.nextPage) {
+        await this.fetchProducts(this.productsDocs.nextPage, false);
+      }
+
+      await this.downloadPdf(...args);
+
+      this.downloadLoading = false;
     },
     delay(time = 1000) {
       return new Promise((resolve) => {
