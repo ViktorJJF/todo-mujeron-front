@@ -13,7 +13,6 @@
       :item-text="itemText"
       :item-value="itemValue"
       :placeholder="$attrs.label"
-      solo
     ></v-select>
   </ValidationProvider>
 </template>

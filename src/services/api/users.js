@@ -3,8 +3,8 @@ export default {
   list(query = { sort: "name", order: "1" }) {
     return axios.get("/api/users", { params: query });
   },
-  listOne(id){
-    return axios.get(`/api/users/${id}`)
+  listOne(id, query){
+    return axios.get(`/api/users/${id}`, { params: query })
   },
   update(id, payload) {
     return axios.put(`/api/users/${id}`, payload);

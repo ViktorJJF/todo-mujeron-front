@@ -86,7 +86,7 @@ export default {
     async initialData() {
       this.user = await this.$store.dispatch(
         "usersModule/listOne",
-        this.$store.state.authModule.user._id
+        { id: this.$store.state.authModule.user._id }
       );
       console.log("🚀 Aqui *** -> this.user", this.user);
       console.log(this.user);

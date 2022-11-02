@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid v-if="user">
     <v-row justify="center">
       <material-card
         width="800px"
@@ -91,6 +91,69 @@
         width="800px"
         icon="mdi-lock-check"
         color="primary"
+        title="Permisos del Chat"
+      >
+        <ValidationObserver ref="obs" v-slot="{ passes }">
+          <v-form>
+            <v-container>
+              <v-row dense>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Paises</p>
+                  <VSelectWithValidation
+                    :items="countries"
+                    v-model="user.chatsPermissions.countries"
+                    clearable
+                    multiple
+                    chips
+                  />
+                </v-col>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Asignados</p>
+                  <VSelectWithValidation
+                    :items="assigned"
+                    v-model="user.chatsPermissions.assigned"
+                    clearable
+                  />
+                </v-col>
+              </v-row>
+              <v-row dense>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Redes Sociales</p>
+                  <VSelectWithValidation
+                    :items="platforms"
+                    v-model="user.chatsPermissions.platforms"
+                    clearable
+                    multiple
+                    chips
+                  />
+                </v-col>
+              </v-row>
+              <v-row dense>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Estados</p>
+                  <VSelectWithValidation
+                    :items="chatStatus"
+                    v-model="user.chatsPermissions.status"
+                    clearable
+                    multiple
+                    chips
+                  />
+                </v-col>
+              </v-row>
+              <v-card-actions>
+                <div class="flex-grow-1"></div>
+                <v-btn color="success" @click="passes(updateUser)">Guardar</v-btn>
+              </v-card-actions>
+            </v-container>
+          </v-form>
+        </ValidationObserver>
+      </material-card>
+    </v-row>
+    <v-row justify="center">
+      <material-card
+        width="800px"
+        icon="mdi-lock-check"
+        color="primary"
         title="Actualizar Contraseña"
       >
         <ValidationObserver ref="obs" v-slot="{ passes }">
@@ -134,27 +197,57 @@ export default {
   data() {
     return {
       newPassword: "",
-      user: {},
+      user: null,
+      platforms: [
+        { text: 'Facebook', value: 'facebook' },
+        { text: 'Instagram', value: 'instagram' },
+        { text: 'Whatsapp', value: 'whatsapp' },
+      ],
+      assigned: [
+        { text: 'Todos', value: 'all' },
+        { text: 'Sin agente', value: 'no-agent' },
+      ],
+      chatStatus: [
+        { text: 'Pendientes', value: 'pending' },
+        { text: 'Resueltos', value: 'solved' },
+        { text: 'Sin Bot', value: 'no-bot' },
+        { text: 'Recientes', value: 'recents' },
+        { text: 'Equipo', value: 'team' },
+      ]
     };
   },
-  mounted() {
+  created() {
     this.initialData();
   },
   methods: {
     async initialData() {
-      this.user = await this.$store.dispatch(
-          "usersModule/listOne",
-          this.$route.params.id
-        );
+      const user = await this.$store.dispatch(
+        "usersModule/listOne",
+        {
+          id: this.$route.params.id,
+          query: { chatsPermissions: true }
+        }
+      );
+
+      if(!user.chatsPermissions) {
+        Object.assign(user, {
+          chatsPermissions: {
+            countries: [],
+            platforms: [],
+            assigned: null,
+            status: [],
+          }
+        })
+      }
+
+      this.user = user;
     },
     updateUser() {
-      console.log(this.user);
+      console.log(this.user._id)
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
       });
-     console.log(this.user);
-
     },
     updatePassword() {
       return new Promise((resolve, reject) => {

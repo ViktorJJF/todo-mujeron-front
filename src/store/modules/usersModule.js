@@ -21,11 +21,11 @@ const module = {
       });
     },
 
-    listOne({ commit }, id) {
+    listOne({ commit }, { id, query }) {
       console.log("🚀 Aqui *** -> id", id);
       return new Promise((resolve, reject) => {
         api
-          .listOne(id)
+          .listOne(id, query)
           .then((response) => {
             commit("list", response.data.payload);
             resolve(response.data.payload);
