@@ -53,11 +53,10 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombre</p>
+                              <span class="body-1 font-weight-bold">Nombre</span>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.nombre"
-                                label="Nombre del equipo de ventas"
                               />
                             </v-col>
                             <v-col cols="12" sm="12">
@@ -69,17 +68,17 @@
                                 v-model="editedItem.description"
                               ></v-textarea>
                             </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold">Agentes</span>
+                              <VSelectWithValidation
+                                v-model="editedItem.agents"
+                                :items="agents"
+                                item-text="email"
+                                item-value="_id"
+                                multiple
+                                placeholder="Seleccionar Agentes"
+                              />
+                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -144,14 +143,17 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 import MaterialCard from "@/components/material/Card";
 import EquipoDeVentas from "@/classes/EquipoDeVentas";
 import auth from "@/services/api/auth";
+import agentsApi from '@/services/api/agentes';
 
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -184,6 +186,7 @@ export default {
     editedItem: EquipoDeVentas(),
     defaultItem: EquipoDeVentas(),
     rolPermisos: {},
+    agents: [],
   }),
 
   computed: {
@@ -200,11 +203,14 @@ export default {
     },
   },
 
-  async mounted() {
+  async created() {
     this.$store.commit("loadingModule/showLoading")
     await this.$store.dispatch("equipoDeVentasModule/list"); 
     this.initialize();
     this.rolAuth(); 
+    agentsApi.list().then(res => {
+      this.agents = res.data.payload;
+    })
   },
 
   methods: {
