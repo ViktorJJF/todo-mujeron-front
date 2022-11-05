@@ -218,7 +218,7 @@ export default {
     },
     async save() {
       this.loadingButton = true;
-      let itemId = this.$store.state.authModule.user._id;
+      let itemId = this.user._id;
       await this.$store.dispatch("usersModule/update", {
         id: itemId,
         data: this.user,
