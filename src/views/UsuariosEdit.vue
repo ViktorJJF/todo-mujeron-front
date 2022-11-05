@@ -8,13 +8,12 @@
         title="Perfil de Usuario"
         text="Ajustes propios del panel de administración"
       >
-        <ValidationObserver ref="obs" v-slot="{ passes }">
+        <ValidationObserver ref="obs">
           <v-form>
             <v-container class="pa-5">
               <v-row dense>
                 <v-col cols="12" sm="12">
                   <v-container fluid>
-                    <h3>Detalles del usuario</h3>
                     <v-row dense>
                       <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Nombres</p>
@@ -33,55 +32,31 @@
                         />
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Celular</p>
+                        <p class="body-1 font-weight-bold mb-0">Alias</p>
                         <VTextFieldWithValidation
-                          :rules="{
-                            required: false,
-                            decimal: true,
-                          }"
-                          v-model="user.phone_number"
-                          label="+51982745576"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">País</p>
-                        <VSelectWithValidation
                           rules=""
-                          :items="countries"
-                          v-model="user.country"
-                          label="Selecciona país"
-                          itemText="name"
-                          itemValue="_id"
+                          v-model="user.alias"
+                          label="Alias"
                         />
                       </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Ciudad</p>
-                        <VSelectWithValidation
-                          rules=""
-                          :items="cities"
-                          v-model="user.city"
-                          label="Selecciona una ciudad"
-                          itemText="name"
-                          itemValue="_id"
+                      <!-- <v-col cols="12" sm="6" md="6">
+                        <p class="body-1 font-weight-bold mb-0">Roles</p>
+                        <VTextFieldWithValidation
+                          :disabled="true"
+                          rules="required"
+                          :value="roles()"
+                          label="Roles"
                         />
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6" >
-                        <p class="body-1 font-weight-bold mb-0">Estado</p>
-                         <v-switch
-                          v-model="user.status"
-                          inset
-                          :label="status"
-                        ></v-switch>
-                      </v-col>
+                      </v-col> -->
+                    </v-row>
+                    <v-row>
+                      <div class="flex-grow-1"></div>
+                      <v-btn color="success" @click="save">Guardar</v-btn>
                     </v-row>
                   </v-container>
                 </v-col>
               </v-row>
             </v-container>
-            <v-card-actions>
-              <div class="flex-grow-1"></div>
-              <v-btn color="success" @click="passes(updateUser)">Guardar</v-btn>
-            </v-card-actions>
           </v-form>
         </ValidationObserver>
       </material-card>
@@ -142,7 +117,9 @@
               </v-row>
               <v-card-actions>
                 <div class="flex-grow-1"></div>
-                <v-btn color="success" @click="passes(updateUser)">Guardar</v-btn>
+                <v-btn color="success" @click="passes(updateUser)"
+                  >Guardar</v-btn
+                >
               </v-card-actions>
             </v-container>
           </v-form>
@@ -199,21 +176,21 @@ export default {
       newPassword: "",
       user: null,
       platforms: [
-        { text: 'Facebook', value: 'facebook' },
-        { text: 'Instagram', value: 'instagram' },
-        { text: 'Whatsapp', value: 'whatsapp' },
+        { text: "Facebook", value: "facebook" },
+        { text: "Instagram", value: "instagram" },
+        { text: "Whatsapp", value: "whatsapp" },
       ],
       assigned: [
-        { text: 'Todos', value: 'all' },
-        { text: 'Sin agente', value: 'no-agent' },
+        { text: "Todos", value: "all" },
+        { text: "Sin agente", value: "no-agent" },
       ],
       chatStatus: [
-        { text: 'Pendientes', value: 'pending' },
-        { text: 'Resueltos', value: 'solved' },
-        { text: 'Sin Bot', value: 'no-bot' },
-        { text: 'Recientes', value: 'recents' },
-        { text: 'Equipo', value: 'team' },
-      ]
+        { text: "Pendientes", value: "pending" },
+        { text: "Resueltos", value: "solved" },
+        { text: "Sin Bot", value: "no-bot" },
+        { text: "Recientes", value: "recents" },
+        { text: "Equipo", value: "team" },
+      ],
     };
   },
   created() {
@@ -221,29 +198,34 @@ export default {
   },
   methods: {
     async initialData() {
-      const user = await this.$store.dispatch(
-        "usersModule/listOne",
-        {
-          id: this.$route.params.id,
-          query: { chatsPermissions: true }
-        }
-      );
+      const user = await this.$store.dispatch("usersModule/listOne", {
+        id: this.$route.params.id,
+        query: { chatsPermissions: true },
+      });
 
-      if(!user.chatsPermissions) {
+      if (!user.chatsPermissions) {
         Object.assign(user, {
           chatsPermissions: {
             countries: [],
             platforms: [],
             assigned: null,
             status: [],
-          }
-        })
+          },
+        });
       }
 
       this.user = user;
     },
+    async save() {
+      this.loadingButton = true;
+      let itemId = this.$store.state.authModule.user._id;
+      await this.$store.dispatch("usersModule/update", {
+        id: itemId,
+        data: this.user,
+      });
+    },
     updateUser() {
-      console.log(this.user._id)
+      console.log(this.user._id);
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
@@ -274,9 +256,9 @@ export default {
     cities() {
       return this.$store.state.cities;
     },
-    status () {
-      return  this.user.status ? "Activo" : "Inactivo";  
-    }
+    status() {
+      return this.user.status ? "Activo" : "Inactivo";
+    },
   },
 };
 </script>
