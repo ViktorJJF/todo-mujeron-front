@@ -757,8 +757,21 @@ export default {
         EcommercesApi.listAttributes({ ...query, name: "marca" }),
       ]);
 
-      this.tallas = sizesRes.data.payload.map((talla) => talla.option);
+      const tallas = sizesRes.data.payload.map((talla) => talla.option);
+      this.tallas = tallas.sort(this.sortSizesFn)
       this.brands = attributesRes.data.payload.map((attr) => attr.options);
+    },
+    sortSizesFn(a, b) {
+      a.toLowerCase();
+      b = b.toLowerCase();
+      
+      if (a < b) {
+        return -1;
+      }
+      if (a > b) {
+        return 1;
+      }
+      return 0;
     },
     removeSelectedProduct(item) {
       const index = this.productsSelected.findIndex((p) => p._id === item._id);
