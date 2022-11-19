@@ -149,6 +149,7 @@
         multiple
         return-object
         item-text="name"
+        clearable
       >
         <template v-slot:selection="data">
           <v-chip
@@ -220,7 +221,7 @@
         </v-btn>
         <div style="min-width: 50px;" class="d-flex justify-center">
           {{ pages.length ? currentPageIndex + 1 : 0 }} /
-          {{ productsDocs.total }}
+          {{ productsDocsSource.total }}
         </div>
         <v-btn class="ml-1" icon color="grey" @click="flipPage('Right')">
           <v-icon>mdi-chevron-right</v-icon>
@@ -450,14 +451,14 @@ export default {
   },
   computed: {
     pages() {
-      return this.products.map(this.getProductImageUrl);
+      return this.productsSource.map(this.getProductImageUrl);
     },
     leftPageProduct() {
       const index = this.currentPageIndex > 0 ? this.currentPageIndex - 1 : 0;
-      return this.products[index];
+      return this.productsSource[index];
     },
     rightPageProduct() {
-      return this.products[this.currentPageIndex];
+      return this.productsSource[this.currentPageIndex];
     },
     currencyCode() {
       if (this.country === COUNTRIES[0]) {
@@ -479,6 +480,21 @@ export default {
         this.filter.brands.length ||
         this.productsSelected.length
       );
+    },
+    productsSource() {
+      return this.productsSelected.length
+        ? this.productsSelected
+        : this.products
+    },
+    productsDocsSource() {
+      if(this.productsSelected.length) {
+        return {
+          total: this.productsSelected.length,
+          nextPage: null
+        }
+      }
+
+      return this.productsDocs;
     },
     categoriesTree() {
       const rootCategories = this.categories.filter((cat) => cat.parent === 0);
@@ -544,8 +560,8 @@ export default {
     },
     currentPageIndex: function(val) {
       // fetch products 2 pages before last
-      if (val === this.products.length - 3) {
-        if (this.productsDocs.nextPage) {
+      if (val === this.productsSource.length - 3) {
+        if (this.productsDocsSource.nextPage) {
           this.fetchProducts(this.productsDocs.nextPage);
         }
       }
@@ -553,7 +569,7 @@ export default {
   },
   methods: {
     async downloadPdf(maxSize, price) {
-      if (!this.products.length) {
+      if (!this.productsSource.length) {
         return;
       }
 
@@ -563,7 +579,7 @@ export default {
       let width = doc.internal.pageSize.getWidth() - x * 2;
       let height = doc.internal.pageSize.getHeight() - y * 2;
 
-      for (const [index, product] of this.products.entries()) {
+      for (const [index, product] of this.productsSource.entries()) {
         let leftText = `Rerefencia: ${
           product.ref
         } - Tallas disponibles: ${this.getTallas(product).join(", ")}`;
@@ -601,7 +617,7 @@ export default {
 
         const filename = `${Date.now()}.pdf`;
 
-        const isLast = index === this.products.length - 1;
+        const isLast = index === this.productsSource.length - 1;
         if (isLast) {
           doc.save(filename)
           return await this.delay(500);
@@ -624,8 +640,8 @@ export default {
     async handleDownloadPdf(...args) {
       this.downloadLoading = true;
 
-      while (this.productsDocs.nextPage) {
-        await this.fetchProducts(this.productsDocs.nextPage, false);
+      while (this.productsDocsSource.nextPage) {
+        await this.fetchProducts(this.productsDocsSource.nextPage, false);
       }
 
       await this.downloadPdf(...args);
@@ -757,8 +773,21 @@ export default {
         EcommercesApi.listAttributes({ ...query, name: "marca" }),
       ]);
 
-      this.tallas = sizesRes.data.payload.map((talla) => talla.option);
+      const tallas = sizesRes.data.payload.map((talla) => talla.option);
+      this.tallas = tallas.sort(this.sortSizesFn)
       this.brands = attributesRes.data.payload.map((attr) => attr.options);
+    },
+    sortSizesFn(a, b) {
+      a.toLowerCase();
+      b = b.toLowerCase();
+      
+      if (a < b) {
+        return -1;
+      }
+      if (a > b) {
+        return 1;
+      }
+      return 0;
     },
     removeSelectedProduct(item) {
       const index = this.productsSelected.findIndex((p) => p._id === item._id);
