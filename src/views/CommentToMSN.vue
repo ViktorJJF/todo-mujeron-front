@@ -780,7 +780,9 @@ export default {
             // verificando si se agrego plantilla
             // agregando plantilla
             if (this.products.length > 0) {
-              const product = this.products[0];
+              const product = this.products.find(
+                (el) => el._id === this.selectedProducts
+              );
               await this.generateTemplate(product);
             }
           }
@@ -798,17 +800,13 @@ export default {
     async getProducts(page = 1) {
       if (!this.searchProduct) return;
       //llamada asincrona de items
-      console.log(
-        "🚀 Aqui *** -> this.selectedFanpage.country",
-        this.selectedFanpage.country
-      );
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
           country: this.selectedFanpage.country,
           sort: "name",
           page,
           search: this.searchProduct,
-          fieldsToSearch: ["name","ref"],
+          fieldsToSearch: ["name", "ref"],
           listType: "All",
         }),
       ]);

@@ -435,6 +435,7 @@ export default {
       let urls = [];
       this.filteredLabels = [];
       for (const product of products) {
+        console.log("🚀 Aqui *** -> product", product);
         urls.push({ url: product.permalink, type: "product" });
         for (const category of product.categories) {
           if (
@@ -463,7 +464,8 @@ export default {
         }
         //mapeandp etiquetas
         for (const category of product.categories) {
-          this.filteredLabels.push(...this.getFilteredLabels(category._id));
+          console.log("🚀 Aqui *** -> category", category);
+          this.filteredLabels.push(...this.getFilteredLabels(category));
         }
       }
       //haciendo que etiquetas de fb no se repitan
@@ -658,9 +660,15 @@ export default {
     /**
      * @Description Este metodo obtiene las etiquetas de Facebook vinculadas a etiqueta de todofull correspondiente
      */
-    getFilteredLabels(categoryId) {
+    getFilteredLabels(category) {
       let selectedTodofullLabels = this.todofullLabels.find(
-        (el) => el.webTags && el.webTags.find((tag) => tag._id == categoryId)
+        (el) =>
+          el.webTags &&
+          el.webTags.find(
+            (tag) =>
+              tag.idCategory == category.id &&
+              tag.country === this.commentFacebook.botId.country
+          )
       );
       if (selectedTodofullLabels) {
         return this.isInstagramPost
