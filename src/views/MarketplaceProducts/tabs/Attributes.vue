@@ -70,6 +70,7 @@
 <script>
 import marketplaceAttributesApi from "@/services/api/marketplaceAttributes";
 import marketplaceProductsAttributesApi from "@/services/api/marketplaceProductsV2Attributes";
+import { buildSuccess } from "@/utils/utils";
 
 export default {
   props: {
@@ -83,6 +84,7 @@ export default {
       productAttributes: [],
       attributesOptions: [],
       selectedAttribute: null,
+      showSuccess: false,
     };
   },
   async created() {
@@ -114,6 +116,7 @@ export default {
           variation: false,
           visible: true,
           product: this.product._id,
+          name: this.selectedAttribute.name,
           // Terms from global attributes
           terms: this.getTerms(this.selectedAttribute),
         });
@@ -133,6 +136,7 @@ export default {
     },
 
     async handleSubmit() {
+      this.$store.commit("loadingModule/showLoading", true);
       for (const [index, attribute] of this.productAttributes.entries()) {
         let res;
         const isUpdate = attribute._id;
@@ -150,10 +154,10 @@ export default {
             ...res.data.payload,
             terms: this.getTerms(attribute),
           });
-          console.log(this.productAttributes);
-          // Should show a success message
         }
       }
+      this.$store.commit("loadingModule/showLoading", false);
+      buildSuccess('Se guardó correctamente', this.$store.commit)
     },
   },
 };

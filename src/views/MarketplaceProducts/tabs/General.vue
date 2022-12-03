@@ -83,6 +83,7 @@
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import CategoriesSelect from "@/components/CategoriesSelect.vue";
 import marketplaceProductsApi from "@/services/api/marketplaceProductsV2";
+import { buildSuccess } from "@/utils/utils";
 
 export default {
   components: { VTextFieldWithValidation, CategoriesSelect },
@@ -104,6 +105,8 @@ export default {
   },
   methods: {
     async handleSubmit() {
+      this.$store.commit("loadingModule/showLoading", true);
+
       let res;
 
       const product = {
@@ -118,9 +121,11 @@ export default {
         res = await marketplaceProductsApi.create(product);
       }
 
+      this.$store.commit("loadingModule/showLoading", false);
+      
       if (res && res.data) {
         this.$emit("update", res.data.payload);
-        // Should show a success message
+        buildSuccess('Se guardó correctamente', this.$store.commit)
       }
     },
   },
