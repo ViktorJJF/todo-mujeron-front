@@ -6,10 +6,15 @@
       </v-col>
     </v-row>
     <v-row v-for="variation in variations" :key="variation._id">
-      <v-col v-for="attribute in variation.attributes" :key="attribute._id" cols="3">
+      <v-col
+        v-for="attribute in variation.attributes"
+        :key="attribute._id"
+        cols="3"
+      >
         <div class="body-1 font-weight-bold">{{ attribute.name }}</div>
         <v-select
           :items="attribute.options"
+          v-model="attribute.option"
           hide-details
           clearable
           outlined
@@ -18,11 +23,11 @@
         />
       </v-col>
     </v-row>
-    
+
     <v-divider class="my-5" />
 
     <v-card-actions rd-actions>
-      <v-btn color="success">
+      <v-btn color="success" @click="handleSubmit">
         Guardar
       </v-btn>
     </v-card-actions>
@@ -31,6 +36,8 @@
 
 <script>
 import marketplaceProductsAttributesApi from "@/services/api/marketplaceProductsV2Attributes";
+import marketplaceProductsVariationsApi from "@/services/api/marketplaceProductsV2Variations";
+import { buildSuccess } from "@/utils/utils";
 
 export default {
   props: {
@@ -46,7 +53,9 @@ export default {
     };
   },
   created() {
-    this.fetchProductAttributes()
+    this.fetchProductAttributes().then(() => {
+      this.fetchProductVariations();
+    });
   },
   methods: {
     async fetchProductAttributes() {
@@ -56,17 +65,50 @@ export default {
       );
       this.atrributeOptions = res.data.payload;
     },
+    async fetchProductVariations() {
+      const res = await marketplaceProductsVariationsApi.listByProduct(
+        this.product._id
+      );
+
+      this.variations = res.data.payload.map((variation) => {
+        const attributes = variation.attributes.map((attribute) => {
+          const options = this.atrributeOptions.find(
+            ({ _id }) => attribute._id === _id
+          ).options;
+          return { ...attribute, options };
+        });
+
+        return { ...variation, attributes };
+      });
+    },
     handleAdd() {
-      const lastVariation = this.variations[0]
-      let lastId = lastVariation ? lastVariation._id : 0;
       this.variations.unshift({
-        _id: lastId + 1,
         sku: "",
         stock: 0,
         price: 0,
         product: this.product._id,
-        attributes: this.atrributeOptions,
+        attributes: this.atrributeOptions.map((attribute) => ({
+          ...attribute,
+          option: null,
+        })),
       });
+    },
+    async handleSubmit() {
+      this.$store.commit("loadingModule/showLoading", true);
+      for (const [index, variation] of this.variations.entries()) {
+        let res;
+        const isUpdate = variation._id;
+        if (isUpdate) {
+          res = await marketplaceProductsVariationsApi.update(
+            variation._id,
+            variation
+          );
+        } else {
+          res = await marketplaceProductsVariationsApi.create(variation);
+        }
+      }
+      this.$store.commit("loadingModule/showLoading", false);
+      buildSuccess("Se guardó correctamente", this.$store.commit);
     },
   },
 };
