@@ -95,7 +95,7 @@ export default {
     },
     async handleSubmit() {
       this.$store.commit("loadingModule/showLoading", true);
-      for (const [index, variation] of this.variations.entries()) {
+      for (const variation of this.variations) {
         let res;
         const isUpdate = variation._id;
         if (isUpdate) {
@@ -106,6 +106,7 @@ export default {
         } else {
           res = await marketplaceProductsVariationsApi.create(variation);
         }
+        console.log(res.data.payload);
       }
       this.$store.commit("loadingModule/showLoading", false);
       buildSuccess("Se guardó correctamente", this.$store.commit);
