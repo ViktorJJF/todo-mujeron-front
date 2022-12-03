@@ -84,7 +84,6 @@ export default {
       productAttributes: [],
       attributesOptions: [],
       selectedAttribute: null,
-      showSuccess: false,
     };
   },
   async created() {
