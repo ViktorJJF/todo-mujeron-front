@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on"  v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar dominio</v-btn
                       >
                     </template>
@@ -83,7 +88,9 @@
                               />
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Vendedor</div>
+                              <div class="body-1 font-weight-bold">
+                                Vendedor
+                              </div>
                               <v-select
                                 dense
                                 hide-details
@@ -96,7 +103,9 @@
                               ></v-select>
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Localizacion</div>
+                              <div class="body-1 font-weight-bold">
+                                Localización
+                              </div>
                               <v-select
                                 dense
                                 hide-details
@@ -104,6 +113,8 @@
                                 outlined
                                 :items="locations"
                                 v-model="editedItem.locations"
+                                item-text="nombre"
+                                item-value="_id"
                                 multiple
                                 chips
                                 deletable-chips
@@ -131,13 +142,22 @@
             </v-container>
           </template>
           <template v-slot:item.vendor="{ item }">
-            {{item.vendor ? getVendor(item.vendor).name : ''}}
+            {{ item.vendor ? getVendor(item.vendor).name : "" }}
           </template>
           <template v-slot:item.action="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)"  v-if="rolPermisos['Edit']"
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)"  v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -180,7 +200,7 @@ import MaterialCard from "@/components/material/Card";
 import Woocommerces from "@/classes/Woocommerces";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
-import vendorsApi from '@/services/api/vendors'
+import vendorsApi from "@/services/api/vendors";
 
 export default {
   components: {
@@ -188,7 +208,7 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -200,22 +220,7 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    locations: [
-      {text: '2Cara/Stock', value: 98},
-      {text: 'CALID/Stock', value: 52},
-      {text: 'CMCHI/Stock', value: 8},
-      {text: 'CMCHI/StockFULL', value: 141},
-      {text: 'CMCHI/StockFULL/FALABELLA', value: 146},
-      {text: 'CMCHI/StockFULL/MERCADO LIBRE', value: 148},
-      {text: 'CMCHI/StockFULL/PARIS', value: 147},
-      {text: 'DEVOLUCIONES', value: 139},
-      {text: 'ESTUP/Stock', value: 62},
-      {text: 'MODL/Stock', value: 122},
-      {text: 'Mira/Stock', value: 134},
-      {text: 'NVAFI/Stock', value: 104},
-      {text: 'NVAPR/Stock', value: 110},
-      {text: 'STA/Stock', value: 92},
-    ],
+    locations: [],
     headers: [
       {
         text: "Agregado",
@@ -243,7 +248,7 @@ export default {
     defaultItem: Woocommerces(),
     locaciones: [],
     rolPermisos: {},
-    vendors: []
+    vendors: [],
   }),
 
   computed: {
@@ -258,29 +263,27 @@ export default {
     },
   },
 
-   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading");
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades/Woocommerces',
-          'model':'Woocommerces'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades/Woocommerces",
+          model: "Woocommerces",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
     async initialize() {
-
       await Promise.all([
         this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch("locacionesModule/list"),
@@ -289,10 +292,15 @@ export default {
       this.woocommerces = this.$deepCopy(
         this.$store.state.woocommercesModule.woocommerces
       );
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
 
-      const res = await vendorsApi.list()
-      this.vendors = res.data.payload
+      // mostrar solo los que tengan value
+      this.locations = this.$store.state.locacionesModule.locaciones.map(
+        (el) => el.value
+      );
+
+      const res = await vendorsApi.list();
+      this.vendors = res.data.payload;
+      console.log("🚀 Aqui *** -> this.vendors", this.vendors);
     },
     editItem(item) {
       this.editedIndex = this.woocommerces.indexOf(item);
@@ -301,7 +309,11 @@ export default {
     },
 
     getVendor(id) {
-      return this.vendors.find(vendor => vendor._id === id)
+      console.log("🚀 Aqui *** -> id", id);
+      console.log("🚀 Aqui *** -> this.vendors", this.vendors);
+      return this.vendors.find((vendor) => {
+        return vendor._id === id;
+      });
     },
 
     async deleteItem(item) {
