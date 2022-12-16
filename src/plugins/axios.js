@@ -24,7 +24,9 @@ axios.interceptors.request.use(
     if (urlsExcludedForBearerHeader.indexOf(config.url) === -1) {
       config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
       config.headers.companyId = `${
-        JSON.parse(localStorage.getItem("user")).companyId
+        JSON.parse(localStorage.getItem("user"))
+          ? JSON.parse(localStorage.getItem("user")).companyId
+          : ""
       }`;
     }
     return config;
