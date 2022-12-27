@@ -207,6 +207,11 @@ let routes = [
         component: () => import("@/views/LeadsCompraFallida.vue"),
       },
       {
+        path: "/lead/whatsapp",
+        name: "LeadsWhatsapp",
+        component: () => import("@/views/LeadsWhatsapp.vue"),
+      },
+      {
         path: "/lead/todos",
         name: "LeadsTodos",
         component: () => import("@/views/LeadsTodos.vue"),

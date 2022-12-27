@@ -342,6 +342,13 @@
           >
             <v-list-item-content> Lista Completa </v-list-item-content>
           </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'LeadsWhatsapp' }"
+            v-if="checkAuth('ChatBot/Leads', 'Lista-Completa')"
+          >
+            <v-list-item-content> Leads WhatsApp</v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group
           color="white"
