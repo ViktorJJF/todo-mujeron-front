@@ -58,9 +58,13 @@ new Vue({
   store,
   i18n,
   created() {
-    console.log(store.getters["authModule/isTokenSet"]);
-    if (store.getters["authModule/isTokenSet"]) {
-      store.dispatch("authModule/autoLogin");
+    try {
+      console.log(store.getters["authModule/isTokenSet"]);
+      if (store.getters["authModule/isTokenSet"]) {
+        store.dispatch("authModule/autoLogin");
+      }
+    } catch (error) {
+      console.log(error);
     }
   },
   render: (h) => h(App),
