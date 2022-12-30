@@ -58,7 +58,7 @@
             <v-list-item-title>{{ item.product.name }}</v-list-item-title>
             <div>
               <div>{{ item.product.ref }}</div>
-              <div v-if="item.color" style="text-transform: capitalize;">
+              <div v-if="item.color" style="text-transform: capitalize">
                 Color: {{ item.color }}
               </div>
               <div>Talla: {{ item.tallas.join(", ") }}</div>
@@ -68,7 +68,7 @@
           <div class="d-flex align-center">
             <v-text-field
               v-model="item.quantity"
-              style="max-width: 65px;"
+              style="max-width: 65px"
               type="number"
               min="1"
               hide-details
@@ -89,9 +89,7 @@
           class="pa-3 d-flex align-center"
           :style="`background-color: ${mainColor}`"
         >
-          <v-icon size="50" dark class="mr-1">
-            mdi-whatsapp
-          </v-icon>
+          <v-icon size="50" dark class="mr-1"> mdi-whatsapp </v-icon>
           <v-btn
             class="send-ws"
             :style="`color: ${mainColor}`"
@@ -100,15 +98,11 @@
             @click="handleSendWs"
             :disabled="!cartItems.length"
           >
-            <span>
-              Enviar pedido a mi asesor por Whatsapp
-            </span>
+            <span> Enviar pedido a mi asesor por Whatsapp </span>
           </v-btn>
         </div>
         <template v-if="mercadopagoAvailable">
-          <div class="my-1 text-h6 text-center">
-            O
-          </div>
+          <div class="my-1 text-h6 text-center">O</div>
           <div class="pa-3" :style="`background-color: ${mainColor}`">
             <v-btn
               :style="`color: ${mainColor}`"
@@ -132,7 +126,7 @@
         v-if="!hideCountrySelect"
         class="mr-2 d-flex"
         v-model="country"
-        style="max-width: 200px;"
+        style="max-width: 200px"
       />
       <v-autocomplete
         class="d-flex"
@@ -219,7 +213,7 @@
         <v-btn class="mr-1" icon color="grey" @click="flipPage('Left')">
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
-        <div style="min-width: 50px;" class="d-flex justify-center">
+        <div style="min-width: 50px" class="d-flex justify-center">
           {{ pages.length ? currentPageIndex + 1 : 0 }} /
           {{ productsDocsSource.total }}
         </div>
@@ -239,7 +233,7 @@
 
       <div class="d-flex">
         <tallas-select
-          style="max-width: 200px;"
+          style="max-width: 200px"
           v-model="filter.tallas"
           :tallas="tallas"
         />
@@ -284,12 +278,8 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                      <v-icon dark>
-                        mdi-whatsapp
-                      </v-icon>
-                      <span class="ml-1">
-                        Comprar
-                      </span>
+                      <v-icon dark> mdi-whatsapp </v-icon>
+                      <span class="ml-1"> Comprar </span>
                     </v-btn>
                   </template>
                   <v-list>
@@ -320,12 +310,8 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                      <v-icon dark>
-                        mdi-whatsapp
-                      </v-icon>
-                      <span class="ml-1">
-                        Comprar
-                      </span>
+                      <v-icon dark> mdi-whatsapp </v-icon>
+                      <span class="ml-1"> Comprar </span>
                     </v-btn>
                   </template>
                   <v-list>
@@ -484,14 +470,14 @@ export default {
     productsSource() {
       return this.productsSelected.length
         ? this.productsSelected
-        : this.products
+        : this.products;
     },
     productsDocsSource() {
-      if(this.productsSelected.length) {
+      if (this.productsSelected.length) {
         return {
           total: this.productsSelected.length,
-          nextPage: null
-        }
+          nextPage: null,
+        };
       }
 
       return this.productsDocs;
@@ -516,7 +502,7 @@ export default {
     },
   },
   watch: {
-    country: function() {
+    country: function () {
       this.filterInitialized = false;
 
       this.filter = {
@@ -536,14 +522,14 @@ export default {
         this.filterInitialized = true;
       });
     },
-    "filter.categories": function() {
+    "filter.categories": function () {
       if (!this.filterInitialized) return;
       Object.assign(this.filter, { tallas: [], brands: [] });
       this.fetchAttributes();
     },
     filter: {
       deep: true,
-      handler: function(val) {
+      handler: function (val) {
         if (!this.filterInitialized) return;
 
         this.fetchProducts();
@@ -558,7 +544,7 @@ export default {
         this.$router.replace({ query });
       },
     },
-    currentPageIndex: function(val) {
+    currentPageIndex: function (val) {
       // fetch products 2 pages before last
       if (val === this.productsSource.length - 3) {
         if (this.productsDocsSource.nextPage) {
@@ -619,7 +605,7 @@ export default {
 
         const isLast = index === this.productsSource.length - 1;
         if (isLast) {
-          doc.save(filename)
+          doc.save(filename);
           return await this.delay(500);
         }
 
@@ -627,7 +613,7 @@ export default {
           let size = doc.output().length;
           let sizeMb = size / (1024 * 1024);
           if (sizeMb >= maxSize) {
-            doc.save(filename)
+            doc.save(filename);
             await this.delay(500);
             doc = new jsPDF(); // reset pdf
             continue;
@@ -745,7 +731,9 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload.map(this.getFormatProduct);
+      const products = productsRes.data.payload
+        .filter((el) => el.customImages && el.customImages[0])
+        .map(this.getFormatProduct);
       if (page === 1) {
         this.products = products;
       } else {
@@ -774,13 +762,13 @@ export default {
       ]);
 
       const tallas = sizesRes.data.payload.map((talla) => talla.option);
-      this.tallas = tallas.sort(this.sortSizesFn)
+      this.tallas = tallas.sort(this.sortSizesFn);
       this.brands = attributesRes.data.payload.map((attr) => attr.options);
     },
     sortSizesFn(a, b) {
       a.toLowerCase();
       b = b.toLowerCase();
-      
+
       if (a < b) {
         return -1;
       }

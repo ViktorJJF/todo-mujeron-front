@@ -207,7 +207,7 @@
               <v-text-field
                 class="text-field-center"
                 v-model="item.quantity"
-                style="width: 42px;"
+                style="width: 42px"
                 type="number"
                 min="1"
                 hide-details
@@ -227,9 +227,7 @@
           class="pa-3 d-flex align-center"
           :style="`background-color: ${mainColor}`"
         >
-          <v-icon size="50" dark class="mr-1">
-            mdi-whatsapp
-          </v-icon>
+          <v-icon size="50" dark class="mr-1"> mdi-whatsapp </v-icon>
           <v-btn
             class="send-ws"
             :style="`color: ${mainColor}`"
@@ -238,15 +236,11 @@
             @click="handleSendWs"
             :disabled="!cartItems.length"
           >
-            <span>
-              Enviar pedido a mi asesor por Whatsapp
-            </span>
+            <span> Enviar pedido a mi asesor por Whatsapp </span>
           </v-btn>
         </div>
         <template v-if="mercadopagoAvailable">
-          <div class="my-1 text-h6 text-center">
-            O
-          </div>
+          <div class="my-1 text-h6 text-center">O</div>
           <div class="pa-3" :style="`background-color: ${mainColor}`">
             <v-btn
               :style="`color: ${mainColor}`"
@@ -269,7 +263,7 @@
       <marquee-text class="text-body-2" :duration="50">
         {{
           catalog.topBannerText ||
-            "Hola, recuerda seguirme en las redes sociales!!! Con Mi Tienda móvil, compras fácil y rápido, todo lo que ves está disponible; puedes filtrar por Talla  o también seleccionar la categoría (Fajas, jeans, Vestir..) para que encuentres más rápido todo lo que buscas.  recuerda filtrar por talla y veras solo lo que te interesa en tu talla. Usa el menú para filtrar por talla, marca o categoría de producto. Suma al carrito y al final me enviaras un mensaje al Whatsapp con los productos que te gustan. Estamos felices por tu visita!!"
+          "Hola, recuerda seguirme en las redes sociales!!! Con Mi Tienda móvil, compras fácil y rápido, todo lo que ves está disponible; puedes filtrar por Talla  o también seleccionar la categoría (Fajas, jeans, Vestir..) para que encuentres más rápido todo lo que buscas.  recuerda filtrar por talla y veras solo lo que te interesa en tu talla. Usa el menú para filtrar por talla, marca o categoría de producto. Suma al carrito y al final me enviaras un mensaje al Whatsapp con los productos que te gustan. Estamos felices por tu visita!!"
         }}
       </marquee-text>
     </v-banner>
@@ -318,7 +312,7 @@
           <v-icon>mdi-filter-remove-outline</v-icon>
         </v-btn>
         <tallas-select
-          style="max-width: 150px;"
+          style="max-width: 150px"
           v-model="filter.tallas"
           outlined
           dense
@@ -350,7 +344,7 @@
               <v-btn class="mr-1" icon color="grey" @click="flipPage('Left')">
                 <v-icon size="35">mdi-chevron-left</v-icon>
               </v-btn>
-              <div style="min-width: 50px;" class="d-flex justify-center">
+              <div style="min-width: 50px" class="d-flex justify-center">
                 {{ pages.length ? currentPageIndex : 0 }} /
                 {{ productsDocsSource.total }}
               </div>
@@ -381,12 +375,8 @@
                       v-bind="attrs"
                       v-on="on"
                     >
-                      <v-icon dark>
-                        mdi-whatsapp
-                      </v-icon>
-                      <span class="ml-1">
-                        Comprar
-                      </span>
+                      <v-icon dark> mdi-whatsapp </v-icon>
+                      <span class="ml-1"> Comprar </span>
                     </v-btn>
                   </template>
                   <v-list>
@@ -655,14 +645,14 @@ export default {
     productsSource() {
       return this.productsSelected.length
         ? this.productsSelected
-        : this.products
+        : this.products;
     },
     productsDocsSource() {
-      if(this.productsSelected.length) {
+      if (this.productsSelected.length) {
         return {
           total: this.productsSelected.length,
-          nextPage: null
-        }
+          nextPage: null,
+        };
       }
 
       return this.productsDocs;
@@ -687,7 +677,7 @@ export default {
     },
   },
   watch: {
-    country: function() {
+    country: function () {
       this.filterInitialized = false;
 
       this.filter = {
@@ -707,14 +697,14 @@ export default {
         this.filterInitialized = true;
       });
     },
-    "filter.categories": function() {
+    "filter.categories": function () {
       if (!this.filterInitialized) return;
       Object.assign(this.filter, { tallas: [], brands: [] });
       this.fetchAttributes();
     },
     filter: {
       deep: true,
-      handler: function(val) {
+      handler: function (val) {
         if (!this.filterInitialized) return;
 
         this.fetchProducts();
@@ -729,7 +719,7 @@ export default {
         this.$router.replace({ query });
       },
     },
-    currentPageIndex: function(val) {
+    currentPageIndex: function (val) {
       // fetch products 2 pages before last
       if (val === this.productsSource.length - 3) {
         if (this.productsDocsSource.nextPage) {
@@ -917,7 +907,9 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload.map(this.getFormatProduct);
+      const products = productsRes.data.payload
+        .filter((el) => el.customImages && el.customImages[0])
+        .map(this.getFormatProduct);
       if (page === 1) {
         this.products = products;
       } else {

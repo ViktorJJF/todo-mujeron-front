@@ -385,10 +385,8 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   // checkForUpdates();
-  console.log("jaja");
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const isMultiPage = localStorageGet("token") === false;
-  console.log("🚀 Aqui *** -> isMultiPage", isMultiPage);
   const isTokenSet = isMultiPage
     ? true
     : store.getters["authModule/isTokenSet"];
