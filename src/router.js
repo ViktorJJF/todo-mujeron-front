@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import store from "./store";
-
+import { localStorageGet } from "@/utils/utils";
 Vue.use(Router);
 
 let routes = [
@@ -385,8 +385,13 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   // checkForUpdates();
+  console.log("jaja");
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  const isTokenSet = store.getters["authModule/isTokenSet"];
+  const isMultiPage = localStorageGet("token") === false;
+  console.log("🚀 Aqui *** -> isMultiPage", isMultiPage);
+  const isTokenSet = isMultiPage
+    ? true
+    : store.getters["authModule/isTokenSet"];
   if (requiresAuth && !isTokenSet) {
     return next({ name: "login" });
   }

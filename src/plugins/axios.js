@@ -7,7 +7,8 @@ axios.defaults.timeout = 20000;
 
 axios.defaults.baseURL = process.env.VUE_APP_API_URL || "";
 axios.defaults.headers.common["Accept-Language"] =
-  JSON.parse(localStorage.getItem("locale")) || "es";
+  JSON.parse(localStorageGet("locale")) || "es";
+import { localStorageGet } from "@/utils/utils2.js";
 
 axios.interceptors.request.use(
   (config) => {
@@ -22,10 +23,10 @@ axios.interceptors.request.use(
       `${window.location.origin}/version.json`,
     ];
     if (urlsExcludedForBearerHeader.indexOf(config.url) === -1) {
-      config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+      config.headers.Authorization = `Bearer ${localStorageGet("token")}`;
       config.headers.companyId = `${
-        JSON.parse(localStorage.getItem("user"))
-          ? JSON.parse(localStorage.getItem("user")).companyId
+        JSON.parse(localStorageGet("user"))
+          ? JSON.parse(localStorageGet("user")).companyId
           : ""
       }`;
     }

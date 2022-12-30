@@ -1,12 +1,13 @@
 import api from "@/services/api/auth";
 // import apiUsers from "@/services/api/users";
 import { buildSuccess, handleError } from "@/utils/utils.js";
+import { localStorageGet } from "@/utils/utils2.js";
 import router from "@/router";
 
 const state = () => ({
   user: null,
-  token: JSON.parse(!!localStorage.getItem("token")) || null,
-  isTokenSet: !!localStorage.getItem("token"),
+  token: JSON.parse(!!localStorageGet("token")) || null,
+  isTokenSet: !!localStorageGet("token"),
 });
 
 const getters = {
@@ -81,9 +82,9 @@ const actions = {
   },
   autoLogin({ commit }) {
     console.log("vino autologin");
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorageGet("user"));
     commit("saveUser", user);
-    commit("saveToken", localStorage.getItem("token"));
+    commit("saveToken", localStorageGet("token"));
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {
