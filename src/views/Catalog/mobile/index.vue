@@ -30,8 +30,11 @@
         <v-list-item class="mt-3">
           <v-autocomplete
             class="d-flex"
-            :items="products"
             v-model="productsSelected"
+            :items="productsSearch"
+            :loading="searchLoading"
+            :search-input.sync="search"
+            cache-items
             prepend-inner-icon="mdi-magnify"
             append-icon=""
             hide-details
@@ -43,7 +46,6 @@
             return-object
             item-text="name"
             clearable
-            :search-input.sync="search"
           >
             <template v-slot:selection="data">
               <v-chip
@@ -547,11 +549,13 @@ export default {
       buyModal: false,
       downloadLoading: false,
       country: this.catalog.country || DEFAULT_COUNTRY,
-      search: "",
       hideCountrySelect: true,
       drawerFilter: false,
       drawerCart: false,
       products: [],
+      productsSearch: [],
+      search: null,
+      searchLoading: false,
       categories: [],
       tallas: [],
       brands: [],
@@ -697,6 +701,9 @@ export default {
         this.filterInitialized = true;
       });
     },
+    search: function(val) {
+      this.handleSearchInputChange(val)
+    },
     "filter.categories": function () {
       if (!this.filterInitialized) return;
       Object.assign(this.filter, { tallas: [], brands: [] });
@@ -809,6 +816,16 @@ export default {
       await this.downloadPdf(...args);
 
       this.downloadLoading = false;
+    },
+    async handleSearchInputChange(val) {
+      if(!val) return;
+      if(this.searchLoading === true) return;
+
+      this.loading = true;
+
+      await this.fetchSearchProducts(val);
+
+      this.loading = false;
     },
     delay(time = 1000) {
       return new Promise((resolve) => {
@@ -938,8 +955,38 @@ export default {
         EcommercesApi.listAttributes({ ...query, name: "marca" }),
       ]);
 
-      this.tallas = sizesRes.data.payload.map((talla) => talla.option);
+      const tallas = sizesRes.data.payload.map((talla) => talla.option);
+      this.tallas = tallas.sort(this.sortSizesFn);
       this.brands = attributesRes.data.payload.map((attr) => attr.options);
+    },
+    async fetchSearchProducts(val) {
+      const query = {
+        limit: ITEMS_PER_PAGE,
+        country: this.country,
+        products_available: true,
+        filter: val,
+        fields: ["name", "ref", "sku"].join(","),
+      };
+
+      const productsRes = await EcommercesApi.list(query);
+
+      const products = productsRes.data.payload
+        .filter((el) => el.customImages && el.customImages[0])
+        .map(this.getFormatProduct);
+      
+      this.productsSearch = products;
+    },
+    sortSizesFn(a, b) {
+      a.toLowerCase();
+      b = b.toLowerCase();
+
+      if (a < b) {
+        return -1;
+      }
+      if (a > b) {
+        return 1;
+      }
+      return 0;
     },
     getAvailableProducts(products) {
       return products.filter((product) => {
@@ -952,7 +999,7 @@ export default {
       });
     },
     handleSearchItemClick() {
-      this.search = "";
+      this.search = null;
     },
     handleBottomItemClick(category) {
       this.filter.categories = [category];
