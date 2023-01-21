@@ -62,7 +62,7 @@ export default {
   },
   methods: {
     async initialize() {
-      const whats_app_business_account_id = "111896868194668";
+      const whats_app_business_account_id = "115075534784026";
       this.templateMessages = (
         await graphApiService.getWhatsappMessageTemplates(
           whats_app_business_account_id
