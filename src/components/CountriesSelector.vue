@@ -1,32 +1,16 @@
 <template>
   <v-sheet max-width="700">
-    <v-slide-group
-      @change="
-        $emit(
-          'onSelectedCountries',
-          multiple
-            ? getCountries(selectedCountries)
-            : getCountry(selectedCountries)
-        )
-      "
-      v-model="selectedCountries"
-      :multiple="multiple"
-      show-arrows
-    >
-      <v-slide-item
-        v-for="country in $store.state.countries"
-        :key="country"
-        v-slot="{ active, toggle }"
-      >
-        <v-btn
-          :disabled="disabled"
-          class="mx-2"
-          :input-value="active"
-          active-class="purple white--text"
-          depressed
-          rounded
-          @click="toggle"
-        >
+    <v-slide-group @change="
+      $emit(
+        'onSelectedCountries',
+        multiple
+          ? getCountries(selectedCountries)
+          : getCountry(selectedCountries)
+      )
+    " v-model="selectedCountries" :multiple="multiple" show-arrows>
+      <v-slide-item v-for="country in $store.state.countries" :key="country" v-slot="{ active, toggle }">
+        <v-btn :disabled="disabled" class="mx-2" :input-value="active" active-class="purple white--text" depressed
+          rounded @click="toggle">
           {{ country }}
         </v-btn>
       </v-slide-item>
@@ -60,14 +44,14 @@ export default {
       handler() {
         this.selectedCountries = this.multiple
           ? this.initialData.map(
-              (el) =>
-                this.$store.state.countries[
-                  this.$store.state.countries.findIndex((el2) => el2 === el)
-                ]
-            )
+            (el) =>
+              this.$store.state.countries[
+              this.$store.state.countries.findIndex((el2) => el2 === el)
+              ]
+          )
           : this.$store.state.countries.findIndex(
-              (el) => el === (this.initialData ? this.initialData[0] : null)
-            );
+            (el) => el === (this.initialData ? this.initialData[0] : null)
+          );
       },
       immediate: true,
     },
@@ -86,4 +70,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
 </style>

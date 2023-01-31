@@ -7,4 +7,5 @@ export default () => ({
   clicks: [],
   templateMessage: "",
   // scheduleDateTime: "",
+  chunkSize: 100,
 });

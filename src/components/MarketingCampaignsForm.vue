@@ -33,6 +33,7 @@
               <v-date-picker v-model="date" @input="menu2 = false"></v-date-picker>
             </v-menu>
           </v-col>
+
           <v-col cols="12" sm="4" md="4">
             {{ editedItem.scheduleTime }}
             <span class="font-weight-bold">Hora de envío</span>
@@ -46,6 +47,10 @@
               <v-time-picker v-if="menu" v-model="time" full-width
                 @click:minute="$refs.menu.save(time)"></v-time-picker>
             </v-menu>
+          </v-col>
+          <v-col cols="12" sm="4" md="4">
+            <span class="font-weight-bold">Enviar por tandas de</span>
+            <v-text-field type="number" v-model="editedItem.chunkSize" outlined dense></v-text-field>
           </v-col>
         </v-row>
       </v-container>
@@ -65,6 +70,9 @@ step += 1;
         <div><b>Mensaje de Plantilla: </b>{{ editedItem.templateMessage }}</div>
         <div>
           <b>Fecha y Hora: </b>{{ formatDate(scheduleDateTime) || "Fecha y hora no válida" }}
+        </div>
+        <div>
+          <b>Envío por tandas: </b>{{ editedItem.chunkSize || "Sin tandas" }}
         </div>
       </v-container>
       <v-card-actions rd-actions>
