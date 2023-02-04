@@ -22,7 +22,20 @@
             <CountriesSelector :multiple="false" :initialData="initialCountries"
               @onSelectedCountries="onSelectedCountries"></CountriesSelector>
           </v-col>
-          <v-col cols="12" sm="6" md="6">
+          <!-- <v-col cols="12" sm="12" md="12">
+            <span class="font-weight-bold">Bots WhatsApp</span>
+            <v-sheet max-width="700">
+              <v-slide-group v-model="botIds" :multiple="true" show-arrows>
+                <v-slide-item v-for="bot in botIds" :key="bot._id" v-slot="{ active, toggle }">
+                  <v-btn :disabled="disabled" class="mx-2" :input-value="active" active-class="purple white--text"
+                    depressed rounded @click="toggle">
+                    {{ bot.name }}
+                  </v-btn>
+                </v-slide-item>
+              </v-slide-group>
+            </v-sheet>
+          </v-col> -->
+          <!-- <v-col cols="12" sm="6" md="6">
             <span class="font-weight-bold">Desde</span>
             <v-menu v-model="menuFrom" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
               offset-y min-width="auto">
@@ -43,7 +56,7 @@
               </template>
               <v-date-picker v-model="editedItem.dateTo" @input="menuTo = false"></v-date-picker>
             </v-menu>
-          </v-col>
+          </v-col> -->
           <v-col v-if="!activatePreview" cols="12" sm="12">
             <span class="font-weight-bold">Descripción</span>
             <v-textarea placeholder="descripcion" outlined v-model="editedItem.description"></v-textarea>
@@ -65,8 +78,8 @@
           </v-chip>
         </div>
         <div><b>País: </b>{{ editedItem.target_countries.join(" ,") }}</div>
-        <div><b>Desde: </b>{{ editedItem.dateFrom }}</div>
-        <div><b>Hasta: </b>{{ editedItem.dateTo }}</div>
+        <!-- <div><b>Desde: </b>{{ editedItem.dateFrom }}</div>
+        <div><b>Hasta: </b>{{ editedItem.dateTo }}</div> -->
       </v-container>
       <v-card-actions rd-actions>
         <div class="flex-grow-1"></div>
@@ -75,8 +88,7 @@
           $emit('onPreview', {
             todofullLabels: editedItem.todofullLabels,
             countries: editedItem.target_countries,
-            dateFrom: editedItem.dateFrom,
-            dateTo: editedItem.dateTo
+            botIds: editedItem.botIds
           })
         ">Previsualizar</v-btn>
         <v-btn outlined color="error" text @click="$emit('onClose')">Cancelar</v-btn>
@@ -105,8 +117,9 @@ export default {
         description: "",
         todofullLabels: [],
         target_countries: [],
-        dateFrom: new Date().toISOString().substr(0, 10),
-        dateTo: new Date().toISOString().substr(0, 10)
+        // dateFrom: new Date().toISOString().substr(0, 10),
+        // dateTo: new Date().toISOString().substr(0, 10),
+        botIds: [],
       }),
     },
     activatePreview: {
@@ -130,9 +143,18 @@ export default {
       dialog: false,
       loadingButton: false,
       defaultItem: CLASS_ITEMS(),
+      botIds: [1],
+      disabled: false
     };
   },
-
+  async mounted() {
+    // getting segments
+    await Promise.all([
+      this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
+    ]);
+    this.botIds = this.$store.state.botsModule.bots;
+    this.editedItem.botIds = this.botIds.map((bot) => bot._id);
+  },
   computed: {
     formTitle() {
       return this.editedIndex === -1

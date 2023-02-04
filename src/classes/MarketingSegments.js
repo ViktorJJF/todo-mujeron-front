@@ -3,4 +3,5 @@ export default () => ({
   description: "",
   todofullLabels: [],
   target_countries: [],
+  botIds: [],
 });

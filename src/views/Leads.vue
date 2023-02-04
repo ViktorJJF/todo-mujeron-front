@@ -433,7 +433,7 @@ export default {
     },
   },
   data: () => ({
-
+    botIds: [],
     dateFrom: null,
     dateTo: null,
     selectedSegment: null,
@@ -621,6 +621,9 @@ export default {
       }
       if (this.dateTo) {
         body["dateTo"] = this.dateTo;
+      }
+      if (this.botIds.length > 0) {
+        body["botIds"] = this.botIds;
       }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
@@ -880,14 +883,16 @@ export default {
       this.activatePreview = true;
       this.dateFrom = null;
       this.dateTo = null;
+      this.botIds = [];
       this.showAllLeads();
     },
-    onPreviewSegment({ todofullLabels, countries, dateFrom, dateTo }) {
+    onPreviewSegment({ todofullLabels, countries, dateFrom, dateTo, botIds }) {
       this.isSegmentPreviewMode = true;
       this.segmentDialog = false;
       this.selectedCountries = countries;
       this.dateFrom = dateFrom;
       this.dateTo = dateTo;
+      this.botIds = botIds;
       this.onSelectTodofullLabels(todofullLabels);
     },
     cancelSegmentPreview() {
@@ -897,6 +902,7 @@ export default {
       this.selectedCountries = [];
       this.dateFrom = null;
       this.dateTo = null;
+      this.botIds = [];
       this.showAllLeads();
     },
     onSelectedSegment(segment) {

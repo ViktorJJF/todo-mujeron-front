@@ -9,6 +9,14 @@ export default {
   create(payload) {
     return axios.post("/api/marketing-campaigns", payload);
   },
+  sendChunk(chunkPage, chunkSize, segment, campaign) {
+    return axios.post("/api/marketing-campaigns/send_chunk", {
+      chunkPage,
+      chunkSize,
+      segment,
+      campaign,
+    });
+  },
   delete(id) {
     return axios.delete(`/api/marketing-campaigns/${id}`);
   },

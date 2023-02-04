@@ -8,4 +8,6 @@ export default () => ({
   templateMessage: "",
   // scheduleDateTime: "",
   chunkSize: 100,
+  chunkPages: 1,
+  chunls: [],
 });
