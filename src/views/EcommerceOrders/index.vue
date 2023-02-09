@@ -96,9 +96,8 @@
                             <v-divider class="mx-3 my-3"></v-divider>
                             <v-row
                               dense
-                              v-for="(
-                                detail, detailIndex
-                              ) in editedItem.details"
+                              v-for="(detail,
+                              detailIndex) in editedItem.details"
                               :key="detailIndex"
                             >
                               <v-col cols="12" sm="6" md="6">
@@ -278,8 +277,16 @@
             >
           </template>
           <template v-slot:item.action="{ item }">
-            <v-btn small color="secondary" @click="openDetails(item)">
+            <v-btn
+              class="mr-2"
+              small
+              color="secondary"
+              @click="openDetails(item)"
+            >
               Detalles
+            </v-btn>
+            <v-btn small color="primary" @click="openGuideDetails(item)">
+              Guía
             </v-btn>
           </template>
         </v-data-table>
@@ -305,11 +312,11 @@
       </material-card>
     </v-row>
 
-    <v-dialog
-      v-model="detailsModal"
-      width="800"
-    >
+    <v-dialog v-model="detailsModal" width="800">
       <order-details :order="currentOrder" />
+    </v-dialog>
+    <v-dialog v-model="guideDetailsModal" width="800">
+      <Guide @onClose="guideDetailsModal = false" :order="currentOrder" />
     </v-dialog>
   </v-container>
 </template>
@@ -323,16 +330,18 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
-import OrderDetails from './Details.vue'
+import OrderDetails from "./Details.vue";
+import Guide from "./Guide.vue";
 
 export default {
   components: {
     MaterialCard,
     OrderDetails,
     VTextFieldWithValidation,
+    Guide,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -340,11 +349,7 @@ export default {
   },
   data: () => ({
     //datos del componente
-    fieldsToSearch: [
-      "odooOrderName",
-      "status",
-      "phone",
-    ],
+    fieldsToSearch: ["odooOrderName", "status", "phone"],
     headers: [
       {
         text: "Última modificación",
@@ -410,7 +415,8 @@ export default {
     search: "",
     dialog: false,
     detailsModal: false,
-    currentOrder: null
+    guideDetailsModal: false,
+    currentOrder: null,
   }),
   computed: {
     totalItems() {
@@ -467,8 +473,12 @@ export default {
       );
     },
     openDetails(order) {
-      this.currentOrder = order
-      this.detailsModal = true
+      this.currentOrder = order;
+      this.detailsModal = true;
+    },
+    openGuideDetails(order) {
+      this.currentOrder = order;
+      this.guideDetailsModal = true;
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
