@@ -362,6 +362,11 @@ let routes = [
         component: () => import("@/views/MarketingCampaigns"),
       },
       {
+        path: "/marketing/historial-plantillas",
+        name: "TemplateMessagesLogs",
+        component: () => import("@/views/TemplateMessagesLogs"),
+      },
+      {
         path: "/marketing/campaigns/crear",
         name: "MarketingCampaignsCreate",
         component: () => import("@/components/MarketingCampaignsForm"),

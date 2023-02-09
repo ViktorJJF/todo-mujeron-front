@@ -167,5 +167,13 @@
         "EDIT_ITEM": "Editar Segmento",
         "NO_DATA": "Aún no cuentas con Segmentos",
         "NO_RESULTS": "No hay resultados"
+    },
+    "templateMessagesLogs": {
+        "TITLE": "Historial Mensajes de plantilla",
+        "SUBTITLE": "Listado",
+        "NEW_ITEM": "Nuevo Item",
+        "EDIT_ITEM": "Editar Item",
+        "NO_DATA": "Aún no cuentas con historial Mensajes de plantilla",
+        "NO_RESULTS": "No hay resultados"
     }
 }

@@ -96,8 +96,9 @@
                             <v-divider class="mx-3 my-3"></v-divider>
                             <v-row
                               dense
-                              v-for="(detail,
-                              detailIndex) in editedItem.details"
+                              v-for="(
+                                detail, detailIndex
+                              ) in editedItem.details"
                               :key="detailIndex"
                             >
                               <v-col cols="12" sm="6" md="6">
@@ -229,6 +230,9 @@
           <template v-slot:[`item.total`]="{ item }">
             {{ item.line_items.reduce((a, b) => a + parseFloat(b.total), 0) }}
           </template>
+          <template v-slot:[`item.templateMessage`]="{ item }">
+            {{ item.templateMessageLogId ? "✅" : "" }}
+          </template>
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
@@ -278,14 +282,19 @@
           </template>
           <template v-slot:item.action="{ item }">
             <v-btn
-              class="mr-2"
+              class="mr-2 mb-2"
               small
               color="secondary"
               @click="openDetails(item)"
             >
               Detalles
             </v-btn>
-            <v-btn small color="primary" @click="openGuideDetails(item)">
+            <v-btn
+              class="mb-2"
+              small
+              color="primary"
+              @click="openGuideDetails(item)"
+            >
               Guía
             </v-btn>
           </template>
@@ -315,7 +324,7 @@
     <v-dialog v-model="detailsModal" width="800">
       <order-details :order="currentOrder" />
     </v-dialog>
-    <v-dialog v-model="guideDetailsModal" width="800">
+    <v-dialog v-if="guideDetailsModal" v-model="guideDetailsModal" width="800">
       <Guide @onClose="guideDetailsModal = false" :order="currentOrder" />
     </v-dialog>
   </v-container>
@@ -341,7 +350,7 @@ export default {
     Guide,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -398,6 +407,12 @@ export default {
         align: "left",
         sortable: false,
         value: "total",
+      },
+      {
+        text: "Mensaje Plantilla",
+        align: "left",
+        sortable: false,
+        value: "templateMessage",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],

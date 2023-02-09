@@ -27,6 +27,9 @@
 </template>
 
 <script>
+import { buildSuccess } from "@/utils/utils.js";
+import graphApiService from "@/services/api/graphApi";
+
 export default {
   props: {
     order: {
@@ -43,10 +46,31 @@ export default {
     };
   },
   computed: {},
+  mounted() {
+    this.guideNumber = this.order.guideNumber;
+    this.transportCompany = this.order.transportCompany;
+  },
   methods: {
     async saveGuide() {
-      console.log(this.order);
+      let phone = this.order.ecommercesContactId.cleanLeadId
+        ? this.order.ecommercesContactId.cleanLeadId.telefono
+        : this.order.ecommercesContactId.phone;
       try {
+        // sending template message
+        let response = await graphApiService.sendWhatsappMessageTemplates(
+          phone,
+          "envio_guias_de_despacho",
+          {
+            body: [
+              this.order.ecommercesContactId.first_name,
+              this.order.idOrder,
+              this.transportCompany,
+              this.guideNumber,
+            ],
+          },
+          "639df6124427e2337b8112e7" // TODO change this to select bot dynamically
+        );
+        let data = response.data;
         this.loadingButton = true;
         await this.$store.dispatch("ecommercesOrdersModule/update", {
           id: this.order._id,
@@ -54,11 +78,21 @@ export default {
             ...this.order,
             guideNumber: this.guideNumber,
             transportCompany: this.transportCompany,
+            templateMessageLogId: data.payload.templateMessageLogId,
           },
         });
+        buildSuccess(
+          `Mensaje de plantilla enviado con éxito`,
+          this.$store.commit
+        );
         this.$emit("onClose");
       } catch (error) {
         console.log(error);
+        this.$swal({
+          icon: "error",
+          title: `Error enviando mensaje de plantilla`,
+          html: `<p>Es probable que el teléfono ${phone} de ${this.order.ecommercesContactId.first_name} no tenga WhatsApp o sea incorrecto</p>`,
+        });
       } finally {
         this.loadingButton = false;
       }
