@@ -6,7 +6,11 @@
     <v-container class="pa-5">
       <v-row>
         <v-col cols="12" sm="4" md="4">
-          <span class="font-weight-bold">Nro Guía</span>
+          <span class="font-weight-bold">Teléfono WhatsApp</span>
+          <v-text-field v-model="whatsappPhone" outlined dense></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="4" md="4">
+          <span class="font-weight-bold">Nro Seguimiento</span>
           <v-text-field v-model="guideNumber" outlined dense></v-text-field>
         </v-col>
         <v-col cols="12" sm="8" md="8">
@@ -40,6 +44,7 @@ export default {
   filters: {},
   data() {
     return {
+      whatsappPhone: "",
       loadingButton: false,
       guideNumber: "",
       transportCompany: "",
@@ -49,10 +54,15 @@ export default {
   mounted() {
     this.guideNumber = this.order.guideNumber;
     this.transportCompany = this.order.transportCompany;
+    this.whatsappPhone = this.order.ecommercesContactId.cleanLeadId
+      ? this.order.ecommercesContactId.cleanLeadId.telefono
+      : this.order.ecommercesContactId.phone;
   },
   methods: {
     async saveGuide() {
-      let phone = this.order.ecommercesContactId.cleanLeadId
+      let phone = this.whatsappPhone
+        ? this.whatsappPhone
+        : this.order.ecommercesContactId.cleanLeadId
         ? this.order.ecommercesContactId.cleanLeadId.telefono
         : this.order.ecommercesContactId.phone;
       try {
