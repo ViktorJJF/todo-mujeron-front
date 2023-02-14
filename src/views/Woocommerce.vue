@@ -142,7 +142,7 @@
             </v-container>
           </template>
           <template v-slot:item.vendor="{ item }">
-            {{ item.vendor ? getVendor(item.vendor).name : "" }}
+          {{ item.vendor ? getVendor(item.vendor).name : "" }}
           </template>
           <template v-slot:item.action="{ item }">
             <v-btn
@@ -312,8 +312,8 @@ export default {
       console.log("🚀 Aqui *** -> id", id);
       console.log("🚀 Aqui *** -> this.vendors", this.vendors);
       return this.vendors.find((vendor) => {
-        return vendor._id === id;
-      });
+        return vendor._id === id; 
+      }) || "";
     },
 
     async deleteItem(item) {

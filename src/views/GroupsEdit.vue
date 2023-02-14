@@ -303,6 +303,7 @@ export default {
               'Productos' :[],
               'Categorias':[],
               'Marcas':[],
+              'Vendedores':[],
             },
             'GoogleContact/Contactos':{
               'Contactos': []

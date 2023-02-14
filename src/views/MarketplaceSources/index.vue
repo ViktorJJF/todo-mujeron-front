@@ -328,7 +328,7 @@ export default {
     },
 
     getVendor(id) {
-      return this.vendors.find(vendor => vendor._id === id)
+      return this.vendors.find(vendor => vendor._id === id) || ""
     },
 
     async deleteItem(item) {

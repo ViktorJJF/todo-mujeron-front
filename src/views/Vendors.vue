@@ -39,6 +39,11 @@
               </v-row>
             </v-container>
           </template>
+          <template v-slot:[`item.action`]="{ item }">
+            <v-btn color="error" fab small dark @click="deleteItem(item)" v-show="rolPermisos['Delete']">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
               >Aún no cuentas con vendors</v-alert
@@ -118,7 +123,8 @@ export default {
         align: "left",
         sortable: true,
         value: "email",
-      }
+      },
+      { text: "Acciones", value: "action", sortable: false },
     ],
     vendors: [],
     editedIndex: -1,
@@ -139,7 +145,7 @@ export default {
     await this.$store.dispatch("vendorsModule/list"); 
     await this.$store.dispatch("locacionesModule/list");
     this.initialize();
-    // this.rolAuth(); 
+    this.rolAuth(); 
   },
 
   methods: {
@@ -147,8 +153,8 @@ export default {
        auth.roleAuthorization(
         {
           'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/TodoFull',
-          'model':'Vendors'
+          'menu':'Configuracion/Propiedades/Genial',
+          'model':'Vendedores'
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -188,6 +194,16 @@ export default {
         this.loadingButton = false;
       }
     },
+
+    async deleteItem(item) {
+      const index = this.vendors.indexOf(item);
+      let itemId = this.vendors[index]._id;
+      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+        await this.$store.dispatch("vendorsModule/delete", itemId);
+        this.vendors.splice(index, 1);
+      }
+    },
+
   },
 };
 </script>
