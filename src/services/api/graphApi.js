@@ -29,15 +29,19 @@ export default {
       `/api/graph-api/whatsapp/message-templates?whats_app_business_account_id=${whats_app_business_account_id}`
     );
   },
-  sendWhatsappMessageTemplates(to,
+  sendWhatsappMessageTemplates(
+    to,
     template_name,
     dynamic_parameters,
-    bot_id) {
+    bot_id,
+    cleanLeadId
+  ) {
     return axios.post(`/api/graph-api/whatsapp/send-message-templates`, {
       to,
       template_name,
       dynamic_parameters,
       bot_id,
+      cleanLeadId,
     });
   },
 };

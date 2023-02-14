@@ -76,7 +76,8 @@ export default {
           {
             body: [this.order.ecommercesContactId.first_name, this.skuProducts],
           },
-          "639df6124427e2337b8112e7" // TODO change this to select bot dynamically
+          "639df6124427e2337b8112e7", // TODO change this to select bot dynamically
+          this.order.ecommercesContactId.cleanLeadId._id
         );
         let data = response.data;
         this.loadingButton = true;
