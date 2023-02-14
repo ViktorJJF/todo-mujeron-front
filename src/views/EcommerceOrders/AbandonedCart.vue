@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title class="text-h5 grey lighten-2">
-      Detalles de la guía
+      Carro Abandonado
     </v-card-title>
     <v-container class="pa-5">
       <v-row>
@@ -15,18 +15,10 @@
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="12" md="12">
-          <span class="font-weight-bold">Nro Seguimiento</span>
+          <span class="font-weight-bold">SKU Productos</span>
           <v-text-field
-            v-model="guideNumber"
-            outlined
-            dense
-            hide-details="auto"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="12" md="12">
-          <span class="font-weight-bold">Transportista</span>
-          <v-text-field
-            v-model="transportCompany"
+            disabled
+            v-model="skuProducts"
             outlined
             dense
             hide-details="auto"
@@ -44,7 +36,7 @@
 </template>
 
 <script>
-import { buildSuccess } from "@/utils/utils.js";
+import { buildSuccess, getSku } from "@/utils/utils.js";
 import graphApiService from "@/services/api/graphApi";
 
 export default {
@@ -59,17 +51,15 @@ export default {
     return {
       whatsappPhone: "",
       loadingButton: false,
-      guideNumber: "",
-      transportCompany: "",
+      skuProducts: "",
     };
   },
   computed: {},
   mounted() {
-    this.guideNumber = this.order.guideNumber;
-    this.transportCompany = this.order.transportCompany;
     this.whatsappPhone = this.order.ecommercesContactId.cleanLeadId
       ? this.order.ecommercesContactId.cleanLeadId.telefono
       : this.order.ecommercesContactId.phone;
+    this.skuProducts = this.order.line_items.map((el) => getSku(el)).join(", ");
   },
   methods: {
     async saveGuide() {
@@ -82,14 +72,9 @@ export default {
         // sending template message
         let response = await graphApiService.sendWhatsappMessageTemplates(
           phone,
-          "envio_guias_de_despacho",
+          "compras_fallidas",
           {
-            body: [
-              this.order.ecommercesContactId.first_name,
-              this.order.idOrder,
-              this.transportCompany,
-              this.guideNumber,
-            ],
+            body: [this.order.ecommercesContactId.first_name, this.skuProducts],
           },
           "639df6124427e2337b8112e7" // TODO change this to select bot dynamically
         );
@@ -99,8 +84,6 @@ export default {
           id: this.order._id,
           data: {
             ...this.order,
-            guideNumber: this.guideNumber,
-            transportCompany: this.transportCompany,
             templateMessageLogId: data.payload.templateMessageLogId,
           },
         });

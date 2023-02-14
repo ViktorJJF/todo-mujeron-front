@@ -367,3 +367,38 @@ export const localStorageGet = (key) => {
     return false; // means is in iframe
   }
 };
+
+/**
+ * @Description obtener sku de orden
+ */
+export const getSku = (item) => {
+  const variation = item.ecommerceId.variations.find(
+    (v) => v.id === item.variation_id
+  );
+
+  return variation ? variation.sku : item.ecommerceId.sku;
+};
+
+/**
+ * @Description seleccionar variacion de listado por id y atributo
+ */
+export const getVariationAttribute = (id, attribute, variations) => {
+  console.log(
+    "🚀 Aqui *** -> id, attribute, variations",
+    id,
+    attribute,
+    variations
+  );
+  const variation = variations.find((variation) => variation._id === id);
+  if (variation) {
+    console.log(
+      "Variacion: ",
+      variation.attributes.find(
+        (el) => el.name.toLowerCase() === attribute.toLowerCase()
+      )
+    );
+    return variation.attributes.find(
+      (el) => el.name.toLowerCase() === attribute.toLowerCase()
+    );
+  }
+};

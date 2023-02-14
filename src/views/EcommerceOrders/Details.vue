@@ -14,7 +14,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">N°Orden:</div>
-              <div class="ml-1">{{order.idOrder}}</div>
+              <div class="ml-1">{{ order.idOrder }}</div>
             </div>
           </v-col>
         </v-row>
@@ -22,7 +22,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Estado:</div>
-              <div class="ml-1">{{order.status}}</div>
+              <div class="ml-1">{{ order.status }}</div>
             </div>
           </v-col>
         </v-row>
@@ -30,7 +30,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Total:</div>
-              <div class="ml-1">{{total | currency}}</div>
+              <div class="ml-1">{{ total | currency }}</div>
             </div>
           </v-col>
         </v-row>
@@ -38,7 +38,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Fecha de creación:</div>
-              <div class="ml-1">{{order.date_created | formatDate}}</div>
+              <div class="ml-1">{{ order.date_created | formatDate }}</div>
             </div>
           </v-col>
         </v-row>
@@ -46,7 +46,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Última actualización:</div>
-              <div class="ml-1">{{order.date_modified | formatDate}}</div>
+              <div class="ml-1">{{ order.date_modified | formatDate }}</div>
             </div>
           </v-col>
         </v-row>
@@ -62,8 +62,9 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Nombre:</div>
-               <div class="ml-1 text-capitalize">
-                {{order.ecommercesContactId.first_name}} {{order.ecommercesContactId.last_name}}
+              <div class="ml-1 text-capitalize">
+                {{ order.ecommercesContactId.first_name }}
+                {{ order.ecommercesContactId.last_name }}
               </div>
             </div>
           </v-col>
@@ -72,7 +73,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">País:</div>
-              <div class="ml-1">{{order.ecommercesContactId.country}}</div>
+              <div class="ml-1">{{ order.ecommercesContactId.country }}</div>
             </div>
           </v-col>
         </v-row>
@@ -80,7 +81,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Comúna:</div>
-              <div class="ml-1">{{order.ecommercesContactId.city}}</div>
+              <div class="ml-1">{{ order.ecommercesContactId.city }}</div>
             </div>
           </v-col>
         </v-row>
@@ -88,7 +89,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Rut:</div>
-              <div class="ml-1">{{order.rut}}</div>
+              <div class="ml-1">{{ order.rut }}</div>
             </div>
           </v-col>
         </v-row>
@@ -96,7 +97,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Teléfono:</div>
-              <div class="ml-1">{{order.ecommercesContactId.phone}}</div>
+              <div class="ml-1">{{ order.ecommercesContactId.phone }}</div>
             </div>
           </v-col>
         </v-row>
@@ -104,7 +105,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Email:</div>
-              <div class="ml-1">{{order.ecommercesContactId.email}}</div>
+              <div class="ml-1">{{ order.ecommercesContactId.email }}</div>
             </div>
           </v-col>
         </v-row>
@@ -124,29 +125,30 @@
             :items="order.line_items"
           >
             <template v-slot:item.orderNo>
-              {{order.idOrder}}
+              {{ order.idOrder }}
             </template>
 
             <template v-slot:item.customer>
               <div class="text-capitalize">
-                {{order.ecommercesContactId.first_name}} {{order.ecommercesContactId.last_name}}
+                {{ order.ecommercesContactId.first_name }}
+                {{ order.ecommercesContactId.last_name }}
               </div>
             </template>
 
             <template v-slot:item.sku="{ item }">
-              {{getSku(item)}}
+              {{ getSku(item) }}
             </template>
 
             <template v-slot:item.name="{ item }">
-              {{item.ecommerceId.name}}
+              {{ item.ecommerceId.name }}
             </template>
 
             <template v-slot:item.price="{ item }">
-              {{item.total | currency}}
+              {{ item.total | currency }}
             </template>
 
             <template v-slot:item.status="{ item }">
-              {{item.ecommerceId.status}}
+              {{ item.ecommerceId.status }}
             </template>
           </v-data-table>
         </v-col>
@@ -157,21 +159,22 @@
 
 <script>
 import { format } from "date-fns";
+import { getSku } from "@/utils/utils.js";
 
 export default {
   props: {
     order: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
     currency(val) {
-      return new Intl.NumberFormat().format(val)
-    }
+      return new Intl.NumberFormat().format(val);
+    },
   },
   data() {
     return {
@@ -205,31 +208,28 @@ export default {
         {
           text: "Precio",
           align: "left",
-          value: 'price'
+          value: "price",
         },
         {
           text: "Estado",
           align: "left",
-          value: 'status'
+          value: "status",
         },
-      ]
-    }
+      ],
+    };
   },
   computed: {
     total() {
-      return this.order.line_items.reduce((a, b) => a + parseFloat(b.total), 0)
-    }
+      return this.order.line_items.reduce((a, b) => a + parseFloat(b.total), 0);
+    },
   },
   methods: {
     getSku(item) {
-      const variation = item.ecommerceId.variations.find(v => v.id === item.variation_id)
-
-      return variation ? variation.sku : item.ecommerceId.sku
-    }
-  }
-}
+      return getSku(item);
+    },
+  },
+};
 </script>
 
 <style>
-
 </style>

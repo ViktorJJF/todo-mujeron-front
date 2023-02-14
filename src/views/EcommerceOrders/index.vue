@@ -290,12 +290,20 @@
               Detalles
             </v-btn>
             <v-btn
-              class="mb-2"
+              class="mr-2 mb-2"
               small
               color="primary"
               @click="openGuideDetails(item)"
             >
               Guía
+            </v-btn>
+            <v-btn
+              class="mb-2"
+              small
+              color="primary"
+              @click="openAbandonedCart(item)"
+            >
+              Carro
             </v-btn>
           </template>
         </v-data-table>
@@ -324,8 +332,18 @@
     <v-dialog v-model="detailsModal" width="800">
       <order-details :order="currentOrder" />
     </v-dialog>
-    <v-dialog v-if="guideDetailsModal" v-model="guideDetailsModal" width="800">
+    <v-dialog v-if="guideDetailsModal" v-model="guideDetailsModal" width="400">
       <Guide @onClose="guideDetailsModal = false" :order="currentOrder" />
+    </v-dialog>
+    <v-dialog
+      v-if="abandonedCartModal"
+      v-model="abandonedCartModal"
+      width="400"
+    >
+      <AbandonedCart
+        @onClose="abandonedCartModal = false"
+        :order="currentOrder"
+      />
     </v-dialog>
   </v-container>
 </template>
@@ -341,6 +359,7 @@ import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 import OrderDetails from "./Details.vue";
 import Guide from "./Guide.vue";
+import AbandonedCart from "./AbandonedCart.vue";
 
 export default {
   components: {
@@ -348,6 +367,7 @@ export default {
     OrderDetails,
     VTextFieldWithValidation,
     Guide,
+    AbandonedCart,
   },
   filters: {
     formatDate: function (value) {
@@ -431,6 +451,7 @@ export default {
     dialog: false,
     detailsModal: false,
     guideDetailsModal: false,
+    abandonedCartModal: false,
     currentOrder: null,
   }),
   computed: {
@@ -494,6 +515,10 @@ export default {
     openGuideDetails(order) {
       this.currentOrder = order;
       this.guideDetailsModal = true;
+    },
+    openAbandonedCart(order) {
+      this.currentOrder = order;
+      this.abandonedCartModal = true;
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
