@@ -205,6 +205,7 @@
             <v-list-item
               active-class="primary custom2"
               :to="{ name: 'Vendors' }"
+              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Vendedores')"
             >
               <v-list-item-content> Vendedores </v-list-item-content>
             </v-list-item>
