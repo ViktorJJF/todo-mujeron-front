@@ -305,6 +305,14 @@
             >
               Carro
             </v-btn>
+            <v-btn
+              class="mb-2"
+              small
+              color="primary"
+              @click="openSizeConfirmation(item)"
+            >
+              Faja
+            </v-btn>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -345,6 +353,16 @@
         :order="currentOrder"
       />
     </v-dialog>
+    <v-dialog
+      v-if="sizeConfirmationModal"
+      v-model="sizeConfirmationModal"
+      width="400"
+    >
+      <SizeConfirmation
+        @onClose="sizeConfirmationModal = false"
+        :order="currentOrder"
+      />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -360,6 +378,7 @@ import { es } from "date-fns/locale";
 import OrderDetails from "./Details.vue";
 import Guide from "./Guide.vue";
 import AbandonedCart from "./AbandonedCart.vue";
+import SizeConfirmation from "./SizeConfirmation.vue";
 
 export default {
   components: {
@@ -368,6 +387,7 @@ export default {
     VTextFieldWithValidation,
     Guide,
     AbandonedCart,
+    SizeConfirmation,
   },
   filters: {
     formatDate: function (value) {
@@ -452,6 +472,7 @@ export default {
     detailsModal: false,
     guideDetailsModal: false,
     abandonedCartModal: false,
+    sizeConfirmationModal: false,
     currentOrder: null,
   }),
   computed: {
@@ -519,6 +540,10 @@ export default {
     openAbandonedCart(order) {
       this.currentOrder = order;
       this.abandonedCartModal = true;
+    },
+    openSizeConfirmation(order) {
+      this.currentOrder = order;
+      this.sizeConfirmationModal = true;
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
