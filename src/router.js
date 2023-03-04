@@ -352,6 +352,11 @@ let routes = [
         component: () => import("@/views/FacebookAudiences"),
       },
       {
+        path: "/mensajes_de_plantilla",
+        name: "TemplateMessages",
+        component: () => import("@/views/TemplateMessages"),
+      },
+      {
         path: "/marketing/segmentos",
         name: "MarketingSegments",
         component: () => import("@/views/MarketingSegments"),

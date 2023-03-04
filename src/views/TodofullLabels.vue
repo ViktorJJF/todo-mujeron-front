@@ -258,6 +258,13 @@
               </v-row>
             </v-container>
           </template>
+          <template v-slot:[`item.is_active`]="{ item }">
+            <v-checkbox
+              v-model="item.is_active"
+              :value="item.is_active"
+              @change="updateIsActive(item, $event)"
+            ></v-checkbox>
+          </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
               class="mr-1 mb-1"
@@ -388,6 +395,12 @@ export default {
         sortable: false,
         value: "name",
       },
+      {
+        text: "¿Activo?",
+        align: "left",
+        sortable: false,
+        value: "is_active",
+      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     [ENTITY]: [],
@@ -425,7 +438,10 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch(ENTITY + "Module/list");
+    await this.$store.dispatch(ENTITY + "Module/list", {
+      sort: "name",
+      order: "1",
+    });
     this.initialize();
     this.rolAuth();
   },
@@ -583,6 +599,13 @@ export default {
     },
     isUsedTag(_id) {
       return this.usedTags.find((tag) => tag === _id);
+    },
+    updateIsActive(item, status) {
+      item.is_active = !!status;
+      this.$store.dispatch(ENTITY + "Module/update", {
+        id: item._id,
+        data: item,
+      });
     },
   },
 };
