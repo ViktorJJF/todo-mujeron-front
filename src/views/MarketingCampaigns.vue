@@ -70,10 +70,6 @@
                       <v-tooltip bottom>
                         <template v-slot:activator="{ on }">
                           <v-btn
-                            :disabled="
-                              chunk.isClicked ||
-                              item.chunksPagesSent.includes(chunkIndex + 1)
-                            "
                             @click="sendChunkCampaign(item, chunk, chunkIndex)"
                             color="info"
                             small
