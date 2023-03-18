@@ -839,19 +839,19 @@ export default {
     },
     getCountryByPostLink(link) {
       let bots = this.$store.state.botsModule.bots;
-      let country;
-      bots.forEach((bot) => {
-        if (
-          link
-            .toLowerCase()
-            .includes(bot.fanpageName.toLowerCase().replace("@", "")) ||
-          link.toLowerCase().includes(bot.fanpageId) ||
-          link.toLowerCase().includes(bot.fanpageName)
-        ) {
-          return (country = bot.country);
+      for (const bot of bots) {
+        if (bot.platform == "facebook") {
+          if (
+            link
+              .toLowerCase()
+              .includes(bot.fanpageName.toLowerCase().replace("@", "")) ||
+            link.toLowerCase().includes(bot.fanpageId) ||
+            link.toLowerCase().includes(bot.fanpageName)
+          ) {
+            return bot.country;
+          }
         }
-      });
-      return country;
+      }
     },
     remove(item) {
       this.products.splice(this.products.indexOf(item), 1);
