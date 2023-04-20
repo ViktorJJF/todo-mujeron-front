@@ -528,8 +528,8 @@ export default {
         this.filterInitialized = true;
       });
     },
-    search: function(val) {
-      this.handleSearchInputChange(val)
+    search: function (val) {
+      this.handleSearchInputChange(val);
     },
     "filter.categories": function () {
       if (!this.filterInitialized) return;
@@ -644,8 +644,8 @@ export default {
       this.downloadLoading = false;
     },
     async handleSearchInputChange(val) {
-      if(!val) return;
-      if(this.searchLoading === true) return;
+      if (!val) return;
+      if (this.searchLoading === true) return;
 
       this.loading = true;
 
@@ -667,10 +667,12 @@ export default {
     getTallas(product) {
       const tallas = [];
       for (const variation of product.variations) {
-        const talla = variation.attributes.talla.option;
-        const isDuplicated = tallas.includes(talla);
-        if (!isDuplicated) {
-          tallas.push(talla);
+        if (variation.attributes.talla) {
+          const talla = variation.attributes.talla.option;
+          const isDuplicated = tallas.includes(talla);
+          if (!isDuplicated) {
+            tallas.push(talla);
+          }
         }
       }
 
@@ -702,7 +704,7 @@ export default {
       return variations;
     },
     getVariationLabel(variation) {
-      const talla = variation.attributes.talla.option;
+      const talla = variation.attributes.talla?.option || "";
       const color = variation.attributes.color?.option;
 
       if (color) {
@@ -798,7 +800,7 @@ export default {
       const products = productsRes.data.payload
         .filter((el) => el.customImages && el.customImages[0])
         .map(this.getFormatProduct);
-      
+
       this.productsSearch = products;
     },
     sortSizesFn(a, b) {
@@ -860,7 +862,7 @@ export default {
       window.open(url, "_blank");
     },
     cartAddItem(product, variation) {
-      const talla = variation.attributes.talla.option;
+      const talla = variation.attributes.talla?.option || "";
       const color = variation.attributes.color?.option;
 
       this.$gtag.event("agrego_al_carrito", {
