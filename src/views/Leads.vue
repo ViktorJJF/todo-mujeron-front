@@ -1,19 +1,47 @@
 <template>
   <div class="leads">
-    <material-card width="100%" icon="mdi-cellphone-dock" color="primary" title="Leads" text="Tabla resumen de leads">
-      <v-data-table dense calculate-widths :loading="dataTableLoading" no-results-text="No se encontraron resultados"
-        hide-default-footer :headers="headers" :items="leads" sort-by="calories" @page-count="pageCount = $event"
-        :page.sync="page" :items-per-page="$store.state.itemsPerPage" :options.sync="pagination"
-        :server-items-length="totalItems">
+    <material-card
+      width="100%"
+      icon="mdi-cellphone-dock"
+      color="primary"
+      title="Leads"
+      text="Tabla resumen de leads"
+    >
+      <v-data-table
+        dense
+        calculate-widths
+        :loading="dataTableLoading"
+        no-results-text="No se encontraron resultados"
+        hide-default-footer
+        :headers="headers"
+        :items="leads"
+        sort-by="calories"
+        @page-count="pageCount = $event"
+        :page.sync="page"
+        :items-per-page="$store.state.itemsPerPage"
+        :options.sync="pagination"
+        :server-items-length="totalItems"
+      >
         <template v-slot:[`header.checkbox`]>
-          <v-checkbox v-model="globalSelector" /></template>
+          <v-checkbox v-model="globalSelector"
+        /></template>
         <template v-slot:top>
           <v-container>
             <span class="font-weight-bold">Selecciona al agente</span>
             <v-row>
               <v-col cols="12" sm="6">
-                <v-combobox v-model="telefonoId" :items="telefonos" :search-input.sync="search2" hide-selected
-                  item-value="_id" placeholder="Selecciona el agente" outlined dense class="mt-2" clearable>
+                <v-combobox
+                  v-model="telefonoId"
+                  :items="telefonos"
+                  :search-input.sync="search2"
+                  hide-selected
+                  item-value="_id"
+                  placeholder="Selecciona el agente"
+                  outlined
+                  dense
+                  class="mt-2"
+                  clearable
+                >
                   <template v-slot:no-data>
                     <v-list-item>
                       <v-list-item-content>
@@ -33,44 +61,82 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <CountriesSelector :multiple="true" @onSelectedCountries="
-  selectedCountries = $event;
-initialize(
-  buildPayloadPagination(
-    {
-      page: 1,
-      itemsPerPage: $store.state.itemsPerPage,
-    },
-    buildSearch()
-  )
-);
-                  "></CountriesSelector>
+                  <CountriesSelector
+                    :multiple="true"
+                    @onSelectedCountries="
+                      selectedCountries = $event;
+                      initialize(
+                        buildPayloadPagination(
+                          {
+                            page: 1,
+                            itemsPerPage: $store.state.itemsPerPage,
+                          },
+                          buildSearch()
+                        )
+                      );
+                    "
+                  ></CountriesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
-            <span class="font-weight-bold">Filtrar por nombre/apellido/teléfono: {{ search }}</span>
+            <span class="font-weight-bold"
+              >Filtrar por nombre/apellido/teléfono: {{ search }}</span
+            >
             <v-row>
               <v-col cols="12" sm="6">
-                <v-text-field dense hide-details v-model="search" append-icon="search"
-                  placeholder="Escribe los nombres/apellidos/telefonos del lead" single-line outlined
-                  clearable></v-text-field>
+                <v-text-field
+                  dense
+                  hide-details
+                  v-model="search"
+                  append-icon="search"
+                  placeholder="Escribe los nombres/apellidos/telefonos del lead"
+                  single-line
+                  outlined
+                  clearable
+                ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
                 <v-dialog v-model="dialog" max-width="900px">
                   <template v-slot:activator="{ on }">
-                    <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']">Agregar
-                      lead</v-btn>
+                    <v-btn
+                      color="primary"
+                      dark
+                      class="mb-2"
+                      v-on="on"
+                      v-show="rolPermisos['Write']"
+                      >Agregar lead</v-btn
+                    >
 
-                    <v-btn v-show="!isFilterEmptyActive" color="secondary" dark class="mb-2 ml-2" @click="
-  showLeadsWithoutLabels();
-isFilterEmptyActive = true;
-                    ">Leads sin etiquetas</v-btn>
-                    <v-btn v-show="isFilterEmptyActive" color="primary" dark class="mb-2 ml-2" @click="
-  showAllLeads();
-isFilterEmptyActive = false;
-                    ">Mostrar anterior</v-btn>
-                    <v-btn v-show="selectedLeads.length > 0" color="success" dark class="mb-2 ml-2"
-                      @click.stop="openWhatsappTemplatesDialog">Enviar plantilla</v-btn>
+                    <v-btn
+                      v-show="!isFilterEmptyActive"
+                      color="secondary"
+                      dark
+                      class="mb-2 ml-2"
+                      @click="
+                        showLeadsWithoutLabels();
+                        isFilterEmptyActive = true;
+                      "
+                      >Leads sin etiquetas</v-btn
+                    >
+                    <v-btn
+                      v-show="isFilterEmptyActive"
+                      color="primary"
+                      dark
+                      class="mb-2 ml-2"
+                      @click="
+                        showAllLeads();
+                        isFilterEmptyActive = false;
+                      "
+                      >Mostrar anterior</v-btn
+                    >
+                    <v-btn
+                      v-show="selectedLeads.length > 0"
+                      color="success"
+                      dark
+                      class="mb-2 ml-2"
+                      @click.stop="openWhatsappTemplatesDialog"
+                      >Enviar plantilla</v-btn
+                    >
                   </template>
                   <v-card>
                     <v-card-title>
@@ -81,50 +147,89 @@ isFilterEmptyActive = false;
                     <ValidationObserver ref="obs" v-slot="{ passes }">
                       <v-container class="pa-5">
                         <v-row>
-                          <v-combobox item-text="name" :search-input.sync="searchLabel"
-                            v-model="editedItem.todofullLabels" item-value="_id" :items="todofullLabels" multiple chips
-                            no-data-text="No se encontraron etiquetas" label="Busca las etiquetas"
-                            @change="updateLabels(editedItem)">
-                            <template v-slot:selection="{
-                              attrs,
-                              item,
-                              select,
-                              selected,
-                            }">
-                              <v-chip v-bind="attrs" :input-value="selected" close @click="select"
-                                @click:close="removeLabels(editedItem, item)" color="primary">
+                          <v-combobox
+                            item-text="name"
+                            :search-input.sync="searchLabel"
+                            v-model="editedItem.todofullLabels"
+                            item-value="_id"
+                            :items="todofullLabels"
+                            multiple
+                            chips
+                            no-data-text="No se encontraron etiquetas"
+                            label="Busca las etiquetas"
+                            @change="updateLabels(editedItem)"
+                          >
+                            <template
+                              v-slot:selection="{
+                                attrs,
+                                item,
+                                select,
+                                selected,
+                              }"
+                            >
+                              <v-chip
+                                v-bind="attrs"
+                                :input-value="selected"
+                                close
+                                @click="select"
+                                @click:close="removeLabels(editedItem, item)"
+                                color="primary"
+                              >
                                 <strong>{{ item.name }}</strong>
                               </v-chip>
                             </template>
                           </v-combobox>
                         </v-row>
                         <v-row dense>
-                          <v-col v-for="detail in editedItem.details" :key="detail._id" cols="12" sm="12" md="12">
+                          <v-col
+                            v-for="detail in editedItem.details"
+                            :key="detail._id"
+                            cols="12"
+                            sm="12"
+                            md="12"
+                          >
                             <div v-if="detail.labels">
-                              <v-chip dark class="mb-1 mr-1" color="pink" v-for="label in detail.labels
-                              .filter((el) => el.labelId)
-                              .reduce((unique, o) => {
-                                if (
-                                  !unique.some(
-                                    (obj) =>
-                                      obj.labelId.name === o.labelId.name
-                                  )
-                                ) {
-                                  unique.push(o);
-                                }
-                                return unique;
-                              }, [])" :key="label._id">
+                              <v-chip
+                                dark
+                                class="mb-1 mr-1"
+                                color="pink"
+                                v-for="label in detail.labels
+                                  .filter((el) => el.labelId)
+                                  .reduce((unique, o) => {
+                                    if (
+                                      !unique.some(
+                                        (obj) =>
+                                          obj.labelId.name === o.labelId.name
+                                      )
+                                    ) {
+                                      unique.push(o);
+                                    }
+                                    return unique;
+                                  }, [])"
+                                :key="label._id"
+                              >
                                 {{ label.labelId.name }}
                               </v-chip>
                             </div>
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Teléfono</p>
-                            <VTextFieldWithValidation rules="required" v-model="editedItem.telefono" label="Teléfono" />
+                            <VTextFieldWithValidation
+                              rules="required"
+                              v-model="editedItem.telefono"
+                              label="Teléfono"
+                            />
                           </v-col>
                         </v-row>
-                        <v-row v-for="(detail, detailIndex) in editedItem.details" :key="detail._id">
-                          <v-col v-show="editedItem.details.length > 1" cols="12" sm="12">
+                        <v-row
+                          v-for="(detail, detailIndex) in editedItem.details"
+                          :key="detail._id"
+                        >
+                          <v-col
+                            v-show="editedItem.details.length > 1"
+                            cols="12"
+                            sm="12"
+                          >
                             <div class="striped-border">
                               <p class="body-1 font-weight-bold">
                                 Origen N° {{ detailIndex + 1 }}
@@ -133,44 +238,90 @@ isFilterEmptyActive = false;
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Fuente</p>
-                            <v-select v-model="detail.fuente" :items="sourceSelectList" hide-selected item-value="_id"
-                              item-text="name" placeholder="Selecciona la fuente" outlined hide-details dense
-                              class="mt-2" clearable>
+                            <v-select
+                              v-model="detail.fuente"
+                              :items="sourceSelectList"
+                              hide-selected
+                              item-value="_id"
+                              item-text="name"
+                              placeholder="Selecciona la fuente"
+                              outlined
+                              hide-details
+                              dense
+                              class="mt-2"
+                              clearable
+                            >
                             </v-select>
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">
                               ID de Contacto
                             </p>
-                            <VTextFieldWithValidation rules="" v-model="detail.contactId" label="ID de Contacto" />
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.contactId"
+                              label="ID de Contacto"
+                            />
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Nombres</p>
-                            <VTextFieldWithValidation rules="" v-model="detail.nombre" label="Nombres" />
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.nombre"
+                              label="Nombres"
+                            />
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Email</p>
-                            <VTextFieldWithValidation rules="" v-model="detail.email" label="Email" />
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.email"
+                              label="Email"
+                            />
                           </v-col>
                           <v-col cols="12" sm="6" md="6">
                             <p class="body-1 font-weight-bold">Ciudad</p>
-                            <VTextFieldWithValidation rules="" v-model="detail.ciudad" label="Ciudad" />
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.ciudad"
+                              label="Ciudad"
+                            />
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
                             <p class="body-1 font-weight-bold">Asunto</p>
-                            <VTextFieldWithValidation rules="" v-model="detail.msnActivaDefault" label="Asunto" />
+                            <VTextFieldWithValidation
+                              rules=""
+                              v-model="detail.msnActivaDefault"
+                              label="Asunto"
+                            />
                           </v-col>
-                          <v-col v-show="editedIndex > -1" cols="12" sm="12" md="12">
+                          <v-col
+                            v-show="editedIndex > -1"
+                            cols="12"
+                            sm="12"
+                            md="12"
+                          >
                             <p class="body-1 font-weight-bold">Nota</p>
-                            <v-textarea label="Notas referentes a este lead..." v-model="detail.nota" outlined
-                              hide-details="auto"></v-textarea>
+                            <v-textarea
+                              label="Notas referentes a este lead..."
+                              v-model="detail.nota"
+                              outlined
+                              hide-details="auto"
+                            ></v-textarea>
                           </v-col>
                         </v-row>
                       </v-container>
                       <v-card-actions rd-actions>
                         <div class="flex-grow-1"></div>
-                        <v-btn :loading="loadingButton" color="success" @click="passes(save)">Guardar</v-btn>
-                        <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+                        <v-btn
+                          :loading="loadingButton"
+                          color="success"
+                          @click="passes(save)"
+                          >Guardar</v-btn
+                        >
+                        <v-btn outlined color="error" text @click="close"
+                          >Cancelar</v-btn
+                        >
                       </v-card-actions>
                     </ValidationObserver>
                   </v-card>
@@ -189,56 +340,117 @@ isFilterEmptyActive = false;
               </span>
             </v-col>
             <div class="text-center pt-2">
-              <v-pagination v-model="page" @input="initialize(buildPayloadPagination(page, buildSearch()))"
-                :length="totalPages" total-visible="15"></v-pagination>
+              <v-pagination
+                v-model="page"
+                @input="initialize(buildPayloadPagination(page, buildSearch()))"
+                :length="totalPages"
+                total-visible="15"
+              ></v-pagination>
             </div>
           </v-container>
-          <v-btn v-show="!isSegmentPreviewMode" @click="todofullLabelsDialog = true" color="secondary" outlined>Filtrar
-            por etiquetas</v-btn>
-          <v-btn v-show="!isSegmentPreviewMode" @click="seeAllSegmentsDialog = true" color="accent" outlined>Ver
-            segmentos</v-btn>
-          <v-btn v-show="!isSegmentPreviewMode" color="primary" outlined @click="segmentDialog = true">Nuevo
-            segmento</v-btn>
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            @click="todofullLabelsDialog = true"
+            color="secondary"
+            outlined
+            >Filtrar por etiquetas</v-btn
+          >
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            @click="seeAllSegmentsDialog = true"
+            color="accent"
+            outlined
+            >Ver segmentos</v-btn
+          >
+          <v-btn
+            v-show="!isSegmentPreviewMode"
+            color="primary"
+            outlined
+            @click="segmentDialog = true"
+            >Nuevo segmento</v-btn
+          >
           <div>
-            <v-alert v-if="isSegmentPreviewMode || selectedSegment" border="left" close-text="Close Alert"
-              color="deep-purple accent-4" dark dismissible outlined>
+            <v-alert
+              v-if="isSegmentPreviewMode || selectedSegment"
+              border="left"
+              close-text="Close Alert"
+              color="deep-purple accent-4"
+              dark
+              dismissible
+              outlined
+            >
               <div v-if="selectedSegment">
                 <b>Segmento: </b>{{ selectedSegment.name }}
               </div>
               {{ $store.state.cleanLeadsModule.total }} Contactos cumplen las
               condiciones
-              <template v-slot:[`close`]><v-btn v-show="!selectedSegment" color="primary" outlined @click="
-  segmentDialog = true;
-activatePreview = false;
-isSegmentFinalStep = true;
-              ">Guardar Segmento</v-btn>
-                <v-btn v-show="selectedSegment" color="primary" outlined
-                  @click="$router.push({ name: 'MarketingCampaigns' })">Enviar Campaña</v-btn>
-                <v-btn color="error" outlined @click="cancelSegmentPreview">Cancelar</v-btn></template>
+              <template v-slot:[`close`]
+                ><v-btn
+                  v-show="!selectedSegment"
+                  color="primary"
+                  outlined
+                  @click="
+                    segmentDialog = true;
+                    activatePreview = false;
+                    isSegmentFinalStep = true;
+                  "
+                  >Guardar Segmento</v-btn
+                >
+                <v-btn
+                  v-show="selectedSegment"
+                  color="primary"
+                  outlined
+                  @click="$router.push({ name: 'MarketingCampaigns' })"
+                  >Enviar Campaña</v-btn
+                >
+                <v-btn color="error" outlined @click="cancelSegmentPreview"
+                  >Cancelar</v-btn
+                ></template
+              >
             </v-alert>
           </div>
         </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
-          <v-chip small v-show="!item.telefonoId" class="ma-2" color="red" text-color="white">
+          <v-chip
+            small
+            v-show="!item.telefonoId"
+            class="ma-2"
+            color="red"
+            text-color="white"
+          >
             Sin Asignar
           </v-chip>
-          <span v-show="item.telefonoId">{{
-            item.telefonoId && item.telefonoId.agenteId
-              ? item.telefonoId.agenteId.nombre
-              : " "
-          }}
+          <span v-show="item.telefonoId"
+            >{{
+              item.telefonoId && item.telefonoId.agenteId
+                ? item.telefonoId.agenteId.nombre
+                : " "
+            }}
             {{
               item.telefonoId && item.telefonoId.agenteId
                 ? item.telefonoId.agenteId.apellido
                 : " "
             }}
-            ({{ item.telefonoId ? item.telefonoId.numero : " " }})</span>
+            ({{ item.telefonoId ? item.telefonoId.numero : " " }})</span
+          >
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn class="mr-3 mb-1" small color="secondary" @click="editItem(item)"
-            v-if="rolPermisos['Edit']">Editar</v-btn>
-          <v-btn class="mb-1" small color="error" @click="deleteItem(item)"
-            v-if="rolPermisos['Delete']">Eliminar</v-btn>
+          <v-btn
+            class="mr-3 mb-1"
+            small
+            color="secondary"
+            @click="editItem(item)"
+            v-if="rolPermisos['Edit']"
+            >Editar</v-btn
+          >
+          <v-btn
+            class="mb-1"
+            small
+            color="error"
+            @click="deleteItem(item)"
+            v-if="rolPermisos['Delete']"
+            >Eliminar</v-btn
+          >
         </template>
         <template v-slot:[`item.checkbox`]="{ item }">
           <v-checkbox :value="item"></v-checkbox>
@@ -253,11 +465,14 @@ isSegmentFinalStep = true;
                   <th class="text-left">Nombre Facebook</th>
                   <th class="text-left">Nombre</th>
                   <th class="text-left">Correo</th>
-                  <th class="text-left" v-show="
-                    item.details.some(
-                      (detail) => detail.status && detail.status.length > 0
-                    )
-                  ">
+                  <th
+                    class="text-left"
+                    v-show="
+                      item.details.some(
+                        (detail) => detail.status && detail.status.length > 0
+                      )
+                    "
+                  >
                     Status
                   </th>
                 </tr>
@@ -269,19 +484,21 @@ isSegmentFinalStep = true;
                     {{
                       sourceSelectList.find((el) => el._id === detail.fuente)
                         ? sourceSelectList.find(
-                          (el) => el._id === detail.fuente
-                        ).name
+                            (el) => el._id === detail.fuente
+                          ).name
                         : detail.fuente
                     }}
                   </td>
                   <td>{{ detail.appName }}</td>
                   <td>{{ detail.nombre }}</td>
                   <td>{{ detail.email }}</td>
-                  <td v-show="
-                    item.details.some(
-                      (detail) => detail.status && detail.status.length > 0
-                    )
-                  ">
+                  <td
+                    v-show="
+                      item.details.some(
+                        (detail) => detail.status && detail.status.length > 0
+                      )
+                    "
+                  >
                     {{ detail.status }}
                   </td>
                 </tr>
@@ -300,19 +517,23 @@ isSegmentFinalStep = true;
           <v-chip v-else color="error">Inactivo</v-chip>
         </template>
         <template v-slot:[`item.estado`]="{ item }">
-          <v-chip class="ma-2" :color="
-            item.estado == 'SIN ASIGNAR'
-              ? 'red'
-              : item.estado == 'INFORMADO AL AGENTE'
+          <v-chip
+            class="ma-2"
+            :color="
+              item.estado == 'SIN ASIGNAR'
+                ? 'red'
+                : item.estado == 'INFORMADO AL AGENTE'
                 ? 'deep-purple accent-4'
                 : item.estado == 'RE-CONECTAR'
-                  ? 'pink'
-                  : item.estado == 'COMPRA FALLIDA'
-                    ? 'error'
-                    : item.estado == 'COMPRA REALIZADA'
-                      ? 'success'
-                      : 'green'
-          " text-color="white">
+                ? 'pink'
+                : item.estado == 'COMPRA FALLIDA'
+                ? 'error'
+                : item.estado == 'COMPRA REALIZADA'
+                ? 'success'
+                : 'green'
+            "
+            text-color="white"
+          >
             {{ item.estado }}
           </v-chip>
         </template>
@@ -329,8 +550,12 @@ isSegmentFinalStep = true;
         </span>
       </v-col>
       <div class="text-center pt-2">
-        <v-pagination v-model="page" @input="initialize(buildPayloadPagination(page, buildSearch()))"
-          :length="totalPages" total-visible="15"></v-pagination>
+        <v-pagination
+          v-model="page"
+          @input="initialize(buildPayloadPagination(page, buildSearch()))"
+          :length="totalPages"
+          total-visible="15"
+        ></v-pagination>
       </div>
     </material-card>
     <v-dialog v-model="whatsappDialog" max-width="690">
@@ -351,7 +576,11 @@ isSegmentFinalStep = true;
                 <td>{{ template.status }}</td>
                 <td>{{ template.name }}</td>
                 <td>
-                  <v-btn color="secondary" @click="sendTemplateMessage(template.name)">Enviar</v-btn>
+                  <v-btn
+                    color="secondary"
+                    @click="sendTemplateMessage(template.name)"
+                    >Enviar</v-btn
+                  >
                 </td>
               </tr>
             </tbody>
@@ -367,27 +596,50 @@ isSegmentFinalStep = true;
       </v-card>
     </v-dialog>
     <v-dialog v-model="segmentDialog" max-width="700px">
-      <MarketingSegmentsForm @onClose="segmentDialog = false" @onSave="onSaveSegment" :activatePreview="activatePreview"
-        :isFinalStep="isSegmentFinalStep" @onPreview="onPreviewSegment"></MarketingSegmentsForm>
+      <MarketingSegmentsForm
+        @onClose="segmentDialog = false"
+        @onSave="onSaveSegment"
+        :activatePreview="activatePreview"
+        :isFinalStep="isSegmentFinalStep"
+        @onPreview="onPreviewSegment"
+      ></MarketingSegmentsForm>
     </v-dialog>
     <v-dialog v-model="todofullLabelsDialog" max-width="700px">
       <v-card>
         <v-card-title class="text-h5"> Etiquetas Todofull </v-card-title>
-        <TodofullLabelsSelector class="ma-3" @onSelectTodofullLabels="onSelectTodofullLabels"></TodofullLabelsSelector>
+        <TodofullLabelsSelector
+          class="ma-3"
+          @onSelectTodofullLabels="onSelectTodofullLabels"
+        ></TodofullLabelsSelector>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="todofullLabelsDialog = false">
+          <v-btn
+            color="green darken-1"
+            text
+            @click="todofullLabelsDialog = false"
+          >
             Listo
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="seeAllSegmentsDialog" v-if="seeAllSegmentsDialog" max-width="700px">
+    <v-dialog
+      v-model="seeAllSegmentsDialog"
+      v-if="seeAllSegmentsDialog"
+      max-width="700px"
+    >
       <v-card>
-        <MarketingSegments @onSelectedSegment="onSelectedSegment" :isSelectorMode="true"></MarketingSegments>
+        <MarketingSegments
+          @onSelectedSegment="onSelectedSegment"
+          :isSelectorMode="true"
+        ></MarketingSegments>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="seeAllSegmentsDialog = false">
+          <v-btn
+            color="green darken-1"
+            text
+            @click="seeAllSegmentsDialog = false"
+          >
             Listo
           </v-btn>
         </v-card-actions>
@@ -633,6 +885,7 @@ export default {
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
+          is_active: true,
         }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);
@@ -644,10 +897,12 @@ export default {
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({
           _id: telefono._id,
-          agent: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${telefono.agenteId ? telefono.agenteId.apellido : ""
-            } (${telefono.numero})`,
-          fullname: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${telefono.agenteId ? telefono.agenteId.apellido : ""
-            }`,
+          agent: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${
+            telefono.agenteId ? telefono.agenteId.apellido : ""
+          } (${telefono.numero})`,
+          fullname: `${telefono.agenteId ? telefono.agenteId.nombre : ""} ${
+            telefono.agenteId ? telefono.agenteId.apellido : ""
+          }`,
           cellphone: `${telefono.numero}`,
           active: telefono.active,
         })
@@ -730,8 +985,8 @@ export default {
           let contactos = (
             await axios.get(
               "/api/contactos?filter=" +
-              this.editedItem.telefono +
-              "&fields=celular"
+                this.editedItem.telefono +
+                "&fields=celular"
             )
           ).data.payload;
           if (contactos.length > 0) {
@@ -750,12 +1005,15 @@ export default {
             console.log("🚀 Aqui *** -> detail", detail);
             //generando nota cuando se asignó un agente random
             console.log("🚀 Aqui *** -> randomContact", randomContact);
-            this.editedItem.details[0].nota = `Hola ${randomContact.telefonoId.agenteId.nombre
-              } tu cliente: ${detail ? detail.nombre : this.editedItem.details[0].nombre
-              } con teléfono : ${this.editedItem.telefono} consulta: '${detail
+            this.editedItem.details[0].nota = `Hola ${
+              randomContact.telefonoId.agenteId.nombre
+            } tu cliente: ${
+              detail ? detail.nombre : this.editedItem.details[0].nombre
+            } con teléfono : ${this.editedItem.telefono} consulta: '${
+              detail
                 ? detail.msnActivaDefault
                 : this.editedItem.details[0].msnActivaDefault
-              }'. En cuanto la contactes me informas para borrarla de los pendientes`;
+            }'. En cuanto la contactes me informas para borrarla de los pendientes`;
             if (detail) {
               detail.nota += `\n✅ *Etiquetas: ${detail.labels
                 .filter((el) => el.labelId)
@@ -785,8 +1043,8 @@ export default {
             (el) => el._id === this.editedItem.details[0].fuente
           )
             ? this.sourceSelectList.find(
-              (el) => el._id === this.editedItem.details[0].fuente
-            ).country
+                (el) => el._id === this.editedItem.details[0].fuente
+              ).country
             : "Chile";
           this.editedItem.details[0].type = "CHATBOT"; //pagina por defecto
           await this.$store.dispatch("cleanLeadsModule/create", {

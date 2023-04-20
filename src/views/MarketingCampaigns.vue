@@ -1,17 +1,41 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <material-card width="98%" icon="mdi-cellphone-dock" color="primary" :title="$t(entity + '.TITLE')"
-        :text="$t(entity + '.SUBTITLE')">
-        <v-data-table no-results-text="No se encontraron resultados" :search="search" hide-default-footer
-          :headers="headers" :items="items" sort-by="calories" @page-count="pageCount = $event" :page.sync="page"
-          :items-per-page="$store.state.itemsPerPage" :single-expand="singleExpand" :expanded.sync="expanded"
-          item-key="name" show-expand @click:row="getCleanleadsChunks">
+      <material-card
+        width="98%"
+        icon="mdi-cellphone-dock"
+        color="primary"
+        :title="$t(entity + '.TITLE')"
+        :text="$t(entity + '.SUBTITLE')"
+      >
+        <v-data-table
+          no-results-text="No se encontraron resultados"
+          :search="search"
+          hide-default-footer
+          :headers="headers"
+          :items="items"
+          sort-by="calories"
+          @page-count="pageCount = $event"
+          :page.sync="page"
+          :items-per-page="$store.state.itemsPerPage"
+          :single-expand="singleExpand"
+          :expanded.sync="expanded"
+          item-key="name"
+          show-expand
+          @click:row="getCleanleadsChunks"
+        >
           <template v-slot:top>
             <v-container>
               <v-row>
-                <v-col cols="12" sm="6"><v-btn color="primary" dark class="mb-2" v-show="rolPermisos['Write']"
-                    @click.stop="dialogNewCampaign = true">Nueva campaña</v-btn>
+                <v-col cols="12" sm="6"
+                  ><v-btn
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-show="rolPermisos['Write']"
+                    @click.stop="dialogNewCampaign = true"
+                    >Nueva campaña</v-btn
+                  >
                 </v-col>
               </v-row>
               <v-row>
@@ -31,27 +55,38 @@
           </template>
           <template v-slot:expanded-item="{ headers, item }">
             <td :colspan="headers.length">
-              <div class="mt-2"><b>Tandas de {{ item.chunkSize }} usuarios {{ item.chunkPages }} {{
-                item.chunkPages == 1
-                  ? 'tanda' : 'tandas'
-              }}</b>
+              <div class="mt-2">
+                <b
+                  >Tandas de {{ item.chunkSize }} usuarios - Total:
+                  {{ item.chunkPages }}
+                  {{ item.chunkPages == 1 ? "tanda" : "tandas" }}</b
+                >
                 <v-list>
-                  <v-list-item v-for="(chunk, chunkIndex) in item.chunks" :key="item._id + chunkIndex">
+                  <v-list-item
+                    v-for="(chunk, chunkIndex) in item.chunks"
+                    :key="item._id + chunkIndex"
+                  >
                     <v-list-item-action>
                       <v-tooltip bottom>
                         <template v-slot:activator="{ on }">
-                          <v-btn :disabled="chunk.isClicked || item.chunksPagesSent.includes(chunkIndex + 1)"
-                            @click="sendChunkCampaign(item, chunk, chunkIndex);" color="info" small v-on="on">
+                          <v-btn
+                            @click="sendChunkCampaign(item, chunk, chunkIndex)"
+                            color="info"
+                            small
+                            v-on="on"
+                          >
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
                         </template>
-                        <span>Enviar {{ 'Tanda '+(chunkIndex + 1) }}</span>
+                        <span>Enviar {{ "Tanda " + (chunkIndex + 1) }}</span>
                       </v-tooltip>
                     </v-list-item-action>
-                    <v-list-item-content>
-                      {{ 'Tanda '+(chunkIndex + 1) }}
+                    <v-list-item-content
+                      style="cursor: pointer"
+                      @click="getChunkDetail(item, chunk, chunkIndex)"
+                    >
+                      {{ "Tanda " + (chunkIndex + 1) }}
                     </v-list-item-content>
-
                   </v-list-item>
                 </v-list>
               </div>
@@ -78,30 +113,41 @@
               $t(entity + ".NO_DATA")
             }}</v-alert>
           </template>
-          <template v-slot:[`item.description`]="{ item }"><span class="format-breaklines">
+          <template v-slot:[`item.description`]="{ item }"
+            ><span class="format-breaklines">
               {{ item.description }}
-            </span></template>
+            </span></template
+          >
           <template v-slot:[`item.updatedAt`]="{ item }">{{
             item.updatedAt | formatDate
           }}</template>
           <template v-slot:[`item.url`]="{ item }">
-            <a :href="item.url" target="_blank"><v-btn color="primary" small>Visitar</v-btn>
+            <a :href="item.url" target="_blank"
+              ><v-btn color="primary" small>Visitar</v-btn>
             </a>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
-            <ul v-for="(attribute, attIndex) in item.attributes" :key="attIndex">
+            <ul
+              v-for="(attribute, attIndex) in item.attributes"
+              :key="attIndex"
+            >
               <li>
                 <b>{{ attribute.name }}: </b>{{ attribute.options.join(",") }}
               </li>
             </ul>
           </template>
           <template v-slot:[`item.categories`]="{ item }">
-            <ul v-for="(category, cattIndex) in item.categories" :key="cattIndex">
+            <ul
+              v-for="(category, cattIndex) in item.categories"
+              :key="cattIndex"
+            >
               <li>{{ category.name }}</li>
             </ul>
           </template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status == 'Enviado'" color="success">Enviado</v-chip>
+            <v-chip v-if="item.status == 'Enviado'" color="success"
+              >Enviado</v-chip
+            >
             <v-chip v-else color="warning">Pendiente</v-chip>
           </template>
           <template v-slot:[`item.scheduleDateTime`]="{ item }">
@@ -132,10 +178,28 @@
     </v-row>
     <v-dialog v-model="dialogNewCampaign" max-width="700px">
       <v-card>
-        <MarketingCampaignsForm @onSave="
-  dialogNewCampaign = false;
-initialize();
-        "></MarketingCampaignsForm>
+        <MarketingCampaignsForm
+          @onSave="
+            dialogNewCampaign = false;
+            initialize();
+          "
+        ></MarketingCampaignsForm>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="isShowingDetail" max-width="700px">
+      <v-card>
+        <v-container fluid>
+          <v-card-title>
+            <span class="headline">Detalle</span>
+          </v-card-title>
+          <v-divider class="mb-3"></v-divider>
+          <h3 v-if="!chunkDetail">Cargando datos...</h3>
+          <ul v-else>
+            <li v-for="(lead, index) in chunkDetail.leads" :key="index">
+              {{ lead.telefono }}
+            </li>
+          </ul>
+        </v-container>
       </v-card>
     </v-dialog>
   </v-container>
@@ -155,7 +219,6 @@ import { es } from "date-fns/locale";
 import MarketingCampaignsForm from "@/components/MarketingCampaignsForm";
 import marketingCampaignsService from "@/services/api/marketingCampaigns";
 
-
 export default {
   components: {
     MaterialCard,
@@ -173,6 +236,8 @@ export default {
     },
   },
   data: () => ({
+    chunkDetail: null,
+    isShowingDetail: false,
     expanded: [],
     singleExpand: false,
     dialogNewCampaign: false,
@@ -240,6 +305,11 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    isShowingDetail(val) {
+      if (!val) {
+        this.chunkDetail = null;
+      }
+    },
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -271,10 +341,16 @@ export default {
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
       for (const campaign of this[ENTITY]) {
         campaign.chunks = [];
-        let chunkPages = Math.ceil(campaign.segmentCount / (campaign.chunkSize || campaign.segmentCount));
-        campaign['chunkPages'] = chunkPages;
+        let chunkPages = Math.ceil(
+          campaign.segmentCount / (campaign.chunkSize || campaign.segmentCount)
+        );
+        campaign["chunkPages"] = chunkPages;
         for (let i = 0; i < chunkPages; i++) {
-          campaign['chunks'].push({ title: 'Tanda', checked: true, isClicked: false });
+          campaign["chunks"].push({
+            title: "Tanda",
+            checked: true,
+            isClicked: false,
+          });
         }
       }
     },
@@ -332,19 +408,37 @@ export default {
       } catch (error) {
         console.error(error);
       }
-    }, getCleanleadsChunks(el) {
-      console.log("seleccionado: ", el)
-    }, sendChunkCampaign(item, chunk, chunkIndex) {
-      console.log('🚀 Aqui *** -> item', item);
-      chunk.isClicked = true
-      item.chunks[chunkIndex].isClicked = true
-      marketingCampaignsService.sendChunk(chunkIndex + 1, item.chunkSize, item.segment, item)
+    },
+    getCleanleadsChunks(el) {
+      console.log("seleccionado: ", el);
+    },
+    sendChunkCampaign(item, chunk, chunkIndex) {
+      console.log("🚀 Aqui *** -> item", item);
+      chunk.isClicked = true;
+      item.chunks[chunkIndex].isClicked = true;
+      marketingCampaignsService.sendChunk(
+        chunkIndex + 1,
+        item.chunkSize,
+        item.segment,
+        item
+      );
       buildSuccess(`Enviando Tanda ${chunkIndex + 1}`, this.$store.commit);
-    }
+    },
+    async getChunkDetail(item, chunk, chunkIndex) {
+      this.isShowingDetail = true;
+
+      this.chunkDetail = (
+        await marketingCampaignsService.chunkDetail(
+          chunkIndex + 1,
+          item.chunkSize,
+          item.segment,
+          item
+        )
+      ).data.payload;
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-
 </style>

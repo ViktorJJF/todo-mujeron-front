@@ -17,6 +17,14 @@ export default {
       campaign,
     });
   },
+  chunkDetail(chunkPage, chunkSize, segment, campaign) {
+    return axios.post("/api/marketing-campaigns/chunk_detail", {
+      chunkPage,
+      chunkSize,
+      segment,
+      campaign,
+    });
+  },
   delete(id) {
     return axios.delete(`/api/marketing-campaigns/${id}`);
   },

@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar equipo de ventas</v-btn
                       >
                     </template>
@@ -53,7 +58,9 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
-                              <span class="body-1 font-weight-bold">Nombre</span>
+                              <span class="body-1 font-weight-bold"
+                                >Nombre</span
+                              >
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.nombre"
@@ -69,7 +76,9 @@
                               ></v-textarea>
                             </v-col>
                             <v-col cols="12">
-                              <span class="body-1 font-weight-bold">Agentes</span>
+                              <span class="body-1 font-weight-bold"
+                                >Agentes</span
+                              >
                               <VSelectWithValidation
                                 v-model="editedItem.agents"
                                 :items="agents"
@@ -77,6 +86,19 @@
                                 item-value="_id"
                                 multiple
                                 placeholder="Seleccionar Agentes"
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
+                                >Etiquetas Todofull para filtro Chat</span
+                              >
+                              <VSelectWithValidation
+                                v-model="editedItem.todofullLabels"
+                                :items="todofullLabels"
+                                item-text="name"
+                                item-value="_id"
+                                multiple
+                                placeholder="Seleccionar Etiquetas"
                               />
                             </v-col>
                           </v-row>
@@ -101,10 +123,19 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -147,16 +178,16 @@ import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue
 import MaterialCard from "@/components/material/Card";
 import EquipoDeVentas from "@/classes/EquipoDeVentas";
 import auth from "@/services/api/auth";
-import agentsApi from '@/services/api/agentes';
+import agentsApi from "@/services/api/agentes";
 
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
+    VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
@@ -187,6 +218,7 @@ export default {
     defaultItem: EquipoDeVentas(),
     rolPermisos: {},
     agents: [],
+    todofullLabels: [],
   }),
 
   computed: {
@@ -204,32 +236,40 @@ export default {
   },
 
   async created() {
-    this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("equipoDeVentasModule/list"); 
+    this.$store.commit("loadingModule/showLoading");
+    await Promise.all([
+      this.$store.dispatch("equipoDeVentasModule/list"),
+      this.$store.dispatch("todofullLabelsModule/list", {
+        sort: "name",
+        order: "asc",
+      }),
+    ]);
     this.initialize();
-    this.rolAuth(); 
-    agentsApi.list().then(res => {
+    this.rolAuth();
+    agentsApi.list().then((res) => {
       this.agents = res.data.payload;
-    })
+    });
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/TodoFull',
-          'model':'EquipodeVentas'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/TodoFull",
+          model: "EquipodeVentas",
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     initialize() {
       this.equipoDeVentas = this.$deepCopy(
         this.$store.state.equipoDeVentasModule.equipoDeVentas
+      );
+      this.todofullLabels = this.$deepCopy(
+        this.$store.state.todofullLabelsModule.todofullLabels
       );
     },
     editItem(item) {
