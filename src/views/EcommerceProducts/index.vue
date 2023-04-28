@@ -345,18 +345,29 @@
         <v-card-title>
           <span class="text-h5">Multimedia</span>
         </v-card-title>
-        
+
         <div class="px-5">
-          <v-row
-            align="center"
-            v-for="(image, index) of currentProduct.customImages"
-            :key="index"
-          >
-            <v-col style="width: 100%">
-              <div class="d-flex align-center">
-                <div class="mr-2">
-                  {{index + 1}}
-                </div>
+          <v-row>
+            <v-col
+              v-for="(image, index) of currentProduct.customImages"
+              :key="index"
+              cols="4"
+            >
+              <div class="d-flex flex-column align-center">
+                <template v-if="getIcon(image) === 'mdi-video'">
+                  <video
+                    :src="image"
+                    controls
+                    style="max-width: 100%; max-height: 350px"
+                  ></video>
+                </template>
+                <template v-else>
+                  <img
+                    :src="image"
+                    class="mb-2"
+                    style="max-width: 100%; max-height: 350px"
+                  />
+                </template>
                 <v-text-field
                   dense
                   hide-details
@@ -364,30 +375,39 @@
                   placeholder="Escribe la url de la imagen"
                   single-line
                   outlined
+                  clearable
                 />
+                <div class="d-flex justify-space-between align-center w-100">
+                  <v-btn icon small @click="handleRemoveCustomImage(index)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="primary"
+                    :class="{
+                      yellow: currentProduct.featured_images
+                        ? currentProduct.featured_images
+                            .map((el) => el.index)
+                            .includes(index)
+                        : false,
+                    }"
+                    @click="handleFeaturedImage(index)"
+                  >
+                    <v-icon>mdi-star-outline</v-icon>
+                  </v-btn>
+                </div>
               </div>
-            </v-col>
-            <v-col cols="1">
-              <v-btn
-                v-if="index !== 0"
-                icon
-                outlined
-                @click="handleRemoveCustomImage(index)"
-              >
-                <v-icon>mdi-minus</v-icon>
-              </v-btn>
             </v-col>
           </v-row>
           <div class="mt-3 ml-4">
-             <v-btn
-                color="primary"
-                @click="handleAddCustomImage"
-              >
-                <v-icon>mdi-plus</v-icon>
-                Añadir
-              </v-btn>
+            <v-btn color="primary" @click="handleAddCustomImage">
+              <v-icon>mdi-plus</v-icon>
+              Añadir
+            </v-btn>
           </div>
         </div>
+
         <v-row class="mt-3 mb-3">
           <v-img
             v-if="currentProduct.customImage"
@@ -430,8 +450,9 @@ import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
 import ecommercesApi from "@/services/api/ecommerces";
-import { timeout } from "@/utils/utils";
+import { timeout, getFileTypeFromUrl } from "@/utils/utils";
 import auth from "@/services/api/auth";
+import Vue from "vue";
 export default {
   components: {
     MaterialCard,
@@ -595,7 +616,40 @@ export default {
         })
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
-
+    getIcon(url) {
+      const type = getFileTypeFromUrl(url);
+      switch (type) {
+        case "image":
+          return "mdi-image";
+        case "video":
+          return "mdi-video";
+        case "audio":
+          return "mdi-audio";
+        case "document":
+          return "mdi-file-document";
+        default:
+          return "";
+      }
+    },
+    handleFeaturedImage(index) {
+      if (!this.currentProduct.featured_images) {
+        Vue.set(this.currentProduct, "featured_images", []);
+      }
+      if (
+        !this.currentProduct.featured_images
+          .map((el) => el.index)
+          .includes(index)
+      ) {
+        this.currentProduct.featured_images.push({ index });
+      } else {
+        this.currentProduct.featured_images.splice(
+          this.currentProduct.featured_images.findIndex(
+            (el) => el.index == index
+          ),
+          1 // remove 1 element at index
+        );
+      }
+    },
     filterWithoutRefMethods() {
       this.initialize();
     },
@@ -645,10 +699,17 @@ export default {
       }, 300);
     },
     handleAddCustomImage() {
-      this.currentProduct.customImages.push('')
+      this.currentProduct.customImages.push("");
     },
     handleRemoveCustomImage(index) {
-      this.currentProduct.customImages.splice(index, 1)
+      this.currentProduct.customImages.splice(index, 1);
+      // remove index from featured_images
+      this.currentProduct.featured_images.splice(
+        this.currentProduct.featured_images.findIndex(
+          (el) => el.index == index
+        ),
+        1 // remove 1 element at index
+      );
     },
     async save() {
       this.loadingButton = true;

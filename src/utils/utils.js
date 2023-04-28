@@ -402,3 +402,42 @@ export const getVariationAttribute = (id, attribute, variations) => {
     );
   }
 };
+
+/**
+ *
+ * @param {string} url
+ * @returns {string} type of file
+ */
+export const getFileTypeFromUrl = (url) => {
+  const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "svg", "webp"];
+  const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg"];
+  const AUDIO_EXTENSIONS = ["mp3", "wav", "ogg"];
+  const DOCUMENT_EXTENSIONS = [
+    "pdf",
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "ppt",
+    "pptx",
+    "txt",
+    "csv",
+  ];
+  const regex_extension = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
+  const extension = url.match(regex_extension);
+  if (extension) {
+    const extensionWithoutDot = extension[0].replace(".", "");
+    if (IMAGE_EXTENSIONS.includes(extensionWithoutDot)) {
+      return "image";
+    }
+    if (VIDEO_EXTENSIONS.includes(extensionWithoutDot)) {
+      return "video";
+    }
+    if (AUDIO_EXTENSIONS.includes(extensionWithoutDot)) {
+      return "audio";
+    }
+    if (DOCUMENT_EXTENSIONS.includes(extensionWithoutDot)) {
+      return "document";
+    }
+  }
+};
