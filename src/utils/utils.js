@@ -412,6 +412,7 @@ export const getFileTypeFromUrl = (url) => {
   const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "svg", "webp"];
   const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg"];
   const AUDIO_EXTENSIONS = ["mp3", "wav", "ogg"];
+  const YOUTUBE = ["youtube.com", "youtu.be"];
   const DOCUMENT_EXTENSIONS = [
     "pdf",
     "doc",
@@ -439,5 +440,19 @@ export const getFileTypeFromUrl = (url) => {
     if (DOCUMENT_EXTENSIONS.includes(extensionWithoutDot)) {
       return "document";
     }
+  }
+  if (url.includes(YOUTUBE[0])) {
+    return "youtube";
+  }
+};
+
+export const getFormattedYoutubeUrl = (link) => {
+  // The regular expression matches the video ID in the URL
+  const regex = /(?:\?v=|\/embed\/|\/watch\?v=|\/\w+\/\w+\/|youtu\.be\/|shorts\/)([^#&?\n]+)/;
+  const match = link.match(regex);
+  if (match && match[1]) {
+    return `https://www.youtube.com/embed/${match[1]}`; // match[1] is the ID of the YouTube video
+  } else {
+    return null;
   }
 };

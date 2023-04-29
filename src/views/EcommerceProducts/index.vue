@@ -354,21 +354,29 @@
               cols="4"
             >
               <div class="d-flex flex-column align-center">
-                <template v-if="getIcon(image) === 'mdi-video'">
+                <template v-if="getTypeUrl(image) === 'video'">
                   <video
                     :src="image"
                     controls
-                    style="max-width: 100%; max-height: 350px"
+                    style="width: 100%; height: 350px"
                   ></video>
                 </template>
-                <template v-else>
+                <template v-if="getTypeUrl(image) === 'image'">
                   <img
                     :src="image"
                     class="mb-2"
-                    style="max-width: 100%; max-height: 350px"
+                    style="width: 100%; height: 350px"
                   />
                 </template>
-                <v-text-field
+                <template v-if="getTypeUrl(image) === 'youtube'">
+                  <iframe
+                    width="100%"
+                    height="350px"
+                    :src="getFormattedYoutube(image)"
+                  >
+                  </iframe>
+                </template>
+                <v-textarea
                   dense
                   hide-details
                   v-model="currentProduct.customImages[index]"
@@ -381,20 +389,21 @@
                   <v-btn icon small @click="handleRemoveCustomImage(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
-                  <v-btn
-                    icon
-                    small
-                    color="primary"
-                    :class="{
-                      yellow: currentProduct.featured_images
-                        ? currentProduct.featured_images
-                            .map((el) => el.index)
-                            .includes(index)
-                        : false,
-                    }"
-                    @click="handleFeaturedImage(index)"
-                  >
-                    <v-icon>mdi-star-outline</v-icon>
+                  <v-btn icon small @click="handleFeaturedImage(index)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path
+                        :fill="
+                          currentProduct.featured_images
+                            ? currentProduct.featured_images
+                                .map((el) => el.index)
+                                .includes(index)
+                              ? 'rgba(252, 196, 11)'
+                              : 'rgba(0,0,0)'
+                            : 'rgba(0,0,0)'
+                        "
+                        d="M12.076,2.549L9.122,8.442,2.5,9.5l5.32,5.174L5.858,21.5,12,17.874l6.142,3.626-1.962-6.826L21.5,9.5l-6.622-1.058Z"
+                      />
+                    </svg>
                   </v-btn>
                 </div>
               </div>
@@ -450,7 +459,11 @@ import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
 import ecommercesApi from "@/services/api/ecommerces";
-import { timeout, getFileTypeFromUrl } from "@/utils/utils";
+import {
+  timeout,
+  getFileTypeFromUrl,
+  getFormattedYoutubeUrl,
+} from "@/utils/utils";
 import auth from "@/services/api/auth";
 import Vue from "vue";
 export default {
@@ -615,6 +628,12 @@ export default {
           this.rolPermisos = res.data;
         })
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
+    },
+    getTypeUrl(url) {
+      return getFileTypeFromUrl(url);
+    },
+    getFormattedYoutube(url) {
+      return getFormattedYoutubeUrl(url);
     },
     getIcon(url) {
       const type = getFileTypeFromUrl(url);
