@@ -23,11 +23,22 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por N°Orden o Cliente: {{ search }}</span
-              >
               <v-row>
                 <v-col cols="12" sm="6">
+                  <div class="country-buttons">
+                    <button
+                      v-for="country in countries"
+                      :key="country.value"
+                      @click="toggleCountry(country)"
+                      class="country-button"
+                      :class="{ selected: selectedCountry === country.value }"
+                    >
+                      <img :src="country.icon" class="country-icon" />
+                    </button>
+                  </div>
+                  <span class="font-weight-bold"
+                    >Filtrar por N°Orden o Cliente: {{ search }}</span
+                  >
                   <v-text-field
                     dense
                     hide-details
@@ -37,6 +48,31 @@
                     single-line
                     outlined
                   ></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-select
+                    v-model="selectedOrderStates"
+                    :items="orderStates"
+                    item-text="label"
+                    item-value="value"
+                    placeholder="Selecciona un estado"
+                    outlined
+                    multiple
+                    chips
+                    persistent-hint
+                    dense
+                  ></v-select>
+                  <v-select
+                    v-model="selectedPendingTasks"
+                    outlined
+                    :items="['Guía']"
+                    placeholder="Tareas pendientes"
+                    multiple
+                    chips
+                    persistent-hint
+                    dense
+                    hide-details="auto"
+                  ></v-select>
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
@@ -398,7 +434,25 @@ export default {
   },
   data: () => ({
     //datos del componente
+    selectedCountry: "Chile",
+    selectedOrderStates: [],
+    selectedPendingTasks: [],
+    orderStates: [
+      { label: "Cancelado", value: "cancelled" },
+      { label: "Completado", value: "completed" },
+      { label: "Pendiente", value: "pending" },
+      { label: "Procesando", value: "processing" },
+      { label: "Fallido", value: "failed" },
+      { label: "Re intentó", value: "re-intento" },
+      { label: "En Espera", value: "on-hold" },
+    ],
     fieldsToSearch: ["odooOrderName", "status", "phone"],
+    countries: [
+      { value: "Peru", icon: "/assets/images/flags/peru.png" },
+      { value: "Chile", icon: "/assets/images/flags/chile.png" },
+      { value: "Colombia", icon: "/assets/images/flags/colombia.png" },
+      { value: "España", icon: "/assets/images/flags/espania.png" },
+    ],
     headers: [
       {
         text: "Última modificación",
@@ -508,6 +562,15 @@ export default {
       //buscar con algun campo en particular?
       this.initialize(1);
     },
+    selectedOrderStates() {
+      this.initialize(1);
+    },
+    selectedPendingTasks() {
+      this.initialize(1);
+    },
+    selectedCountry() {
+      this.initialize(1);
+    },
   },
   mounted() {
     this.initialize();
@@ -515,19 +578,36 @@ export default {
   methods: {
     async initialize(page = 1) {
       //llamada asincrona de items
+      let payload = {
+        sort: "date_modified",
+        order: -1,
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+      };
+      if (this.selectedOrderStates.length > 0) {
+        payload.orderStates = this.selectedOrderStates;
+      }
+      if (this.selectedPendingTasks.length > 0) {
+        payload.pendingTasks = this.selectedPendingTasks;
+      }
+      if (this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          sort: "date_modified",
-          order: -1,
-          page,
-          search: this.search,
-          fieldsToSearch: this.fieldsToSearch,
-        }),
+        this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+    },
+    toggleCountry(country) {
+      if (this.selectedCountry === country.value) {
+        return (this.selectedCountry = null);
+      }
+
+      this.selectedCountry = country.value;
     },
     openDetails(order) {
       this.currentOrder = order;
@@ -609,4 +689,38 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.selected {
+  background-color: #f5f5f5 !important;
+}
+
+.country-buttons {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.country-button {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.country-button:hover {
+  background-color: #f0f0f0;
+}
+
+.country-icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 5px;
+}
+
+.country-name {
+  font-size: 14px;
+}
+</style>
