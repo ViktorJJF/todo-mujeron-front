@@ -86,6 +86,22 @@ export default {
           data: {
             ...this.order,
             templateMessageLogId: data.payload.templateMessageLogId,
+            templateMessagesLogs:
+              this.order.templateMessagesLogs &&
+              this.order.templateMessagesLogs.length > 0
+                ? [
+                    ...this.order.templateMessagesLogs,
+                    {
+                      templateMessageLogId: data.payload.templateMessageLogId,
+                      name: "compras_fallidas",
+                    },
+                  ]
+                : [
+                    {
+                      templateMessageLogId: data.payload.templateMessageLogId,
+                      name: "compras_fallidas",
+                    },
+                  ],
           },
         });
         buildSuccess(

@@ -65,7 +65,7 @@
                   <v-select
                     v-model="selectedPendingTasks"
                     outlined
-                    :items="['Guía']"
+                    :items="['Guía', 'Carro', 'Faja']"
                     placeholder="Tareas pendientes"
                     multiple
                     chips
@@ -266,8 +266,22 @@
           <template v-slot:[`item.total`]="{ item }">
             {{ item.line_items.reduce((a, b) => a + parseFloat(b.total), 0) }}
           </template>
-          <template v-slot:[`item.templateMessage`]="{ item }">
-            {{ item.templateMessageLogId ? "✅" : "" }}
+          <template v-slot:[`item.templateMessagesLogs`]="{ item }">
+            {{
+              item.templateMessagesLogs && item.templateMessagesLogs.length > 0
+                ? "✅"
+                : ""
+            }}
+            <ul>
+              <li
+                v-for="(
+                  templateMessageLog, logIdx
+                ) in item.templateMessagesLogs"
+                :key="logIdx"
+              >
+                {{ templateMessageLog.name }}
+              </li>
+            </ul>
           </template>
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
@@ -503,10 +517,10 @@ export default {
         value: "total",
       },
       {
-        text: "Mensaje Plantilla",
+        text: "Mensajes Plantillas",
         align: "left",
         sortable: false,
-        value: "templateMessage",
+        value: "templateMessagesLogs",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],

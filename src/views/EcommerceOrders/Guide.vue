@@ -103,6 +103,22 @@ export default {
             guideNumber: this.guideNumber,
             transportCompany: this.transportCompany,
             templateMessageLogId: data.payload.templateMessageLogId,
+            templateMessagesLogs:
+              this.order.templateMessagesLogs &&
+              this.order.templateMessagesLogs.length > 0
+                ? [
+                    ...this.order.templateMessagesLogs,
+                    {
+                      templateMessageLogId: data.payload.templateMessageLogId,
+                      name: "envio_guias_de_despacho",
+                    },
+                  ]
+                : [
+                    {
+                      templateMessageLogId: data.payload.templateMessageLogId,
+                      name: "envio_guias_de_despacho",
+                    },
+                  ],
           },
         });
         buildSuccess(
