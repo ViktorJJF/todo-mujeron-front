@@ -510,7 +510,7 @@ export default {
             .post("/api/graph-api/audiences", { ...this.editedItem })
             .then(async (res) => {
               console.log(res.data);
-              await this.$store.dispatch(
+              let createdItem = await this.$store.dispatch(
                 "facebookAudiences" + "Module/create",
                 {
                   ...this.editedItem,
@@ -520,7 +520,7 @@ export default {
                 }
               );
               this.audiences.unshift({
-                ...this.editedItem,
+                ...createdItem,
                 country: this.country,
                 ad_manager_id: this.adManagerId,
                 external_id: res.data.payload.id,
