@@ -65,7 +65,7 @@
                                 label="Nombre del formulario"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6" md="6">
+                            <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold ma-0">País</p>
                               <v-select
                                 dense
@@ -74,6 +74,21 @@
                                 outlined
                                 :items="$store.state.countries"
                                 v-model="editedItem.country"
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold ma-0">
+                                Mensaje de plantilla (Notificación con WhatsApp)
+                              </p>
+                              <v-select
+                                :items="templateMessages"
+                                item-text="name"
+                                item-value="_id"
+                                outlined
+                                dense
+                                hide-details
+                                v-model="editedItem.notifyTemplateMessageId"
+                                clearable
                               ></v-select>
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
@@ -217,6 +232,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
+import templateMessagesService from "@/services/api/templateMessages";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -260,6 +276,7 @@ export default {
     menu2: false,
     rolPermisos: {},
     todofullLabels: [],
+    templateMessages: [],
   }),
   computed: {
     formTitle() {
@@ -277,6 +294,34 @@ export default {
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    "editedItem.country": {
+      async handler(newValue) {
+        if (this.dialog) {
+          // get bot by country
+          let selectedBot = this.$store.state.botsModule.bots.find(
+            (el) => el.country === newValue && el.platform === "whatsapp"
+          );
+          console.log("🚀 Aqui *** -> selectedBot:", selectedBot);
+          if (selectedBot) {
+            // Perform any actions or updates based on the new value of 'editedItem.country'
+            console.log("New value:", newValue);
+            this.templateMessages = (
+              await templateMessagesService.list({
+                botId: selectedBot._id,
+                sort: "name",
+                order: "1",
+                status: "APPROVED",
+              })
+            ).data.payload;
+            console.log(
+              "🚀 Aqui *** -> this.templateMessages :",
+              this.templateMessages
+            );
+          }
+        }
+      },
+      deep: true, // Enable deep watching to observe nested changes
     },
   },
   async mounted() {
@@ -299,9 +344,13 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     async initialize() {
-      //llamada asincrona de items
+      //llamada asincrona de items and bots
       await Promise.all([
         this.$store.dispatch("todofullLabelsModule/list", {
+          sort: "name",
+          order: 1,
+        }),
+        this.$store.dispatch("botsModule/list", {
           sort: "name",
           order: 1,
         }),

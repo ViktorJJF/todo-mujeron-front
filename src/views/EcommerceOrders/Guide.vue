@@ -92,7 +92,8 @@ export default {
             ],
           },
           "639df6124427e2337b8112e7", // TODO change this to select bot dynamically
-          this.order.ecommercesContactId.cleanLeadId._id
+          this.order.ecommercesContactId.cleanLeadId._id,
+          this.order._id
         );
         let data = response.data;
         this.loadingButton = true;
