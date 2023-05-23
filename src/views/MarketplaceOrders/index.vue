@@ -16,6 +16,8 @@
           @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :options.sync="pagination"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -37,6 +39,7 @@
                   <v-select
                     hide-details
                     v-model="selectedSources"
+                    @input="initialize"
                     placeholder="Filtrar por fuente"
                     :items="sources"
                     single-line
@@ -56,19 +59,20 @@
                   </span>
                   <div class="d-flex">
                     <v-checkbox
+                      @change="initialize"
                       v-model="fulfillmentFilter"
                       label="Con Fulfillment"
                       :value="true"
                     >
                     </v-checkbox>
                     <v-checkbox
+                      @change="initialize"
                       class="ml-5"
                       v-model="fulfillmentFilter"
                       label="Sin Fulfillment"
                       :value="false"
                     >
                     </v-checkbox>
-                    
                   </div>
                 </v-col>
               </v-row>
@@ -76,12 +80,12 @@
           </template>
 
           <template v-slot:item.externalNumber="{ item }">
-            {{item.externalNumber || item.packId || item.externalId}}
+            {{ item.externalNumber || item.packId || item.externalId }}
           </template>
-          
+
           <template v-slot:item.odooOrderName="{ item }">
             <div v-if="item.odooOrderName">
-              {{item.odooOrderName}}
+              {{ item.odooOrderName }}
             </div>
             <div v-else>
               <v-btn icon @click="handleGenialRetry(item)">
@@ -91,8 +95,8 @@
           </template>
 
           <template v-slot:item.customer="{ item }">
-            <div class="text-capitalize">
-              {{item.customer.firstname}} {{item.customer.lastname}}
+            <div v-if="item.customer" class="text-capitalize">
+              {{ item.customer.firstname }} {{ item.lastname }}
             </div>
           </template>
 
@@ -103,7 +107,7 @@
           </template>
 
           <template v-slot:item.source="{ item }">
-            <span style="text-transform: capitalize;">
+            <span style="text-transform: capitalize">
               {{ item.source }}
             </span>
           </template>
@@ -113,17 +117,26 @@
           </template>
 
           <template v-slot:item.fulfillment="{ item }">
-            <div style="font-size: 30px; color: green;" v-if="item.isFulfillment">
+            <div
+              style="font-size: 30px; color: green"
+              v-if="item.isFulfillment"
+            >
               ✓
             </div>
           </template>
-          
+
           <template v-slot:item.action="{ item }">
             <div class="d-flex">
               <v-btn small color="secondary" @click="openDetails(item)">
                 Detalles
               </v-btn>
-              <v-btn class="ml-3" v-if="pdfButtonVisible(item)" small color="secondary" @click="getPdf(item)">
+              <v-btn
+                class="ml-3"
+                v-if="pdfButtonVisible(item)"
+                small
+                color="secondary"
+                @click="getPdf(item)"
+              >
                 Guía Pdf
               </v-btn>
             </div>
@@ -146,47 +159,58 @@
                 ? orders.length
                 : $store.state.itemsPerPage
             }}
-            de {{ orders.length }} registros
+            de {{ $store.state.marketplaceOrdersModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            @input="initialize(page)"
+            v-model="page"
+            :length="pageCount"
+            :total-visible="$store.state.maxPaginationButtons"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
-    <v-dialog
-      v-model="detailsModal"
-      width="800"
-    >
+    <v-dialog v-model="detailsModal" width="800">
       <order-details :order="currentOrder" />
     </v-dialog>
   </v-container>
 </template>
 
 <script>
-import axios from 'axios'
+import axios from "axios";
 import MaterialCard from "@/components/material/Card";
-import OrderDetails from './Details.vue'
-import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
-import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
+import OrderDetails from "./Details.vue";
+import marketplaceOrdersApi from "@/services/api/marketplaceOrders";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 
 export default {
   components: {
     MaterialCard,
-    OrderDetails
+    OrderDetails,
   },
   filters: {
     currency(val) {
-      return new Intl.NumberFormat().format(val)
-    }
+      return new Intl.NumberFormat().format(val);
+    },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
+    pagination: {},
     loadingButton: false,
     sources: [
-      {text: 'Dafiti', value: 'dafiti'},
-      {text: 'Mercadolibre', value: 'mercadolibre'}
+      { text: "Dafiti", value: "dafiti" },
+      { text: "Mercadolibre", value: "mercadolibre" },
+    ],
+    fieldsToSearch: [
+      "odooOrderName",
+      "source",
+      "status",
+      "price",
+      "customer.firstname",
+      "customer.lastname",
     ],
     selectedSources: [],
     fulfillmentFilter: [],
@@ -200,15 +224,15 @@ export default {
       },
       {
         text: "N°Orden",
-        value: "externalNumber"
+        value: "externalNumber",
       },
       {
         text: "Genial",
-        value: "odooOrderName"
+        value: "odooOrderName",
       },
       {
         text: "Fuente",
-        value: "source"
+        value: "source",
       },
       {
         text: "Estado",
@@ -218,13 +242,13 @@ export default {
       },
       {
         text: "Cliente",
-        value: "customer"
+        value: "customer",
       },
       {
         text: "Artículos",
         align: "center",
         sortable: false,
-        value: 'itemsCount',
+        value: "itemsCount",
       },
       {
         text: "Total",
@@ -238,44 +262,67 @@ export default {
         sortable: false,
         value: "fulfillment",
       },
-      
+
       { text: "Acciones", value: "action", sortable: false },
     ],
     detailsModal: false,
     orders: [],
-    currentOrder: null
+    currentOrder: null,
+    delayTimer: null,
   }),
 
   computed: {
-    dataTableSoure () {
+    totalItems() {
+      return this.$store.state["marketplaceOrdersModule"].total;
+    },
+    dataTableSoure() {
       let orders = this.orders;
 
-      if(this.selectedSources.length) {
-        orders = orders.filter(order => this.selectedSources.includes(order.source))
+      if (this.selectedSources.length) {
+        orders = orders.filter((order) =>
+          this.selectedSources.includes(order.source)
+        );
       }
 
-      if(this.fulfillmentFilter.length) {
-        orders = orders.filter(order => this.fulfillmentFilter.includes(order.isFulfillment))
+      if (this.fulfillmentFilter.length) {
+        orders = orders.filter((order) =>
+          this.fulfillmentFilter.includes(order.isFulfillment)
+        );
       }
 
-      if(this.search) {
-        const getName = (order) => `${order.customer.firstname.toLowerCase()} ${order.customer.lastname.toLowerCase()}`
-        const fieldsToSearch = ['externalNumber', 'odooOrderName', 'source', 'status', 'price', 'total', 'itemsCount']
-        orders = orders.filter(order => {
-          for(const key in order) {
-            if(key === 'customer') {
-              if(getName(order).indexOf(this.search.toLowerCase()) !== -1) return true
-            }
+      // if (this.search) {
+      //   const getName = (order) =>
+      //     `${order.customer.firstname.toLowerCase()} ${order.customer.lastname.toLowerCase()}`;
+      //   const fieldsToSearch = [
+      //     "externalNumber",
+      //     "odooOrderName",
+      //     "source",
+      //     "status",
+      //     "price",
+      //     "total",
+      //     "itemsCount",
+      //   ];
+      //   orders = orders.filter((order) => {
+      //     for (const key in order) {
+      //       if (key === "customer") {
+      //         if (getName(order).indexOf(this.search.toLowerCase()) !== -1)
+      //           return true;
+      //       }
 
-            if(fieldsToSearch.includes(key)) {
-              if(new String(order[key]).toLowerCase().indexOf(this.search.toLowerCase()) !== -1) return true
-            }
-          }
-        })
-      }
+      //       if (fieldsToSearch.includes(key)) {
+      //         if (
+      //           new String(order[key])
+      //             .toLowerCase()
+      //             .indexOf(this.search.toLowerCase()) !== -1
+      //         )
+      //           return true;
+      //       }
+      //     }
+      //   });
+      // }
 
       return orders;
-    }
+    },
   },
 
   mounted() {
@@ -283,9 +330,25 @@ export default {
   },
 
   methods: {
-    async initialize() {
-      await Promise.all([this.$store.dispatch("marketplaceOrdersModule/list", { catalog: this.$route.params.id })]);
-      this.orders = this.$deepCopy(this.$store.state.marketplaceOrdersModule.orders)
+    async initialize(page = 1) {
+      let body = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "updatedAt",
+        order: "desc",
+        catalog: this.$route.params.id,
+      };
+      if (this.selectedSources.length) {
+        body.sources = this.selectedSources;
+      }
+      if (this.fulfillmentFilter.length) {
+        body.fulfillment = this.fulfillmentFilter;
+      }
+      this.orders = await this.$store.dispatch(
+        "marketplaceOrdersModule/list",
+        body
+      );
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
 
@@ -298,146 +361,159 @@ export default {
     },
 
     openDetails(order) {
-      this.currentOrder = order
-      this.detailsModal = true
+      this.currentOrder = order;
+      this.detailsModal = true;
     },
 
     async handleGenialRetry(order) {
-      const res = await marketplaceOrdersApi.genialRetry(order._id)
-      if(res.data.ok === true) {
+      const res = await marketplaceOrdersApi.genialRetry(order._id);
+      if (res.data.ok === true) {
         Object.assign(order, {
           odooOrderId: res.data.payload.order_new_id,
-          odooOrderName: res.data.payload.order_new_name
-        })
+          odooOrderName: res.data.payload.order_new_name,
+        });
 
-        let index = this.orders.findIndex(o => o._id === order._id)
+        let index = this.orders.findIndex((o) => o._id === order._id);
 
-        this.orders.splice(index, 1, order)
+        this.orders.splice(index, 1, order);
         return;
       }
-      
+
       return res.data;
     },
 
     async formatPdf(pdfBytes, order) {
-      let itemsRes = await marketplaceOrdersApi.listItems(order._id)
-      const items = itemsRes.data.payload
+      let itemsRes = await marketplaceOrdersApi.listItems(order._id);
+      const items = itemsRes.data.payload;
 
-      const pdfDoc = await PDFDocument.load(pdfBytes)
+      const pdfDoc = await PDFDocument.load(pdfBytes);
 
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
       // Get the first page of the document
-      const pages = pdfDoc.getPages()
-      const firstPage = pages[0]
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
 
-      if(order.source === 'mercadolibre') {
-        pdfDoc.removePage(1)
+      if (order.source === "mercadolibre") {
+        pdfDoc.removePage(1);
       }
 
       // Get the width and height of the first page
-      const { height } = firstPage.getSize()
+      const { height } = firstPage.getSize();
 
-      if(order.source === 'mercadolibre') {
-        firstPage.drawText(order.odooOrderName || '********', {
+      if (order.source === "mercadolibre") {
+        firstPage.drawText(order.odooOrderName || "********", {
           x: 298,
-            y: 125,
-            size: 7,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
-            rotate: degrees(90)
-        })
+          y: 125,
+          size: 7,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+          rotate: degrees(90),
+        });
       }
 
-      for(const [index, item] of items.entries()) {
-        const price = new Intl.NumberFormat().format(item.price)
+      for (const [index, item] of items.entries()) {
+        const price = new Intl.NumberFormat().format(item.price);
 
-        if(order.source === 'dafiti') {
+        if (order.source === "dafiti") {
           const text = order.odooOrderName
             ? `${order.odooOrderName} \t ${item.sku} \t ${price}`
-            : `${item.sku} \t ${price}`
+            : `${item.sku} \t ${price}`;
 
           firstPage.drawText(text, {
             x: order.odooOrderName ? 90 : 105,
-            y: (height / 2) + 20 - (10 * index),
+            y: height / 2 + 20 - 10 * index,
             size: 8,
             font: helveticaFont,
             color: rgb(0, 0, 0),
-          })
+          });
         }
 
-        if(order.source === 'mercadolibre') {
-          const text = `${item.sku}   ${price}`
+        if (order.source === "mercadolibre") {
+          const text = `${item.sku}   ${price}`;
 
           firstPage.drawText(text, {
             x: 298,
-            y: 158 + (75 * index),
+            y: 158 + 75 * index,
             size: 7,
             font: helveticaFont,
             color: rgb(0, 0, 0),
-            rotate: degrees(90)
-          })
+            rotate: degrees(90),
+          });
         }
       }
 
       // Serialize the PDFDocument to bytes (a Uint8Array)
-      return pdfDoc.save()
+      return pdfDoc.save();
     },
-
 
     async getPdf(order) {
       let pdfBytes;
-      
-      if(order.source === 'dafiti') {
-        pdfBytes = await this.getDafitiPdf(order)
+
+      if (order.source === "dafiti") {
+        pdfBytes = await this.getDafitiPdf(order);
       }
 
-      if(order.source === 'mercadolibre' && order.shipmentLabelPath) {
-        pdfBytes = await this.getMercadolibrePdf(order)
+      if (order.source === "mercadolibre" && order.shipmentLabelPath) {
+        pdfBytes = await this.getMercadolibrePdf(order);
       }
 
-      if(!pdfBytes) {
+      if (!pdfBytes) {
         return;
       }
 
-      const isFormatted = order.source === 'mercadolibre' && order.externalId >= 2000003861160360
-      if(!isFormatted) {
-        pdfBytes = await this.formatPdf(pdfBytes, order)
+      const isFormatted =
+        order.source === "mercadolibre" && order.externalId >= 2000003861160360;
+      if (!isFormatted) {
+        pdfBytes = await this.formatPdf(pdfBytes, order);
       }
 
-      var blob = new Blob( [ pdfBytes ], { type: 'application/pdf' } )
-      var url = URL.createObjectURL( blob );
+      var blob = new Blob([pdfBytes], { type: "application/pdf" });
+      var url = URL.createObjectURL(blob);
       window.open(url);
     },
 
     async getDafitiPdf(order) {
-      let res = await marketplaceOrdersApi.listDocument(order._id, 'shippingParcel')
+      let res = await marketplaceOrdersApi.listDocument(
+        order._id,
+        "shippingParcel"
+      );
 
-      const document = res.data.payload
+      const document = res.data.payload;
 
-      return Uint8Array.from(atob(document.File), c => c.charCodeAt(0))
+      return Uint8Array.from(atob(document.File), (c) => c.charCodeAt(0));
     },
 
     async getMercadolibrePdf(order) {
-      let res = await axios.get(
-        `/uploads/${order.shipmentLabelPath}`,
-        { responseType: 'arraybuffer' }
-      )
+      let res = await axios.get(`/uploads/${order.shipmentLabelPath}`, {
+        responseType: "arraybuffer",
+      });
 
-      return new Uint8Array(res.data)
+      return new Uint8Array(res.data);
     },
 
     pdfButtonVisible(order) {
-      if(order.source === 'dafiti') {
+      if (order.source === "dafiti") {
         return true;
       }
 
-      if(order.source === 'mercadolibre') {
-        if(order.shipmentLabelPath) {
+      if (order.source === "mercadolibre") {
+        if (order.shipmentLabelPath) {
           return true;
         }
       }
-    }
+    },
+  },
+  watch: {
+    dialog(val) {
+      val || this.close();
+    },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
+    },
   },
 };
 </script>
