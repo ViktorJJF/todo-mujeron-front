@@ -134,8 +134,8 @@
                       color="success"
                       dark
                       class="mb-2 ml-2"
-                      @click.stop="openWhatsappTemplatesDialog"
-                      >Enviar plantilla</v-btn
+                      @click.stop="openMarketingCampaignsDialog"
+                      >Enviar campaña</v-btn
                     >
                   </template>
                   <v-card>
@@ -444,6 +444,16 @@
             >Editar</v-btn
           >
           <v-btn
+            class="mr-3 mb-1"
+            small
+            color="primary"
+            @click="
+              campaignDialog = true;
+              selectedLead = item;
+            "
+            >Enviar Campaña</v-btn
+          >
+          <v-btn
             class="mb-1"
             small
             color="error"
@@ -453,7 +463,7 @@
           >
         </template>
         <template v-slot:[`item.checkbox`]="{ item }">
-          <v-checkbox :value="item"></v-checkbox>
+          <v-checkbox :value="item" v-model="selectedLeads"></v-checkbox>
         </template>
         <template v-slot:[`item.fuente`]="{ item }">
           <v-simple-table dense class="pa-6">
@@ -558,27 +568,43 @@
         ></v-pagination>
       </div>
     </material-card>
-    <v-dialog v-model="whatsappDialog" max-width="690">
+    <v-dialog v-model="marketingCampaignsDialog" max-width="690">
       <v-card>
-        <v-card-title class="text-h5"> Mensajes de Plantilla </v-card-title>
+        <v-card-title class="text-h5"> Campañas activas </v-card-title>
 
         <v-simple-table>
           <template v-slot:default>
             <thead>
               <tr>
-                <th class="text-left">Estado</th>
+                <th class="text-left">Desde</th>
                 <th class="text-left">Nombre</th>
+                <th class="text-left">Plantilla asociada</th>
                 <th class="text-left"></th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(template, idx) in templateMessages" :key="idx">
-                <td>{{ template.status }}</td>
-                <td>{{ template.name }}</td>
+              <tr
+                v-for="(marketingCampaign, idx) in marketingCampaigns"
+                :key="idx"
+              >
+                <td>
+                  {{
+                    marketingCampaign.bot
+                      ? marketingCampaign.bot.phone
+                      : "Número no asociado"
+                  }}
+                </td>
+                <td>{{ marketingCampaign.name }}</td>
+                <td>{{ marketingCampaign.templateMessage }}</td>
                 <td>
                   <v-btn
                     color="secondary"
-                    @click="sendTemplateMessage(template.name)"
+                    @click="
+                      sendTemplateMessage(
+                        marketingCampaign.templateMessage,
+                        marketingCampaign
+                      )
+                    "
                     >Enviar</v-btn
                   >
                 </td>
@@ -589,7 +615,11 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="whatsappDialog = false">
+          <v-btn
+            color="green darken-1"
+            text
+            @click="marketingCampaignsDialog = false"
+          >
             Listo
           </v-btn>
         </v-card-actions>
@@ -660,6 +690,7 @@ import graphApiService from "@/services/api/graphApi";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import CountriesSelector from "@/components/CountriesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
+import MarketingCampaignsService from "@/services/api/marketingCampaigns";
 
 import {
   getRandomInt,
@@ -685,6 +716,7 @@ export default {
     },
   },
   data: () => ({
+    marketingCampaigns: [],
     botIds: [],
     dateFrom: null,
     dateTo: null,
@@ -698,7 +730,7 @@ export default {
     isSegmentPreviewMode: false,
     segmentDialog: false,
     templateMessages: [],
-    whatsappDialog: false,
+    marketingCampaignsDialog: false,
     globalSelector: false,
     selectedLabels: [],
     isFilterEmptyActive: false,
@@ -1108,29 +1140,45 @@ export default {
         )
       );
     },
-    async openWhatsappTemplatesDialog() {
-      this.whatsappDialog = true;
-      // getting api data
-      const whats_app_business_account_id = "111896868194668";
-      this.templateMessages = (
-        await graphApiService.getWhatsappMessageTemplates(
-          whats_app_business_account_id
-        )
-      ).data.payload;
-    },
-    async sendTemplateMessage(
-      template_name,
-      language = "es",
-      phone_number_id = "105502328842482"
-    ) {
-      for (let i = 0; i < this.selectedLeads.length; i++) {
-        await graphApiService.sendWhatsappMessageTemplates(
-          template_name,
-          this.selectedLeads[i].telefono,
-          language,
-          phone_number_id
-        );
+    async openMarketingCampaignsDialog() {
+      this.marketingCampaignsDialog = true;
+      // fetch marketing campaigns
+      if (this.marketingCampaigns.length === 0) {
+        this.marketingCampaigns = (
+          await MarketingCampaignsService.list()
+        ).data.payload;
       }
+    },
+    async sendTemplateMessage(template_name, marketingCampaign) {
+      for (let i = 0; i < this.selectedLeads.length; i++) {
+        try {
+          await graphApiService.sendWhatsappMessageTemplates(
+            this.selectedLeads[i].telefono,
+            template_name,
+            [],
+            marketingCampaign.from,
+            this.selectedLeads[i]._id,
+            null,
+            marketingCampaign._id
+          );
+        } catch (error) {
+          console.log(error);
+          this.$store.commit(
+            "errorModule/error",
+            `No se pudo enviar la campaña a ${this.selectedLeads[i].telefono}}`,
+            { root: true }
+          );
+          this.$store.commit("errorModule/showError", true, { root: true });
+        }
+      }
+      // send message
+      this.marketingCampaignsDialog = false;
+      this.$store.commit(
+        "successModule/success",
+        "Envío de campaña realizado",
+        { root: true }
+      );
+      this.$store.commit("successModule/showSuccess", true, { root: true });
     },
     onSaveSegment() {
       this.segmentDialog = false;

@@ -35,7 +35,8 @@ export default {
     dynamic_parameters,
     bot_id,
     cleanLeadId,
-    ecommercesOrderId
+    ecommercesOrderId,
+    marketingCampaignId
   ) {
     return axios.post(`/api/graph-api/whatsapp/send-message-templates`, {
       to,
@@ -44,6 +45,7 @@ export default {
       bot_id,
       cleanLeadId,
       ecommercesOrderId,
+      marketingCampaignId,
     });
   },
 };
