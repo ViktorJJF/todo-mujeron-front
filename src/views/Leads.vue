@@ -444,16 +444,6 @@
             >Editar</v-btn
           >
           <v-btn
-            class="mr-3 mb-1"
-            small
-            color="primary"
-            @click="
-              campaignDialog = true;
-              selectedLead = item;
-            "
-            >Enviar Campaña</v-btn
-          >
-          <v-btn
             class="mb-1"
             small
             color="error"
