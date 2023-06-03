@@ -453,7 +453,12 @@
           >
         </template>
         <template v-slot:[`item.checkbox`]="{ item }">
-          <v-checkbox :value="item" v-model="selectedLeads"></v-checkbox>
+          <input
+            :value="item"
+            v-model="selectedLeads"
+            type="checkbox"
+            name="scales"
+          />
         </template>
         <template v-slot:[`item.fuente`]="{ item }">
           <v-simple-table dense class="pa-6">
@@ -706,6 +711,7 @@ export default {
     },
   },
   data: () => ({
+    updateCheckbox: 0,
     marketingCampaigns: [],
     botIds: [],
     dateFrom: null,
@@ -841,6 +847,7 @@ export default {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
         this.doSearch();
+        this.updateCheckbox += 1;
       }, 400);
     },
     telefonoId() {
