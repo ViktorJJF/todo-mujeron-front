@@ -258,9 +258,17 @@
                               ID de Contacto
                             </p>
                             <VTextFieldWithValidation
+                              v-if="detail.fuente !== 'ODOO'"
                               rules=""
                               v-model="detail.contactId"
                               label="ID de Contacto"
+                            />
+                            <VTextFieldWithValidation
+                              v-else
+                              rules=""
+                              v-model="editedItem.odoo_id"
+                              label="ID de ODOO"
+                              disabled
                             />
                           </v-col>
                           <v-col cols="12" sm="12" md="12">
@@ -835,6 +843,7 @@ export default {
           })
         ),
         { name: "WHATSAPP" },
+        { name: "ODOO" },
       ];
     },
   },
