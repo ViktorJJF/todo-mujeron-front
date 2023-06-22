@@ -876,8 +876,11 @@ export default {
         );
       });
       // el resto del template
-      this.editedItem.postImgUrl =
-        product.images[getRandomInt(0, product.images.length - 1)].src;
+      this.editedItem.postImgUrl = product.images[
+        getRandomInt(0, product.images.length - 1)
+      ]
+        ? product.images[getRandomInt(0, product.images.length - 1)].src
+        : null;
       this.editedItem.products = [product._id];
       this.editedItem.selectedCategories = [
         {

@@ -158,6 +158,12 @@ export default {
               external_id: template.id,
               botId: this.selectedBot._id,
             });
+          } else if (this.templateMessages[index].status != template.status) {
+            // update
+            await templateMessagesService.update(
+              this.templateMessages[index]._id,
+              { status: template.status }
+            );
           }
         }
         if (hasToSync) {
