@@ -930,7 +930,17 @@ export default {
       return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
     },
     getProductImageUrl({ customImages }) {
-      return `/api/wp-image?url=${customImages[0]}`;
+      // search the the first image available
+      let finalImage;
+      const imageExtensions = ["jpg", "jpeg", "png", "gif"];
+      for (const image of customImages) {
+        const extension = image.split(".").pop();
+        if (imageExtensions.includes(extension)) {
+          finalImage = image;
+          break;
+        }
+      }
+      return `/api/wp-image?url=${finalImage}`;
     },
     async setFilterFromQuery() {
       const query = this.$route.query;
