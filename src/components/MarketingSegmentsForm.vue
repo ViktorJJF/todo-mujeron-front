@@ -10,17 +10,33 @@
         <v-row>
           <v-col v-if="!activatePreview" cols="12" sm="12" md="12">
             <span class="font-weight-bold">Nombre del segmento</span>
-            <VTextFieldWithValidation rules="required" v-model="editedItem.name" label="Nombre" />
+            <VTextFieldWithValidation
+              rules="required"
+              v-model="editedItem.name"
+              label="Nombre"
+            />
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">Etiquetas</span>
-            <TodofullLabelsSelector :initialData="initialTodofullLabels"
-              @onSelectTodofullLabels="onSelectTodofullLabels"></TodofullLabelsSelector>
+            <TodofullLabelsSelector
+              :initialData="initialTodofullLabels"
+              @onSelectTodofullLabels="onSelectTodofullLabels"
+            ></TodofullLabelsSelector>
+          </v-col>
+          <v-col cols="12" sm="12" md="12">
+            <span class="font-weight-bold">Excluir etiquetas</span>
+            <TodofullLabelsSelector
+              :initialData="initialExcludeTodofullLabels"
+              @onSelectTodofullLabels="onSelectEcludeTodofullLabels"
+            ></TodofullLabelsSelector>
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">País</span>
-            <CountriesSelector :multiple="false" :initialData="initialCountries"
-              @onSelectedCountries="onSelectedCountries"></CountriesSelector>
+            <CountriesSelector
+              :multiple="false"
+              :initialData="initialCountries"
+              @onSelectedCountries="onSelectedCountries"
+            ></CountriesSelector>
           </v-col>
           <!-- <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">Bots WhatsApp</span>
@@ -59,7 +75,11 @@
           </v-col> -->
           <v-col v-if="!activatePreview" cols="12" sm="12">
             <span class="font-weight-bold">Descripción</span>
-            <v-textarea placeholder="descripcion" outlined v-model="editedItem.description"></v-textarea>
+            <v-textarea
+              placeholder="descripcion"
+              outlined
+              v-model="editedItem.description"
+            ></v-textarea>
           </v-col>
         </v-row>
       </v-container>
@@ -73,7 +93,11 @@
         </p>
         <div>
           <b>Etiquetas: </b>
-          <v-chip v-for="label in editedItem.todofullLabels" color="primary" :key="label._id">
+          <v-chip
+            v-for="label in editedItem.todofullLabels"
+            color="primary"
+            :key="label._id"
+          >
             <strong>{{ label.name }}</strong>
           </v-chip>
         </div>
@@ -83,15 +107,29 @@
       </v-container>
       <v-card-actions rd-actions>
         <div class="flex-grow-1"></div>
-        <v-btn v-if="!activatePreview" :loading="loadingButton" color="success" @click="passes(save)">Guardar</v-btn>
-        <v-btn v-else :loading="loadingButton" color="secondary" @click="
-          $emit('onPreview', {
-            todofullLabels: editedItem.todofullLabels,
-            countries: editedItem.target_countries,
-            botIds: editedItem.botIds
-          })
-        ">Previsualizar</v-btn>
-        <v-btn outlined color="error" text @click="$emit('onClose')">Cancelar</v-btn>
+        <v-btn
+          v-if="!activatePreview"
+          :loading="loadingButton"
+          color="success"
+          @click="passes(save)"
+          >Guardar</v-btn
+        >
+        <v-btn
+          v-else
+          :loading="loadingButton"
+          color="secondary"
+          @click="
+            $emit('onPreview', {
+              todofullLabels: editedItem.todofullLabels,
+              countries: editedItem.target_countries,
+              botIds: editedItem.botIds,
+            })
+          "
+          >Previsualizar</v-btn
+        >
+        <v-btn outlined color="error" text @click="$emit('onClose')"
+          >Cancelar</v-btn
+        >
       </v-card-actions>
     </ValidationObserver>
   </v-card>
@@ -144,7 +182,7 @@ export default {
       loadingButton: false,
       defaultItem: CLASS_ITEMS(),
       botIds: [1],
-      disabled: false
+      disabled: false,
     };
   },
   async mounted() {
@@ -167,6 +205,11 @@ export default {
     initialTodofullLabels() {
       return this.editedIndex === -1 ? [] : this.editedItem.todofullLabels;
     },
+    initialExcludeTodofullLabels() {
+      return this.editedIndex === -1
+        ? []
+        : this.editedItem.excludeTodofullLabels;
+    },
     initialCountries() {
       return this.editedIndex === -1 ? [] : this.editedItem.target_countries;
     },
@@ -174,6 +217,9 @@ export default {
   methods: {
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
+    },
+    onSelectEcludeTodofullLabels(selectedLabels) {
+      this.editedItem.excludeTodofullLabels = selectedLabels;
     },
     onSelectedCountries(selectedCountries) {
       this.editedItem.target_countries = selectedCountries;
@@ -204,5 +250,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 </style>

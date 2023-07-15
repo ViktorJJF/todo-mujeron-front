@@ -529,8 +529,9 @@ export default {
       this.isReady = true;
     },
     async getPostImage() {
-      let postId = this.commentFacebook.postUrl.match(/\d+/g)[0];
-      console.log("el comment: ", this.commentFacebook);
+      let postId = this.commentFacebook.postUrl.includes("/photos")
+        ? this.commentFacebook.postUrl.match(/\d+/g)[1]
+        : this.commentFacebook.postUrl.match(/\d+/g)[0];
       axios
         .get(
           "/api/graph-api/" +
