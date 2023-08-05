@@ -15,7 +15,8 @@ export default {
     });
   },
 
-  genialRetry(id) {
-    return axios.post(`/api/marketplace-orders/${id}/genial-retry`);
+  async genialRetry(id) {
+    const res =  await axios.post(`/api/marketplace-orders/${id}/genial-retry`);
+    return res.data
   },
 };

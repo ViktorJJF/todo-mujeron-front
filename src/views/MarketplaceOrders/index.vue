@@ -88,9 +88,24 @@
               {{ item.odooOrderName }}
             </div>
             <div v-else>
-              <v-btn icon @click="handleGenialRetry(item)">
-                <v-icon>mdi-cached</v-icon>
-              </v-btn>
+              <div class="d-flex justify-center">
+                <v-btn icon @click="handleGenialRetry(item)">
+                  <v-icon>mdi-cached</v-icon>
+                </v-btn>
+                <v-tooltip v-if="!item.odooOrderName && item.lastOdooError" bottom color="error">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      color="error"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon>mdi-alert-circle-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ item.lastOdooError }}</span>
+                </v-tooltip>
+              </div>
             </div>
           </template>
 
@@ -229,6 +244,7 @@ export default {
       {
         text: "Genial",
         value: "odooOrderName",
+        align: "center",
       },
       {
         text: "Fuente",
@@ -367,19 +383,22 @@ export default {
 
     async handleGenialRetry(order) {
       const res = await marketplaceOrdersApi.genialRetry(order._id);
-      if (res.data.ok === true) {
-        Object.assign(order, {
-          odooOrderId: res.data.payload.order_new_id,
-          odooOrderName: res.data.payload.order_new_name,
-        });
 
-        let index = this.orders.findIndex((o) => o._id === order._id);
+      const successful = res.ok === true
 
-        this.orders.splice(index, 1, order);
-        return;
-      }
+      const lastOdooError = !successful 
+        ? res.error.data?.message ?? res.error.message ?? 'Unknown error occurred'
+        : undefined
+      
+      Object.assign(order, {
+        odooOrderId: successful ? res.payload.order_new_id : undefined,
+        odooOrderName: successful ? res.payload.order_new_name : undefined,
+        lastOdooError: lastOdooError
+      });
 
-      return res.data;
+      let index = this.orders.findIndex((o) => o._id === order._id);
+
+      this.orders.splice(index, 1, order);
     },
 
     async formatPdf(pdfBytes, order) {
