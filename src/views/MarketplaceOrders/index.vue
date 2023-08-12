@@ -200,6 +200,8 @@ import OrderDetails from "./Details.vue";
 import marketplaceOrdersApi from "@/services/api/marketplaceOrders";
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 
+const SellerCenterSources = ['dafiti', 'falabella']
+
 export default {
   components: {
     MaterialCard,
@@ -217,6 +219,7 @@ export default {
     loadingButton: false,
     sources: [
       { text: "Dafiti", value: "dafiti" },
+      { text: 'Falabella', value: 'falabella' },
       { text: "Mercadolibre", value: "mercadolibre" },
     ],
     fieldsToSearch: [
@@ -434,7 +437,7 @@ export default {
       for (const [index, item] of items.entries()) {
         const price = new Intl.NumberFormat().format(item.price);
 
-        if (order.source === "dafiti") {
+        if (SellerCenterSources.includes(order.source)) {
           const text = order.odooOrderName
             ? `${order.odooOrderName} \t ${item.sku} \t ${price}`
             : `${item.sku} \t ${price}`;
@@ -469,8 +472,8 @@ export default {
     async getPdf(order) {
       let pdfBytes;
 
-      if (order.source === "dafiti") {
-        pdfBytes = await this.getDafitiPdf(order);
+      if (SellerCenterSources.includes(order.source)) {
+        pdfBytes = await this.getSellerCenterPdf(order);
       }
 
       if (order.source === "mercadolibre" && order.shipmentLabelPath) {
@@ -492,7 +495,7 @@ export default {
       window.open(url);
     },
 
-    async getDafitiPdf(order) {
+    async getSellerCenterPdf(order) {
       let res = await marketplaceOrdersApi.listDocument(
         order._id,
         "shippingParcel"
@@ -512,7 +515,7 @@ export default {
     },
 
     pdfButtonVisible(order) {
-      if (order.source === "dafiti") {
+      if (SellerCenterSources.includes(order.source)) {
         return true;
       }
 
