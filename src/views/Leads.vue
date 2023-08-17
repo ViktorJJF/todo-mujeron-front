@@ -712,7 +712,7 @@ export default {
     MarketingSegments,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -915,6 +915,9 @@ export default {
       if (this.botIds.length > 0) {
         body["botIds"] = this.botIds;
       }
+      if (this.selectedSegment) {
+        body["segmentId"] = this.selectedSegment._id;
+      }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
@@ -929,8 +932,7 @@ export default {
       this.$store.commit("loadingModule/showLoading", false);
 
       this.leads = this.$store.state.cleanLeadsModule.cleanLeads;
-      this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels;
+      this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
       this.leadsReady = true;
       this.telefonos = this.$store.state.telefonosModule.telefonos.map(
         (telefono) => ({

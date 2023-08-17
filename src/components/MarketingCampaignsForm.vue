@@ -10,58 +10,121 @@
         <v-row>
           <v-col cols="12" sm="12" md="12">
             <div class="body-1 font-weight-bold">Desde</div>
-            <VSelectWithValidation rules="required" :items="bots" v-model="editedItem.from" itemText="phone"
-              itemValue="_id" />
+            <VSelectWithValidation
+              rules="required"
+              :items="bots"
+              v-model="editedItem.from"
+              itemText="phone"
+              itemValue="_id"
+            />
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <div class="body-1 font-weight-bold">Nombre de la campaña</div>
-            <VTextFieldWithValidation rules="required" v-model="editedItem.name" label="Ingresa el nombre" />
+            <VTextFieldWithValidation
+              rules="required"
+              v-model="editedItem.name"
+              label="Ingresa el nombre"
+            />
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <div class="body-1 font-weight-bold">Segmento</div>
-            <v-autocomplete v-model="editedItem.segment" :items="segments" :filter="customFilter" item-text="name"
-              item-value="_id" outlined dense hide-details="auto" placeholder="Selecciona un segmento"></v-autocomplete>
+            <v-autocomplete
+              v-model="editedItem.segment"
+              :items="segments"
+              :filter="customFilter"
+              item-text="name"
+              item-value="_id"
+              outlined
+              dense
+              hide-details="auto"
+              placeholder="Selecciona un segmento"
+            ></v-autocomplete>
           </v-col>
           <v-col cols="12" sm="4" md="4">
             <span class="font-weight-bold">Fecha de envío</span>
-            <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-              offset-y min-width="auto">
+            <v-menu
+              v-model="menu2"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              min-width="auto"
+            >
               <template v-slot:activator="{ on, attrs }">
-                <v-text-field v-model="date" append-icon="mdi-calendar" readonly v-bind="attrs" v-on="on" outlined
-                  dense></v-text-field>
+                <v-text-field
+                  v-model="date"
+                  append-icon="mdi-calendar"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined
+                  dense
+                ></v-text-field>
               </template>
-              <v-date-picker v-model="date" @input="menu2 = false"></v-date-picker>
+              <v-date-picker
+                v-model="date"
+                @input="menu2 = false"
+              ></v-date-picker>
             </v-menu>
           </v-col>
 
           <v-col cols="12" sm="4" md="4">
             {{ editedItem.scheduleTime }}
             <span class="font-weight-bold">Hora de envío</span>
-            <v-menu ref="menu" v-model="menu" :close-on-content-click="false" :nudge-right="40"
-              :return-value.sync="editedItem.scheduleTime" transition="scale-transition" offset-y max-width="290px"
-              min-width="290px">
+            <v-menu
+              ref="menu"
+              v-model="menu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              :return-value.sync="editedItem.scheduleTime"
+              transition="scale-transition"
+              offset-y
+              max-width="290px"
+              min-width="290px"
+            >
               <template v-slot:activator="{ on, attrs }">
-                <v-text-field v-model="editedItem.scheduleTime" append-icon="mdi-clock-time-four-outline" readonly
-                  v-bind="attrs" v-on="on" outlined dense></v-text-field>
+                <v-text-field
+                  v-model="editedItem.scheduleTime"
+                  append-icon="mdi-clock-time-four-outline"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined
+                  dense
+                ></v-text-field>
               </template>
-              <v-time-picker v-if="menu" v-model="time" full-width
-                @click:minute="$refs.menu.save(time)"></v-time-picker>
+              <v-time-picker
+                v-if="menu"
+                v-model="time"
+                full-width
+                @click:minute="$refs.menu.save(time)"
+              ></v-time-picker>
             </v-menu>
           </v-col>
           <v-col cols="12" sm="4" md="4">
             <span class="font-weight-bold">Enviar por tandas de</span>
-            <v-text-field type="number" v-model="editedItem.chunkSize" outlined dense></v-text-field>
+            <v-text-field
+              type="number"
+              v-model="editedItem.chunkSize"
+              outlined
+              dense
+            ></v-text-field>
           </v-col>
         </v-row>
       </v-container>
-      <TemplateMessagesList @onSelectTemplateMessage="
-  editedItem.templateMessage = $event.name;
-step += 1;
-      " :showButtonSelect="true" v-show="step == 2"></TemplateMessagesList>
+      <TemplateMessagesList
+        @onSelectTemplateMessage="
+          editedItem.templateMessage = $event.name;
+          step += 1;
+        "
+        :showButtonSelect="true"
+        v-show="step == 2"
+      ></TemplateMessagesList>
       <v-container class="pa-5" v-if="step == 3">
         <div><b>Nombre de campaña: </b>{{ editedItem.name }}</div>
         <div>
-          <b>Segmento: </b>{{
+          <b>Segmento: </b
+          >{{
             segments.find((el) => el._id == "editedItem.segment ")
               ? segments.find((el) => el._id == "editedItem.segment ").name
               : "Sin segmento"
@@ -69,7 +132,8 @@ step += 1;
         </div>
         <div><b>Mensaje de Plantilla: </b>{{ editedItem.templateMessage }}</div>
         <div>
-          <b>Fecha y Hora: </b>{{ formatDate(scheduleDateTime) || "Fecha y hora no válida" }}
+          <b>Fecha y Hora: </b
+          >{{ formatDate(scheduleDateTime) || "Fecha y hora no válida" }}
         </div>
         <div>
           <b>Envío por tandas: </b>{{ editedItem.chunkSize || "Sin tandas" }}
@@ -78,11 +142,22 @@ step += 1;
       <v-card-actions rd-actions>
         <div class="flex-grow-1"></div>
         <v-btn v-show="step != 1" color="error" @click="step -= 1">Atrás</v-btn>
-        <v-btn v-show="step != 3" color="secondary" @click="
-  passes();
-step += 1;
-        ">Continuar</v-btn>
-        <v-btn v-show="step == 3" :loading="loadingButton" color="primary" @click="passes(save)">Finalizar</v-btn>
+        <v-btn
+          v-show="step != 3"
+          color="secondary"
+          @click="
+            passes();
+            step += 1;
+          "
+          >Continuar</v-btn
+        >
+        <v-btn
+          v-show="step == 3"
+          :loading="loadingButton"
+          color="primary"
+          @click="passes(save)"
+          >Finalizar</v-btn
+        >
         <!-- <v-btn outlined color="error" text @click="$emit('onClose')"
           >Cancelar</v-btn
         > -->
@@ -130,8 +205,8 @@ export default {
       return this.step == 1
         ? "Paso 1 de 3"
         : this.step == 2
-          ? "Paso 2 de 3"
-          : "Paso 3 de 3: Confirma los datos";
+        ? "Paso 2 de 3"
+        : "Paso 3 de 3: Confirma los datos";
     },
     entity() {
       return ENTITY;
@@ -156,8 +231,7 @@ export default {
         this.$store.dispatch("marketingSegmentsModule/list"),
         this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
       ]);
-      this.segments =
-        this.$store.state.marketingSegmentsModule.marketingSegments;
+      this.segments = this.$store.state.marketingSegmentsModule.marketingSegments;
       this.bots = this.$store.state.botsModule.bots;
       console.log("🚀 Aqui *** -> this.bots", this.bots);
     },
@@ -212,6 +286,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

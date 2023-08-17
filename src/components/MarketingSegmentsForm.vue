@@ -30,6 +30,28 @@
               @onSelectTodofullLabels="onSelectEcludeTodofullLabels"
             ></TodofullLabelsSelector>
           </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold">Sobre ID Genial</span>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithIDGenial"
+              label="Incluir leads con ID Genial"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithoutIDGenial"
+              label="Incluir leads sin ID Genial"
+            ></v-checkbox>
+          </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold">Email</span>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithEmail"
+              label="Incluir leads con email"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithoutEmail"
+              label="Incluir leads sin email"
+            ></v-checkbox>
+          </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">País</span>
             <CountriesSelector
@@ -155,6 +177,12 @@ export default {
         description: "",
         todofullLabels: [],
         target_countries: [],
+        filters: {
+          includeWithEmail: true,
+          includeWithoutEmail: true,
+          includeWithIDGenial: true,
+          includeWithoutIDGenial: true,
+        },
         // dateFrom: new Date().toISOString().substr(0, 10),
         // dateTo: new Date().toISOString().substr(0, 10),
         botIds: [],
@@ -249,5 +277,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

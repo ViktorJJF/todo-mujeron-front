@@ -162,8 +162,6 @@
 <script>
 //Nota: Modifica los campos de la tabla
 const ENTITY = "marketingSegments"; // nombre de la entidad en minusculas (se repite en services y modules del store)
-const CLASS_ITEMS = () =>
-  import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 
@@ -184,7 +182,7 @@ export default {
     MarketingSegmentsForm,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -206,7 +204,19 @@ export default {
     menu2: false,
     rolPermisos: {},
     editedIndex: -1,
-    editedItem: CLASS_ITEMS(),
+    editedItem: {
+      name: "",
+      description: "",
+      todofullLabels: [],
+      filters: {
+        includeWithEmail: true,
+        includeWithoutEmail: true,
+        includeWithIDGenial: true,
+        includeWithoutIDGenial: true,
+      },
+      target_countries: [],
+      botIds: [],
+    },
   }),
   computed: {
     items() {
