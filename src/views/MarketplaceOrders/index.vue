@@ -309,37 +309,6 @@ export default {
         );
       }
 
-      // if (this.search) {
-      //   const getName = (order) =>
-      //     `${order.customer.firstname.toLowerCase()} ${order.customer.lastname.toLowerCase()}`;
-      //   const fieldsToSearch = [
-      //     "externalNumber",
-      //     "odooOrderName",
-      //     "source",
-      //     "status",
-      //     "price",
-      //     "total",
-      //     "itemsCount",
-      //   ];
-      //   orders = orders.filter((order) => {
-      //     for (const key in order) {
-      //       if (key === "customer") {
-      //         if (getName(order).indexOf(this.search.toLowerCase()) !== -1)
-      //           return true;
-      //       }
-
-      //       if (fieldsToSearch.includes(key)) {
-      //         if (
-      //           new String(order[key])
-      //             .toLowerCase()
-      //             .indexOf(this.search.toLowerCase()) !== -1
-      //         )
-      //           return true;
-      //       }
-      //     }
-      //   });
-      // }
-
       return orders;
     },
   },
@@ -463,6 +432,17 @@ export default {
             rotate: degrees(90),
           });
         }
+      }
+
+      if (SellerCenterSources.includes(order.source) && order.deliveryPrice > 0) {
+        const text = `Envío ${order.deliveryPrice}`
+        firstPage.drawText(text, {
+          x: order.odooOrderName ? 90 : 105,
+          y: height / 2 + 20 - 10 * items.length,
+          size: 8,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
       }
 
       // Serialize the PDFDocument to bytes (a Uint8Array)
