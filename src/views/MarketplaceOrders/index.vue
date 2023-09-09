@@ -85,7 +85,13 @@
 
           <template v-slot:item.odooOrderName="{ item }">
             <div v-if="item.odooOrderName">
-              {{ item.odooOrderName }}
+              <a
+                class="text-link"
+                target="_blank"
+                :href="getSaleOrderLink(item.odooOrderId)"
+              >
+                {{ item.odooOrderName }}
+              </a>
             </div>
             <div v-else>
               <div class="d-flex justify-center">
@@ -111,7 +117,17 @@
 
           <template v-slot:item.customer="{ item }">
             <div v-if="item.customer" class="text-capitalize">
-              {{ item.customer.firstname }} {{ item.lastname }}
+              <a
+                v-if="item.odooOrderName"
+                target="_blank"
+                class="text-link"
+                :href="getOrderPartnerLink(item.odooOrderId)"
+              >
+                {{ item.customer.firstname }} {{ item.lastname }}
+              </a>
+              <span v-else>
+                {{ item.customer.firstname }} {{ item.lastname }}
+              </span>
             </div>
           </template>
 
@@ -513,6 +529,13 @@ export default {
         }
       }
     },
+
+    getSaleOrderLink(id) {
+      return `https://mujeron.odoo.com/web/login#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
+    },
+    getOrderPartnerLink(id) {
+      return `https://mujeron.odoo.com/web/login#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
+    }
   },
   watch: {
     dialog(val) {
@@ -528,4 +551,9 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+  .text-link {
+    color: blue;
+    text-decoration: none;
+  }
+</style>
