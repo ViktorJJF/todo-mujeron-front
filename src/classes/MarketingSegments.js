@@ -10,4 +10,5 @@ export default () => ({
   },
   target_countries: [],
   botIds: [],
+  type: "static",
 });

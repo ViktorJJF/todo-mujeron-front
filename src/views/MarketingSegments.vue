@@ -216,6 +216,7 @@ export default {
       },
       target_countries: [],
       botIds: [],
+      type: "static",
     },
   }),
   computed: {
@@ -248,6 +249,12 @@ export default {
               align: "left",
               sortable: false,
               value: "name",
+            },
+            {
+              text: "Tipo",
+              align: "left",
+              sortable: false,
+              value: "type",
             },
             { text: "Acciones", value: "action", sortable: false },
           ];
