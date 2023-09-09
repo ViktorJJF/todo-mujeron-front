@@ -76,11 +76,6 @@
                 </v-col>
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
                     <v-card>
                       <v-card-title>
                         <v-icon color="primary" class="mr-1">mdi-update</v-icon>
@@ -286,21 +281,39 @@
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
-          <template v-slot:[`item.client`]="{ item }">
-            {{
-              item.ecommercesContactId
-                ? item.ecommercesContactId.first_name
-                : ""
-            }}
-            {{
-              item.ecommercesContactId ? item.ecommercesContactId.last_name : ""
-            }}
+          
+          <template v-slot:item.odooOrderName="{ item }">
+            <div v-if="item.odooOrderName">
+              <a
+                class="text-link"
+                target="_blank"
+                :href="getSaleOrderLink(item.odooOrderId)"
+              >
+                {{ item.odooOrderName }}
+              </a>
+            </div>
           </template>
-          <template v-slot:[`item.phone`]="{ item }">{{
-            item.ecommercesContactId
-              ? item.ecommercesContactId.phone
-              : "Sin número"
-          }}</template>
+
+          <template v-slot:item.client="{ item }">
+            <div>
+              <a
+                v-if="getClientOdooId(item)"
+                target="_blank"
+                class="text-link"
+                :href="getOrderPartnerLink(getClientOdooId(item))"
+              >
+                {{ getClientFullName(item) }}
+              </a>
+              <span v-else>
+                {{ getClientFullName(item) }}
+              </span>
+            </div>
+          </template>
+
+          <template v-slot:item.phone="{ item }">
+            {{ item.ecommercesContactId ? item.ecommercesContactId.phone : "Sin número" }}
+          </template>
+
           <template v-slot:[`item.status`]="{ item }">
             <v-chip dark v-if="item.status == 'cancelled'" color="error"
               >Cancelado</v-chip
@@ -330,6 +343,7 @@
               >Trash</v-chip
             >
           </template>
+
           <template v-slot:item.action="{ item }">
             <v-btn
               class="mr-2 mb-2"
@@ -699,6 +713,22 @@ export default {
       let index = urls.indexOf(url);
       urls.splice(index, 1);
     },
+    getClientFullName(order) {
+      const firstName = order.ecommercesContactId ? order.ecommercesContactId.first_name : ""
+      const lastName = order.ecommercesContactId ? order.ecommercesContactId.last_name : ""
+      return `${firstName} ${lastName}`
+    },
+
+    getClientOdooId(order) {
+      return order.ecommercesContactId?.cleanLeadId?.odoo_id
+    },
+
+    getSaleOrderLink(id) {
+      return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
+    },
+    getOrderPartnerLink(id) {
+      return `https://mujeron.odoo.com/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
+    }
   },
 };
 </script>
@@ -736,5 +766,10 @@ export default {
 
 .country-name {
   font-size: 14px;
+}
+
+.text-link {
+  color: blue;
+  text-decoration: none;
 }
 </style>
