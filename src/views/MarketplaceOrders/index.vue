@@ -531,10 +531,10 @@ export default {
     },
 
     getSaleOrderLink(id) {
-      return `https://mujeron.odoo.com/web/login#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
+      return `https://mujeron.odoo.com/web/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
     },
     getOrderPartnerLink(id) {
-      return `https://mujeron.odoo.com/web/login#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
+      return `https://mujeron.odoo.com/web/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
     }
   },
   watch: {
