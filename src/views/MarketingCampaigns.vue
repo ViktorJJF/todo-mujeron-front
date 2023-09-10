@@ -155,6 +155,9 @@
           </template>
           <template v-slot:[`item.range`]="{ item }">
             {{ item.segmentCount }}
+            {{
+              item.segment && item.segment.type === "static" ? "(Estático)" : ""
+            }}
           </template>
           <template v-slot:[`item.cost`]="{ item }">
             $ {{ (item.segmentCount * 0.0757).toFixed(2) }}
@@ -225,7 +228,7 @@ export default {
     MarketingCampaignsForm,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -440,5 +443,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

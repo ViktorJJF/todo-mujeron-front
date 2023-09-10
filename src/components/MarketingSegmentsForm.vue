@@ -16,6 +16,18 @@
               label="Nombre"
             />
           </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold" style="display:block;"
+              >Tipo de segmento:</span
+            >
+            <v-radio-group
+              style="display:inline-block;"
+              v-model="editedItem.type"
+            >
+              <v-radio label="Estático" value="static"></v-radio>
+              <v-radio label="Dinámico" value="dynamic"></v-radio>
+            </v-radio-group>
+          </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">Etiquetas</span>
             <TodofullLabelsSelector
@@ -45,11 +57,11 @@
             <span class="font-weight-bold">Email</span>
             <v-checkbox
               v-model="editedItem.filters.includeWithEmail"
-              label="Incluir leads con email"
+              label="Incluir leads con email (Mailchimp)"
             ></v-checkbox>
             <v-checkbox
               v-model="editedItem.filters.includeWithoutEmail"
-              label="Incluir leads sin email"
+              label="Incluir leads sin email (Mailchimp)"
             ></v-checkbox>
           </v-col>
           <v-col cols="12" sm="12" md="12">
@@ -186,6 +198,7 @@ export default {
         // dateFrom: new Date().toISOString().substr(0, 10),
         // dateTo: new Date().toISOString().substr(0, 10),
         botIds: [],
+        type: "static",
       }),
     },
     activatePreview: {
