@@ -473,7 +473,7 @@ export default {
     CommentToMSNUpdate,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -680,7 +680,7 @@ export default {
         fieldsToSearch: this.fieldsToSearch,
         sort: "date_modified",
         order: -1,
-        listType: "All",
+        // listType: "All",
       };
       if (this.filterWithoutRef) {
         payload["products_without_ref"] = true;
