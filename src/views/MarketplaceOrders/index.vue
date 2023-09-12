@@ -117,17 +117,7 @@
 
           <template v-slot:item.customer="{ item }">
             <div v-if="item.customer" class="text-capitalize">
-              <a
-                v-if="item.odooOrderName"
-                target="_blank"
-                class="text-link"
-                :href="getOrderPartnerLink(item.odooOrderId)"
-              >
-                {{ item.customer.firstname }} {{ item.lastname }}
-              </a>
-              <span v-else>
-                {{ item.customer.firstname }} {{ item.lastname }}
-              </span>
+              {{ item.customer.firstname }} {{ item.lastname }}
             </div>
           </template>
 
@@ -529,7 +519,7 @@ export default {
         }
       }
     },
-    
+
     getSaleOrderLink(id) {
       return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
     }
