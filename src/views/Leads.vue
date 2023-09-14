@@ -418,6 +418,32 @@
             </v-alert>
           </div>
         </template>
+        <template v-slot:[`item.odoo_id`]="{ item }">
+          <div v-if="item.odoo_id">
+            ID:
+            <a
+              target="_blank"
+              :href="
+                `https://mujeron.odoo.com/web#id=${item.odoo_id}&action=114&model=res.partner&view_type=form&cids=1&menu_id=89`
+              "
+              >{{ item.odoo_id }}</a
+            >
+          </div>
+
+          <template v-if="item.odooInfo">
+            <ul>
+              <li v-if="item.odooInfo.sale_order_count">
+                Ventas: {{ item.odooInfo.sale_order_count }}
+              </li>
+              <li v-if="item.odooInfo.sale_order_count">
+                Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
+              </li>
+              <li v-if="item.odooInfo.sale_order_count">
+                TPV: {{ item.odooInfo.pos_order_count }}
+              </li>
+            </ul>
+          </template>
+        </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
           <v-chip
             small
@@ -689,6 +715,7 @@ import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/CleanLeads";
 import auth from "@/services/api/auth";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
+import odooService from "@/services/api/odoo";
 import graphApiService from "@/services/api/graphApi";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import CountriesSelector from "@/components/CountriesSelector.vue";
@@ -948,6 +975,25 @@ export default {
         })
       );
       this.dataTableLoading = false;
+      // fetch odoo info for each lead
+      this.leads.forEach((lead, index) => {
+        if (lead.odoo_id) {
+          odooService
+            .getPartnerInfo(lead.odoo_id)
+            .then((res) => {
+              const result = res.data.payload.result;
+              if (!result.results) {
+                this.$set(this.leads, index, {
+                  ...this.leads[index],
+                  odooInfo: res.data.payload.result,
+                });
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
     },
     buildPayloadPagination(page, searchPayload) {
       return buildPayloadPagination(
@@ -1225,6 +1271,18 @@ export default {
       this.seeAllSegmentsDialog = false;
       this.selectedSegment = segment;
       this.onSelectTodofullLabels(segment.todofullLabels);
+    },
+    getPartnerInfo(item) {
+      const odoo_id = item.odoo_id;
+      console.log("🚀 Aqui *** -> odoo_id:", odoo_id);
+      odooService
+        .getPartnerInfo(odoo_id)
+        .then((response) => {
+          return response.data.payload.result;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
   },
 };
