@@ -420,7 +420,6 @@
         </template>
         <template v-slot:[`item.odoo_id`]="{ item }">
           <div v-if="item.odoo_id">
-            ID:
             <a
               target="_blank"
               :href="
@@ -431,17 +430,15 @@
           </div>
 
           <template v-if="item.odooInfo">
-            <ul>
-              <li v-if="item.odooInfo.sale_order_count">
-                Ventas: {{ item.odooInfo.sale_order_count }}
-              </li>
-              <li v-if="item.odooInfo.sale_order_count">
-                Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
-              </li>
-              <li v-if="item.odooInfo.sale_order_count">
-                TPV: {{ item.odooInfo.pos_order_count }}
-              </li>
-            </ul>
+            <div v-if="item.odooInfo.sale_order_count">
+              Ventas: {{ item.odooInfo.sale_order_count }}
+            </div>
+            <div v-if="item.odooInfo.sale_order_count">
+              Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
+            </div>
+            <div v-if="item.odooInfo.sale_order_count">
+              TPV: {{ item.odooInfo.pos_order_count }}
+            </div>
           </template>
         </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
@@ -808,6 +805,7 @@ export default {
         align: "left",
         sortable: false,
         value: "odoo_id",
+        width: "100px",
       },
       {
         text: "Agente",
