@@ -1,8 +1,8 @@
 <template>
-  <v-container>
+  <div style="font-size: 10px !important">
     <v-row justify="center">
       <material-card
-        width="1500px"
+        width="100%"
         icon="mdi-cellphone-dock"
         color="primary"
         :title="$t(entity + '.TITLE')"
@@ -379,7 +379,7 @@
               Guía
             </v-btn>
             <v-btn
-              class="mb-2"
+              class="mr-2 mb-2"
               small
               color="primary"
               @click="openAbandonedCart(item)"
@@ -444,7 +444,7 @@
         :order="currentOrder"
       />
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -523,13 +523,9 @@ export default {
         align: "left",
         sortable: false,
         value: "odooOrderName",
+        width: "50px",
       },
-      {
-        text: "Odoo",
-        align: "left",
-        sortable: false,
-        value: "odooInfo",
-      },
+
       {
         text: "Estado",
         align: "left",
@@ -553,6 +549,13 @@ export default {
         align: "left",
         sortable: false,
         value: "total",
+      },
+      {
+        text: "Odoo",
+        align: "left",
+        sortable: false,
+        value: "odooInfo",
+        width: "100px",
       },
       {
         text: "Mensajes Plantillas",
