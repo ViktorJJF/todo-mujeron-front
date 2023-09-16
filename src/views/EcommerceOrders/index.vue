@@ -294,29 +294,16 @@
             </div>
           </template>
           <template v-slot:item.odooInfo="{ item }">
-            <div v-if="item.odoo_id">
-              ID:
-              <a
-                target="_blank"
-                :href="
-                  `https://mujeron.odoo.com/web#id=${item.odoo_id}&action=114&model=res.partner&view_type=form&cids=1&menu_id=89`
-                "
-                >{{ item.odoo_id }}</a
-              >
-            </div>
-
             <template v-if="item.odooInfo">
-              <ul>
-                <li v-if="item.odooInfo.sale_order_count">
-                  Ventas: {{ item.odooInfo.sale_order_count }}
-                </li>
-                <li v-if="item.odooInfo.sale_order_count">
-                  Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
-                </li>
-                <li v-if="item.odooInfo.sale_order_count">
-                  TPV: {{ item.odooInfo.pos_order_count }}
-                </li>
-              </ul>
+              <div v-if="item.odooInfo.sale_order_count">
+                Ventas: {{ item.odooInfo.sale_order_count }}
+              </div>
+              <div v-if="item.odooInfo.sale_order_count">
+                Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
+              </div>
+              <div v-if="item.odooInfo.sale_order_count">
+                TPV: {{ item.odooInfo.pos_order_count }}
+              </div>
             </template>
           </template>
 
