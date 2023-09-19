@@ -441,6 +441,18 @@
             </div>
           </template>
         </template>
+        <template v-slot:[`item.telefono`]="{ item }">
+          <div
+            style="cursor: pointer; color: blue; text-decoration: underline;"
+            @click.stop="
+              chatDialog = true;
+              selectedCleanLead = item;
+              getCleanLeadsChats(item._id);
+            "
+          >
+            {{ item.telefono }}
+          </div>
+        </template>
         <template v-slot:[`item.telefonoId`]="{ item }">
           <v-chip
             small
@@ -701,6 +713,69 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-if="chatDialog"
+      v-model="chatDialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn color="primary" dark v-bind="attrs" v-on="on">
+          Open Dialog
+        </v-btn>
+      </template>
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn
+            icon
+            dark
+            @click="
+              selectedCleanLead = null;
+              selectedChatId = null;
+              chatDialog = false;
+            "
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title
+            >Chat en vivo con {{ selectedCleanLead.telefono }}</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn
+              dark
+              text
+              @click="
+                selectedCleanLead = null;
+                selectedChatId = null;
+                chatDialog = false;
+              "
+            >
+              Finalizar
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <div>
+          <!-- chat iframe content -->
+          <iframe
+            v-if="selectedChatId"
+            :src="
+              `${
+                getEnvironment === 'development'
+                  ? 'http://localhost:3030'
+                  : 'https://chat.todofull.club'
+              }/apps/chat?chatId=${selectedChatId}&isChatOneToOne=true`
+            "
+            width="100%"
+            height="100%"
+            frameborder="0"
+            scrolling="no"
+            style="height: 100vh;"
+          ></iframe>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -718,6 +793,8 @@ import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import CountriesSelector from "@/components/CountriesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
 import MarketingCampaignsService from "@/services/api/marketingCampaigns";
+import chatService from "@/services/api/chats";
+import environment from "@/environment";
 
 import {
   getRandomInt,
@@ -743,6 +820,9 @@ export default {
     },
   },
   data: () => ({
+    selectedChatId: null,
+    selectedCleanLead: null,
+    chatDialog: false,
     updateCheckbox: 0,
     marketingCampaigns: [],
     botIds: [],
@@ -844,6 +924,9 @@ export default {
   }),
 
   computed: {
+    getEnvironment() {
+      return environment;
+    },
     totalItems() {
       return this.$store.state.cleanLeadsModule.total;
     },
@@ -1281,6 +1364,16 @@ export default {
         .catch((error) => {
           console.log(error);
         });
+    },
+    async getCleanLeadsChats(id) {
+      try {
+        const chats = (await chatService.getAllByCleanLeadId(id)).data.payload;
+        if (chats.length > 0) {
+          this.selectedChatId = chats[0]._id;
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };

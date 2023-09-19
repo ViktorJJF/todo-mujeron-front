@@ -12,4 +12,9 @@ export default {
   delete(id) {
     return axios.delete(`/api/chats/${id}`);
   },
+  getAllByCleanLeadId(cleanLeadId) {
+    return axios.get(
+      `/api/chats/get_all_by_cleanlead_id?cleanLeadId=${cleanLeadId}`
+    );
+  },
 };
