@@ -292,6 +292,26 @@
                 {{ item.odooOrderName }}
               </a>
             </div>
+            <div v-else>
+              <div class="d-flex justify-center">
+                <v-btn icon @click="handleGenialRetry(item)">
+                  <v-icon>mdi-cached</v-icon>
+                </v-btn>
+                <v-tooltip v-if="!item.odooOrderName && item.lastOdooError" bottom color="error">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      color="error"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon>mdi-alert-circle-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ item.lastOdooError }}</span>
+                </v-tooltip>
+              </div>
+            </div>
           </template>
 
           <template v-slot:item.client="{ item }">
@@ -443,6 +463,7 @@ import OrderDetails from "./Details.vue";
 import Guide from "./Guide.vue";
 import AbandonedCart from "./AbandonedCart.vue";
 import SizeConfirmation from "./SizeConfirmation.vue";
+import ecommercesOrdersApi from '@/services/api/ecommercesOrders'
 
 export default {
   components: {
@@ -728,7 +749,26 @@ export default {
     },
     getOrderPartnerLink(id) {
       return `https://mujeron.odoo.com/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
-    }
+    },
+    async handleGenialRetry(order) {
+      const res = await ecommercesOrdersApi.genialRetry(order._id);
+ 
+      const successful = res.ok === true
+
+      const lastOdooError = !successful 
+        ? res.error.data?.message ?? res.error.message ?? 'Unknown error occurred'
+        : undefined
+      
+      Object.assign(order, {
+        odooOrderId: successful ? res.payload.order_new_id : undefined,
+        odooOrderName: successful ? res.payload.order_new_name : undefined,
+        lastOdooError: lastOdooError
+      });
+
+      let index = this[[ENTITY]].findIndex((o) => o._id === order._id);
+
+      this[[ENTITY]].splice(index, 1, order);
+    },
   },
 };
 </script>
