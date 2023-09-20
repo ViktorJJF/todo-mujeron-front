@@ -1,8 +1,8 @@
 <template>
-  <v-container>
+  <div style="font-size: 10px !important">
     <v-row justify="center">
       <material-card
-        width="1500px"
+        width="100%"
         icon="mdi-cellphone-dock"
         color="primary"
         :title="$t(entity + '.TITLE')"
@@ -127,9 +127,8 @@
                             <v-divider class="mx-3 my-3"></v-divider>
                             <v-row
                               dense
-                              v-for="(
-                                detail, detailIndex
-                              ) in editedItem.details"
+                              v-for="(detail,
+                              detailIndex) in editedItem.details"
                               :key="detailIndex"
                             >
                               <v-col cols="12" sm="6" md="6">
@@ -269,19 +268,20 @@
             }}
             <ul>
               <li
-                v-for="(
-                  templateMessageLog, logIdx
-                ) in item.templateMessagesLogs"
+                v-for="(templateMessageLog,
+                logIdx) in item.templateMessagesLogs"
                 :key="logIdx"
               >
-                {{ templateMessageLog.name }}
+                <span v-if="templateMessageLog">{{
+                  templateMessageLog.name
+                }}</span>
               </li>
             </ul>
           </template>
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
-          
+
           <template v-slot:item.odooOrderName="{ item }">
             <div v-if="item.odooOrderName">
               <a
@@ -313,6 +313,19 @@
               </div>
             </div>
           </template>
+          <template v-slot:item.odooInfo="{ item }">
+            <template v-if="item.odooInfo">
+              <div v-if="item.odooInfo.sale_order_count">
+                Ventas: {{ item.odooInfo.sale_order_count }}
+              </div>
+              <div v-if="item.odooInfo.sale_order_count">
+                Tickets: {{ item.odooInfo.helpdesk_ticket_count }}
+              </div>
+              <div v-if="item.odooInfo.sale_order_count">
+                TPV: {{ item.odooInfo.pos_order_count }}
+              </div>
+            </template>
+          </template>
 
           <template v-slot:item.client="{ item }">
             <div>
@@ -331,7 +344,11 @@
           </template>
 
           <template v-slot:item.phone="{ item }">
-            {{ item.ecommercesContactId ? item.ecommercesContactId.phone : "Sin número" }}
+            {{
+              item.ecommercesContactId
+                ? item.ecommercesContactId.phone
+                : "Sin número"
+            }}
           </template>
 
           <template v-slot:[`item.status`]="{ item }">
@@ -382,7 +399,7 @@
               Guía
             </v-btn>
             <v-btn
-              class="mb-2"
+              class="mr-2 mb-2"
               small
               color="primary"
               @click="openAbandonedCart(item)"
@@ -447,7 +464,7 @@
         :order="currentOrder"
       />
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -464,6 +481,7 @@ import Guide from "./Guide.vue";
 import AbandonedCart from "./AbandonedCart.vue";
 import SizeConfirmation from "./SizeConfirmation.vue";
 import ecommercesOrdersApi from '@/services/api/ecommercesOrders'
+import odooService from "@/services/api/odoo";
 
 export default {
   components: {
@@ -475,7 +493,7 @@ export default {
     SizeConfirmation,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -526,7 +544,9 @@ export default {
         align: "left",
         sortable: false,
         value: "odooOrderName",
+        width: "50px",
       },
+
       {
         text: "Estado",
         align: "left",
@@ -550,6 +570,13 @@ export default {
         align: "left",
         sortable: false,
         value: "total",
+      },
+      {
+        text: "Odoo",
+        align: "left",
+        sortable: false,
+        value: "odooInfo",
+        width: "100px",
       },
       {
         text: "Mensajes Plantillas",
@@ -650,6 +677,29 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // fetch odoo info for each lead
+      this[ENTITY].forEach((order, index) => {
+        if (
+          order.ecommercesContactId &&
+          order.ecommercesContactId.cleanLeadId &&
+          order.ecommercesContactId.cleanLeadId.odoo_id
+        ) {
+          const odoo_id = order.ecommercesContactId.cleanLeadId.odoo_id;
+          odooService
+            .getPartnerInfo(odoo_id)
+            .then((res) => {
+              // const result = res.data.payload.result;
+              this.$set(this[ENTITY], index, {
+                ...this[ENTITY][index],
+                odoo_id,
+                odooInfo: res.data.payload.result,
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
     },
     toggleCountry(country) {
       if (this.selectedCountry === country.value) {
@@ -735,17 +785,21 @@ export default {
       urls.splice(index, 1);
     },
     getClientFullName(order) {
-      const firstName = order.ecommercesContactId ? order.ecommercesContactId.first_name : ""
-      const lastName = order.ecommercesContactId ? order.ecommercesContactId.last_name : ""
-      return `${firstName} ${lastName}`
+      const firstName = order.ecommercesContactId
+        ? order.ecommercesContactId.first_name
+        : "";
+      const lastName = order.ecommercesContactId
+        ? order.ecommercesContactId.last_name
+        : "";
+      return `${firstName} ${lastName}`;
     },
 
     getClientOdooId(order) {
-      return order.ecommercesContactId?.cleanLeadId?.odoo_id
+      return order.ecommercesContactId?.cleanLeadId?.odoo_id;
     },
 
     getSaleOrderLink(id) {
-      return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
+      return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`;
     },
     getOrderPartnerLink(id) {
       return `https://mujeron.odoo.com/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
