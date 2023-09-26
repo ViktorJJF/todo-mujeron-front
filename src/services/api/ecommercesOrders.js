@@ -12,4 +12,8 @@ export default {
   delete(id, payload) {
     return axios.delete(`/api/ecommerces-orders/${id}`, { data: payload });
   },
+  async genialRetry(id) {
+    const res =  await axios.post(`/api/ecommerces-orders/${id}/genial-retry`);
+    return res.data
+  },
 };
