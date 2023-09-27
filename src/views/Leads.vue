@@ -720,11 +720,6 @@
       hide-overlay
       transition="dialog-bottom-transition"
     >
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" dark v-bind="attrs" v-on="on">
-          Open Dialog
-        </v-btn>
-      </template>
       <v-card>
         <v-toolbar dark color="primary">
           <v-btn
@@ -734,6 +729,7 @@
               selectedCleanLead = null;
               selectedChatId = null;
               chatDialog = false;
+              noChat = false;
             "
           >
             <v-icon>mdi-close</v-icon>
@@ -750,6 +746,7 @@
                 selectedCleanLead = null;
                 selectedChatId = null;
                 chatDialog = false;
+                noChat = false;
               "
             >
               Finalizar
@@ -773,6 +770,8 @@
             scrolling="no"
             style="height: 100vh;"
           ></iframe>
+          <h3 v-else-if="!noChat">Cargando...</h3>
+          <h3 v-if="noChat">Sin chat</h3>
         </div>
       </v-card>
     </v-dialog>
@@ -820,6 +819,7 @@ export default {
     },
   },
   data: () => ({
+    noChat: false,
     selectedChatId: null,
     selectedCleanLead: null,
     chatDialog: false,
@@ -1370,6 +1370,8 @@ export default {
         const chats = (await chatService.getAllByCleanLeadId(id)).data.payload;
         if (chats.length > 0) {
           this.selectedChatId = chats[0]._id;
+        } else {
+          this.noChat = true;
         }
       } catch (error) {
         console.log(error);

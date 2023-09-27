@@ -6,6 +6,19 @@
     <v-container class="pa-5">
       <v-row>
         <v-col cols="12" sm="12" md="12">
+          <span class="font-weight-bold">Mensaje Plantilla</span>
+          <v-select
+            dense
+            hide-details
+            placeholder="Selecciona una plantilla"
+            outlined
+            :items="abandonedCartTemplateMessages"
+            item-text="name"
+            item-value="_id"
+            v-model="selectedTemplateMessage"
+          ></v-select>
+        </v-col>
+        <v-col cols="12" sm="12" md="12">
           <span class="font-weight-bold">Teléfono WhatsApp</span>
           <v-text-field
             v-model="whatsappPhone"
@@ -52,6 +65,13 @@ export default {
       whatsappPhone: "",
       loadingButton: false,
       skuProducts: "",
+      selectedTemplateMessage: "carrito_abandonado_primera_compra",
+      abandonedCartTemplateMessages: [
+        "carrito_abandonado_primera_compra",
+        "carrito_abandonado_segunda_compra",
+        "carrito_abandonado_3_a_5_compras",
+        "carrito_abandonado_5_a_10_compras",
+      ],
     };
   },
   computed: {},
@@ -70,11 +90,25 @@ export default {
         : this.order.ecommercesContactId.phone;
       try {
         // sending template message
+        let parameters = {
+          carrito_abandonado_primera_compra: [
+            this.order.ecommercesContactId.first_name,
+            this.skuProducts,
+            this.order.url,
+          ],
+          carrito_abandonado_segunda_compra: [this.order.url, this.skuProducts],
+          carrito_abandonado_3_a_5_compras: [this.order.url, this.skuProducts],
+          carrito_abandonado_5_a_10_compras: [
+            this.order.ecommercesContactId.first_name,
+            this.skuProducts,
+            this.order.url,
+          ],
+        };
         let response = await graphApiService.sendWhatsappMessageTemplates(
           phone,
-          "compras_fallidas",
+          this.selectedTemplateMessage,
           {
-            body: [this.order.ecommercesContactId.first_name, this.skuProducts],
+            body: parameters[this.selectedTemplateMessage],
           },
           "639df6124427e2337b8112e7", // TODO change this to select bot dynamically
           this.order.ecommercesContactId.cleanLeadId._id,

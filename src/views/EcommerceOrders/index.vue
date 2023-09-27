@@ -297,14 +297,13 @@
                 <v-btn icon @click="handleGenialRetry(item)">
                   <v-icon>mdi-cached</v-icon>
                 </v-btn>
-                <v-tooltip v-if="!item.odooOrderName && item.lastOdooError" bottom color="error">
+                <v-tooltip
+                  v-if="!item.odooOrderName && item.lastOdooError"
+                  bottom
+                  color="error"
+                >
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      color="error"
-                      v-bind="attrs"
-                      v-on="on"
-                    >
+                    <v-btn icon color="error" v-bind="attrs" v-on="on">
                       <v-icon>mdi-alert-circle-outline</v-icon>
                     </v-btn>
                   </template>
@@ -344,11 +343,30 @@
           </template>
 
           <template v-slot:item.phone="{ item }">
-            {{
-              item.ecommercesContactId
-                ? item.ecommercesContactId.phone
-                : "Sin número"
-            }}
+            <div
+              v-if="
+                item.ecommercesContactId && item.ecommercesContactId.cleanLeadId
+              "
+              style="cursor: pointer; color: blue; text-decoration: underline;"
+              @click.stop="
+                chatDialog = true;
+                selectedCleanLead = item.ecommercesContactId.cleanLeadId;
+                getCleanLeadsChats(item.ecommercesContactId.cleanLeadId._id);
+              "
+            >
+              {{
+                item.ecommercesContactId
+                  ? item.ecommercesContactId.phone
+                  : "Sin número"
+              }}
+            </div>
+            <div v-else>
+              {{
+                item.ecommercesContactId
+                  ? item.ecommercesContactId.phone
+                  : "Sin número"
+              }}
+            </div>
           </template>
 
           <template v-slot:[`item.status`]="{ item }">
@@ -464,6 +482,68 @@
         :order="currentOrder"
       />
     </v-dialog>
+    <v-dialog
+      v-if="chatDialog"
+      v-model="chatDialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn
+            icon
+            dark
+            @click="
+              selectedCleanLead = null;
+              selectedChatId = null;
+              chatDialog = false;
+              noChat = false;
+            "
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title
+            >Chat en vivo con {{ selectedCleanLead.telefono }}</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn
+              dark
+              text
+              @click="
+                selectedCleanLead = null;
+                selectedChatId = null;
+                chatDialog = false;
+                noChat = false;
+              "
+            >
+              Finalizar
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <div>
+          <!-- chat iframe content -->
+          <iframe
+            v-if="selectedChatId"
+            :src="
+              `${
+                getEnvironment === 'development'
+                  ? 'http://localhost:3030'
+                  : 'https://chat.todofull.club'
+              }/apps/chat?chatId=${selectedChatId}&isChatOneToOne=true`
+            "
+            width="100%"
+            height="100%"
+            frameborder="0"
+            scrolling="no"
+            style="height: 100vh;"
+          ></iframe>
+          <h3 v-else-if="!noChat">Cargando...</h3>
+          <h3 v-if="noChat">Sin chat</h3>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -480,8 +560,10 @@ import OrderDetails from "./Details.vue";
 import Guide from "./Guide.vue";
 import AbandonedCart from "./AbandonedCart.vue";
 import SizeConfirmation from "./SizeConfirmation.vue";
-import ecommercesOrdersApi from '@/services/api/ecommercesOrders'
+import ecommercesOrdersApi from "@/services/api/ecommercesOrders";
 import odooService from "@/services/api/odoo";
+import chatService from "@/services/api/chats";
+import environment from "@/environment";
 
 export default {
   components: {
@@ -501,6 +583,8 @@ export default {
   },
   data: () => ({
     //datos del componente
+    chatDialog: false,
+    noChat: false,
     selectedCountry: "Chile",
     selectedOrderStates: [],
     selectedPendingTasks: [],
@@ -604,8 +688,12 @@ export default {
     abandonedCartModal: false,
     sizeConfirmationModal: false,
     currentOrder: null,
+    selectedChatId: null,
   }),
   computed: {
+    getEnvironment() {
+      return environment;
+    },
     totalItems() {
       return this.$store.state[ENTITY + "Module"].total;
     },
@@ -802,26 +890,40 @@ export default {
       return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`;
     },
     getOrderPartnerLink(id) {
-      return `https://mujeron.odoo.com/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`
+      return `https://mujeron.odoo.com/web#id=${id}&action=209&model=res.partner&view_type=form&cids=1&menu_id=224`;
     },
     async handleGenialRetry(order) {
       const res = await ecommercesOrdersApi.genialRetry(order._id);
- 
-      const successful = res.ok === true
 
-      const lastOdooError = !successful 
-        ? res.error.data?.message ?? res.error.message ?? 'Unknown error occurred'
-        : undefined
-      
+      const successful = res.ok === true;
+
+      const lastOdooError = !successful
+        ? res.error.data?.message ??
+          res.error.message ??
+          "Unknown error occurred"
+        : undefined;
+
       Object.assign(order, {
         odooOrderId: successful ? res.payload.order_new_id : undefined,
         odooOrderName: successful ? res.payload.order_new_name : undefined,
-        lastOdooError: lastOdooError
+        lastOdooError: lastOdooError,
       });
 
       let index = this[[ENTITY]].findIndex((o) => o._id === order._id);
 
       this[[ENTITY]].splice(index, 1, order);
+    },
+    async getCleanLeadsChats(id) {
+      try {
+        const chats = (await chatService.getAllByCleanLeadId(id)).data.payload;
+        if (chats.length > 0) {
+          this.selectedChatId = chats[0]._id;
+        } else {
+          this.noChat = true;
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };
