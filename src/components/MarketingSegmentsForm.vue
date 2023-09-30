@@ -64,6 +64,18 @@
               label="Incluir leads sin email (Mailchimp)"
             ></v-checkbox>
           </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <span class="font-weight-bold">Otros filtros</span>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithChats"
+              label="Incluir leads con chats"
+              :disabled="true"
+            ></v-checkbox>
+            <v-checkbox
+              v-model="editedItem.filters.includeWithSales"
+              label="Incluir leads con ventas"
+            ></v-checkbox>
+          </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">País</span>
             <CountriesSelector
@@ -192,6 +204,8 @@ export default {
         filters: {
           includeWithEmail: true,
           includeWithoutEmail: true,
+          includeWithChats: true,
+          includeWithSales: false,
           includeWithIDGenial: true,
           includeWithoutIDGenial: true,
         },

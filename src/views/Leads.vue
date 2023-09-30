@@ -1027,7 +1027,9 @@ export default {
         body["segmentId"] = this.selectedSegment._id;
       }
       await Promise.all([
-        this.$store.dispatch("cleanLeadsModule/list", body),
+        this.selectedSegment
+          ? this.$store.dispatch("cleanLeadsModule/listWithAdvanceFilter", body)
+          : this.$store.dispatch("cleanLeadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),

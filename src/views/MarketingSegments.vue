@@ -210,6 +210,8 @@ export default {
       todofullLabels: [],
       filters: {
         includeWithEmail: true,
+        includeWithChats: true,
+        includeWithSales: false,
         includeWithoutEmail: true,
         includeWithIDGenial: true,
         includeWithoutIDGenial: true,

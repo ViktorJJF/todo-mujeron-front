@@ -13,6 +13,18 @@ export default {
     }
     return axios.get("/api/clean-leads", { params: query });
   },
+  listWithAdvanceFilter(query = { sort: "createdAt", order: "1" }) {
+    if (query.telefonoId === null) query.telefonoId = "";
+    if (query.todofullLabels) {
+      query.todofullLabels = JSON.stringify(query.todofullLabels);
+    }
+    if (query.countries) {
+      query.countries = JSON.stringify(query.countries);
+    }
+    return axios.get("/api/clean-leads/list_with_advance_filter", {
+      params: query,
+    });
+  },
   listAll(query = { sort: "createdAt", order: "1" }) {
     if (query.telefonoId === null) query.telefonoId = "";
     if (query.pais) {

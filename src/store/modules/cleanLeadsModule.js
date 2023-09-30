@@ -30,6 +30,27 @@ const module = {
           });
       });
     },
+    listWithAdvanceFilter({ commit }, query) {
+      return new Promise((resolve, reject) => {
+        api
+          .listWithAdvanceFilter(query)
+          .then((response) => {
+            let cleanLeads = response.data.payload;
+            for (const cleanLead of cleanLeads) {
+              cleanLead.details = cleanLead.details.sort(function(a, b) {
+                return new Date(b.updatedAt) - new Date(a.updatedAt);
+              });
+            }
+            commit("list", cleanLeads);
+            commit("totalItems", response.data.totalDocs);
+            commit("totalPages", response.data.totalPages);
+            resolve(cleanLeads);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
     listAll({ commit }, query) {
       return new Promise((resolve, reject) => {
         api

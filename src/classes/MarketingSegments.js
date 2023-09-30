@@ -5,6 +5,8 @@ export default () => ({
   filters: {
     includeWithEmail: true,
     includeWithoutEmail: true,
+    includeWithChats: true,
+    includeWithSales: false,
     includeWithIDGenial: true,
     includeWithoutIDGenial: true,
   },
