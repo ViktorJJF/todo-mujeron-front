@@ -21,11 +21,11 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
-              >
-              <v-row>
+              <v-row v-bind="{ align: 'end' }">
                 <v-col cols="12" sm="6">
+                  <span class="font-weight-bold">
+                    Filtrar por nombre: {{ search }}
+                  </span>
                   <v-text-field
                     dense
                     hide-details
@@ -36,13 +36,13 @@
                     outlined
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="3">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
                       <v-btn
                         color="primary"
                         dark
-                        class="mb-2"
+                        class="mb-1"
                         v-on="on"
                         v-show="rolPermisos['Write']"
                         >Agregar dominio</v-btn
@@ -138,6 +138,21 @@
                     </v-card>
                   </v-dialog>
                 </v-col>
+                <v-col cols="12" sm="3" v-if="stockBoundary">
+                  <span class="font-weight-bold">
+                    Stock Minimo
+                  </span>
+                  <v-text-field
+                    hide-details
+                    v-model.number="minStock"
+                    type="number"
+                    min="0"
+                    placeholder="Stock Minimo"
+                    single-line
+                    outlined
+                    @change="handleMinStockChange"
+                  ></v-text-field>
+                </v-col>
               </v-row>
             </v-container>
           </template>
@@ -201,6 +216,8 @@ import Woocommerces from "@/classes/Woocommerces";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
 import vendorsApi from "@/services/api/vendors";
+import stockBoundaryApi from '@/services/api/stockBoundary'
+import { isNil } from 'lodash'
 
 export default {
   components: {
@@ -249,6 +266,8 @@ export default {
     locaciones: [],
     rolPermisos: {},
     vendors: [],
+    stockBoundary: null,
+    minStock: null
   }),
 
   computed: {
@@ -284,6 +303,13 @@ export default {
     },
 
     async initialize() {
+      stockBoundaryApi.findByTarget('woocommerce').then(res => {
+        this.stockBoundary = res.data.payload
+        if (this.stockBoundary) {
+          this.minStock = this.stockBoundary.min
+        }
+      })
+
       await Promise.all([
         this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch("locacionesModule/list"),
@@ -323,6 +349,15 @@ export default {
         await this.$store.dispatch("woocommercesModule/delete", itemId);
         this.woocommerces.splice(index, 1);
       }
+    },
+
+    async handleMinStockChange(value) {
+      const hasChange = value !== this.stockBoundary.min
+      if (!hasChange) return
+      if(isNil(value) || value === '') return
+
+      const res = await stockBoundaryApi.update({ ...this.stockBoundary, min: value })
+      this.stockBoundary = res.data.payload
     },
 
     close() {

@@ -21,11 +21,11 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
-              >
-              <v-row>
+              <v-row v-bind="{ align: 'end' }">
                 <v-col cols="12" sm="6">
+                  <span class="font-weight-bold"
+                    >Filtrar por nombre: {{ search }}</span
+                  >
                   <v-text-field
                     dense
                     hide-details
@@ -36,10 +36,10 @@
                     outlined
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="3">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">
+                      <v-btn color="primary" class="mb-1" dark v-on="on">
                         Agregar Marketplace
                       </v-btn>
                     </template>
@@ -171,6 +171,22 @@
                     </v-card>
                   </v-dialog>
                 </v-col>
+
+                <v-col cols="12" sm="3" v-if="stockBoundary">
+                  <span class="font-weight-bold">
+                    Stock Minimo
+                  </span>
+                  <v-text-field
+                    hide-details
+                    v-model.number="minStock"
+                    type="number"
+                    min="0"
+                    placeholder="Stock Minimo"
+                    single-line
+                    outlined
+                    @change="handleMinStockChange"
+                  ></v-text-field>
+                </v-col>
               </v-row>
             </v-container>
           </template>
@@ -224,6 +240,8 @@ import MaterialCard from "@/components/material/Card";
 import Sources from "@/classes/MarketplaceSources";
 import { es } from "date-fns/locale";
 import vendorsApi from '@/services/api/vendors'
+import stockBoundaryApi from '@/services/api/stockBoundary'
+import { isNil } from 'lodash'
 
 export default {
   components: {
@@ -285,7 +303,9 @@ export default {
     editedItem: Sources(),
     defaultItem: Sources(),
     locaciones: [],
-    vendors: []
+    vendors: [],
+    stockBoundary: null,
+    minStock: null
   }),
 
   computed: {
@@ -307,6 +327,12 @@ export default {
   methods: {
 
     async initialize() {
+      stockBoundaryApi.findByTarget('marketplace').then(res => {
+        this.stockBoundary = res.data.payload
+        if (this.stockBoundary) {
+          this.minStock = this.stockBoundary.min
+        }
+      })
 
       await Promise.all([
         this.$store.dispatch("marketplaceSourcesModule/list"),
@@ -338,6 +364,15 @@ export default {
         await this.$store.dispatch("marketplaceSourcesModule/delete", itemId);
         this.sources.splice(index, 1);
       }
+    },
+
+    async handleMinStockChange(value) {
+      const hasChange = value !== this.stockBoundary.min
+      if (!hasChange) return
+      if(isNil(value) || value === '') return
+
+      const res = await stockBoundaryApi.update({ ...this.stockBoundary, min: value })
+      this.stockBoundary = res.data.payload
     },
 
     close() {
