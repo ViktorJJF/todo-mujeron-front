@@ -584,11 +584,7 @@ export default {
         : this.$t(this.entity + ".EDIT_ITEM");
     },
     items() {
-      if (this.search.length) {
-        return this[ENTITY];
-      }
-
-      return this[ENTITY].filter((item) => item.stock_status !== "outofstock");
+      return this[ENTITY]
     },
     entity() {
       return ENTITY;
