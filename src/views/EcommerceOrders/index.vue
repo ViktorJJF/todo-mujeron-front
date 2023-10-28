@@ -597,7 +597,7 @@ export default {
       { label: "Re intentó", value: "re-intento" },
       { label: "En Espera", value: "on-hold" },
     ],
-    fieldsToSearch: ["odooOrderName", "status", "phone"],
+    fieldsToSearch: ["idOrder", "odooOrderName", "status", "phone"],
     countries: [
       { value: "Peru", icon: "/assets/images/flags/peru.png" },
       { value: "Chile", icon: "/assets/images/flags/chile.png" },
