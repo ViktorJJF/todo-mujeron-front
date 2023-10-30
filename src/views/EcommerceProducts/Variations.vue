@@ -216,6 +216,12 @@ export default {
         value: "country",
       },
       {
+        text: "Fuente",
+        align: "left",
+        sortable: false,
+        value: 'url'
+      },
+      {
         text: "SKU",
         align: "left",
         sortable: false,
