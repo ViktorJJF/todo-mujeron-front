@@ -180,7 +180,6 @@ export default {
     ],
     fieldsToSearch: [
       "externalId",
-      "variations.externalId",
       "name",
       "country",
       "permalink",
@@ -189,6 +188,8 @@ export default {
       "status",
       "sku",
       "url",
+      "variations.sku",
+      "variations.externalId",
     ],
     pageCount: 0,
     search: "",
