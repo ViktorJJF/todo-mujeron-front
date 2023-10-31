@@ -179,6 +179,8 @@ export default {
       val => !!val || "El campo es requerido"
     ],
     fieldsToSearch: [
+      "externalId",
+      "variations.externalId",
       "name",
       "country",
       "permalink",
