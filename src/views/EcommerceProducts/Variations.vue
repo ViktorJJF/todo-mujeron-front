@@ -179,6 +179,7 @@ export default {
       val => !!val || "El campo es requerido"
     ],
     fieldsToSearch: [
+      "externalId",
       "name",
       "country",
       "permalink",
@@ -187,6 +188,8 @@ export default {
       "status",
       "sku",
       "url",
+      "variations.sku",
+      "variations.externalId",
     ],
     pageCount: 0,
     search: "",
