@@ -5,6 +5,12 @@ import { localStorageGet } from "@/utils/utils";
 Vue.use(Router);
 
 let routes = [
+  // root path
+  {
+    path: "/",
+    name: "LandingPage",
+    component: () => import("./views/LandingPage.vue"),
+  },
   {
     path: "/login",
     name: "login",
@@ -401,7 +407,7 @@ router.beforeEach((to, from, next) => {
     ? true
     : store.getters["authModule/isTokenSet"];
   if (requiresAuth && !isTokenSet) {
-    return next({ name: "login" });
+    return next();
   }
   // checkIfTokenNeedsRefresh();
   // store.commit("successModule/success", null);
