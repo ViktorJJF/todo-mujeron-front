@@ -528,8 +528,10 @@
             v-if="selectedChatId"
             :src="
               `${
-                getEnvironment === 'development'
+                getEnvironment === 'local'
                   ? 'http://localhost:3030'
+                  : getEnvironment === 'development'
+                  ? 'https://dev.chat.todofull.club'
                   : 'https://chat.todofull.club'
               }/apps/chat?chatId=${selectedChatId}&isChatOneToOne=true`
             "
