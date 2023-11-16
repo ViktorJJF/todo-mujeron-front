@@ -407,7 +407,7 @@ router.beforeEach((to, from, next) => {
     ? true
     : store.getters["authModule/isTokenSet"];
   if (requiresAuth && !isTokenSet) {
-    return next();
+    return next({ name: "login" });
   }
   // checkIfTokenNeedsRefresh();
   // store.commit("successModule/success", null);

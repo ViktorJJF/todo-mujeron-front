@@ -954,8 +954,8 @@
             class="mt-3"
             v-show="
               selectedMessage.payload &&
-              selectedMessage.payload.image_url &&
-              !isErrorStory
+                selectedMessage.payload.image_url &&
+                !isErrorStory
             "
             aspect-ratio="0.7"
             contain
@@ -1009,7 +1009,7 @@ export default {
     InfiniteScroll,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       let date = new Date(value);
       return formatDistance(new Date(), date, { addSuffix: true, locale: es });
     },
@@ -1043,6 +1043,8 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
+          pageId: "17841406198680710",
+          limit: 10,
         }),
       ]);
       // this.$store.commit("chatsModule/setChats", this.chats);
@@ -1086,8 +1088,8 @@ export default {
     connectAgent() {
       const user = JSON.parse(localStorage.getItem("user"));
       let message =
-        "🤝👩🏻‍💼 Ahora estás conversando con el agente " +
-        user.alias || user.first_name;
+        "🤝👩🏻‍💼 Ahora estás conversando con el agente " + user.alias ||
+        user.first_name;
 
       if (!this.isAgentConnected) {
         console.log("CONECTANDO AGENTE");

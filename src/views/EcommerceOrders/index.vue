@@ -314,6 +314,12 @@
           </template>
           <template v-slot:item.odooInfo="{ item }">
             <template v-if="item.odooInfo">
+              <div v-if="item.odooInfo.team_id">
+                Team ID: {{ item.odooInfo.team_id }}
+              </div>
+              <div v-if="item.odooInfo.rmf_score">
+                RFM: {{ item.odooInfo.rmf_score }}
+              </div>
               <div v-if="item.odooInfo.sale_order_count">
                 Ventas: {{ item.odooInfo.sale_order_count }}
               </div>
