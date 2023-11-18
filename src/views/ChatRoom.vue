@@ -51,7 +51,7 @@
                               <!-- Avatar -->
                               <img
                                 class="dt-avatar"
-                                src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
+                                src="/images/users/3.jpg"
                                 alt="Steve Smith"
                               />
                               <!-- /avatar -->
@@ -63,8 +63,10 @@
                                   style="font-size: 17px"
                                 >
                                   {{
-                                    chat.cleanLeadId
-                                      ? chat.cleanLeadId.details[0].nombre
+                                    chat.leadId &&
+                                    chat.leadId.appName &&
+                                    chat.leadId.appName.trim()
+                                      ? chat.leadId.appName
                                       : "Cliente"
                                   }}
                                 </h4>
@@ -208,7 +210,7 @@
                             <!-- Avatar -->
                             <img
                               class="dt-avatar"
-                              src="assets/images/user-avatar/steve-smith.jpg"
+                              src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png"
                               alt="Steve Smith"
                             />
                             <!-- /avatar -->
@@ -318,15 +320,17 @@
                   <div class="dt-avatar-status mr-2">
                     <img
                       class="dt-avatar size-45"
-                      src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
+                      src="/images/users/3.jpg"
                       alt="Domnic Brown"
                     />
                     <div class="dot-shape bg-success dot-shape-lg"></div>
                   </div>
                   <span class="dt-avatar-info">
                     <a href="javascript:void(0)" class="dt-avatar-name">{{
-                      selectedChat.cleanLeadId
-                        ? selectedChat.cleanLeadId.details[0].nombre
+                      selectedChat.leadId &&
+                      selectedChat.leadId.appName &&
+                      selectedChat.leadId.appName.trim()
+                        ? selectedChat.leadId.appName
                         : "Cliente"
                     }}</a>
                     <span class="d-inline-block">{{
@@ -375,7 +379,7 @@
                         class="dt-avatar size-60"
                         :src="
                           message.from === 'Cliente'
-                            ? 'https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png'
+                            ? '/images/users/3.jpg'
                             : message.from === 'Agente'
                             ? 'https://cdn-icons-png.flaticon.com/512/4017/4017991.png'
                             : '/assets/images/chatbot.png'
@@ -879,7 +883,7 @@
                           <!-- Avatar -->
                           <img
                             class="dt-avatar mr-3"
-                            src="assets/images/user-avatar/steve-smith.jpg"
+                            src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png"
                             alt="User"
                           />
                           <!-- avatar -->
@@ -1043,8 +1047,9 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
-          pageId: "17841406198680710",
+          selectedCountry: "Peru",
           limit: 10,
+          platforms: ["instagram"],
         }),
       ]);
       // this.$store.commit("chatsModule/setChats", this.chats);

@@ -786,7 +786,9 @@ export default {
               this.$set(this[ENTITY], index, {
                 ...this[ENTITY][index],
                 odoo_id,
-                odooInfo: res.data.payload.result,
+                odooInfo:
+                  order.ecommercesContactId.cleanLeadId.odoo_metadata ||
+                  res.data.payload.result,
               });
             })
             .catch((err) => {

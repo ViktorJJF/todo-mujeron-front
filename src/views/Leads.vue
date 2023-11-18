@@ -428,8 +428,24 @@
               >{{ item.odoo_id }}</a
             >
           </div>
-
-          <template v-if="item.odooInfo">
+          <template v-if="item.odoo_metadata">
+            <div v-if="item.odoo_metadata.team_id">
+              Team ID: {{ item.odoo_metadata.team_id }}
+            </div>
+            <div v-if="item.odoo_metadata.rmf_score">
+              RFM: {{ item.odoo_metadata.rmf_score }}
+            </div>
+            <div v-if="item.odoo_metadata.sale_order_count">
+              Ventas: {{ item.odoo_metadata.sale_order_count }}
+            </div>
+            <div v-if="item.odoo_metadata.sale_order_count">
+              Tickets: {{ item.odoo_metadata.helpdesk_ticket_count }}
+            </div>
+            <div v-if="item.odoo_metadata.sale_order_count">
+              TPV: {{ item.odoo_metadata.pos_order_count }}
+            </div>
+          </template>
+          <template v-else-if="item.odooInfo">
             <div v-if="item.odooInfo.team_id">
               Team ID: {{ item.odooInfo.team_id }}
             </div>
