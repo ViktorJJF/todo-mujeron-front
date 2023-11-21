@@ -8,20 +8,84 @@
         title="Marketplaces"
         text="Modificar por lote"
       >
-        <div class="wrapper">
-          <v-form class="form" @submit.prevent="handleBulkInsert">
-            <v-select
-              v-model="country"
-              :items="countries"
-              label="Paise"
-              hide-details
-              outlined
-              dense
-            />
-            <v-textarea outlined v-model="rawItems" hide-details />
-            <v-btn type="submit">Insertar</v-btn>
-          </v-form>
-        </div>
+        <v-container>
+          <v-row>
+            <v-col>
+              <v-form class="form" @submit.prevent="handleBulkUpdate">
+                <h2>Modificar productos</h2>
+                <v-select
+                  v-model="country"
+                  :items="countries"
+                  label="Paise"
+                  hide-details
+                  outlined
+                  dense
+                />
+                <v-textarea
+                  outlined
+                  v-model="rawItems"
+                  hide-details
+                  :placeholder="'SKU \t Stock\nSKU \t Stock'"
+                  @input="handleRawItemsChange"
+                />
+                <v-btn type="submit" color="primary">Enviar</v-btn>
+              </v-form>
+            </v-col>
+
+            <v-col>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Cantidad</th>
+                      <th>Marketplaces</th>
+                      <th>Woocommerce</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item of items" :key="item.sku">
+                      <td>{{ item.sku }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>
+                        <div v-if="!item.response"></div>
+                        <div
+                          v-else-if="item.response.marketplace.success === true"
+                        >
+                          <v-icon color="green">mdi-check</v-icon>
+                        </div>
+                        <v-tooltip v-else bottom color="error">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon color="error" v-bind="attrs" v-on="on">
+                              <v-icon>mdi-alert-circle-outline</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ item.response.marketplace.message }}</span>
+                        </v-tooltip>
+                      </td>
+                      <td>
+                        <div v-if="!item.response"></div>
+                        <div
+                          v-else-if="item.response.woocommerce.success === true"
+                        >
+                          <v-icon color="green">mdi-check</v-icon>
+                        </div>
+                        <v-tooltip v-else bottom color="error">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon color="error" v-bind="attrs" v-on="on">
+                              <v-icon>mdi-alert-circle-outline</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ item.response.woocommerce.message }}</span>
+                        </v-tooltip>
+                      </td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-col>
+          </v-row>
+        </v-container>
       </material-card>
     </v-row>
   </v-container>
@@ -35,6 +99,7 @@ export default {
   components: { MaterialCard },
   data() {
     return {
+      items: [],
       rawItems: '',
       country: null,
       countries: [
@@ -44,31 +109,32 @@ export default {
     }
   },
   methods: {
-    async handleBulkInsert() {
-      if (this.country === null) return
-
+    handleRawItemsChange() {
       const items = []
       const match = this.rawItems.matchAll(/^(\S+)\s+(\d+)$/gm) //sku  quantity
       for (const row of match) {
         const [, sku, quantity] = row
         items.push({ sku, quantity })
       }
+      this.items = items
+    },
+    async handleBulkUpdate() {
+      if (this.country === null) return
 
       const data = {
         country: this.country,
-        products: items,
+        products: this.items,
       }
 
       const res = await stockService.bulkUpdate(data)
-      const text = res.data.payload.reduce((text, product) => {
-        return (
-          text +
-          `${product.sku}: \n\t Marketplace: ${JSON.stringify(
-            product.marketplace
-          )} \n\t Woocommerce: ${JSON.stringify(product.woocommerce)}\n`
-        )
-      }, '')
-      alert(text)
+      if (res.data && Array.isArray(res.data.payload)) {
+        this.items = this.items.map((item) => {
+          item.response = res.data.payload.find(
+            (itemRes) => itemRes.sku === item.sku
+          )
+          return item
+        })
+      }
     },
   },
 }
@@ -78,12 +144,13 @@ export default {
 .wrapper {
   padding: 20px;
   display: flex;
+  gap: 20px;
   justify-content: center;
 }
 .form {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  width: 450px;
+  width: 100%;
 }
 </style>
