@@ -2,8 +2,10 @@ import io from "socket.io-client";
 import environment from "@/environment";
 
 let socketUrl =
-  environment === "development"
+  environment === "local"
     ? "http://localhost:3000"
+    : environment === "development"
+    ? "https://dev.todofull.club"
     : "https://todofull.club";
 const socket = io(socketUrl);
 const store = require("@/store/index.js");
