@@ -9,6 +9,7 @@ let routes = [
   {
     path: "/",
     name: "LandingPage",
+    redirect: "/login",
     component: () => import("./views/LandingPage.vue"),
   },
   {

@@ -17,4 +17,7 @@ export default {
       `/api/chats/get_all_by_cleanlead_id?cleanLeadId=${cleanLeadId}`
     );
   },
+  getChats(query = { sort: "name", order: "1", limit: 10, page: 1 }) {
+    return axios.get(`/api/chats/get_chats`, { params: query });
+  },
 };

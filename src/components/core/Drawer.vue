@@ -33,7 +33,7 @@
         color="white"
         v-if="
           checkAuth('Configuracion/TodoFull') ||
-          checkAuth('Configuracion/Propiedades')
+            checkAuth('Configuracion/Propiedades')
         "
       >
         <template v-slot:activator>
@@ -108,9 +108,9 @@
           sub-group
           v-if="
             checkAuth('Configuracion/Propiedades') ||
-            checkAuth('Configuracion/Propiedades/Mailchimp') ||
-            checkAuth('Configuracion/Propiedades/Woocommerces') ||
-            checkAuth('Configuracion/Propiedades/Genial')
+              checkAuth('Configuracion/Propiedades/Mailchimp') ||
+              checkAuth('Configuracion/Propiedades/Woocommerces') ||
+              checkAuth('Configuracion/Propiedades/Genial')
           "
         >
           <template v-slot:activator>
@@ -125,7 +125,7 @@
             :to="{ name: propiedad.to }"
             v-show="
               propiedad.to === 'MarketplaceFuentes' ||
-              checkAuth('Configuracion/Propiedades', propiedad.to)
+                checkAuth('Configuracion/Propiedades', propiedad.to)
             "
           >
             <v-list-item-content>
@@ -244,8 +244,8 @@
         color="white"
         v-if="
           checkAuth('ChatBot/Bots') ||
-          checkAuth('ChatBot/Leads') ||
-          checkAuth('ChatBot/MSN-Facebook')
+            checkAuth('ChatBot/Leads') ||
+            checkAuth('ChatBot/MSN-Facebook')
         "
       >
         <template v-slot:activator>
@@ -275,13 +275,6 @@
           </v-list-item-icon>
 
           <v-list-item-content> Telegram </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
-          <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content> Chat en vivo </v-list-item-content>
         </v-list-item>
         <v-list-group
           color="white"
@@ -370,7 +363,7 @@
             sub-group
             v-if="
               checkAuth('ChatBot/MSN-Facebook', 'Etiqutas-FB-Messenger') ||
-              checkAuth('ChatBot/MSN-Facebook', 'Etiquetas-FB-Ads')
+                checkAuth('ChatBot/MSN-Facebook', 'Etiquetas-FB-Ads')
             "
           >
             <template v-slot:activator>
@@ -401,10 +394,10 @@
                 'ChatBot/MSN-Facebook',
                 'Publicaciones-Comentarios-Defecto'
               ) ||
-              checkAuth(
-                'ChatBot/MSN-Facebook',
-                'Publicaciones-Comentarios-Programado'
-              )
+                checkAuth(
+                  'ChatBot/MSN-Facebook',
+                  'Publicaciones-Comentarios-Programado'
+                )
             "
           >
             <template v-slot:activator>
@@ -677,6 +670,12 @@
           <v-list-item-content>Historial Plantillas</v-list-item-content>
         </v-list-item>
       </v-list-group>
+      <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
+        <v-list-item-icon>
+          <v-icon>mdi-check</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content> Chat en vivo </v-list-item-content>
+      </v-list-item>
 
       <v-divider class="mx-3 mb-3"></v-divider>
     </v-list>
