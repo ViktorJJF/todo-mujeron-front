@@ -124,6 +124,11 @@ let routes = [
         component: () => import("@/views/MarketplaceSources/index.vue"),
       },
       {
+        path: "/marketplaces/lote",
+        name: "MarketplaceBulkUpdate",
+        component: () => import("@/views/MarketplaceBulk/index.vue"),
+      },
+      {
         path: "/contactos",
         name: "Contactos",
         component: () => import("@/views/Contactos.vue"),
