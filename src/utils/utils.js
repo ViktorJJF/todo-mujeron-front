@@ -140,9 +140,9 @@ export const handleError = (error, commit, reject) => {
   console.log("el error: ", error);
   // Checks if unauthorized
   if (!error.response) {
-    commit("errorModule/error", "La solicitud tardó mucho tiempo...", {
-      root: true,
-    });
+    // commit("errorModule/error", "La solicitud tardó mucho tiempo...", {
+    //   root: true,
+    // });
     return reject(error);
   }
   if (error.response.status === 401) {

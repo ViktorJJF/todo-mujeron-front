@@ -1091,9 +1091,7 @@ export default {
     },
     connectAgent() {
       const user = JSON.parse(localStorage.getItem("user"));
-      let message =
-        "🤝👩🏻‍💼 Ahora estás conversando con el agente " + user.alias ||
-        user.first_name;
+      let message = `🤝👩🏻‍💼 Ahora estás conversando con el agente ${user.first_name} ${user.last_name}`;
 
       if (!this.isAgentConnected) {
         console.log("CONECTANDO AGENTE");
