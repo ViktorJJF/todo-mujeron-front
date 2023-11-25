@@ -75,6 +75,36 @@
               v-model="editedItem.filters.includeWithSales"
               label="Incluir leads con ventas"
             ></v-checkbox>
+            <span>Min Ventas</span>
+            <v-text-field
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minSaleOrderCount"
+            ></v-text-field>
+            <span>Min TPV</span>
+            <v-text-field
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minPosOrderCount"
+            ></v-text-field>
+            <span>Min Ventas + TPV</span>
+            <v-text-field
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minSalePosOrderCount"
+            ></v-text-field>
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">País</span>
@@ -208,6 +238,9 @@ export default {
           includeWithSales: false,
           includeWithIDGenial: true,
           includeWithoutIDGenial: true,
+          minSaleOrderCount: 0,
+          minPosOrderCount: 0,
+          minSalePosOrderCount: 0,
         },
         // dateFrom: new Date().toISOString().substr(0, 10),
         // dateTo: new Date().toISOString().substr(0, 10),
