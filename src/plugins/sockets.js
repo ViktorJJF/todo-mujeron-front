@@ -5,8 +5,8 @@ let socketUrl =
   environment === "local"
     ? "http://localhost:3000"
     : environment === "development"
-    ? "https://dev.todofull.club"
-    : "https://todofull.club";
+    ? "https://dev.chatbot.todofull.club"
+    : "https://chatbotmujeron.herokuapp.com";
 const socket = io(socketUrl);
 const store = require("@/store/index.js");
 
@@ -27,12 +27,21 @@ socket.on("NEW_MESSAGE", (data) => {
       chatId,
       isActive: true,
       payload: data.payload,
+      createdAt: new Date().toUTCString(),
+      updatedAt: new Date().toUTCString(),
     });
   }
-  // actualizando ultima fecha mensaje recibido
-  let lastChat = chats.find((el) => el._id === data.chatId);
-  if (lastChat && lastChat.last_message) {
-    lastChat.last_message[0].createdAt = new Date();
+  // updating last message
+  const chatToUpdate = chats.find((chat) => chat._id === data.chatId);
+  if (chatToUpdate) {
+    if (!chatToUpdate.lastMessage) chatToUpdate.lastMessage = { text: "" };
+    chatToUpdate.lastMessage.text = data.text;
+    chatToUpdate.updatedAt = new Date().toUTCString();
+    // aumentando contador mensajes sin leer
+    if (data.from === "Cliente") {
+      chatToUpdate.pending_messages_count += 1;
+    }
+    chatsModule.chats = chatsModule.chats.slice();
   }
 });
 

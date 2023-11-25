@@ -5,6 +5,13 @@ import { localStorageGet } from "@/utils/utils";
 Vue.use(Router);
 
 let routes = [
+  // root path
+  {
+    path: "/",
+    name: "LandingPage",
+    redirect: "/login",
+    component: () => import("./views/LandingPage.vue"),
+  },
   {
     path: "/login",
     name: "login",
@@ -115,6 +122,11 @@ let routes = [
         path: "/marketplaces/fuentes",
         name: "MarketplaceFuentes",
         component: () => import("@/views/MarketplaceSources/index.vue"),
+      },
+      {
+        path: "/marketplaces/lote",
+        name: "MarketplaceBulkUpdate",
+        component: () => import("@/views/MarketplaceBulk/index.vue"),
       },
       {
         path: "/contactos",

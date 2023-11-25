@@ -17,14 +17,14 @@
               <!-- Sidebar Menu -->
               <div class="dt-module__sidebar-content">
                 <!-- Card Header -->
-                <input
+                <!-- <input
                   class="form-control form-control-lg"
                   id="address-1"
                   name="address-1"
                   placeholder="Buscar"
                   type="search"
                   v-model="search"
-                />
+                /> -->
                 <!-- /card header -->
 
                 <!-- Tab Content-->
@@ -51,7 +51,7 @@
                               <!-- Avatar -->
                               <img
                                 class="dt-avatar"
-                                src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
+                                src="/images/users/3.jpg"
                                 alt="Steve Smith"
                               />
                               <!-- /avatar -->
@@ -63,8 +63,10 @@
                                   style="font-size: 17px"
                                 >
                                   {{
-                                    chat.cleanLeadId
-                                      ? chat.cleanLeadId.details[0].nombre
+                                    chat.leadId &&
+                                    chat.leadId.appName &&
+                                    chat.leadId.appName.trim()
+                                      ? chat.leadId.appName
                                       : "Cliente"
                                   }}
                                 </h4>
@@ -208,7 +210,7 @@
                             <!-- Avatar -->
                             <img
                               class="dt-avatar"
-                              src="assets/images/user-avatar/steve-smith.jpg"
+                              src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png"
                               alt="Steve Smith"
                             />
                             <!-- /avatar -->
@@ -318,17 +320,22 @@
                   <div class="dt-avatar-status mr-2">
                     <img
                       class="dt-avatar size-45"
-                      src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png"
+                      src="/images/users/3.jpg"
                       alt="Domnic Brown"
                     />
                     <div class="dot-shape bg-success dot-shape-lg"></div>
                   </div>
                   <span class="dt-avatar-info">
                     <a href="javascript:void(0)" class="dt-avatar-name">{{
-                      selectedChat.cleanLeadId
-                        ? selectedChat.cleanLeadId.details[0].nombre
+                      selectedChat.leadId &&
+                      selectedChat.leadId.appName &&
+                      selectedChat.leadId.appName.trim()
+                        ? selectedChat.leadId.appName
                         : "Cliente"
                     }}</a>
+                    <span
+                      >{{ selectedChat.leadId.follower_count }} Seguidores</span
+                    >
                     <span class="d-inline-block">{{
                       selectedChat.cleanLeadId
                         ? selectedChat.cleanLeadId.telefono
@@ -375,7 +382,7 @@
                         class="dt-avatar size-60"
                         :src="
                           message.from === 'Cliente'
-                            ? 'https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png'
+                            ? '/images/users/3.jpg'
                             : message.from === 'Agente'
                             ? 'https://cdn-icons-png.flaticon.com/512/4017/4017991.png'
                             : '/assets/images/chatbot.png'
@@ -440,7 +447,7 @@
                   <div class="media-body">
                     <!-- Text Area -->
                     <textarea
-                      @keyup.enter="sendTextMessage(text)"
+                      @keyup.enter="sendMessage(text)"
                       class="form-control border-0 shadow-none bg-focus"
                       rows="1"
                       placeholder="Mensaje"
@@ -879,7 +886,7 @@
                           <!-- Avatar -->
                           <img
                             class="dt-avatar mr-3"
-                            src="assets/images/user-avatar/steve-smith.jpg"
+                            src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png"
                             alt="User"
                           />
                           <!-- avatar -->
@@ -954,8 +961,8 @@
             class="mt-3"
             v-show="
               selectedMessage.payload &&
-              selectedMessage.payload.image_url &&
-              !isErrorStory
+                selectedMessage.payload.image_url &&
+                !isErrorStory
             "
             aspect-ratio="0.7"
             contain
@@ -1009,7 +1016,7 @@ export default {
     InfiniteScroll,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       let date = new Date(value);
       return formatDistance(new Date(), date, { addSuffix: true, locale: es });
     },
@@ -1037,12 +1044,14 @@ export default {
     async initialize(page = 1) {
       // traer listado de chats
       await Promise.all([
-        this.$store.dispatch("chatsModule/list", {
+        this.$store.dispatch("chatsModule/getChats", {
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
+          platform: "instagram",
+          limit: 10,
         }),
       ]);
       // this.$store.commit("chatsModule/setChats", this.chats);
@@ -1062,61 +1071,64 @@ export default {
       this.$store.commit("chatsModule/setMessages", this.messages);
       scrollBottom();
     },
-    sendTextMessage(text, from = "Agente") {
-      console.log("ENVIANDO MENSAJE: ", text, from);
-      let payload = {
-        text,
-        from,
-        type: "text",
-        chatId: this.selectedChat._id,
-        isActive: true,
-      };
-      // guardando en bd
-      messagesService.create(payload);
-      this.messages.push(payload);
+    sendMessage(text, from = "Agente", type = "text", { url } = {}) {
+      const user = JSON.parse(localStorage.getItem("user"));
       this.text = "";
-      console.log("🚀 Aqui *** -> this.selectedChat", this.selectedChat);
       socket.emit("AGENT_MESSAGE", {
         senderId: this.selectedChat.leadId.contactId,
         chatId: this.selectedChat._id,
         text: text,
         pageID: this.selectedChat.pageID,
+        platform: this.selectedChat.platform,
+        payload: {
+          url,
+        },
+        type,
+        userId: user._id,
+        from,
       });
+      scrollBottom();
     },
     connectAgent() {
       const user = JSON.parse(localStorage.getItem("user"));
-      let message =
-        "🤝👩🏻‍💼 Ahora estás conversando con el agente " +
-        user.alias || user.first_name;
+      let message = `🤝👩🏻‍💼 Ahora estás conversando con el agente ${user.first_name} ${user.last_name}`;
 
       if (!this.isAgentConnected) {
         console.log("CONECTANDO AGENTE");
-        this.sendTextMessage(message, "Chatbot");
+        this.sendMessage(message, "Chatbot");
         this.isAgentConnected = true;
         // se cambia estado de atendiendo agente en bd
-        chatsService.update(this.selectedChat._id, { userId: user._id });
+        chatsService.update(this.selectedChat._id, {
+          userId: user._id,
+          isBotActive: false,
+        });
         scrollBottom();
         socket.emit("CONNECT_AGENT", {
           senderId: this.selectedChat.leadId.contactId,
           chatId: this.selectedChat._id,
           text: message,
           pageID: this.selectedChat.pageID,
+          platform: "instagram",
         });
       }
     },
     endConversation() {
       const user = JSON.parse(localStorage.getItem("user"));
       let message = `El agente ${user.first_name} ${user.last_name} se ha desconectado`;
-      this.sendTextMessage(message, "Chatbot");
+      this.sendMessage(message, "Chatbot");
       this.isAgentConnected = false;
       this.selectedChat.userId = null;
       chatsService.update(this.selectedChat._id, { userId: null });
-      // socket.emit("DISCONNECT_AGENT", {
-      //   senderId: this.selectedChat.leadId.contactId,
-      //   chatId: this.selectedChat._id,
-      //   text: message,
-      //   pageID: this.selectedChat.pageID,
-      // });
+      chatsService.update(this.selectedChat._id, {
+        isBotActive: true,
+      });
+      socket.emit("DISCONNECT_AGENT", {
+        senderId: this.selectedChat.leadId.contactId,
+        chatId: this.selectedChat._id,
+        text: message,
+        pageID: this.selectedChat.pageID,
+        platform: "instagram",
+      });
     },
     errorStory() {
       this.isErrorStory = true;
