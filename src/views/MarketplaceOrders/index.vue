@@ -556,7 +556,6 @@ export default {
     sort: {
       deep: true,
       handler() {
-        console.log(this.sort)
         clearTimeout(this.delayTimer)
         this.delayTimer = setTimeout(() => {
           this.initialize(this.page)
