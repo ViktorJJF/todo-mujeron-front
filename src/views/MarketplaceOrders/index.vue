@@ -53,6 +53,22 @@
                   >
                   </v-select>
                 </v-col>
+                <v-col cols="12" sm="4">
+                  <v-select
+                    hide-details
+                    v-model="selectedStatus"
+                    @input="initialize"
+                    placeholder="Filtrar por estado"
+                    :items="status"
+                    single-line
+                    clearable
+                    deletable-chips
+                    outlined
+                    multiple
+                    chips
+                  >
+                  </v-select>
+                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="4">
@@ -227,13 +243,25 @@ export default {
     pagination: {},
     sort: {
       field: 'updatedAt',
-      order: 'asc',
+      order: 'desc',
     },
     loadingButton: false,
     sources: [
       { text: 'Dafiti', value: 'dafiti' },
       { text: 'Falabella', value: 'falabella' },
       { text: 'Mercadolibre', value: 'mercadolibre' },
+      { text: 'Ripley', value: 'ripley' },
+    ],
+    status: [
+      { text: 'Entregado', value: 'delivered' },
+      { text: 'No entregado', value: 'not_delivered' },
+      { text: 'Pagado', value: 'paid' },
+      { text: 'Enviado', value: 'shipped' },
+      { text: 'Listo para enviar', value: 'ready_to_ship' },
+      { text: 'Devuelto', value: 'returned' },
+      { text: 'Cerrado', value: 'CLOSED' },
+      { text: 'Cancelado', value: 'CANCELED' },
+      { text: 'Recibido', value: 'RECEIVED' },
     ],
     fieldsToSearch: [
       'odooOrderName',
@@ -244,6 +272,7 @@ export default {
       'customer.lastname',
     ],
     selectedSources: [],
+    selectedStatus: [],
     fulfillmentFilter: [],
     search: '',
     headers: [
@@ -317,6 +346,12 @@ export default {
         )
       }
 
+      if (this.selectedStatus.length) {
+        orders = orders.filter((order) =>
+          this.selectedStatus.includes(order.status)
+        )
+      }
+
       if (this.fulfillmentFilter.length) {
         orders = orders.filter((order) =>
           this.fulfillmentFilter.includes(order.isFulfillment)
@@ -343,6 +378,9 @@ export default {
       }
       if (this.selectedSources.length) {
         body.sources = this.selectedSources
+      }
+      if (this.selectedStatus.length) {
+        body.status = this.selectedStatus
       }
       if (this.fulfillmentFilter.length) {
         body.fulfillment = this.fulfillmentFilter
