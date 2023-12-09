@@ -606,11 +606,11 @@ import MaterialCard from "@/components/material/Card";
 import CommentsFacebook from "@/classes/CommentsFacebook";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
-import { getRandomInt } from "@/utils/utils";
+import { getRandomInt, stripHtml, generateCategoryUrls } from "@/utils/utils";
 import InfiniteScroll from "@/components/InfiniteScroll.vue";
 import graphApiService from "@/services/api/graphApi";
 import openaiService from "@/services/api/openai";
-import { MUJERON_ADN } from "@/constants";
+import woocommerceService from "@/services/api/woocommerce";
 export default {
   components: {
     MaterialCard,
@@ -995,40 +995,125 @@ export default {
 
       this.editedItem.external_id = post.id;
     },
-    generatePrompt(commentToMsn) {
+    async generatePrompt(commentToMsn) {
       let products = commentToMsn.products;
-      console.log("🐞 LOG HERE commentToMsn:", commentToMsn);
+      // populate categories, description and shortDescription
+      products = await Promise.all(
+        products.map(async (product) => {
+          let productData = await woocommerceService.productById(
+            product.woocommerceId,
+            product.idEcommerce
+          );
+          product.categories = await Promise.all(
+            productData.data.payload.categories.map(
+              async (category) =>
+                (
+                  await woocommerceService.categoryById(
+                    product.woocommerceId,
+                    category.id
+                  )
+                ).data.payload
+            )
+          );
+          product.description = productData.data.payload.description;
+          product.shortDescription = productData.data.payload.short_description;
+          product.categoriesUrl = generateCategoryUrls(
+            product.categories,
+            product.url
+          );
+          return product;
+        })
+      );
+      // products=products.map(el=>{...el,categoriesUrl:`${el.url}/`})
       this.prompt =
-        `Te comportaras como un experto community manager deTiendas Mujeron, Te enviaremos un comentario hecho por un visitante de nuestras publicaciones en nuestras redes sociales con el siguiente formato de ejemplo:
-Ejemplo 1
+        `Agrega a tu conocimiento el ADN de Tiendas Mujeron:
+
+$ADN de Tiendas Mujeron:
+Nombre de la Empresa: Tiendas Mujeron
+Propósito: Abrazamos a las Mujeres con nuestras prendas de vestir, haciendo que independientemente de sus medidas, tamaños o edades, no se sientan excluidas de la moda colombiana y logren sentirse más seguras elevando su autoestima
+Misión: Nuestros productos deben abrazar los cuerpos de las mujeres y acompañarlas en su viaje hacia una mayor seguridad en sí mismas.
+$Información General de Tiendas MUjeron
+País: ${commentToMsn.products[0].country}
+Página Web: Mujeron.cl
+URL de guia de tallas de todos nuestros productos: https://mujeron.cl/guia-de-tallas/ 
+Redes Sociales:
+facebook: https://www.facebook.com/MujeronCL
+Instagram: @mujeronjeans
+Youtube: https://www.youtube.com/@TiendasMujeron
+Tiktok: https://www.tiktok.com/@tiendas_mujeron
+Número de Whatsapp: +56 971733614
+Dirección:
+Para quienes llegan en auto: Seguir instrucciones de Google Maps: https://maps.app.goo.gl/mZAFHSAX8VY5zTDP9
+Para quienes llegan en metro: Entrada más cercana en Santa Filomena 440, Recoleta local 23, Santiago de Chile.
+Envíos: Realizan envíos a todas las regiones de Chile. Por compras superiores a $35,000, el envío es gratis.
+Métodos de Pago:
+Pago en página web o por transferencia.
+Datos de Depósito:
+Principal: 
+Nombre: Tiendas Mujeron
+Rut: 77.303.262-9
+BANCO CHILE/EDWARDS
+Tipo de Cuenta: Cuenta Corriente
+Número de Cuenta: 001594722307
+Email: comercial@mujeron.cl
+Nota: Enviar pantallazo o fotos de los pagos e indicar si es factura o boleta.
+
+¿En qué áreas geográficas tiene?: Chile y Perú
+
+¿Qué aspectos hacen diferenciable el negocio?
+La calidad de nuestros productos
+La frecuencia con la que lanzamos nuevos productos
+La variedad de marcas
+La variedad en Categorias: Vestuario Mujer, Fajas Colombianas, Jeans PushUP, Ropa Deportiva
+El calce o horma
+El rango de tallas
+En las Fajas Colombianas desde la xs hasta la 5xl
+En  los Jeans Push UP desde la 36 hasta la 50
+En el Vestuario Femenino desde la S hasta la XL
+La atención al cliente
+La importancia que le damos a los datos del negocio
+La presencia en redes sociales
+Atendemos B2B B2BC y B2C
+Origen Colombiano
+
+Tarea:
+
+Te Actúa como el experto community manager de Tiendas Mujeron, y darás respuesta a el $comentario hecho por un $Usuario de nuestras redes sociales, haciendo uso del $ADN de Tiendas Mujeron, y la $Información del Producto 
+
+instrucciones:
+
+No alucines solo responde con la información contenida en este prompt
+Cumplir con las políticas de la red social.
+LA respuesta no debe contener más de 500 caracteres Se breve
+Simula que responde un humano, puedes usar emoticones. 
+Responde con el nombre de quien te hace la consulta.
+Si te preguntan información adicional de otros productos que no estén en $Detalles de los productos, amablemente le dirás que en el inbox le has dejado más información.
+Si te llegara a faltar información para resolver el comentario debes persuadir de hablarnos en el chat. 
+No envíes URL inventadas.
+
 Pos: https://www.facebook.com/photo/?fbid=728831582620268&set=pcb.728834829286610
 Red Social: ${commentToMsn.platform}
-Pais: ${commentToMsn.products[0].country}
-Usuario: carito la mas bonita
-Comentario: "Donde comprar?"
+Pais: Chile
+$Usuario: carito la mas bonita
+$Comentario: ${this.commentToTest}
 
-Detalles de  los productos: (
-` +
+$Detalles de los productos: [` +
         products.map(
           (product) => `Producto 1:
 En la ref: ${product.ref},
-tenemos disponibles las tallas: ${product.attributes
+Está disponible en estas tallas: ${product.attributes
             .find((attribute) => attribute.name.toLowerCase() == "talla")
             .options.join(" - ")}.
 Su valor es de ${product.variations[0].regular_price}
 y puedes adquirirla en
-${product.permalink}`
+${product.permalink}
+Categorías:
+${product.categoriesUrl.join("\n")}
+
+Descripción producto larga: ${stripHtml(product.description)}`
         ) +
-        `
-
-Tarea:
-
-Resolveras el comentario con la informacion solicitada bien sea del producto o del contexto.
-
-instrucciones:
-Cumplir con las politicas de la red social.
-Se breve, simula que responde un humano, puedes usar emoticones. responde con el nombre de quien te hace la consulta.`;
-      this.prompt += `\nContexto\n${MUJERON_ADN}`;
+        `]
+`;
     },
     generateCompletion() {
       this.isGPTLoading = true;
