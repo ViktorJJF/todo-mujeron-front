@@ -458,7 +458,7 @@ export const getFormattedYoutubeUrl = (link) => {
 };
 
 export const stripHtml=(html)=> {
-  var text = html.replace(/<br\s*[\/]?>/gi, '\n');
+  var text = html.replace(/<br\s*[/]?>/gi, '\n');
   var tempDivElement = document.createElement("div");
   tempDivElement.innerHTML = text;
   return tempDivElement.textContent || tempDivElement.innerText || "";
