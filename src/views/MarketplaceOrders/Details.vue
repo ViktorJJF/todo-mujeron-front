@@ -14,7 +14,9 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">N°Orden:</div>
-              <div class="ml-1">{{order.externalNumber || order.packId || order.externalId}}</div>
+              <div class="ml-1">
+                {{ order.externalNumber || order.packId || order.externalId }}
+              </div>
             </div>
           </v-col>
         </v-row>
@@ -22,7 +24,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Estado:</div>
-              <div class="ml-1">{{order.status}}</div>
+              <div class="ml-1">{{ order.status }}</div>
             </div>
           </v-col>
         </v-row>
@@ -30,7 +32,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Total:</div>
-              <div class="ml-1">{{order.total | currency}}</div>
+              <div class="ml-1">{{ order.total | currency }}</div>
             </div>
           </v-col>
         </v-row>
@@ -38,7 +40,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Fecha de creación:</div>
-              <div class="ml-1">{{order.createdAt}}</div>
+              <div class="ml-1">{{ order.createdAt }}</div>
             </div>
           </v-col>
         </v-row>
@@ -46,7 +48,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Última actualización:</div>
-              <div class="ml-1">{{order.updatedAt}}</div>
+              <div class="ml-1">{{ order.updatedAt }}</div>
             </div>
           </v-col>
         </v-row>
@@ -54,7 +56,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Fecha de cierre:</div>
-              <div class="ml-1">{{order.closedAtSource}}</div>
+              <div class="ml-1">{{ order.closedAtSource }}</div>
             </div>
           </v-col>
         </v-row>
@@ -70,8 +72,8 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Nombre:</div>
-               <div class="ml-1 text-capitalize">
-                {{order.customer.firstname}} {{order.customer.lastname}}
+              <div class="ml-1 text-capitalize">
+                {{ order.customer.firstname }} {{ order.customer.lastname }}
               </div>
             </div>
           </v-col>
@@ -80,7 +82,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">País:</div>
-              <div class="ml-1">{{order.customer.country}}</div>
+              <div class="ml-1">{{ order.customer.country }}</div>
             </div>
           </v-col>
         </v-row>
@@ -88,7 +90,7 @@
           <v-col>
             <div class="d-flex">
               <div class="body-1 font-weight-bold">Comúna:</div>
-              <div class="ml-1">{{order.customer.city}}</div>
+              <div class="ml-1">{{ order.customer.city }}</div>
             </div>
           </v-col>
         </v-row>
@@ -107,22 +109,18 @@
             :headers="headers"
             :items="items"
           >
-            <template v-slot:item.orderNo>
-              {{order.externalNumber}}
-            </template>
-
             <template v-slot:item.customer>
               <div class="text-capitalize">
-                {{order.customer.firstname}} {{order.customer.lastname}}
+                {{ order.customer.firstname }} {{ order.customer.lastname }}
               </div>
             </template>
 
             <template v-slot:item.price="{ item }">
-              {{item.price | currency}}
+              {{ item.price | currency }}
             </template>
 
             <template v-slot:item.status="{ item }">
-              {{item.status}}
+              {{ item.status }}
             </template>
           </v-data-table>
         </v-col>
@@ -138,74 +136,62 @@ export default {
   props: {
     order: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   filters: {
     currency(val) {
       return new Intl.NumberFormat().format(val)
-    }
+    },
   },
   data() {
     return {
       items: [],
       headers: [
         {
-          text: "N°Orden:",
-          align: "left",
-          value: "orderNo",
+          text: 'Cliente',
+          align: 'left',
+          value: 'customer',
         },
         {
-          text: "Cliente",
-          align: "left",
-          value: "customer",
+          text: 'SKU de Tienda',
+          align: 'left',
+          value: 'sku',
         },
         {
-          text: "Drafiti ID",
-          align: "left",
-          value: "shopId",
+          text: 'Producto',
+          align: 'left',
+          value: 'name',
         },
         {
-          text: "SKU de Tienda",
-          align: "left",
-          value: "sku",
+          text: 'Precio',
+          align: 'left',
+          value: 'price',
         },
         {
-          text: "Producto",
-          align: "left",
-          value: "name",
+          text: 'Cantidad',
+          align: 'left',
+          value: 'quantity',
         },
-        {
-          text: "Precio",
-          align: "left",
-          value: "price",
-        },
-        {
-          text: "Estado",
-          align: "left",
-          value: "status",
-        },
-      ]
+      ],
     }
   },
   methods: {
     async getItems() {
       let res = await marketplaceOrdersApi.listItems(this.order._id)
       this.items = res.data.payload
-    }
+    },
   },
   watch: {
-    'order': {
+    order: {
       immediate: true,
       handler: function() {
         this.items = []
         this.getItems()
-      }
-    }
-  }
+      },
+    },
+  },
 }
 </script>
 
-<style>
-
-</style>
+<style></style>
