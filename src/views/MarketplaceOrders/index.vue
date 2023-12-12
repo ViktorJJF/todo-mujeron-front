@@ -134,7 +134,7 @@
 
           <template v-slot:item.customer="{ item }">
             <div v-if="item.customer" class="text-capitalize">
-              {{ item.customer.firstname }} {{ item.lastname }}
+              {{ item.customer.firstname }} {{ item.customer.lastname }}
             </div>
           </template>
 
