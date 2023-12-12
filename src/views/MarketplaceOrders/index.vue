@@ -181,7 +181,7 @@
           </template>
 
           <template v-slot:item.updatedAt="{ item }">
-            {{ item.updatedAtSource }}
+            {{ item.updatedAt }}
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">
