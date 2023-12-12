@@ -33,6 +33,24 @@ const module = {
           });
       });
     },
+    getChats({ commit }, query) {
+      let finalQuery = buildQueryWithPagination(query);
+      commit("loadingModule/showLoading", true, { root: true });
+      return new Promise((resolve, reject) => {
+        api
+          .getChats(finalQuery)
+          .then((response) => {
+            commit("loadingModule/showLoading", false, { root: true });
+            commit("getChats", response.data.payload);
+            commit("totalItems", response.data.totalDocs);
+            commit("totalPages", response.data.totalPages);
+            resolve(response.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
     create({ commit }, data) {
       return new Promise((resolve, reject) => {
         api
@@ -86,6 +104,9 @@ const module = {
     list(state, data) {
       state.chats = data;
     },
+    getChats(state, data) {
+      state.chats = data;
+    },
     totalItems(state, data) {
       state.total = data;
     },
@@ -127,6 +148,7 @@ const module = {
       state.messages = data;
     },
     addMessage(state, data) {
+      console.log("agregando mensaje", data);
       state.messages.push(data);
     },
   },

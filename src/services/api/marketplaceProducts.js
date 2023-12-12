@@ -1,14 +1,14 @@
-import axios from "axios";
+import axios from 'axios'
 
 export default {
-
   listAll() {
     return axios.get(`/api/marketplace-products`)
   },
 
   listVariations(query) {
     if (query && !query.sort && !query.order) {
-      (query.sort = "createdAt"), (query.order = "desc");
+      query.sort = 'createdAt'
+      query.order = 'desc'
     }
     return axios.get(`/api/marketplace-products/variations`, { params: query })
   },
@@ -18,6 +18,9 @@ export default {
   },
 
   updateVariation(variationId, data) {
-    return axios.patch(`/api/marketplace-products/variations/${variationId}`, data)
-  }
-};
+    return axios.patch(
+      `/api/marketplace-products/variations/${variationId}`,
+      data
+    )
+  },
+}

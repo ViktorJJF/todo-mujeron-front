@@ -314,6 +314,12 @@
           </template>
           <template v-slot:item.odooInfo="{ item }">
             <template v-if="item.odooInfo">
+              <div v-if="item.odooInfo.team_id">
+                Team ID: {{ item.odooInfo.team_id }}
+              </div>
+              <div v-if="item.odooInfo.rmf_score">
+                RFM: {{ item.odooInfo.rmf_score }}
+              </div>
               <div v-if="item.odooInfo.sale_order_count">
                 Ventas: {{ item.odooInfo.sale_order_count }}
               </div>
@@ -780,7 +786,9 @@ export default {
               this.$set(this[ENTITY], index, {
                 ...this[ENTITY][index],
                 odoo_id,
-                odooInfo: res.data.payload.result,
+                odooInfo:
+                  order.ecommercesContactId.cleanLeadId.odoo_metadata ||
+                  res.data.payload.result,
               });
             })
             .catch((err) => {
