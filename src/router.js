@@ -388,6 +388,11 @@ let routes = [
         name: "MarketingCampaignsCreate",
         component: () => import("@/components/MarketingCampaignsForm"),
       },
+      {
+        path: "/seguimiento-gpt",
+        name: "LlmTracker",
+        component: () => import("@/views/LlmTracker"),
+      },
     ],
   },
   {

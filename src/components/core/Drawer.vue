@@ -474,6 +474,16 @@
         </v-list-item>
         <v-list-item
           active-class="primary custom2"
+          :to="{ name: 'LlmTracker' }"
+          v-if="checkAuth('Facebook/Facebook', 'Comentarios-SinResponder')"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>Seguimiento GPT</v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
           :to="{ name: 'AdsMessenger' }"
           v-if="checkAuth('Facebook/Facebook', 'Ads-Messenger')"
         >
@@ -693,7 +703,7 @@
 </template>
 
 <script>
-import auth from '@/services/api/auth'
+import auth from "@/services/api/auth";
 
 export default {
   data() {
@@ -703,29 +713,29 @@ export default {
       active2: false,
       propiedades: [
         {
-          icon: 'mdi-check',
-          text: 'Google Contact',
-          to: 'Telefonos',
+          icon: "mdi-check",
+          text: "Google Contact",
+          to: "Telefonos",
         },
         {
-          icon: 'mdi-check',
-          text: 'Etiquetas y Agentes',
-          to: 'LabelsAndAgents',
+          icon: "mdi-check",
+          text: "Etiquetas y Agentes",
+          to: "LabelsAndAgents",
         },
         {
-          icon: 'mdi-check',
-          text: 'Gravity Forms',
-          to: 'GravityForms',
+          icon: "mdi-check",
+          text: "Gravity Forms",
+          to: "GravityForms",
         },
         {
-          icon: 'mdi-check',
-          text: 'Facebook',
-          to: 'Facebook',
+          icon: "mdi-check",
+          text: "Facebook",
+          to: "Facebook",
         },
         {
-          icon: 'mdi-check',
-          text: 'Dialogflow',
-          to: 'Dialogflow',
+          icon: "mdi-check",
+          text: "Dialogflow",
+          to: "Dialogflow",
         },
         // {
         //   icon: "mdi-check",
@@ -733,24 +743,24 @@ export default {
         //   to: "Woocommerce",
         // },
         {
-          icon: 'mdi-check',
-          text: 'Whatsapp',
-          to: 'Whatsapp',
+          icon: "mdi-check",
+          text: "Whatsapp",
+          to: "Whatsapp",
         },
         {
-          icon: 'mdi-check',
-          text: 'Drive',
-          to: 'Drive',
+          icon: "mdi-check",
+          text: "Drive",
+          to: "Drive",
         },
         {
-          icon: 'mdi-check',
-          text: 'Marketplace',
-          to: 'MarketplaceFuentes',
+          icon: "mdi-check",
+          text: "Marketplace",
+          to: "MarketplaceFuentes",
         },
         {
-          icon: 'mdi-check',
-          text: 'RetailRocket - Etiquetas',
-          to: 'RetailRocketTags',
+          icon: "mdi-check",
+          text: "RetailRocket - Etiquetas",
+          to: "RetailRocketTags",
         },
         // { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         // { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
@@ -758,66 +768,66 @@ export default {
       ],
       googleContacts: [
         {
-          icon: 'mdi-check',
-          text: 'Contactos',
-          to: 'Contactos',
+          icon: "mdi-check",
+          text: "Contactos",
+          to: "Contactos",
         },
       ],
       etiquetas: [
         {
-          icon: 'mdi-check',
-          text: 'FB Messenger',
-          to: '',
+          icon: "mdi-check",
+          text: "FB Messenger",
+          to: "",
         },
         {
-          icon: 'mdi-check',
-          text: 'FB Ads',
-          to: 'FB Ads',
+          icon: "mdi-check",
+          text: "FB Ads",
+          to: "FB Ads",
         },
       ],
       expansionItems: [
         {
-          title: 'Configuración',
+          title: "Configuración",
           active: false,
-          icon: 'mdi-format-list-bulleted',
+          icon: "mdi-format-list-bulleted",
           items: [
             {
-              icon: 'mdi-format-list-bulleted',
-              text: 'Todo-Full',
-              to: 'EquipoDeVentas',
+              icon: "mdi-format-list-bulleted",
+              text: "Todo-Full",
+              to: "EquipoDeVentas",
             },
             {
-              icon: 'mdi-format-list-bulleted',
-              text: 'Locaciones',
-              to: 'Locaciones',
+              icon: "mdi-format-list-bulleted",
+              text: "Locaciones",
+              to: "Locaciones",
             },
           ],
         },
       ],
-    }
+    };
   },
   computed: {
     drawer: {
       get() {
-        return this.$store.state.toolbar.drawerIcon
+        return this.$store.state.toolbar.drawerIcon;
       },
       set(newValue) {
-        this.$store.state.toolbar.drawerIcon = newValue
+        this.$store.state.toolbar.drawerIcon = newValue;
       },
     },
     user() {
-      return this.$store.getters['authModule/getFullNameUser']
+      return this.$store.getters["authModule/getFullNameUser"];
     },
     email() {
       return this.$store.state.authModule.user
         ? this.$store.state.authModule.user.email
-        : 'example@gmail.com'
+        : "example@gmail.com";
     },
   },
 
   async created() {
-    await this.rolAuth()
-    this.getData = true
+    await this.rolAuth();
+    this.getData = true;
   },
 
   methods: {
@@ -825,30 +835,30 @@ export default {
       auth
         .roleAuthorization({ id: this.$store.state.authModule.user._id })
         .then((res) => {
-          this.rolPermisos = res.data
-        })
+          this.rolPermisos = res.data;
+        });
     },
 
     checkAuth(menu, model = false) {
       try {
         if (model) {
-          if (this.rolPermisos[menu][model].indexOf('Read') > -1) {
-            return true
+          if (this.rolPermisos[menu][model].indexOf("Read") > -1) {
+            return true;
           }
         } else {
           for (const model in this.rolPermisos[menu]) {
-            if (this.rolPermisos[menu][model].indexOf('Read') > -1) {
-              return true
+            if (this.rolPermisos[menu][model].indexOf("Read") > -1) {
+              return true;
             }
           }
         }
-        return false
+        return false;
       } catch (error) {
-        return false
+        return false;
       }
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>

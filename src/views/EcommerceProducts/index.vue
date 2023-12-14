@@ -298,11 +298,11 @@
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
           <template v-slot:[`item.checkbox`]="{ item }">
-            <v-checkbox
+            <input
               v-model="selectedProductIds"
+              type="checkbox"
               :value="item._id"
-              :key="updateCheckbox"
-            ></v-checkbox>
+            />
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -584,7 +584,7 @@ export default {
         : this.$t(this.entity + ".EDIT_ITEM");
     },
     items() {
-      return this[ENTITY]
+      return this[ENTITY];
     },
     entity() {
       return ENTITY;
