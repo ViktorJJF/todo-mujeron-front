@@ -175,5 +175,13 @@
         "EDIT_ITEM": "Editar Item",
         "NO_DATA": "Aún no cuentas con historial Mensajes de plantilla",
         "NO_RESULTS": "No hay resultados"
+    },
+    "llmTracker": {
+        "TITLE": "Seguimiento GPT",
+        "SUBTITLE": "Listado",
+        "NEW_ITEM": "Nuevo Item",
+        "EDIT_ITEM": "Editar Item",
+        "NO_DATA": "Aún no hay interacciones",
+        "NO_RESULTS": "No hay resultados"
     }
 }

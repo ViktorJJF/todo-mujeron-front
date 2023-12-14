@@ -1,8 +1,7 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-row justify="center">
       <material-card
-        width="100%"
         icon="mdi-cellphone-dock"
         color="primary"
         title="Comments To MSN"
@@ -161,14 +160,15 @@
                                   <v-card-actions>
                                     {{
                                       selectedPost.timestamp ||
-                                      selectedPost.created_time | formatDateAgo
+                                        selectedPost.created_time
+                                          | formatDateAgo
                                     }}
                                     <v-spacer></v-spacer>
                                     <v-btn color="info" text>
                                       <a
                                         :href="
                                           selectedPost.permalink ||
-                                          selectedPost.permalink_url
+                                            selectedPost.permalink_url
                                         "
                                         target="_blank"
                                       >
@@ -240,7 +240,7 @@
                                           <v-img
                                             v-if="
                                               editedItem.platform ===
-                                              'instagram'
+                                                'instagram'
                                             "
                                             aspect-ratio="0.3"
                                             style="cursor: pointer"
@@ -283,7 +283,7 @@
                                               <a
                                                 :href="
                                                   post.permalink ||
-                                                  post.permalink_url
+                                                    post.permalink_url
                                                 "
                                                 target="_blank"
                                               >
@@ -477,7 +477,17 @@
               color="error"
               @click="deleteItem(item)"
               v-if="rolPermisos['Delete']"
+              class="mr-1 mb-1"
               >Eliminar</v-btn
+            >
+            <v-btn
+              small
+              color="primary"
+              @click.stop="
+                dialogGpt = true;
+                generatePrompt(item);
+              "
+              >GPT</v-btn
             >
           </template>
           <template v-slot:no-data>
@@ -535,6 +545,57 @@
         </div>
       </material-card>
     </v-row>
+    <v-dialog v-model="dialogGpt" max-width="790">
+      <v-card>
+        <v-card-title class="text-h5">
+          Respuestas a comentarios GPT
+        </v-card-title>
+
+        <div class="pa-3">
+          <span>Comentario</span>
+          <div class="d-flex align-center">
+            <v-text-field
+              class="mb-1"
+              placeholder="Comentario"
+              v-model="commentToTest"
+              dense
+              hide-details="auto"
+              outlined
+            ></v-text-field>
+            <div class="ml-2">
+              <svg
+                fill="#000000"
+                viewBox="0 0 24 24"
+                role="img"
+                xmlns="http://www.w3.org/2000/svg"
+                @click="generateCompletion"
+                :class="{ 'rotate-on-load': isGPTLoading, 'openai-logo': true }"
+              >
+                <title>OpenAI icon</title>
+
+                <path
+                  d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"
+                />
+              </svg>
+            </div>
+          </div>
+          <span>Prompt</span>
+          <v-textarea
+            dense
+            outlined
+            hide-details="auto"
+            v-model="prompt"
+            class="mb-2"
+          ></v-textarea>
+          <p v-if="isGPTLoading">Generando respuesta...</p>
+          <p v-else>{{ aiResponse }}</p>
+        </div>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -545,9 +606,11 @@ import MaterialCard from "@/components/material/Card";
 import CommentsFacebook from "@/classes/CommentsFacebook";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
-import { getRandomInt } from "@/utils/utils";
+import { getRandomInt, stripHtml, generateCategoryUrls } from "@/utils/utils";
 import InfiniteScroll from "@/components/InfiniteScroll.vue";
 import graphApiService from "@/services/api/graphApi";
+import openaiService from "@/services/api/openai";
+import woocommerceService from "@/services/api/woocommerce";
 export default {
   components: {
     MaterialCard,
@@ -555,12 +618,12 @@ export default {
     InfiniteScroll,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
     },
-    formatDateAgo: function (value) {
+    formatDateAgo: function(value) {
       return formatDistance(new Date(value), new Date(), {
         addSuffix: true,
         locale: es,
@@ -568,6 +631,10 @@ export default {
     },
   },
   data: () => ({
+    commentToTest: "Informacion",
+    isGPTLoading: false,
+    aiResponse: "",
+    prompt: "",
     searchPost: "",
     updateScroll: 0,
     fieldsToSearch: ["postUrl"],
@@ -582,6 +649,7 @@ export default {
     search: "",
     dialog: false,
     dialog3: false,
+    dialogGpt: false,
     paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
@@ -664,7 +732,7 @@ export default {
     dialog(val) {
       val || this.close();
     },
-    "$route.name": function () {
+    "$route.name": function() {
       let isCommentView = this.$route.name == "CommentToMSN";
       this.type = isCommentView ? "comment" : "ad";
     },
@@ -927,8 +995,160 @@ export default {
 
       this.editedItem.external_id = post.id;
     },
+    async generatePrompt(commentToMsn) {
+      let products = commentToMsn.products;
+      // populate categories, description and shortDescription
+      products = await Promise.all(
+        products.map(async (product) => {
+          let productData = await woocommerceService.productById(
+            product.woocommerceId,
+            product.idEcommerce
+          );
+          product.categories = await Promise.all(
+            productData.data.payload.categories.map(
+              async (category) =>
+                (
+                  await woocommerceService.categoryById(
+                    product.woocommerceId,
+                    category.id
+                  )
+                ).data.payload
+            )
+          );
+          product.description = productData.data.payload.description;
+          product.shortDescription = productData.data.payload.short_description;
+          product.categoriesUrl = generateCategoryUrls(
+            product.categories,
+            product.url
+          );
+          return product;
+        })
+      );
+      // products=products.map(el=>{...el,categoriesUrl:`${el.url}/`})
+      this.prompt =
+        `Agrega a tu conocimiento el ADN de Tiendas Mujeron:
+
+$ADN de Tiendas Mujeron:
+Nombre de la Empresa: Tiendas Mujeron
+Propósito: Abrazamos a las Mujeres con nuestras prendas de vestir, haciendo que independientemente de sus medidas, tamaños o edades, no se sientan excluidas de la moda colombiana y logren sentirse más seguras elevando su autoestima
+Misión: Nuestros productos deben abrazar los cuerpos de las mujeres y acompañarlas en su viaje hacia una mayor seguridad en sí mismas.
+$Información General de Tiendas MUjeron
+País: ${commentToMsn.products[0].country}
+Página Web: Mujeron.cl
+URL de guia de tallas de todos nuestros productos: https://mujeron.cl/guia-de-tallas/ 
+Redes Sociales:
+facebook: https://www.facebook.com/MujeronCL
+Instagram: @mujeronjeans
+Youtube: https://www.youtube.com/@TiendasMujeron
+Tiktok: https://www.tiktok.com/@tiendas_mujeron
+Número de Whatsapp: +56 971733614
+Dirección:
+Para quienes llegan en auto: Seguir instrucciones de Google Maps: https://maps.app.goo.gl/mZAFHSAX8VY5zTDP9
+Para quienes llegan en metro: Entrada más cercana en Santa Filomena 440, Recoleta local 23, Santiago de Chile.
+Envíos: Realizan envíos a todas las regiones de Chile. Por compras superiores a $35,000, el envío es gratis.
+Métodos de Pago:
+Pago en página web o por transferencia.
+Datos de Depósito:
+Principal: 
+Nombre: Tiendas Mujeron
+Rut: 77.303.262-9
+BANCO CHILE/EDWARDS
+Tipo de Cuenta: Cuenta Corriente
+Número de Cuenta: 001594722307
+Email: comercial@mujeron.cl
+Nota: Enviar pantallazo o fotos de los pagos e indicar si es factura o boleta.
+
+¿En qué áreas geográficas tiene?: Chile y Perú
+
+¿Qué aspectos hacen diferenciable el negocio?
+La calidad de nuestros productos
+La frecuencia con la que lanzamos nuevos productos
+La variedad de marcas
+La variedad en Categorias: Vestuario Mujer, Fajas Colombianas, Jeans PushUP, Ropa Deportiva
+El calce o horma
+El rango de tallas
+En las Fajas Colombianas desde la xs hasta la 5xl
+En  los Jeans Push UP desde la 36 hasta la 50
+En el Vestuario Femenino desde la S hasta la XL
+La atención al cliente
+La importancia que le damos a los datos del negocio
+La presencia en redes sociales
+Atendemos B2B B2BC y B2C
+Origen Colombiano
+
+Tarea:
+
+Te Actúa como el experto community manager de Tiendas Mujeron, y darás respuesta a el $comentario hecho por un $Usuario de nuestras redes sociales, haciendo uso del $ADN de Tiendas Mujeron, y la $Información del Producto 
+
+instrucciones:
+
+No alucines solo responde con la información contenida en este prompt
+Cumplir con las políticas de la red social.
+LA respuesta no debe contener más de 500 caracteres Se breve
+Simula que responde un humano, puedes usar emoticones. 
+Responde con el nombre de quien te hace la consulta.
+Si te preguntan información adicional de otros productos que no estén en $Detalles de los productos, amablemente le dirás que en el inbox le has dejado más información.
+Si te llegara a faltar información para resolver el comentario debes persuadir de hablarnos en el chat. 
+No envíes URL inventadas.
+
+Pos: https://www.facebook.com/photo/?fbid=728831582620268&set=pcb.728834829286610
+Red Social: ${commentToMsn.platform}
+Pais: Chile
+$Usuario: carito la mas bonita
+$Comentario: ${this.commentToTest}
+
+$Detalles de los productos: [` +
+        products.map(
+          (product) => `Producto 1:
+En la ref: ${product.ref},
+Está disponible en estas tallas: ${product.attributes
+            .find((attribute) => attribute.name.toLowerCase() == "talla")
+            .options.join(" - ")}.
+Su valor es de ${product.variations[0].regular_price}
+y puedes adquirirla en
+${product.permalink}
+Categorías:
+${product.categoriesUrl.join("\n")}
+
+Descripción producto larga: ${stripHtml(product.description)}`
+        ) +
+        `]
+`;
+    },
+    generateCompletion() {
+      this.isGPTLoading = true;
+      console.log("Enviando esto: ", this.prompt, this.commentToTest);
+      openaiService
+        .generateCompletionForConversation(this.prompt, this.commentToTest)
+        .then((response) => {
+          console.log(response.data);
+          this.aiResponse = response.data.payload.choices[0].message.content;
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => (this.isGPTLoading = false));
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-on-load {
+  animation: rotate 2s linear infinite;
+}
+
+.openai-logo {
+  width: 40px;
+  cursor: pointer;
+}
+</style>

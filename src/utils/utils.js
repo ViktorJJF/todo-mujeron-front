@@ -456,3 +456,14 @@ export const getFormattedYoutubeUrl = (link) => {
     return null;
   }
 };
+
+export const stripHtml=(html)=> {
+  var text = html.replace(/<br\s*[/]?>/gi, '\n');
+  var tempDivElement = document.createElement("div");
+  tempDivElement.innerHTML = text;
+  return tempDivElement.textContent || tempDivElement.innerText || "";
+}
+
+export const generateCategoryUrls=(categories,baseUrl)=>{
+  return categories.map(el=>el.parent===0? `${baseUrl}/${el.slug}`:`${baseUrl}/${categories.find(el2=>el2.id===el.parent).slug}/${el.slug}`)
+}
