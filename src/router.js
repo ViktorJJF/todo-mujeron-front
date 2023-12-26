@@ -18,6 +18,11 @@ let routes = [
     component: () => import("./views/Login.vue"),
   },
   {
+    path: "/corporation/:token",
+    name: "registration",
+    component: () => import("./views/Registration.vue"),
+  },
+  {
     path: "/catalogo-digital/:id?",
     name: "Catalog",
     component: () => import("@/views/Catalog/index.vue"),
