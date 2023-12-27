@@ -16,16 +16,16 @@
             <VTextFieldWithValidation id="email" name="email" class="fadeIn second" customClasses="mx-9 my-3"
               rules="required|email" v-model="user.email" label="Email" prepend-inner-icon="mdi-account" />
             <VTextFieldWithValidation id="first-name" name="first-name" class="fadeIn second" customClasses="mx-9 my-3"
-              rules="required" v-model="user.firstName" label="Nombres" prepend-inner-icon="mdi-account" type="text" />
+              rules="required" v-model="user.first_name" label="Nombres" prepend-inner-icon="mdi-account" type="text" />
             <VTextFieldWithValidation id="last-name" name="last-name" class="fadeIn second" customClasses="mx-9 my-3"
-              rules="required" v-model="user.lastName" label="Apellidos" prepend-inner-icon="mdi-account" type="text" />
+              rules="required" v-model="user.last_name" label="Apellidos" prepend-inner-icon="mdi-account" type="text" />
             <VTextFieldWithValidation id="password" class="fadeIn second" customClasses="mx-9 my-3" rules="required"
               v-model="user.password" label="Contraseña" prepend-inner-icon="mdi-lock" type="password" />
             <VTextFieldWithValidation id="confirm-password" class="fadeIn second" customClasses="mx-9 my-3"
               rules="required" v-model="user.password" label="Confirmar Contraseña" prepend-inner-icon="mdi-lock"
               type="password" />
             <v-btn :loading="loading" class="ma-5" color="info" lass="fadeIn fourth" value="Ingresar"
-              @click="passes(login)">Ingresar</v-btn>
+              @click="passes(register)">Ingresar</v-btn>
           </v-form>
         </ValidationObserver>
       </div>
@@ -35,7 +35,6 @@
 
 <script>
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import graphApi from "@/services/api/graphApi";
 export default {
   components: {
     VTextFieldWithValidation,
@@ -52,11 +51,11 @@ export default {
     }
   },
   methods: {
-    login() {
+    register() {
       let user = this.user;
       // this.loading = true;
       this.$store
-        .dispatch("authModule/login", user)
+        .dispatch("usersModule/createCorporation", { ...user, token: this.$route.params.token })
         .then(() => {
           this.$router.push({ name: "dashboard" });
         })
@@ -64,18 +63,10 @@ export default {
           console.log("error en login: ", error);
         })
         .finally(() => (this.loading = false));
-    },
-    async facebookLogged(e) {
-      console.log("🚀 Aqui *** -> e", e);
-      // solo para fines de test, se logea con USUARIO TEST
-      this.$store.state.facebookAccessToken = e.authResponse.accessToken;
-      this.user.email = "pruebas@mujeron.cl";
-      this.user.password = "Telepizz@";
-      this.login();
-      let facebookUser = await graphApi.getUserInformation(
-        e.authResponse.accessToken
-      );
-      this.$store.state.facebookName = facebookUser.data.payload.name;
+      console.log({
+        user,
+        token: this.$route.params.token,
+      });
     },
   },
 };
