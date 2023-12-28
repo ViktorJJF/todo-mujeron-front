@@ -9,5 +9,8 @@ module.exports = {
         // target: 'https://mastermindgeeks.herokuapp.com'
       },
     },
+    watchOptions: {
+      poll: true
+    }
   },
 };

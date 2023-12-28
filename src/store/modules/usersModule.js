@@ -70,6 +70,21 @@ const module = {
           });
       });
     },
+    createCorporation({ commit }, data) {
+      return new Promise((resolve, reject) => {
+        api
+          .createCorporation(data)
+          .then((res) => {
+            commit("loadingModule/showLoading", true, { root: true });
+            buildSuccess("Registro guardado con éxito", commit);
+            commit("create", res.data.payload);
+            resolve(res.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
 
     delete({ commit }, id) {
       return new Promise((resolve, reject) => {
