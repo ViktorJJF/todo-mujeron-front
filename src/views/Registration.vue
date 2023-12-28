@@ -63,10 +63,6 @@ export default {
           console.log("error en login: ", error);
         })
         .finally(() => (this.loading = false));
-      console.log({
-        user,
-        token: this.$route.params.token,
-      });
     },
   },
 };
