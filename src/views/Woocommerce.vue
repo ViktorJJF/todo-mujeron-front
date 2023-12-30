@@ -157,7 +157,7 @@
             </v-container>
           </template>
           <template v-slot:item.vendor="{ item }">
-          {{ item.vendor ? getVendor(item.vendor).name : "" }}
+            {{ item.vendor ? getVendor(item.vendor).name : '' }}
           </template>
           <template v-slot:item.action="{ item }">
             <v-btn
@@ -209,13 +209,13 @@
 </template>
 
 <script>
-import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import MaterialCard from "@/components/material/Card";
-import Woocommerces from "@/classes/Woocommerces";
-import { es } from "date-fns/locale";
-import auth from "@/services/api/auth";
-import vendorsApi from "@/services/api/vendors";
+import { format } from 'date-fns'
+import VTextFieldWithValidation from '@/components/inputs/VTextFieldWithValidation'
+import MaterialCard from '@/components/material/Card'
+import Woocommerces from '@/classes/Woocommerces'
+import { es } from 'date-fns/locale'
+import auth from '@/services/api/auth'
+import vendorsApi from '@/services/api/vendors'
 import stockBoundaryApi from '@/services/api/stockBoundary'
 import { isNil } from 'lodash'
 
@@ -225,39 +225,39 @@ export default {
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
-      });
+      })
     },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
     loadingButton: false,
-    search: "",
+    search: '',
     dialog: false,
     locations: [],
     headers: [
       {
-        text: "Agregado",
-        align: "left",
+        text: 'Agregado',
+        align: 'left',
         sortable: true,
-        value: "createdAt",
+        value: 'createdAt',
       },
       {
-        text: "Dominio",
-        align: "left",
+        text: 'Dominio',
+        align: 'left',
         sortable: false,
-        value: "domain",
+        value: 'domain',
       },
       {
-        text: "Vendedor",
-        align: "left",
+        text: 'Vendedor',
+        align: 'left',
         sortable: false,
-        value: "vendor",
+        value: 'vendor',
       },
-      { text: "Acciones", value: "action", sortable: false },
+      { text: 'Acciones', value: 'action', sortable: false },
     ],
     woocommerces: [],
     editedIndex: -1,
@@ -267,25 +267,25 @@ export default {
     rolPermisos: {},
     vendors: [],
     stockBoundary: null,
-    minStock: null
+    minStock: null,
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo dominio" : "Editar dominio";
+      return this.editedIndex === -1 ? 'Nuevo dominio' : 'Editar dominio'
     },
   },
 
   watch: {
     dialog(val) {
-      val || this.close();
+      val || this.close()
     },
   },
 
   async mounted() {
-    this.$store.commit("loadingModule/showLoading");
-    this.initialize();
-    this.rolAuth();
+    this.$store.commit('loadingModule/showLoading')
+    this.initialize()
+    this.rolAuth()
   },
 
   methods: {
@@ -293,17 +293,17 @@ export default {
       auth
         .roleAuthorization({
           id: this.$store.state.authModule.user._id,
-          menu: "Configuracion/Propiedades/Woocommerces",
-          model: "Woocommerces",
+          menu: 'Configuracion/Propiedades/Woocommerces',
+          model: 'Woocommerces',
         })
         .then((res) => {
-          this.rolPermisos = res.data;
+          this.rolPermisos = res.data
         })
-        .finally(() => this.$store.commit("loadingModule/showLoading", false));
+        .finally(() => this.$store.commit('loadingModule/showLoading', false))
     },
 
     async initialize() {
-      stockBoundaryApi.findByTarget('woocommerce').then(res => {
+      stockBoundaryApi.findByTarget('woocommerce').then((res) => {
         this.stockBoundary = res.data.payload
         if (this.stockBoundary) {
           this.minStock = this.stockBoundary.min
@@ -311,93 +311,98 @@ export default {
       })
 
       await Promise.all([
-        this.$store.dispatch("woocommercesModule/list"),
-        this.$store.dispatch("locacionesModule/list"),
-      ]);
+        this.$store.dispatch('woocommercesModule/list'),
+        this.$store.dispatch('locacionesModule/list'),
+      ])
 
       this.woocommerces = this.$deepCopy(
         this.$store.state.woocommercesModule.woocommerces
-      );
+      )
 
       // mostrar solo los que tengan value
-      this.locations = this.$store.state.locacionesModule.locaciones.map(
-        (el) => el.value
-      );
+      this.locations = this.$store.state.locacionesModule.locaciones.filter(
+        (locacion) => locacion.value !== undefined
+      )
 
-      const res = await vendorsApi.list();
-      this.vendors = res.data.payload;
-      console.log("🚀 Aqui *** -> this.vendors", this.vendors);
+      const res = await vendorsApi.list()
+      this.vendors = res.data.payload
+      console.log('🚀 Aqui *** -> this.vendors', this.vendors)
     },
     editItem(item) {
-      this.editedIndex = this.woocommerces.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+      this.editedIndex = this.woocommerces.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialog = true
     },
 
     getVendor(id) {
-      console.log("🚀 Aqui *** -> id", id);
-      console.log("🚀 Aqui *** -> this.vendors", this.vendors);
-      return this.vendors.find((vendor) => {
-        return vendor._id === id; 
-      }) || "";
+      console.log('🚀 Aqui *** -> id', id)
+      console.log('🚀 Aqui *** -> this.vendors', this.vendors)
+      return (
+        this.vendors.find((vendor) => {
+          return vendor._id === id
+        }) || ''
+      )
     },
 
     async deleteItem(item) {
-      const index = this.woocommerces.indexOf(item);
-      let itemId = this.woocommerces[index]._id;
-      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("woocommercesModule/delete", itemId);
-        this.woocommerces.splice(index, 1);
+      const index = this.woocommerces.indexOf(item)
+      let itemId = this.woocommerces[index]._id
+      if (await this.$confirm('¿Realmente deseas eliminar este registro?')) {
+        await this.$store.dispatch('woocommercesModule/delete', itemId)
+        this.woocommerces.splice(index, 1)
       }
     },
 
     async handleMinStockChange(value) {
       const hasChange = value !== this.stockBoundary.min
       if (!hasChange) return
-      if(isNil(value) || value === '') return
+      if (isNil(value) || value === '') return
 
-      const res = await stockBoundaryApi.update({ ...this.stockBoundary, min: value })
+      const res = await stockBoundaryApi.update({
+        ...this.stockBoundary,
+        min: value,
+      })
       this.stockBoundary = res.data.payload
     },
 
     close() {
-      this.dialog = false;
+      this.dialog = false
       setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      }, 300);
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      }, 300)
     },
 
     async save() {
-      this.loadingButton = true;
+      this.loadingButton = true
       if (this.editedIndex > -1) {
-        let itemId = this.woocommerces[this.editedIndex]._id;
+        let itemId = this.woocommerces[this.editedIndex]._id
         try {
-          await this.$store.dispatch("woocommercesModule/update", {
+          await this.$store.dispatch('woocommercesModule/update', {
             id: itemId,
             data: this.editedItem,
-          });
-          Object.assign(this.woocommerces[this.editedIndex], this.editedItem);
-          this.close();
+          })
+          Object.assign(this.woocommerces[this.editedIndex], this.editedItem)
+          this.close()
         } finally {
-          this.loadingButton = false;
+          this.loadingButton = false
         }
       } else {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "woocommercesModule/create",
+            'woocommercesModule/create',
             this.editedItem
-          );
-          this.woocommerces.push(newItem);
-          this.close();
+          )
+          this.woocommerces.push(newItem)
+          this.close()
         } finally {
-          this.loadingButton = false;
+          this.loadingButton = false
         }
       }
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped></style>
