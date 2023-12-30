@@ -103,17 +103,6 @@
                                 v-model="editedItem.equipoDeVentaId"
                               ></v-select>
                             </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
