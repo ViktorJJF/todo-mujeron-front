@@ -114,7 +114,7 @@
                                 :items="locations"
                                 v-model="editedItem.locations"
                                 item-text="nombre"
-                                item-value="_id"
+                                item-value="value"
                                 multiple
                                 chips
                                 deletable-chips
