@@ -23,6 +23,39 @@
         >
           <template v-slot:top>
             <v-container>
+              <span class="font-weight-bold">Selecciona un dominio</span>
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <v-combobox
+                    v-model="selectedWoocommerce"
+                    :items="$store.state.woocommercesModule.woocommerces"
+                    hide-selected
+                    item-value="_id"
+                    placeholder="Selecciona el dominio"
+                    outlined
+                    dense
+                    class="mt-2"
+                    clearable
+                    @change="initialize"
+                  >
+                    <template v-slot:no-data>
+                      <v-list-item>
+                        <v-list-item-content>
+                          <v-list-item-title>
+                            No se encontraron resultados
+                          </v-list-item-title>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </template>
+                    <template v-slot:selection="{ item }">
+                      <span>{{ item.domain }}</span>
+                    </template>
+                    <template v-slot:item="{ item }">
+                      <span>{{ item.domain }}</span>
+                    </template>
+                  </v-combobox>
+                </v-col>
+              </v-row>
               <span class="font-weight-bold"
                 >Filtrar por nombre: {{ search }}</span
               >
@@ -480,6 +513,7 @@ export default {
     },
   },
   data: () => ({
+    selectedWoocommerce: null,
     selectedProductIds: [],
     dialogImage: false,
     currentProduct: null,
@@ -674,7 +708,7 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: "date_modified",
+        sort: "updatedAt",
         order: -1,
         // listType: "All",
       };
@@ -684,7 +718,11 @@ export default {
       if (this.filterWithoutImage) {
         payload["products_without_image"] = true;
       }
+      if (this.selectedWoocommerce && this.selectedWoocommerce._id) {
+        payload["woocommerceId"] = this.selectedWoocommerce._id;
+      }
       await Promise.all([
+        this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
