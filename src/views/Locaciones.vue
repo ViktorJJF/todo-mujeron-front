@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar locación</v-btn
                       >
                     </template>
@@ -98,17 +103,6 @@
                                 v-model="editedItem.equipoDeVentaId"
                               ></v-select>
                             </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
-                              hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
-                              item-text="name"
-                              item-value="value"
-                              outlined
-                            ></v-select>
-                            </v-col>-->
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -131,10 +125,19 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-show="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-show="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -171,65 +174,71 @@
 </template>
 
 <script>
-import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import MaterialCard from "@/components/material/Card";
-import Locaciones from "@/classes/Locaciones";
-import auth from "@/services/api/auth";
+import { format } from 'date-fns'
+import VTextFieldWithValidation from '@/components/inputs/VTextFieldWithValidation'
+import MaterialCard from '@/components/material/Card'
+import Locaciones from '@/classes/Locaciones'
+import auth from '@/services/api/auth'
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function (value) {
-      return format(new Date(value), "dd/MM/yyyy");
+    formatDate: function(value) {
+      return format(new Date(value), 'dd/MM/yyyy')
     },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
     loadingButton: false,
-    search: "",
+    search: '',
     dialog: false,
     headers: [
       {
-        text: "Nombre",
-        align: "left",
+        text: 'Nombre',
+        align: 'left',
         sortable: false,
-        value: "nombre",
+        value: 'nombre',
       },
       {
-        text: "Equipo de Ventas",
-        align: "left",
+        text: 'Valor',
+        align: 'left',
         sortable: false,
-        value: "equipoDeVentaId.nombre",
+        value: 'value',
       },
       {
-        text: "Agregado",
-        align: "left",
+        text: 'Equipo de Ventas',
+        align: 'left',
+        sortable: false,
+        value: 'equipoDeVentaId.nombre',
+      },
+      {
+        text: 'Agregado',
+        align: 'left',
         sortable: true,
-        value: "createdAt",
+        value: 'createdAt',
       },
-      { text: "Acciones", value: "action", sortable: false },
+      { text: 'Acciones', value: 'action', sortable: false },
     ],
     locaciones: [],
     editedIndex: -1,
     editedItem: Locaciones(),
     defaultItem: Locaciones(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
+    paises: ['Peru', 'Chile', 'Colombia', 'Estados Unidos', 'Argentina'],
     ciudades: [
       {
-        pais: "Peru",
-        ciudades: ["Tacna", "Arequipa", "Lima", "Moquegua", "Callao"],
+        pais: 'Peru',
+        ciudades: ['Tacna', 'Arequipa', 'Lima', 'Moquegua', 'Callao'],
       },
       {
-        pais: "Chile",
-        ciudades: ["Santiago", "Viña", "Antofagasta", "Temuco"],
+        pais: 'Chile',
+        ciudades: ['Santiago', 'Viña', 'Antofagasta', 'Temuco'],
       },
       {
-        pais: "Colombia",
-        ciudades: ["Bogotá", "Medellin", "Cali", "Cartagena"],
+        pais: 'Colombia',
+        ciudades: ['Bogotá', 'Medellin', 'Cali', 'Cartagena'],
       },
     ],
     equipoDeVentas: [],
@@ -238,7 +247,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nueva locación" : "Editar locación";
+      return this.editedIndex === -1 ? 'Nueva locación' : 'Editar locación'
     },
     ciudadesFiltered() {
       return this.ciudades.find(
@@ -246,104 +255,101 @@ export default {
       )
         ? this.ciudades.find((ciudad) => ciudad.pais === this.editedItem.pais)
             .ciudades
-        : [];
+        : []
     },
   },
 
   watch: {
     dialog(val) {
-      val || this.close();
+      val || this.close()
     },
   },
 
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("locacionesModule/list"); 
-    console.log("equipo de venta fetch");
-    await this.$store.dispatch("equipoDeVentasModule/list");
-    this.initialize();
-    this.rolAuth(); 
+    this.$store.commit('loadingModule/showLoading')
+    await this.$store.dispatch('locacionesModule/list')
+    console.log('equipo de venta fetch')
+    await this.$store.dispatch('equipoDeVentasModule/list')
+    this.initialize()
+    this.rolAuth()
   },
 
   methods: {
-
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/TodoFull',
-          'model':'Locaciones'
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: 'Configuracion/TodoFull',
+          model: 'Locaciones',
         })
-          .then((res) => {
-          this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        .then((res) => {
+          this.rolPermisos = res.data
+        })
+        .finally(() => this.$store.commit('loadingModule/showLoading', false))
     },
 
     initialize() {
       this.locaciones = this.$deepCopy(
         this.$store.state.locacionesModule.locaciones
-      );
-      this.equipoDeVentas =
-        this.$store.state.equipoDeVentasModule.equipoDeVentas;
-      console.log("las locaciones: ", this.locaciones);
+      )
+      this.equipoDeVentas = this.$store.state.equipoDeVentasModule.equipoDeVentas
+      console.log('las locaciones: ', this.locaciones)
     },
     editItem(item) {
-      this.editedIndex = this.locaciones.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+      this.editedIndex = this.locaciones.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialog = true
     },
 
     async deleteItem(item) {
-      const index = this.locaciones.indexOf(item);
-      let itemId = this.locaciones[index]._id;
-      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("locacionesModule/delete", itemId);
-        this.locaciones.splice(index, 1);
+      const index = this.locaciones.indexOf(item)
+      let itemId = this.locaciones[index]._id
+      if (await this.$confirm('¿Realmente deseas eliminar este registro?')) {
+        await this.$store.dispatch('locacionesModule/delete', itemId)
+        this.locaciones.splice(index, 1)
       }
     },
 
     close() {
-      this.dialog = false;
+      this.dialog = false
       setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      }, 300);
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      }, 300)
     },
 
     async save() {
-      this.loadingButton = true;
+      this.loadingButton = true
       if (this.editedIndex > -1) {
-        let itemId = this.locaciones[this.editedIndex]._id;
+        let itemId = this.locaciones[this.editedIndex]._id
         try {
-          await this.$store.dispatch("locacionesModule/update", {
+          await this.$store.dispatch('locacionesModule/update', {
             id: itemId,
             data: this.editedItem,
-          });
-          Object.assign(this.locaciones[this.editedIndex], this.editedItem);
-          this.close();
+          })
+          Object.assign(this.locaciones[this.editedIndex], this.editedItem)
+          this.close()
         } finally {
-          this.loadingButton = false;
+          this.loadingButton = false
         }
       } else {
         //create item
         try {
-          console.log("el nuevo item: ", this.editedItem);
+          console.log('el nuevo item: ', this.editedItem)
 
           let newItem = await this.$store.dispatch(
-            "locacionesModule/create",
+            'locacionesModule/create',
             this.editedItem
-          );
-          this.locaciones.push(newItem);
-          this.close();
+          )
+          this.locaciones.push(newItem)
+          this.close()
         } finally {
-          this.loadingButton = false;
+          this.loadingButton = false
         }
       }
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

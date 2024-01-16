@@ -28,7 +28,14 @@
                   :placeholder="'SKU \t Stock\nSKU \t Stock'"
                   @input="handleRawItemsChange"
                 />
-                <v-btn type="submit" color="primary">Enviar</v-btn>
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  :loading="loading"
+                  :disabled="!canSubmitProducts"
+                >
+                  Enviar
+                </v-btn>
               </v-form>
             </v-col>
 
@@ -101,12 +108,18 @@ export default {
     return {
       items: [],
       rawItems: '',
+      loading: false,
       country: null,
       countries: [
         { text: 'Chile', value: 1 },
         { text: 'Perú', value: 6 },
       ],
     }
+  },
+  computed: {
+    canSubmitProducts() {
+      return this.rawItems.length && this.country !== null
+    },
   },
   methods: {
     handleRawItemsChange() {
@@ -119,22 +132,34 @@ export default {
       this.items = items
     },
     async handleBulkUpdate() {
+      if (this.loading) return
       if (this.country === null) return
+
+      this.loading = true
 
       const data = {
         country: this.country,
         products: this.items,
       }
 
-      const res = await stockService.bulkUpdate(data)
-      if (res.data && Array.isArray(res.data.payload)) {
-        this.items = this.items.map((item) => {
-          item.response = res.data.payload.find(
-            (itemRes) => itemRes.sku === item.sku
-          )
-          return item
-        })
+      try {
+        const res = await stockService.bulkUpdate(data)
+        if (res.data && Array.isArray(res.data.payload)) {
+          this.items = this.items.map((item) => {
+            item.response = res.data.payload.find(
+              (itemRes) => itemRes.sku === item.sku
+            )
+            return item
+          })
+        }
+      } catch (error) {
+        console.error(error)
+        const errorMessage =
+          'Ocurrió un error al intentar modificar los productos'
+        this.$store.commit('errorModule/error', errorMessage, { root: true })
+        this.$store.commit('errorModule/showError', true, { root: true })
       }
+      this.loading = false
     },
   },
 }
@@ -152,5 +177,9 @@ export default {
   flex-direction: column;
   gap: 15px;
   width: 100%;
+}
+
+.theme--light.v-btn.v-btn--disabled {
+  background-color: #ccc !important;
 }
 </style>
