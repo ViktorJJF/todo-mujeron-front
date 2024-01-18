@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="items"
+          :items="filteredItems"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -94,6 +94,16 @@
                 item.attributesFormatted.talla
                   ? item.attributesFormatted.talla.option
                   : ""
+              }}
+            </span>
+          </template>
+          <template v-slot:item.url="{ item }">
+            <span v-if="item.url || item.woocommerceId">
+              {{
+                item.url ||
+                  $store.state.woocommercesModule.woocommerces.find(
+                    (el) => el._id === item.woocommerceId
+                  ).domain
               }}
             </span>
           </template>
@@ -304,6 +314,15 @@ export default {
     countProductSyncPercentageSelected() {
       return (this.countProductSyncSelected / this.selectedProductsSize) * 100;
     },
+    filteredItems() {
+      return this.search
+        ? this.items.filter(
+            (el) =>
+              el.name?.toLowerCase().includes(this.search.toLowerCase()) ||
+              el.sku?.toLowerCase().includes(this.search.toLowerCase())
+          )
+        : this.items;
+    },
   },
   watch: {
     async search() {
@@ -343,6 +362,7 @@ export default {
         country: this.country,
       };
       await Promise.all([
+        this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
@@ -361,6 +381,8 @@ export default {
           product: product,
           attributesFormatted: this.getFormatAttributes(variation.attributes),
           woocommerceId: product.woocommerceId,
+          url: product.url,
+          country: product.country,
         }));
 
         Object.assign(product, { variations });

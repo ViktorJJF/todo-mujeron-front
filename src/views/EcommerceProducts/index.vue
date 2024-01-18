@@ -258,6 +258,21 @@
               {{ item.description }}
             </span></template
           >
+          <template
+            v-if="
+              $store.state.woocommercesModule.woocommerces &&
+                $store.state.woocommercesModule.woocommerces.length
+            "
+            v-slot:[`item.woocommerceId`]="{ item }"
+          >
+            <span v-if="item.woocommerceId"
+              >{{
+                $store.state.woocommercesModule.woocommerces.find(
+                  (el) => el._id === item.woocommerceId
+                ).domain
+              }}
+            </span></template
+          >
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
@@ -573,6 +588,12 @@ export default {
         align: "left",
         sortable: false,
         value: "categories",
+      },
+      {
+        text: "Dominio",
+        align: "left",
+        sortable: false,
+        value: "woocommerceId",
       },
       {
         text: "País",
