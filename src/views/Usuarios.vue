@@ -236,6 +236,12 @@ export default {
         value: "email",
       },
       {
+        text: "Company",
+        align: "left",
+        sortable: true,
+        value: "company.name",
+      },
+      {
         text: "Estado",
         align: "left",
         sortable: true,
