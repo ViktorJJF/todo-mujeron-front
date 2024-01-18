@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="items"
+          :items="filteredItems"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -83,19 +83,42 @@
           </template>
           <template v-slot:item.talla="{ item }">
             <span class="format-breaklines" v-if="item.isParent">
-              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.options.join(', ') : '' }}
+              {{
+                item.attributesFormatted.talla
+                  ? item.attributesFormatted.talla.options.join(", ")
+                  : ""
+              }}
             </span>
             <span class="format-breaklines" v-else>
-              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.option : '' }}
+              {{
+                item.attributesFormatted.talla
+                  ? item.attributesFormatted.talla.option
+                  : ""
+              }}
+            </span>
+          </template>
+          <template v-slot:item.url="{ item }">
+            <span v-if="item.url || item.woocommerceId">
+              {{
+                item.url ||
+                  $store.state.woocommercesModule.woocommerces.find(
+                    (el) => el._id === item.woocommerceId
+                  ).domain
+              }}
             </span>
           </template>
           <template v-slot:item.color="{ item }">
             <span class="format-breaklines" v-if="!item.isParent">
-              {{ item.attributesFormatted.color ? item.attributesFormatted.color.option : '' }}
+              {{
+                item.attributesFormatted.color
+                  ? item.attributesFormatted.color.option
+                  : ""
+              }}
             </span>
           </template>
           <template v-slot:item.stock_quantity="{ item }">
-            <v-edit-dialog v-if="!item.isParent"
+            <v-edit-dialog
+              v-if="!item.isParent"
               large
               persistent
               @save="handleStockSave(item)"
@@ -112,14 +135,13 @@
                   label="Edit"
                   type="number"
                   min="0"
-                  :rules="stockRules" 
+                  :rules="stockRules"
                   single-line
                   autofocus
                 ></v-text-field>
               </template>
             </v-edit-dialog>
           </template>
-
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -151,16 +173,16 @@ import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
-import EcommercesApi from '@/services/api/ecommerces'
-import CountrySelect from '@/components/catalog/CountrySelect'
+import EcommercesApi from "@/services/api/ecommerces";
+import CountrySelect from "@/components/catalog/CountrySelect";
 
 export default {
   components: {
     MaterialCard,
-    CountrySelect
+    CountrySelect,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -174,9 +196,9 @@ export default {
     items: [],
     country: null,
     stockRules: [
-      val => /^[0-9]*$/.test(val) || "Debe ser un número",
-      val => val >=0 || "No puede ser negativo",
-      val => !!val || "El campo es requerido"
+      (val) => /^[0-9]*$/.test(val) || "Debe ser un número",
+      (val) => val >= 0 || "No puede ser negativo",
+      (val) => !!val || "El campo es requerido",
     ],
     fieldsToSearch: [
       "externalId",
@@ -222,7 +244,7 @@ export default {
         text: "Fuente",
         align: "left",
         sortable: false,
-        value: 'url'
+        value: "url",
       },
       {
         text: "SKU",
@@ -292,6 +314,15 @@ export default {
     countProductSyncPercentageSelected() {
       return (this.countProductSyncSelected / this.selectedProductsSize) * 100;
     },
+    filteredItems() {
+      return this.search
+        ? this.items.filter(
+            (el) =>
+              el.name?.toLowerCase().includes(this.search.toLowerCase()) ||
+              el.sku?.toLowerCase().includes(this.search.toLowerCase())
+          )
+        : this.items;
+    },
   },
   watch: {
     async search() {
@@ -300,7 +331,6 @@ export default {
         this.initialize(this.page);
       }, 600);
     },
-
   },
   mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -329,9 +359,10 @@ export default {
         sort: "date_modified",
         order: -1,
         listType: "All",
-        country: this.country
+        country: this.country,
       };
       await Promise.all([
+        this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
@@ -339,114 +370,144 @@ export default {
         this.$store.state[ENTITY + "Module"][ENTITY]
       ).map((el) => ({ ...el, originalRef: el.ref }));
 
-      this.items = products.flatMap(product => {
+      this.items = products.flatMap((product) => {
         Object.assign(product, {
           isParent: true,
-          attributesFormatted: this.getFormatAttributes(product.attributes)
-        })
+          attributesFormatted: this.getFormatAttributes(product.attributes),
+        });
 
-
-        const variations = product.variations.map(variation => ({
+        const variations = product.variations.map((variation) => ({
           ...variation,
           product: product,
-          attributesFormatted: this.getFormatAttributes(variation.attributes)
-        }))
-        
-        Object.assign(product, { variations })
+          attributesFormatted: this.getFormatAttributes(variation.attributes),
+          woocommerceId: product.woocommerceId,
+          url: product.url,
+          country: product.country,
+        }));
 
-        return  [product, ...variations]
-      })
+        Object.assign(product, { variations });
+
+        // in case product has no stock status, because its shopify
+        if (!product.stock_status) {
+          product.stock_status = product.variations.some(
+            (el) => el.stock_status === "instock"
+          )
+            ? "instock"
+            : "outofstock";
+        }
+
+        return [product, ...variations];
+      });
     },
     getFormatAttributes(attributes) {
-      if(!attributes) {
-        return {}
+      if (!attributes) {
+        return {};
       }
-      return attributes.reduce((attributes, current) => ({
-        ...attributes,
-        [current.name.toLowerCase()]: current
-      }), {})
+      return attributes.reduce(
+        (attributes, current) => ({
+          ...attributes,
+          [current.name.toLowerCase()]: current,
+        }),
+        {}
+      );
     },
     async changeItemStatus(active, item) {
-      const id = item.id || item.idEcommerce
-      if(this.switchLoading.indexOf(id) !== -1) {
+      const id = item.id || item.idEcommerce;
+      if (this.switchLoading.indexOf(id) !== -1) {
         return;
       }
 
-      this.switchLoading.push(id)
+      this.switchLoading.push(id);
 
-      const stock_status = active === true ? 'instock' : 'outofstock'
-      const stock_quantity = active === true ? 1 : 0
-      let changes = { stock_status, stock_quantity, status: active === true ? 'publish' : 'draft', }
+      const stock_status = active === true ? "instock" : "outofstock";
+      const stock_quantity = active === true ? 1 : 0;
+      let changes = {
+        stock_status,
+        stock_quantity,
+        status: active === true ? "publish" : "draft",
+        woocommerceId: item.woocommerceId,
+        inventory_item_id: item.inventory_item_id,
+        old_inventory_quantity: item.old_inventory_quantity,
+        inventory_quantity: item.inventory_quantity,
+        externalId: item.externalId,
+      };
 
-      if(item.isParent) {
+      if (item.isParent) {
         let productChanges = {
           ...changes,
-          catalog_visibility: active === true ? 'visible' : 'hidden',
-        }
+          catalog_visibility: active === true ? "visible" : "hidden",
+        };
 
-        await EcommercesApi.update(item._id, productChanges)
+        await EcommercesApi.update(item._id, productChanges);
 
         Object.assign(item, {
           ...productChanges,
           stock_quantity: null,
-        })
-        
-        this.switchLoading = this.switchLoading.filter(v => v !== id)
+        });
 
-        if(active === false) {
-          this.switchLoading = item.variations.map(variation => variation.id)
+        this.switchLoading = this.switchLoading.filter((v) => v !== id);
+
+        if (active === false) {
+          this.switchLoading = item.variations.map((variation) => variation.id);
 
           // disable variations when product is being disabled
-          let payload = item.variations.map(variation => ({
+          let payload = item.variations.map((variation) => ({
+            ...changes,
             id: variation.id,
-            ...changes
-          }))
+            inventory_item_id: variation.inventory_item_id,
+            old_inventory_quantity: variation.old_inventory_quantity,
+            inventory_quantity: variation.inventory_quantity,
+          }));
+          console.log("el payload: ", payload);
 
-          await EcommercesApi.updateVariationBatch(item._id, payload)
+          await EcommercesApi.updateVariationBatch(item._id, payload);
 
-          this.switchLoading = []
-          
-          for(const variation of item.variations) {
-            Object.assign(variation, { ...variation, ...changes })
+          this.switchLoading = [];
+
+          for (const variation of item.variations) {
+            Object.assign(variation, { ...variation, ...changes });
           }
         }
 
         return;
       }
-
       // is a variation
-      await EcommercesApi.updateVariation(item.product._id, item.id, changes)
+      await EcommercesApi.updateVariation(item.product._id, item.id, changes);
 
-      this.switchLoading = this.switchLoading.filter(v => v !== id)
+      this.switchLoading = this.switchLoading.filter((v) => v !== id);
 
-      Object.assign(item, changes)
+      Object.assign(item, changes);
 
-      if(active === true) {
-        if(item.product.stock_status === 'outofstock') {
+      if (active === true) {
+        if (item.product.stock_status === "outofstock") {
           // enable product when variations are being enable
-          this.changeItemStatus(true, item.product)
+          this.changeItemStatus(true, item.product);
         }
         return;
       }
 
-      const hasStock = !!item.product.variations.find(variation => variation.stock_status === 'instock')
-      if(!hasStock) {
-        this.changeItemStatus(false, item.product)
+      const hasStock = !!item.product.variations.find(
+        (variation) => variation.stock_status === "instock"
+      );
+      if (!hasStock) {
+        this.changeItemStatus(false, item.product);
       }
     },
     async handleStockSave(item) {
-      if(this.$refs.stockTextEdit.valid) {
-        this.switchLoading.push(item.id)
+      console.log("🐞 LOG HERE item:", item);
+      if (this.$refs.stockTextEdit.valid) {
+        this.switchLoading.push(item.id);
         const changes = {
           stock_quantity: this.currentStock,
-          stock_status: this.currentStock > 0 ? 'instock' : 'outofstock',
-          status: this.currentStock > 0 ? 'publish' : 'draft'
-        }
-        Object.assign(item, changes)
-        await EcommercesApi.updateVariation(item.product._id, item.id, changes)
-        this.switchLoading = this.switchLoading.filter(v => v !== item.id)
+          stock_status: this.currentStock > 0 ? "instock" : "outofstock",
+          status: this.currentStock > 0 ? "publish" : "draft",
+          woocommerceId: item.woocommerceId,
+        };
+        Object.assign(item, changes);
+        await EcommercesApi.updateVariation(item.product._id, item.id, changes);
+        this.switchLoading = this.switchLoading.filter((v) => v !== item.id);
       }
-    }
+    },
   },
 };
 </script>

@@ -26,29 +26,42 @@
           </template>
           <template v-slot:item.id="{ index, item }">
             <span class="format-breaklines">
-              {{ index===0 ? item.idEcommerce : item.id }}
+              {{ index === 0 ? item.idEcommerce : item.id }}
             </span>
           </template>
           <template v-slot:item.title="{ index, item }">
-            <span class="format-breaklines" v-if="index===0">
+            <span class="format-breaklines" v-if="index === 0">
               {{ item.name }}
             </span>
           </template>
           <template v-slot:item.talla="{ index, item }">
-            <span class="format-breaklines" v-if="index===0">
-              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.options.join(', ') : '' }}
+            <span class="format-breaklines" v-if="index === 0">
+              {{
+                item.attributesFormatted.talla
+                  ? item.attributesFormatted.talla.options.join(", ")
+                  : ""
+              }}
             </span>
             <span class="format-breaklines" v-else>
-              {{ item.attributesFormatted.talla ? item.attributesFormatted.talla.option : '' }}
+              {{
+                item.attributesFormatted.talla
+                  ? item.attributesFormatted.talla.option
+                  : ""
+              }}
             </span>
           </template>
           <template v-slot:item.color="{ index, item }">
-            <span class="format-breaklines" v-if="index!==0">
-              {{ item.attributesFormatted.color ? item.attributesFormatted.color.option : '' }}
+            <span class="format-breaklines" v-if="index !== 0">
+              {{
+                item.attributesFormatted.color
+                  ? item.attributesFormatted.color.option
+                  : ""
+              }}
             </span>
           </template>
           <template v-slot:item.stock_quantity="{ item }">
-            <v-edit-dialog v-if="item.id"
+            <v-edit-dialog
+              v-if="item.id"
               large
               persistent
               @save="handleStockSave(item)"
@@ -65,7 +78,7 @@
                   label="Edit"
                   type="number"
                   min="0"
-                  :rules="stockRules" 
+                  :rules="stockRules"
                   single-line
                   autofocus
                 ></v-text-field>
@@ -80,7 +93,7 @@
 
 <script>
 import MaterialCard from "@/components/material/Card";
-import EcommercesApi from '@/services/api/ecommerces'
+import EcommercesApi from "@/services/api/ecommerces";
 
 export default {
   components: { MaterialCard },
@@ -91,9 +104,9 @@ export default {
       switchLoading: [],
       currentStock: 0,
       stockRules: [
-        val => /^[0-9]*$/.test(val) || "Debe ser un número",
-        val => val >=0 || "No puede ser negativo",
-        val => !!val || "El campo es requerido"
+        (val) => /^[0-9]*$/.test(val) || "Debe ser un número",
+        (val) => val >= 0 || "No puede ser negativo",
+        (val) => !!val || "El campo es requerido",
       ],
       headers: [
         {
@@ -162,127 +175,145 @@ export default {
           sortable: false,
           value: "catalog_visibility",
         },
-      ]
-    }
+      ],
+    };
   },
   created() {
-    const productId = this.$route.params.id
-    EcommercesApi.listOne(productId, { sync: true })
-    .then(res => {
-      let product = res.data.payload
+    const productId = this.$route.params.id;
+    EcommercesApi.listOne(productId, { sync: true }).then((res) => {
+      let product = res.data.payload;
 
       Object.assign(product, {
-        attributesFormatted: this.getFormatAttributes(product.attributes)
-      })
+        attributesFormatted: this.getFormatAttributes(product.attributes),
+      });
 
-      const variations = product.variations.map(variation => ({
+      const variations = product.variations.map((variation) => ({
         ...variation,
-        attributesFormatted: this.getFormatAttributes(variation.attributes)
-      }))
+        attributesFormatted: this.getFormatAttributes(variation.attributes),
+        woocommerceId: product.woocommerceId,
+      }));
 
-      Object.assign(this, { product, variations })
-    })
+      Object.assign(this, { product, variations });
+    });
   },
   computed: {
     items() {
-      if(this.product) {
-        return [this.product, ...this.variations]
+      if (this.product) {
+        return [this.product, ...this.variations];
       }
-      
-      return []
+
+      return [];
     },
   },
   methods: {
     getFormatAttributes(attributes) {
-      return attributes.reduce((attributes, current) => ({
-        ...attributes,
-        [current.name.toLowerCase()]: current
-      }), {})
+      return attributes.reduce(
+        (attributes, current) => ({
+          ...attributes,
+          [current.name.toLowerCase()]: current,
+        }),
+        {}
+      );
     },
     async changeItemStatus(active, item) {
-      const id = item.id || item.idEcommerce
-      if(this.switchLoading.indexOf(id) !== -1) {
+      const id = item.id || item.idEcommerce;
+      if (this.switchLoading.indexOf(id) !== -1) {
         return;
       }
 
-      this.switchLoading.push(id)
+      this.switchLoading.push(id);
 
-      const stock_status = active === true ? 'instock' : 'outofstock'
-      const stock_quantity = active === true ? 1 : 0
-      let changes = { stock_status, stock_quantity, status: active === true ? 'publish' : 'draft', }
+      const stock_status = active === true ? "instock" : "outofstock";
+      const stock_quantity = active === true ? 1 : 0;
+      let changes = {
+        stock_status,
+        stock_quantity,
+        status: active === true ? "publish" : "draft",
+        woocommerceId: item.woocommerceId,
+        inventory_item_id: item.inventory_item_id,
+        old_inventory_quantity: item.old_inventory_quantity,
+        inventory_quantity: item.inventory_quantity,
+        externalId: item.externalId,
+      };
 
-      const isProduct = 'idEcommerce' in item
-      if(isProduct) {
+      const isProduct = "idEcommerce" in item;
+      if (isProduct) {
         let productChanges = {
           ...changes,
-          catalog_visibility: active === true ? 'visible' : 'hidden',
-        }
+          catalog_visibility: active === true ? "visible" : "hidden",
+        };
 
-        await EcommercesApi.update(item._id, productChanges)
+        await EcommercesApi.update(item._id, productChanges);
 
         Object.assign(item, {
           ...productChanges,
           stock_quantity: null,
-        })
-        
-        this.switchLoading = this.switchLoading.filter(v => v !== id)
+        });
 
-        if(active === false) {
-          this.switchLoading = this.variations.map(variation => variation.id)
+        this.switchLoading = this.switchLoading.filter((v) => v !== id);
+
+        if (active === false) {
+          this.switchLoading = this.variations.map((variation) => variation.id);
 
           // disable variations when product is being disabled
-          let payload = this.variations.map(variation => ({
+          let payload = this.variations.map((variation) => ({
+            ...changes,
             id: variation.id,
-            ...changes
-          }))
+            inventory_item_id: variation.inventory_item_id,
+            old_inventory_quantity: variation.old_inventory_quantity,
+            inventory_quantity: variation.inventory_quantity,
+          }));
 
-          await EcommercesApi.updateVariationBatch(this.product._id, payload)
+          await EcommercesApi.updateVariationBatch(this.product._id, payload);
 
-          this.switchLoading = []
+          this.switchLoading = [];
 
-          this.variations = this.variations.map(variation => ({ ...variation, ...changes }))
+          this.variations = this.variations.map((variation) => ({
+            ...variation,
+            ...changes,
+          }));
         }
 
         return;
       }
 
       // is a variation
-      await EcommercesApi.updateVariation(this.product._id, item.id, changes)
+      await EcommercesApi.updateVariation(this.product._id, item.id, changes);
 
-      this.switchLoading = this.switchLoading.filter(v => v !== id)
+      this.switchLoading = this.switchLoading.filter((v) => v !== id);
 
-      Object.assign(item, changes)
+      Object.assign(item, changes);
 
-      if(active === true) {
-        if(this.product.stock_status === 'outofstock') {
+      if (active === true) {
+        if (this.product.stock_status === "outofstock") {
           // enable product when variations are being enable
-          this.changeItemStatus(true, this.product)
+          this.changeItemStatus(true, this.product);
         }
         return;
       }
 
-      const hasStock = !!this.variations.find(variation => variation.stock_status === 'instock')
-      if(!hasStock) {
-        this.changeItemStatus(false, this.product)
+      const hasStock = !!this.variations.find(
+        (variation) => variation.stock_status === "instock"
+      );
+      if (!hasStock) {
+        this.changeItemStatus(false, this.product);
       }
     },
     async handleStockSave(item) {
-      if(this.$refs.stockTextEdit.valid) {
-        this.switchLoading.push(item.id)
+      if (this.$refs.stockTextEdit.valid) {
+        this.switchLoading.push(item.id);
         const changes = {
           stock_quantity: this.currentStock,
-          stock_status: this.currentStock > 0 ? 'instock' : 'outofstock',
-          status: this.currentStock > 0 ? 'publish' : 'draft'
-        }
-        Object.assign(item, changes)
-        await EcommercesApi.updateVariation(this.product._id, item.id, changes)
-        this.switchLoading = this.switchLoading.filter(v => v !== item.id)
+          stock_status: this.currentStock > 0 ? "instock" : "outofstock",
+          status: this.currentStock > 0 ? "publish" : "draft",
+        };
+        Object.assign(item, changes);
+        await EcommercesApi.updateVariation(this.product._id, item.id, changes);
+        this.switchLoading = this.switchLoading.filter((v) => v !== item.id);
       }
-    }
+    },
   },
-}
+};
 </script>
 
-<style>
-
-</style>
+<style></style>
