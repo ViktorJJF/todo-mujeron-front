@@ -396,6 +396,12 @@ export default {
         value: "name",
       },
       {
+        text: "Company",
+        align: "left",
+        sortable: true,
+        value: "company.name",
+      },
+      {
         text: "¿Activo?",
         align: "left",
         sortable: false,

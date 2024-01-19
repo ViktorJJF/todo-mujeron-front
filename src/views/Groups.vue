@@ -176,6 +176,12 @@ export default {
         value: "nombre",
       },
       {
+        text: "Company",
+        align: "left",
+        sortable: true,
+        value: "company.name",
+      },
+      {
         text: "Agregado",
         align: "left",
         sortable: true,
