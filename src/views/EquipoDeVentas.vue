@@ -77,6 +77,19 @@
                             </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
+                                >Compañia</span
+                              >
+                              <VSelectWithValidation
+                                v-model="editedItem.company"
+                                :items="companies"
+                                rules="required"
+                                item-text="name"
+                                item-value="_id"
+                                placeholder="Seleccionar Compañia"
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
                                 >Agentes</span
                               >
                               <VSelectWithValidation
@@ -219,6 +232,7 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     equipoDeVentas: [],
+    companies: [],
     editedIndex: -1,
     editedItem: EquipoDeVentas(),
     defaultItem: EquipoDeVentas(),
@@ -249,6 +263,7 @@ export default {
         sort: "name",
         order: "asc",
       }),
+      this.$store.dispatch("companiesModule/list"),
     ]);
     this.initialize();
     this.rolAuth();
@@ -276,6 +291,9 @@ export default {
       );
       this.todofullLabels = this.$deepCopy(
         this.$store.state.todofullLabelsModule.todofullLabels
+      );
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies
       );
     },
     editItem(item) {
@@ -305,6 +323,7 @@ export default {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         let itemId = this.equipoDeVentas[this.editedIndex]._id;
+        this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
         try {
           await this.$store.dispatch("equipoDeVentasModule/update", {
             id: itemId,
