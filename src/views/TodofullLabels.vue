@@ -72,6 +72,7 @@
                               <VSelectWithValidation
                                 v-model="editedItem.company"
                                 :items="companies"
+                                rules="required"
                                 item-text="name"
                                 item-value="_id"
                                 placeholder="Seleccionar Compañia"
