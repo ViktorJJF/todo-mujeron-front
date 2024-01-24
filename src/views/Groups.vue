@@ -71,7 +71,7 @@
 
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
-                                >Agentes</span
+                                >Compañia</span
                               >
                               <VSelectWithValidation
                                 v-model="editedItem.company"

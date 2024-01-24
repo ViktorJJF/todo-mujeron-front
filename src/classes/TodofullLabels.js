@@ -3,4 +3,5 @@ export default () => ({
   webTags: [],
   retailRocketTags: [],
   messengerTags: [],
+  company: {}
 });
