@@ -76,6 +76,18 @@
                           label="Email"
                         />
                       </v-col>
+                      <v-col cols="12">
+                        <span class="body-1 font-weight-bold"
+                          >Compañia</span>
+                        <VSelectWithValidation
+                          v-model="editedItem.company"
+                          :items="companies"
+                          rules="required"
+                          item-text="name"
+                          item-value="_id"
+                          placeholder="Seleccionar Compañia"
+                        />
+                      </v-col>
                       <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Celular</p>
                         <VTextFieldWithValidation
@@ -196,6 +208,7 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 import MaterialCard from "@/components/material/Card";
 import Usuarios from "@/classes/Users";
 import auth from "@/services/api/auth";
@@ -203,6 +216,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -250,6 +264,7 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     usuarios: [],
+    companies: [],
     editedIndex: -1,
     editedItem: Usuarios(),
     defaultItem: Usuarios(),
@@ -277,7 +292,8 @@ export default {
   },
 
    async created(){
-    await         this.$store.dispatch("usersModule/list");
+    await this.$store.dispatch("usersModule/list");
+    await this.$store.dispatch("companiesModule/list"),
 
     this.initialize();
   },
@@ -304,6 +320,9 @@ export default {
     },
     initialize() {
       this.usuarios = this.$deepCopy(this.$store.state.usersModule.users);
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies
+      );
       // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
@@ -333,11 +352,13 @@ export default {
       this.loadingButton = true;
         //create item
         try {
+          this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           let newItem = await this.$store.dispatch(
             "usersModule/create",
             this.editedItem
           );
           this.usuarios.push(newItem);
+          console.log("newItem", newItem);
           this.close();
         } finally {
           this.loadingButton = false;

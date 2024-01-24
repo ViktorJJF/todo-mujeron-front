@@ -4,4 +4,5 @@ export default () => ({
     status: true,
     roles:[],
     email:"",
+    company: {}
   });
