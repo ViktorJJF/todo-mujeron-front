@@ -59,6 +59,11 @@ let routes = [
         component: () => import("@/views/Groups.vue"),
       },
       {
+        path: "/companias",
+        name: "Companies",
+        component: () => import("@/views/Companies.vue"),
+      },
+      {
         path: "/grupos/:id",
         name: "EditarGrupos",
         component: () => import("@/views/GroupsEdit.vue"),
