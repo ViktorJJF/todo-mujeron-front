@@ -141,7 +141,7 @@
               </ValidationObserver>
               <div v-show="editedIndex !== -1" class="pa-5">
                 <b>Nombre de audiencia: </b>{{ editedItem.name }}
-                <v-row>
+                <!-- <v-row>
                   <v-col cols="12" sm="12">
                     <v-combobox
                       class="mt-3"
@@ -173,8 +173,22 @@
                       </template>
                     </v-combobox>
                   </v-col>
-                </v-row>
+                </v-row> -->
                 <v-row>
+                  <v-col cols="12" sm="12" md="12">
+                    <div class="body-1 font-weight-bold">Segmento</div>
+                    <v-autocomplete
+                      v-model="editedItem.marketingSegmentId"
+                      :items="marketingSegments"
+                      :filter="customFilter"
+                      item-text="name"
+                      item-value="_id"
+                      outlined
+                      dense
+                      hide-details="auto"
+                      placeholder="Selecciona un segmento"
+                    ></v-autocomplete>
+                  </v-col>
                   <v-col cols="12" sm="12">
                     <v-switch
                       label="Ver SOLO leads faltantes"
@@ -186,27 +200,26 @@
                       color="primary"
                       @click="
                         currentView = 'CleanLeads';
-                        getLeadsByTodofullLabels(
-                          editedItem.todofullLabels,
-                          editedItem._id
+                        getLeadsByMarketingSegment(
+                          editedItem._id,
+                          editedItem.marketingSegmentId
                         );
                       "
                       >Ver Leads</v-btn
                     >
                   </v-col>
-                  <v-col cols="12" sm="3">
+                  <!-- <v-col cols="12" sm="3">
                     <v-btn
                       color="primary"
                       @click="
                         currentView = 'Leads';
-                        getPotentialLeadsByTodofullLabels(
-                          editedItem.todofullLabels,
-                          editedItem._id
+                        getLeadsByMarketingSegment(
+                          editedItem.marketingSegmentId
                         );
                       "
                       >Ver potenciales Leads</v-btn
                     >
-                  </v-col>
+                  </v-col> -->
                 </v-row>
                 <v-row>
                   <v-col cols="12" sm="3">
@@ -345,7 +358,7 @@ import leadsService from "@/services/api/leads";
 
 export default {
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -376,6 +389,7 @@ export default {
       searchLabel: "",
       selectedLabels: [],
       todofullLabels: [],
+      marketingSegments: [],
       audiences: [],
       loadingButton: false,
       editedItem: {
@@ -438,6 +452,11 @@ export default {
   methods: {
     async initialize(country) {
       await Promise.all([
+        this.$store.dispatch("marketingSegmentsModule/list", {
+          country: country || this.country,
+          sort: "name",
+          order: "asc",
+        }),
         this.$store.dispatch("facebookAudiencesModule/list", {
           country: country || this.country,
           sort: "name",
@@ -448,12 +467,11 @@ export default {
           order: "asc",
         }),
       ]);
-      this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels;
-      this.audiences =
-        this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
-          (el) => el.subtype === "CUSTOM"
-        );
+      this.marketingSegments = this.$store.state.marketingSegmentsModule.marketingSegments;
+      this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
+      this.audiences = this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
+        (el) => el.subtype === "CUSTOM"
+      );
 
       // leyendo audiencias de api facebook
       let res = await axios.get("/api/graph-api/getAudiences", {
@@ -574,6 +592,26 @@ export default {
       this.totalDocs = response.totalDocs;
       this.cleanLeads = response.docs;
     },
+    async getLeadsByMarketingSegment(audienceId, marketingSegmentId) {
+      const payload = {
+        sort: "updatedAt",
+        order: "desc",
+        limit: 30,
+        segmentId: marketingSegmentId,
+      };
+      if (this.showMissingLeads) {
+        payload.showMissingLeads = true;
+        payload.audienceId = audienceId;
+      }
+      const response = await this.$store.dispatch(
+        "cleanLeadsModule/listWithAdvanceFilter",
+        payload
+      );
+      this.totalDocs = this.$store.state.cleanLeadsModule.total;
+      this.totalPages = this.$store.state.cleanLeadsModule.totalPages;
+      console.log("El cleanleads module: ", this.$store.state.cleanLeadsModule);
+      this.cleanLeads = response;
+    },
     async getPotentialLeadsByTodofullLabels(selectedLabels, audienceId) {
       const response = (
         await leadsService.getByTodofullLabels(
@@ -629,9 +667,14 @@ export default {
     openForm() {
       this.editItem.country = this.country;
     },
+    customFilter(item, queryText) {
+      const textOne = item.name.toLowerCase();
+      const searchText = queryText.toLowerCase();
+
+      return textOne.indexOf(searchText) > -1;
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
