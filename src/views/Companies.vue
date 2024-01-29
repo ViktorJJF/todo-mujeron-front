@@ -60,6 +60,13 @@
                             label="Nombres"
                           />
                         </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <p class="body-1 font-weight-bold mb-0">Alias</p>
+                          <VTextFieldWithValidation
+                            v-model="editedItem.alias"
+                            label="Alias"
+                          />
+                        </v-col>
                       </v-row>
                           </v-container>
                           <v-card-actions rd-actions>
@@ -145,6 +152,12 @@
           align: "left",
           sortable: false,
           value: "name",
+        },
+        {
+          text: "Alias",
+          align: "left",
+          sortable: false,
+          value: "alias",
         },
         { text: "Acciones", value: "action", sortable: false },
       ],
