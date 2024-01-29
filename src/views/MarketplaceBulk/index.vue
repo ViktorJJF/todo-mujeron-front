@@ -124,7 +124,7 @@ export default {
       items: [],
       rawItems: "",
       loading: false,
-      country: null,
+      country: 1,
       countries: [
         { text: "Chile", value: 1 },
         { text: "Perú", value: 6 },
