@@ -76,18 +76,6 @@
                           label="Email"
                         />
                       </v-col>
-                      <v-col cols="12">
-                        <span class="body-1 font-weight-bold"
-                          >Compañia</span>
-                        <VSelectWithValidation
-                          v-model="editedItem.company"
-                          :items="companies"
-                          rules="required"
-                          item-text="name"
-                          item-value="_id"
-                          placeholder="Seleccionar Compañia"
-                        />
-                      </v-col>
                       <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Celular</p>
                         <VTextFieldWithValidation
@@ -97,6 +85,33 @@
                           }"
                           v-model="editedItem.phone_number"
                           label="+51982745576"
+                        />
+                      </v-col>
+                      <v-col cols="12">
+                        <span class="body-1 font-weight-bold"
+                          >Compañia</span>
+                        <VSelectWithValidation
+                          v-model="editedItem.companies"
+                          :items="companies"
+                          @change="updateGroupsList"
+                          rules="required"
+                          item-text="alias"
+                          item-value="_id"
+                          placeholder="Seleccionar Compañia"
+                          multiple
+                        />
+                      </v-col>
+                      <v-col cols="12">
+                        <span class="body-1 font-weight-bold"
+                          >Grupo</span>
+                        <VSelectWithValidation
+                          v-model="editedItem.roles"
+                          :items="groups"
+                          rules="required"
+                          item-text="nombre"
+                          item-value="_id"
+                          placeholder="Seleccionar Grupos"
+                          multiple
                         />
                       </v-col>
                       <!-- <v-col cols="12" sm="6" md="6">
@@ -250,10 +265,10 @@ export default {
         value: "email",
       },
       {
-        text: "Company",
+        text: "Companies",
         align: "left",
         sortable: true,
-        value: "company.name",
+        value: "companies",
       },
       {
         text: "Estado",
@@ -265,6 +280,8 @@ export default {
     ],
     usuarios: [],
     companies: [],
+    selectedGroup: "",
+    groups: [],
     editedIndex: -1,
     editedItem: Usuarios(),
     defaultItem: Usuarios(),
@@ -305,6 +322,13 @@ export default {
 
 
   methods: {
+    async updateGroupsList() {
+      this.groups = [];
+      if (this.editedItem.companies.length) {
+        await this.$store.dispatch("groupsModule/list", { companies: this.editedItem.companies });
+        this.groups = this.$deepCopy(this.$store.state.groupsModule.groups); 
+      }
+    },
      rolAuth(){
       auth.roleAuthorization(
         {
