@@ -268,6 +268,14 @@
                         </tbody>
                       </template>
                     </v-simple-table>
+                    <!-- <v-pagination
+                      v-model="page"
+                      @input="
+                        initialize(buildPayloadPagination(page, buildSearch()))
+                      "
+                      :length="totalPages"
+                      total-visible="15"
+                    ></v-pagination> -->
                   </v-col>
                 </v-row>
                 <v-card-actions rd-actions>
@@ -345,7 +353,7 @@ import leadsService from "@/services/api/leads";
 
 export default {
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -448,12 +456,10 @@ export default {
           order: "asc",
         }),
       ]);
-      this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels;
-      this.audiences =
-        this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
-          (el) => el.subtype === "CUSTOM"
-        );
+      this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
+      this.audiences = this.$store.state.facebookAudiencesModule.facebookAudiences.filter(
+        (el) => el.subtype === "CUSTOM"
+      );
 
       // leyendo audiencias de api facebook
       let res = await axios.get("/api/graph-api/getAudiences", {
@@ -633,5 +639,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
