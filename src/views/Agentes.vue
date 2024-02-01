@@ -226,7 +226,7 @@ export default {
         text: "Company",
         align: "left",
         sortable: true,
-        value: "company.name",
+        value: "company.alias",
       },
       {
         text: "Agregado",
