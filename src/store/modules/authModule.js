@@ -6,6 +6,7 @@ import router from "@/router";
 
 const state = () => ({
   user: null,
+  companies: [],
   token: JSON.parse(!!localStorageGet("token")) || null,
   isTokenSet: !!localStorageGet("token"),
 });
@@ -15,6 +16,7 @@ const getters = {
     state.user ? state.user.first_name + " " + state.user.last_name : " ",
   token: (state) => (state.user ? state.user.token : " "),
   isTokenSet: (state) => state.isTokenSet,
+  getCurrentCompany: (state) => state.companies.find(c => c.selected === true),
 };
 const actions = {
   initialLoad({ commit }) {
@@ -42,6 +44,7 @@ const actions = {
             // );
             commit("saveUser", response.data.user);
             commit("saveToken", response.data.token);
+            commit("setCompanies", response.data.user.companies)
             // commit(types.EMAIL_VERIFIED, response.data.user.verified);
             buildSuccess("Bienvenido", commit);
             resolve();
@@ -94,6 +97,12 @@ const actions = {
     router.push({ name: "login" });
     commit("logout");
   },
+  setCurrentCompany({ commit, id }) {
+    commit("setCurrentCompany", id);
+  },
+  setCompanies({ commit }, companies) {
+    commit("setCompanies", companies)
+  }
   // editUser({ commit }, { id, data }) {
   //   return new Promise((resolve, reject) => {
   //     commit("loadingModule/showLoading", true, { root: true });
@@ -124,6 +133,19 @@ const mutations = {
   saveUser(state, user) {
     state.user = user;
   },
+  setCurrentCompany(state, id) {
+    state.companies.map(c => {
+      c.selected = false;
+    });
+    state.companies[id].selected = true;
+  },
+  setCompanies(state, companies) {
+    const companyList = companies.map(c => {
+      c.selected = c.default === true;
+      return c;
+    });
+    state.companies = companyList;
+  }
 };
 
 const namespaced = true;

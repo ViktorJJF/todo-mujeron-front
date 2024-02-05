@@ -298,6 +298,12 @@ export default {
         value: "name",
       },
       {
+        text: "Company",
+        align: "left",
+        sortable: false,
+        value: "company.alias",
+      },
+      {
         text: "Última Actualización",
         align: "left",
         sortable: false,
