@@ -121,9 +121,7 @@
           </template>
           <template v-slot:[`item.fanpageId`]="{ item }">
             {{
-              $store.state.botsModule.bots.find(
-                (el) => el.fanpageId === item.fanpageId
-              ).name
+              botName(item)
             }}
           </template>
           <template v-slot:[`item.todofullLabelId`]="{ item }">
@@ -442,6 +440,12 @@ export default {
     this.rolAuth();
   },
   methods: {
+    botName (item) {
+      const bot = this.$store.state.botsModule.bots.find(
+                (el) => el.fanpageId === item.fanpageId
+              );
+      return bot ? bot.name : "";
+    },
     rolAuth() {
       auth
         .roleAuthorization({
@@ -461,6 +465,7 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "name",
           order: 1,
+          companyId: this.$store.getters["authModule/getCurrentCompany"].company._id,
         }),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",

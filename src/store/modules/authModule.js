@@ -88,6 +88,7 @@ const actions = {
     const user = JSON.parse(localStorageGet("user"));
     commit("saveUser", user);
     commit("saveToken", localStorageGet("token"));
+    commit("setCompanies", user.companies)
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {
