@@ -28,7 +28,14 @@
                   :placeholder="'SKU \t Stock\nSKU \t Stock'"
                   @input="handleRawItemsChange"
                 />
-                <v-btn type="submit" color="primary">Enviar</v-btn>
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  :loading="loading"
+                  :disabled="!canSubmitProducts"
+                >
+                  Enviar
+                </v-btn>
               </v-form>
             </v-col>
 
@@ -41,6 +48,7 @@
                       <th>Cantidad</th>
                       <th>Marketplaces</th>
                       <th>Woocommerce</th>
+                      <th>Shopify</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -79,6 +87,20 @@
                           <span>{{ item.response.woocommerce.message }}</span>
                         </v-tooltip>
                       </td>
+                      <td>
+                        <div v-if="!item.response"></div>
+                        <div v-else-if="item.response.shopify.success === true">
+                          <v-icon color="green">mdi-check</v-icon>
+                        </div>
+                        <v-tooltip v-else bottom color="error">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon color="error" v-bind="attrs" v-on="on">
+                              <v-icon>mdi-alert-circle-outline</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>{{ item.response.shopify.message }}</span>
+                        </v-tooltip>
+                      </td>
                     </tr>
                   </tbody>
                 </template>
@@ -92,52 +114,70 @@
 </template>
 
 <script>
-import MaterialCard from '@/components/material/Card'
-import stockService from '@/services/api/stock'
+import MaterialCard from "@/components/material/Card";
+import stockService from "@/services/api/stock";
 
 export default {
   components: { MaterialCard },
   data() {
     return {
       items: [],
-      rawItems: '',
-      country: null,
+      rawItems: "",
+      loading: false,
+      country: 1,
       countries: [
-        { text: 'Chile', value: 1 },
-        { text: 'Perú', value: 6 },
+        { text: "Chile", value: 1 },
+        { text: "Perú", value: 6 },
       ],
-    }
+    };
+  },
+  computed: {
+    canSubmitProducts() {
+      return this.rawItems.length && this.country !== null;
+    },
   },
   methods: {
     handleRawItemsChange() {
-      const items = []
-      const match = this.rawItems.matchAll(/^(\S+)\s+(\d+)$/gm) //sku  quantity
+      const items = [];
+      const match = this.rawItems.matchAll(/^(\S+)\s+(\d+)$/gm); //sku  quantity
       for (const row of match) {
-        const [, sku, quantity] = row
-        items.push({ sku, quantity })
+        const [, sku, quantity] = row;
+        items.push({ sku, quantity });
       }
-      this.items = items
+      this.items = items;
     },
     async handleBulkUpdate() {
-      if (this.country === null) return
+      if (this.loading) return;
+      if (this.country === null) return;
+
+      this.loading = true;
 
       const data = {
         country: this.country,
         products: this.items,
-      }
+      };
 
-      const res = await stockService.bulkUpdate(data)
-      if (res.data && Array.isArray(res.data.payload)) {
-        this.items = this.items.map((item) => {
-          item.response = res.data.payload.find(
-            (itemRes) => itemRes.sku === item.sku
-          )
-          return item
-        })
+      try {
+        const res = await stockService.bulkUpdate(data);
+        if (res.data && Array.isArray(res.data.payload)) {
+          this.items = this.items.map((item) => {
+            item.response = res.data.payload.find(
+              (itemRes) => itemRes.sku === item.sku
+            );
+            return item;
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        const errorMessage =
+          "Ocurrió un error al intentar modificar los productos";
+        this.$store.commit("errorModule/error", errorMessage, { root: true });
+        this.$store.commit("errorModule/showError", true, { root: true });
       }
+      this.loading = false;
     },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -152,5 +192,9 @@ export default {
   flex-direction: column;
   gap: 15px;
   width: 100%;
+}
+
+.theme--light.v-btn.v-btn--disabled {
+  background-color: #ccc !important;
 }
 </style>

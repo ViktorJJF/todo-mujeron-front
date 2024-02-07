@@ -61,7 +61,7 @@
               <div v-if="item.color" style="text-transform: capitalize">
                 Color: {{ item.color }}
               </div>
-              <div>Talla: {{ item.tallas.join(", ") }}</div>
+              <div>Talla: {{ item.tallas.join(', ') }}</div>
               <strong>{{ (item.price * item.quantity) | currency }}</strong>
             </div>
           </v-list-item-content>
@@ -109,8 +109,8 @@
               block
               depressed
               @click="
-                drawerCart = false;
-                buyModal = true;
+                drawerCart = false
+                buyModal = true
               "
               :disabled="!cartItems.length"
             >
@@ -354,31 +354,31 @@
 </template>
 
 <script>
-import Flipbook from "flipbook-vue";
-import EcommercesApi from "@/services/api/ecommerces";
-import CountrySelect from "@/components/catalog/CountrySelect";
-import TallasSelect from "@/components/catalog/TallasSelect";
-import BuyForm from "../BuyForm.vue";
-import { jsPDF } from "jspdf";
+import Flipbook from 'flipbook-vue'
+import EcommercesApi from '@/services/api/ecommerces'
+import CountrySelect from '@/components/catalog/CountrySelect'
+import TallasSelect from '@/components/catalog/TallasSelect'
+import BuyForm from '../BuyForm.vue'
+import { jsPDF } from 'jspdf'
 
-const COUNTRIES = ["Chile", "Peru"];
-const DEFAULT_COUNTRY = "Chile";
-const ITEMS_PER_PAGE = 30;
+const COUNTRIES = ['Chile', 'Peru']
+const DEFAULT_COUNTRY = 'Chile'
+const ITEMS_PER_PAGE = 30
 
 const MONTHS = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-];
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+]
 
 export default {
   components: { Flipbook, CountrySelect, TallasSelect, BuyForm },
@@ -415,55 +415,55 @@ export default {
         brands: [],
       },
       currentPageIndex: 0,
-      mainColor: "purple",
-    };
+      mainColor: 'purple',
+    }
   },
   created() {
     if (this.catalog.mainColor) {
-      this.mainColor = this.catalog.mainColor;
+      this.mainColor = this.catalog.mainColor
     }
 
-    this.hideCountrySelect = "hide_country" in this.$route.query ? true : false;
+    this.hideCountrySelect = 'hide_country' in this.$route.query ? true : false
 
-    const country = this.$route.query.country;
+    const country = this.$route.query.country
 
     if (country && COUNTRIES.includes(country)) {
-      this.country = country;
+      this.country = country
     }
 
     this.setFilterFromQuery()
       .then(() => this.fetchAll())
       .then(() => this.setFilterFromQuery())
-      .then(() => (this.filterInitialized = true));
+      .then(() => (this.filterInitialized = true))
   },
   filters: {
     currency(val) {
-      return new Intl.NumberFormat().format(val);
+      return new Intl.NumberFormat().format(val)
     },
   },
   computed: {
     pages() {
-      return this.productsSource.map(this.getProductImageUrl);
+      return this.productsSource.map(this.getProductImageUrl)
     },
     leftPageProduct() {
-      const index = this.currentPageIndex > 0 ? this.currentPageIndex - 1 : 0;
-      return this.productsSource[index];
+      const index = this.currentPageIndex > 0 ? this.currentPageIndex - 1 : 0
+      return this.productsSource[index]
     },
     rightPageProduct() {
-      return this.productsSource[this.currentPageIndex];
+      return this.productsSource[this.currentPageIndex]
     },
     currencyCode() {
       if (this.country === COUNTRIES[0]) {
-        return "CLP";
+        return 'CLP'
       }
 
-      return "PEN";
+      return 'PEN'
     },
     mercadopagoAvailable() {
       return (
         this.catalog.mercadopagoAccessToken &&
         this.catalog.mercadopagoAccessToken.trim().length > 0
-      );
+      )
     },
     filtersActive() {
       return (
@@ -471,93 +471,92 @@ export default {
         this.filter.tallas.length ||
         this.filter.brands.length ||
         this.productsSelected.length
-      );
+      )
     },
     productsSource() {
       return this.productsSelected.length
         ? this.productsSelected
-        : this.products;
+        : this.products
     },
     productsDocsSource() {
       if (this.productsSelected.length) {
         return {
           total: this.productsSelected.length,
           nextPage: null,
-        };
+        }
       }
 
-      return this.productsDocs;
+      return this.productsDocs
     },
     categoriesTree() {
-      const rootCategories = this.categories.filter((cat) => cat.parent === 0);
+      const rootCategories = this.categories.filter((cat) => cat.parent === 0)
 
       return rootCategories.map((category) => ({
         ...category,
         children: this.categories.filter(
           (cat) => cat.parent === category.idCategory
         ),
-      }));
+      }))
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => {
         const price =
-          item.product.regular_price ||
-          item.product.variations[0].regular_price;
-        return total + price * item.quantity;
-      }, 0);
+          item.product.regular_price || item.product.variations[0].regular_price
+        return total + price * item.quantity
+      }, 0)
     },
   },
   watch: {
-    country: function () {
-      this.filterInitialized = false;
+    country: function() {
+      this.filterInitialized = false
 
       this.filter = {
         tallas: [],
         brands: [],
         categories: [],
-      };
+      }
 
       const query = {
         ...this.$route.query,
         country: this.country,
-      };
+      }
 
-      this.$router.replace({ query });
+      this.$router.replace({ query })
 
       this.fetchAll().then(() => {
-        this.filterInitialized = true;
-      });
+        this.filterInitialized = true
+      })
     },
-    search: function (val) {
-      this.handleSearchInputChange(val);
+    search: function(val) {
+      this.handleSearchInputChange(val)
     },
-    "filter.categories": function () {
-      if (!this.filterInitialized) return;
-      Object.assign(this.filter, { tallas: [], brands: [] });
-      this.fetchAttributes();
+    'filter.categories': function() {
+      if (!this.filterInitialized) return
+      Object.assign(this.filter, { tallas: [], brands: [] })
+      this.fetchAttributes()
     },
     filter: {
       deep: true,
-      handler: function (val) {
-        if (!this.filterInitialized) return;
+      handler: function(val) {
+        if (!this.filterInitialized) return
 
-        this.fetchProducts();
+        this.fetchProducts()
 
         const query = {
           ...this.$route.query,
-          categories: val.categories.join(","),
-          tallas: val.tallas.join(","),
-          brands: val.brands.join(","),
-        };
+          categories: val.categories.join(','),
+          tallas: val.tallas.join(','),
+          brands: val.brands.join(','),
+        }
 
-        this.$router.replace({ query });
+        this.$router.replace({ query })
       },
     },
-    currentPageIndex: function (val) {
+    currentPageIndex: function(val) {
       // fetch products 2 pages before last
-      if (val === this.productsSource.length - 3) {
+      if (this.productsSource.length - val <= 4) {
         if (this.productsDocsSource.nextPage) {
-          this.fetchProducts(this.productsDocs.nextPage);
+          this.fetchProducts(this.productsDocs.nextPage)
         }
       }
     },
@@ -565,153 +564,153 @@ export default {
   methods: {
     async downloadPdf(maxSize, price) {
       if (!this.productsSource.length) {
-        return;
+        return
       }
 
-      let doc = new jsPDF();
+      let doc = new jsPDF()
 
-      const [x, y] = [30, 7];
-      let width = doc.internal.pageSize.getWidth() - x * 2;
-      let height = doc.internal.pageSize.getHeight() - y * 2;
+      const [x, y] = [30, 7]
+      let width = doc.internal.pageSize.getWidth() - x * 2
+      let height = doc.internal.pageSize.getHeight() - y * 2
 
       for (const [index, product] of this.productsSource.entries()) {
         let leftText = `Rerefencia: ${
           product.ref
-        } - Tallas disponibles: ${this.getTallas(product).join(", ")}`;
-        doc.text(leftText, x - 3, height + y, { angle: 90 });
+        } - Tallas disponibles: ${this.getTallas(product).join(', ')}`
+        doc.text(leftText, x - 3, height + y, { angle: 90 })
 
         let rightText = `Actualizado al ${this.getDate()} - Pais: ${
           this.country
-        }`;
-        doc.text(rightText, width + x + 6, height + y, { angle: 90 });
+        }`
+        doc.text(rightText, width + x + 6, height + y, { angle: 90 })
 
         if (price) {
           let productPrice =
-            product.regular_price || product.variations[0].regular_price;
+            product.regular_price || product.variations[0].regular_price
 
-          productPrice = new Intl.NumberFormat().format(productPrice);
+          productPrice = new Intl.NumberFormat().format(productPrice)
 
-          const priceText = `Precio: ${productPrice}`;
+          const priceText = `Precio: ${productPrice}`
 
           doc
             .setFontSize(doc.getFontSize() + 2)
-            .setFont(undefined, "bold")
+            .setFont(undefined, 'bold')
             .text(
               priceText,
               width + x + 6,
               height + y - rightText.length * 2.65,
               { angle: 90 }
-            );
+            )
 
           // return font to normal
-          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, "normal");
+          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
         }
 
-        let image = this.getProductImageUrl(product);
-        doc.addImage(image, "JPEG", x, y, width, height);
+        let image = this.getProductImageUrl(product)
+        doc.addImage(image, 'JPEG', x, y, width, height)
 
-        const filename = `${Date.now()}.pdf`;
+        const filename = `${Date.now()}.pdf`
 
-        const isLast = index === this.productsSource.length - 1;
+        const isLast = index === this.productsSource.length - 1
         if (isLast) {
-          doc.save(filename);
-          return await this.delay(500);
+          doc.save(filename)
+          return await this.delay(500)
         }
 
         if (maxSize) {
-          let size = doc.output().length;
-          let sizeMb = size / (1024 * 1024);
+          let size = doc.output().length
+          let sizeMb = size / (1024 * 1024)
           if (sizeMb >= maxSize) {
-            doc.save(filename);
-            await this.delay(500);
-            doc = new jsPDF(); // reset pdf
-            continue;
+            doc.save(filename)
+            await this.delay(500)
+            doc = new jsPDF() // reset pdf
+            continue
           }
         }
 
-        doc.addPage();
+        doc.addPage()
       }
     },
     async handleDownloadPdf(...args) {
-      this.downloadLoading = true;
+      this.downloadLoading = true
 
       while (this.productsDocsSource.nextPage) {
-        await this.fetchProducts(this.productsDocsSource.nextPage, false);
+        await this.fetchProducts(this.productsDocsSource.nextPage)
       }
 
-      await this.downloadPdf(...args);
+      await this.downloadPdf(...args)
 
-      this.downloadLoading = false;
+      this.downloadLoading = false
     },
     async handleSearchInputChange(val) {
-      if (!val) return;
-      if (this.searchLoading === true) return;
+      if (!val) return
+      if (this.searchLoading === true) return
 
-      this.loading = true;
+      this.loading = true
 
-      await this.fetchSearchProducts(val);
+      await this.fetchSearchProducts(val)
 
-      this.loading = false;
+      this.loading = false
     },
     delay(time = 1000) {
       return new Promise((resolve) => {
         setTimeout(() => {
-          resolve();
-        }, time);
-      });
+          resolve()
+        }, time)
+      })
     },
     clearFilters() {
-      this.filter.categories = [];
-      this.productsSelected = [];
+      this.filter.categories = []
+      this.productsSelected = []
     },
     getTallas(product) {
-      const tallas = [];
+      const tallas = []
       for (const variation of product.variations) {
         if (variation.attributes.talla) {
-          const talla = variation.attributes.talla.option;
-          const isDuplicated = tallas.includes(talla);
+          const talla = variation.attributes.talla.option
+          const isDuplicated = tallas.includes(talla)
           if (!isDuplicated) {
-            tallas.push(talla);
+            tallas.push(talla)
           }
         }
       }
 
-      return tallas;
+      return tallas
     },
     getAvailableVariations(product) {
-      const variations = [];
+      const variations = []
 
       for (const variation of product.variations) {
         const available =
-          variation.status === "publish" &&
-          variation.stock_status === "instock" &&
-          variation.attributes;
+          variation.status === 'publish' &&
+          variation.stock_status === 'instock' &&
+          variation.attributes
 
         if (available) {
           const variationFormatted = {
             ...variation,
             attributes: this.getFormatAttributes(variation.attributes),
-          };
+          }
 
           Object.assign(variationFormatted, {
             label: this.getVariationLabel(variationFormatted),
-          });
+          })
 
-          variations.push(variationFormatted);
+          variations.push(variationFormatted)
         }
       }
 
-      return variations;
+      return variations
     },
     getVariationLabel(variation) {
-      const talla = variation.attributes.talla?.option || "";
-      const color = variation.attributes.color?.option;
+      const talla = variation.attributes.talla?.option || ''
+      const color = variation.attributes.color?.option
 
       if (color) {
-        return `${talla} - ${color}`;
+        return `${talla} - ${color}`
       }
 
-      return talla;
+      return talla
     },
     getFormatAttributes(attributes) {
       return attributes.reduce(
@@ -720,71 +719,72 @@ export default {
           [current.name.toLowerCase()]: current,
         }),
         {}
-      );
+      )
     },
     getFormatProduct(product) {
       Object.assign(product, {
         variations: this.getAvailableVariations(product),
-      });
-      return product;
+      })
+      return product
     },
     async fetchAll() {
-      const query = { country: this.country, products_available: true };
+      const query = { country: this.country, products_available: true }
 
       const [categoriesRes] = await Promise.all([
         EcommercesApi.listCategories(query),
         this.fetchAttributes(),
         this.fetchProducts(),
-      ]);
+      ])
 
-      this.categories = categoriesRes.data.payload;
+      this.categories = categoriesRes.data.payload
     },
-    async fetchProducts(page = 1, setInitialPage = true) {
+    async fetchProducts(page = 1) {
       const query = {
         country: this.country,
         products_available: true,
-        categories: this.filter.categories.join(","),
-        tallas: this.filter.tallas.join(","),
-        brands: this.filter.brands.join(","),
+        categories: this.filter.categories.join(','),
+        tallas: this.filter.tallas.join(','),
+        brands: this.filter.brands.join(','),
         limit: ITEMS_PER_PAGE,
         page,
-      };
+      }
 
-      const productsRes = await EcommercesApi.list(query);
+      const productsRes = await EcommercesApi.list(query)
 
       const products = productsRes.data.payload
         .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+        .map(this.getFormatProduct)
       if (page === 1) {
-        this.products = products;
+        this.products = products
       } else {
-        this.products.push(...products);
+        this.products.push(...products)
       }
 
       this.productsDocs = {
         total: productsRes.data.totalDocs,
         nextPage: productsRes.data.nextPage,
-      };
+      }
 
+      const setInitialPage = page === 1
       if (setInitialPage) {
-        this.setInitialPage();
+        this.setInitialPage()
       }
     },
     async fetchAttributes() {
       const query = {
         country: this.country,
         products_available: true,
-        categories: this.filter.categories.join(","),
-      };
+        categories: this.filter.categories.join(','),
+      }
 
       const [sizesRes, attributesRes] = await Promise.all([
         EcommercesApi.listSizes(query),
-        EcommercesApi.listAttributes({ ...query, name: "marca" }),
-      ]);
+        EcommercesApi.listAttributes({ ...query, name: 'marca' }),
+      ])
 
-      const tallas = sizesRes.data.payload.map((talla) => talla.option);
-      this.tallas = tallas.sort(this.sortSizesFn);
-      this.brands = attributesRes.data.payload.map((attr) => attr.options);
+      const tallas = sizesRes.data.payload.map((talla) => talla.option)
+      this.tallas = tallas.sort(this.sortSizesFn)
+      this.brands = attributesRes.data.payload.map((attr) => attr.options)
     },
     async fetchSearchProducts(val) {
       const query = {
@@ -792,49 +792,48 @@ export default {
         country: this.country,
         products_available: true,
         filter: val,
-        fields: ["name", "ref", "sku"].join(","),
-      };
+        fields: ['name', 'ref', 'sku'].join(','),
+      }
 
-      const productsRes = await EcommercesApi.list(query);
+      const productsRes = await EcommercesApi.list(query)
 
       const products = productsRes.data.payload
         .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+        .map(this.getFormatProduct)
 
-      this.productsSearch = products;
+      this.productsSearch = products
     },
     sortSizesFn(a, b) {
-      a.toLowerCase();
-      b = b.toLowerCase();
+      a.toLowerCase()
+      b = b.toLowerCase()
 
       if (a < b) {
-        return -1;
+        return -1
       }
       if (a > b) {
-        return 1;
+        return 1
       }
-      return 0;
+      return 0
     },
     removeSelectedProduct(item) {
-      const index = this.productsSelected.findIndex((p) => p._id === item._id);
-      if (index >= 0) this.productsSelected.splice(index, 1);
+      const index = this.productsSelected.findIndex((p) => p._id === item._id)
+      if (index >= 0) this.productsSelected.splice(index, 1)
     },
     handleSendWs() {
-      let message = "Hola, estos son los productos que me gustaría pedir\n";
+      let message = 'Hola, estos son los productos que me gustaría pedir\n'
 
-      let total = 0;
-      let items = [];
+      let total = 0
+      let items = []
       for (const item of this.cartItems) {
-        const tallas = item.tallas.join(", ");
+        const tallas = item.tallas.join(', ')
         const price =
-          item.product.regular_price ||
-          item.product.variations[0].regular_price;
-        const productTotal = price * item.quantity;
-        const totalFormat = new Intl.NumberFormat().format(productTotal);
-        total += productTotal;
-        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`;
+          item.product.regular_price || item.product.variations[0].regular_price
+        const productTotal = price * item.quantity
+        const totalFormat = new Intl.NumberFormat().format(productTotal)
+        total += productTotal
+        message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
         if (item.color) {
-          message += ` | Color: ${item.color}`;
+          message += ` | Color: ${item.color}`
         }
 
         // Google Analytics items
@@ -844,28 +843,28 @@ export default {
           item_variant: tallas,
           price,
           quantity: item.quantity,
-        });
+        })
       }
 
-      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`;
+      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
 
-      this.$gtag.event("begin_checkout", {
+      this.$gtag.event('begin_checkout', {
         currency: this.currencyCode,
         value: total,
         items,
-      });
+      })
 
       let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(
         message
-      )}`;
+      )}`
 
-      window.open(url, "_blank");
+      window.open(url, '_blank')
     },
     cartAddItem(product, variation) {
-      const talla = variation.attributes.talla?.option || "";
-      const color = variation.attributes.color?.option;
+      const talla = variation.attributes.talla?.option || ''
+      const color = variation.attributes.color?.option
 
-      this.$gtag.event("agrego_al_carrito", {
+      this.$gtag.event('agrego_al_carrito', {
         currency: this.currencyCode,
         value: variation.regular_price,
         items: [
@@ -877,13 +876,13 @@ export default {
             quantity: 1,
           },
         ],
-      });
+      })
 
       let item = this.cartItems.find(
         (item) => (item.product._id === product._id) & (item.color === color)
-      );
+      )
       if (item) {
-        return item.tallas.push(talla);
+        return item.tallas.push(talla)
       }
 
       this.cartItems.push({
@@ -892,73 +891,73 @@ export default {
         color,
         quantity: 1,
         price: variation.regular_price,
-      });
+      })
     },
     cartRemoveItem(index) {
-      this.cartItems.splice(index, 1);
+      this.cartItems.splice(index, 1)
       if (this.cartItems.length === 0) {
-        this.drawerCart = false;
+        this.drawerCart = false
       }
     },
     flipPage(direction) {
-      this.$refs.flipbook[`flip${direction}`]();
+      this.$refs.flipbook[`flip${direction}`]()
     },
     setInitialPage() {
       // Mobile only shows one page at a time
       if (this.$vuetify.breakpoint.mobile) {
-        this.currentPageIndex = 0;
-        return;
+        this.currentPageIndex = 0
+        return
       }
 
-      this.currentPageIndex = this.products.length >= 2 ? 1 : 0;
+      this.currentPageIndex = this.products.length >= 2 ? 1 : 0
 
-      this.$refs.flipbook.goToPage(this.currentPageIndex);
+      this.$refs.flipbook.goToPage(this.currentPageIndex)
     },
     onFlipLeftEnd(page) {
-      this.currentPageIndex = page;
+      this.currentPageIndex = page
     },
     onFlipRightEnd(page) {
-      this.currentPageIndex = page;
+      this.currentPageIndex = page
     },
     getDate() {
-      const now = new Date();
+      const now = new Date()
 
-      let day = now.getDate();
-      let month = now.getMonth();
-      let year = now.getFullYear();
+      let day = now.getDate()
+      let month = now.getMonth()
+      let year = now.getFullYear()
 
-      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
+      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`
     },
     getProductImageUrl({ customImages }) {
       // search the the first image available
-      let finalImage;
-      const imageExtensions = ["jpg", "jpeg", "png", "gif"];
+      let finalImage
+      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif']
       for (const image of customImages) {
-        const extension = image.split(".").pop();
+        const extension = image.split('.').pop()
         if (imageExtensions.includes(extension)) {
-          finalImage = image;
-          break;
+          finalImage = image
+          break
         }
       }
-      return `/api/wp-image?url=${finalImage}`;
+      return `/api/wp-image?url=${finalImage}`
     },
     async setFilterFromQuery() {
-      const query = this.$route.query;
+      const query = this.$route.query
 
       let categories = query.categories
-        ? query.categories.split(",").map((c) => parseInt(c, 10))
-        : [];
-      let tallas = query.tallas ? query.tallas.split(",") : [];
-      let brands = query.brands ? query.brands.split(",") : [];
+        ? query.categories.split(',').map((c) => parseInt(c, 10))
+        : []
+      let tallas = query.tallas ? query.tallas.split(',') : []
+      let brands = query.brands ? query.brands.split(',') : []
 
-      this.filter.categories = categories;
+      this.filter.categories = categories
 
-      await this.$nextTick();
+      await this.$nextTick()
 
-      Object.assign(this.filter, { tallas, brands });
+      Object.assign(this.filter, { tallas, brands })
     },
   },
-};
+}
 </script>
 
 <style scoped>

@@ -14,6 +14,8 @@
           :headers="headers"
           :items="dataTableSoure"
           @page-count="pageCount = $event"
+          @update:sort-by="handleSortByChange"
+          @update:sort-desc="handleSortDescChange"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
           :options.sync="pagination"
@@ -42,6 +44,22 @@
                     @input="initialize"
                     placeholder="Filtrar por fuente"
                     :items="sources"
+                    single-line
+                    clearable
+                    deletable-chips
+                    outlined
+                    multiple
+                    chips
+                  >
+                  </v-select>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-select
+                    hide-details
+                    v-model="selectedStatus"
+                    @input="initialize"
+                    placeholder="Filtrar por estado"
+                    :items="status"
                     single-line
                     clearable
                     deletable-chips
@@ -98,14 +116,13 @@
                 <v-btn icon @click="handleGenialRetry(item)">
                   <v-icon>mdi-cached</v-icon>
                 </v-btn>
-                <v-tooltip v-if="!item.odooOrderName && item.lastOdooError" bottom color="error">
+                <v-tooltip
+                  v-if="!item.odooOrderName && item.lastOdooError"
+                  bottom
+                  color="error"
+                >
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      color="error"
-                      v-bind="attrs"
-                      v-on="on"
-                    >
+                    <v-btn icon color="error" v-bind="attrs" v-on="on">
                       <v-icon>mdi-alert-circle-outline</v-icon>
                     </v-btn>
                   </template>
@@ -117,7 +134,7 @@
 
           <template v-slot:item.customer="{ item }">
             <div v-if="item.customer" class="text-capitalize">
-              {{ item.customer.firstname }} {{ item.lastname }}
+              {{ item.customer.firstname }} {{ item.customer.lastname }}
             </div>
           </template>
 
@@ -164,7 +181,7 @@
           </template>
 
           <template v-slot:item.updatedAt="{ item }">
-            {{ item.updatedAtSource }}
+            {{ item.updatedAt }}
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">
@@ -200,11 +217,11 @@
 </template>
 
 <script>
-import axios from "axios";
-import MaterialCard from "@/components/material/Card";
-import OrderDetails from "./Details.vue";
-import marketplaceOrdersApi from "@/services/api/marketplaceOrders";
-import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
+import axios from 'axios'
+import MaterialCard from '@/components/material/Card'
+import OrderDetails from './Details.vue'
+import marketplaceOrdersApi from '@/services/api/marketplaceOrders'
+import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib'
 
 const SellerCenterSources = ['dafiti', 'falabella']
 const DafitiYSpace = 20
@@ -217,80 +234,98 @@ export default {
   },
   filters: {
     currency(val) {
-      return new Intl.NumberFormat().format(val);
+      return new Intl.NumberFormat().format(val)
     },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
     pagination: {},
+    sort: {
+      field: 'updatedAt',
+      order: 'desc',
+    },
     loadingButton: false,
     sources: [
-      { text: "Dafiti", value: "dafiti" },
+      { text: 'Dafiti', value: 'dafiti' },
       { text: 'Falabella', value: 'falabella' },
-      { text: "Mercadolibre", value: "mercadolibre" },
+      { text: 'Mercadolibre', value: 'mercadolibre' },
+      { text: 'Ripley', value: 'ripley' },
+    ],
+    status: [
+      { text: 'Entregado', value: 'delivered' },
+      { text: 'No entregado', value: 'not_delivered' },
+      { text: 'Pagado', value: 'paid' },
+      { text: 'Enviado', value: 'shipped' },
+      { text: 'Listo para enviar', value: 'ready_to_ship' },
+      { text: 'Devuelto', value: 'returned' },
+      { text: 'Cerrado', value: 'CLOSED' },
+      { text: 'Cancelado', value: 'CANCELED' },
+      { text: 'Recibido', value: 'RECEIVED' },
     ],
     fieldsToSearch: [
-      "odooOrderName",
-      "source",
-      "status",
-      "price",
-      "customer.firstname",
-      "customer.lastname",
+      'odooOrderName',
+      'source',
+      'status',
+      'price',
+      'customer.firstname',
+      'customer.lastname',
     ],
     selectedSources: [],
+    selectedStatus: [],
     fulfillmentFilter: [],
-    search: "",
+    search: '',
     headers: [
       {
-        text: "Última Actualización",
-        align: "left",
+        text: 'Última Actualización',
+        align: 'left',
+        sortable: true,
+        value: 'updatedAt',
+      },
+      {
+        text: 'N°Orden',
+        value: 'externalNumber',
+      },
+      {
+        text: 'Genial',
+        value: 'odooOrderName',
+        align: 'center',
+        sortable: true,
+      },
+      {
+        text: 'Fuente',
+        value: 'source',
+      },
+      {
+        text: 'Estado',
+        align: 'left',
+        sortable: true,
+        value: 'status',
+      },
+      {
+        text: 'Cliente',
+        value: 'customer',
+      },
+      {
+        text: 'Artículos',
+        align: 'center',
         sortable: false,
-        value: "updatedAt",
+        value: 'itemsCount',
       },
       {
-        text: "N°Orden",
-        value: "externalNumber",
-      },
-      {
-        text: "Genial",
-        value: "odooOrderName",
-        align: "center",
-      },
-      {
-        text: "Fuente",
-        value: "source",
-      },
-      {
-        text: "Estado",
-        align: "left",
+        text: 'Total',
+        align: 'left',
         sortable: false,
-        value: "status",
+        value: 'total',
       },
       {
-        text: "Cliente",
-        value: "customer",
-      },
-      {
-        text: "Artículos",
-        align: "center",
+        text: 'Fulfillment',
+        align: 'center',
         sortable: false,
-        value: "itemsCount",
-      },
-      {
-        text: "Total",
-        align: "left",
-        sortable: false,
-        value: "total",
-      },
-      {
-        text: "Fulfillment",
-        align: "center",
-        sortable: false,
-        value: "fulfillment",
+        value: 'fulfillment',
       },
 
-      { text: "Acciones", value: "action", sortable: false },
+      { text: 'Acciones', value: 'action', sortable: false },
     ],
     detailsModal: false,
     orders: [],
@@ -300,29 +335,35 @@ export default {
 
   computed: {
     totalItems() {
-      return this.$store.state["marketplaceOrdersModule"].total;
+      return this.$store.state['marketplaceOrdersModule'].total
     },
     dataTableSoure() {
-      let orders = this.orders;
+      let orders = this.orders
 
       if (this.selectedSources.length) {
         orders = orders.filter((order) =>
           this.selectedSources.includes(order.source)
-        );
+        )
+      }
+
+      if (this.selectedStatus.length) {
+        orders = orders.filter((order) =>
+          this.selectedStatus.includes(order.status)
+        )
       }
 
       if (this.fulfillmentFilter.length) {
         orders = orders.filter((order) =>
           this.fulfillmentFilter.includes(order.isFulfillment)
-        );
+        )
       }
 
-      return orders;
+      return orders
     },
   },
 
   mounted() {
-    this.initialize();
+    this.initialize()
   },
 
   methods: {
@@ -331,97 +372,111 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: "updatedAt",
-        order: "desc",
+        sort: this.sort.field,
+        order: this.sort.order,
         catalog: this.$route.params.id,
-      };
+      }
       if (this.selectedSources.length) {
-        body.sources = this.selectedSources;
+        body.sources = this.selectedSources
+      }
+      if (this.selectedStatus.length) {
+        body.status = this.selectedStatus
       }
       if (this.fulfillmentFilter.length) {
-        body.fulfillment = this.fulfillmentFilter;
+        body.fulfillment = this.fulfillmentFilter
       }
       this.orders = await this.$store.dispatch(
-        "marketplaceOrdersModule/list",
+        'marketplaceOrdersModule/list',
         body
-      );
-      this.locaciones = this.$store.state.locacionesModule.locaciones;
+      )
+      this.locaciones = this.$store.state.locacionesModule.locaciones
+    },
+
+    handleSortByChange(data) {
+      this.sort.field = data[0]
+    },
+    handleSortDescChange(data) {
+      this.sort.order = data[0] === true ? 'desc' : 'asc'
     },
 
     close() {
-      this.dialog = false;
+      this.dialog = false
       setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      }, 300);
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      }, 300)
     },
 
     openDetails(order) {
-      this.currentOrder = order;
-      this.detailsModal = true;
+      this.currentOrder = order
+      this.detailsModal = true
     },
 
     async handleGenialRetry(order) {
-      const res = await marketplaceOrdersApi.genialRetry(order._id);
+      const res = await marketplaceOrdersApi.genialRetry(order._id)
 
       const successful = res.ok === true
 
-      const lastOdooError = !successful 
-        ? res.error.data?.message ?? res.error.message ?? 'Unknown error occurred'
+      const lastOdooError = !successful
+        ? res.error.data?.message ??
+          res.error.message ??
+          'Unknown error occurred'
         : undefined
-      
+
       Object.assign(order, {
         odooOrderId: successful ? res.payload.order_new_id : undefined,
         odooOrderName: successful ? res.payload.order_new_name : undefined,
-        lastOdooError: lastOdooError
-      });
+        lastOdooError: lastOdooError,
+      })
 
-      let index = this.orders.findIndex((o) => o._id === order._id);
+      let index = this.orders.findIndex((o) => o._id === order._id)
 
-      this.orders.splice(index, 1, order);
+      this.orders.splice(index, 1, order)
     },
 
     async formatPdf(pdfBytes, order) {
-      let itemsRes = await marketplaceOrdersApi.listItems(order._id);
-      const items = itemsRes.data.payload;
+      let itemsRes = await marketplaceOrdersApi.listItems(order._id)
+      const items = itemsRes.data.payload
 
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pdfDoc = await PDFDocument.load(pdfBytes)
 
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
       // Get the first page of the document
-      const pages = pdfDoc.getPages();
-      const firstPage = pages[0];
+      const pages = pdfDoc.getPages()
+      const firstPage = pages[0]
 
-      if (order.source === "mercadolibre") {
-        pdfDoc.removePage(1);
+      if (order.source === 'mercadolibre') {
+        pdfDoc.removePage(1)
       }
 
       // Get the width and height of the first page
-      const { height } = firstPage.getSize();
+      const { height } = firstPage.getSize()
 
-      if (order.source === "mercadolibre") {
-        firstPage.drawText(order.odooOrderName || "********", {
+      if (order.source === 'mercadolibre') {
+        firstPage.drawText(order.odooOrderName || '********', {
           x: 298,
           y: 125,
           size: 7,
           font: helveticaFont,
           color: rgb(0, 0, 0),
           rotate: degrees(90),
-        });
+        })
       }
 
       for (const [index, item] of items.entries()) {
-        const price = new Intl.NumberFormat().format(item.price);
+        const price = new Intl.NumberFormat().format(item.price)
 
         if (SellerCenterSources.includes(order.source)) {
           const text = order.odooOrderName
             ? `${order.odooOrderName} \t ${item.sku} \t ${price}`
-            : `${item.sku} \t ${price}`;
+            : `${item.sku} \t ${price}`
 
-          const baseTextYPosition = (height / 2) - (10 * index)
+          const baseTextYPosition = height / 2 - 10 * index
 
-          const textYPosition = baseTextYPosition + (order.source === 'dafiti' ? DafitiYSpace : FalabellaYSpace)
+          const textYPosition =
+            baseTextYPosition +
+            (order.source === 'dafiti' ? DafitiYSpace : FalabellaYSpace)
 
           firstPage.drawText(text, {
             x: order.odooOrderName ? 90 : 105,
@@ -429,118 +484,129 @@ export default {
             size: 8,
             font: helveticaFont,
             color: rgb(0, 0, 0),
-          });
+          })
         }
 
-        if (order.source === "mercadolibre") {
-          const text = `${item.sku}   ${price}`;
+        if (order.source === 'mercadolibre') {
+          const text = `${item.sku}   ${price}`
 
           firstPage.drawText(text, {
             x: 298,
-            y: 158 + (75 * index),
+            y: 158 + 75 * index,
             size: 7,
             font: helveticaFont,
             color: rgb(0, 0, 0),
             rotate: degrees(90),
-          });
+          })
         }
       }
 
       if (order.source === 'falabella' && order.deliveryPrice > 0) {
-        const deliveryPrice = new Intl.NumberFormat().format(order.deliveryPrice);
+        const deliveryPrice = new Intl.NumberFormat().format(
+          order.deliveryPrice
+        )
         const text = `Envío ${deliveryPrice}`
-        
+
         firstPage.drawText(text, {
           x: 130,
-          y: (height / 2) - (10 * items.length) + FalabellaYSpace,
+          y: height / 2 - 10 * items.length + FalabellaYSpace,
           size: 8,
           font: helveticaFont,
           color: rgb(0, 0, 0),
-        });
+        })
       }
 
       // Serialize the PDFDocument to bytes (a Uint8Array)
-      return pdfDoc.save();
+      return pdfDoc.save()
     },
 
     async getPdf(order) {
-      let pdfBytes;
+      let pdfBytes
 
       if (SellerCenterSources.includes(order.source)) {
-        pdfBytes = await this.getSellerCenterPdf(order);
+        pdfBytes = await this.getSellerCenterPdf(order)
       }
 
-      if (order.source === "mercadolibre" && order.shipmentLabelPath) {
-        pdfBytes = await this.getMercadolibrePdf(order);
+      if (order.source === 'mercadolibre' && order.shipmentLabelPath) {
+        pdfBytes = await this.getMercadolibrePdf(order)
       }
 
       if (!pdfBytes) {
-        return;
+        return
       }
 
       const isFormatted =
-        order.source === "mercadolibre" && order.externalId >= 2000003861160360;
+        order.source === 'mercadolibre' && order.externalId >= 2000003861160360
       if (!isFormatted) {
-        pdfBytes = await this.formatPdf(pdfBytes, order);
+        pdfBytes = await this.formatPdf(pdfBytes, order)
       }
 
-      var blob = new Blob([pdfBytes], { type: "application/pdf" });
-      var url = URL.createObjectURL(blob);
-      window.open(url);
+      var blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      var url = URL.createObjectURL(blob)
+      window.open(url)
     },
 
     async getSellerCenterPdf(order) {
       let res = await marketplaceOrdersApi.listDocument(
         order._id,
-        "shippingParcel"
-      );
+        'shippingParcel'
+      )
 
-      const document = res.data.payload;
+      const document = res.data.payload
 
-      return Uint8Array.from(atob(document.File), (c) => c.charCodeAt(0));
+      return Uint8Array.from(atob(document.File), (c) => c.charCodeAt(0))
     },
 
     async getMercadolibrePdf(order) {
       let res = await axios.get(`/uploads/${order.shipmentLabelPath}`, {
-        responseType: "arraybuffer",
-      });
+        responseType: 'arraybuffer',
+      })
 
-      return new Uint8Array(res.data);
+      return new Uint8Array(res.data)
     },
 
     pdfButtonVisible(order) {
       if (SellerCenterSources.includes(order.source)) {
-        return true;
+        return true
       }
 
-      if (order.source === "mercadolibre") {
+      if (order.source === 'mercadolibre') {
         if (order.shipmentLabelPath) {
-          return true;
+          return true
         }
       }
     },
 
     getSaleOrderLink(id) {
       return `https://mujeron.odoo.com/web#action=344&cids=1&id=${id}&menu_id=224&model=sale.order&view_type=form`
-    }
+    },
   },
   watch: {
     dialog(val) {
-      val || this.close();
+      val || this.close()
     },
     async search() {
-      clearTimeout(this.delayTimer);
+      clearTimeout(this.delayTimer)
       this.delayTimer = setTimeout(() => {
-        this.initialize(this.page);
-      }, 600);
+        this.initialize(this.page)
+      }, 600)
+    },
+    sort: {
+      deep: true,
+      handler() {
+        clearTimeout(this.delayTimer)
+        this.delayTimer = setTimeout(() => {
+          this.initialize(this.page)
+        }, 500)
+      },
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>
-  .text-link {
-    color: blue;
-    text-decoration: none;
-  }
+.text-link {
+  color: blue;
+  text-decoration: none;
+}
 </style>
