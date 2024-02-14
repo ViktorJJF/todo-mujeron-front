@@ -549,6 +549,7 @@ export default {
         order: "desc",
       };
       body["estado"] = "COMPRA REALIZADA";
+      body["companies"] = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([
