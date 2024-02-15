@@ -26,7 +26,7 @@
           <v-icon>mdi-menu-down</v-icon>
         </v-btn>
       </template>
-      <v-list>
+      <v-list v-if="companies.length">
         <v-list-item v-for="element in companies" :key="element.company._id" @click="setCurrentCompany(element.company._id)">
           <v-list-item-title>{{ element.company.alias }} - {{ element.selected }}</v-list-item-title>
         </v-list-item>
