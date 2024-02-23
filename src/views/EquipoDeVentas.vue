@@ -224,6 +224,12 @@ export default {
         value: "company.alias",
       },
       {
+        text: "Locacion",
+        align: "left",
+        sortable: true,
+        value: "location.nombre",
+      },
+      {
         text: "Agregado",
         align: "left",
         sortable: true,

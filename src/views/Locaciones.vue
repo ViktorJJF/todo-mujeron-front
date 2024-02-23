@@ -100,22 +100,6 @@
                                 v-model="editedItem.ciudad"
                               ></v-select>
                             </v-col>
-
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold"
-                                >Equipo De Ventas</span
-                              >
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un equipo de ventas"
-                                outlined
-                                :items="equipoDeVentas"
-                                item-text="nombre"
-                                item-value="_id"
-                                v-model="editedItem.equipoDeVentaId"
-                              ></v-select>
-                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -230,12 +214,6 @@ export default {
         value: "company.alias",
       },
       {
-        text: 'Equipo de Ventas',
-        align: 'left',
-        sortable: false,
-        value: 'equipoDeVentaId.nombre',
-      },
-      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -263,7 +241,6 @@ export default {
         ciudades: ['Bogotá', 'Medellin', 'Cali', 'Cartagena'],
       },
     ],
-    equipoDeVentas: [],
     rolPermisos: {},
   }),
 
@@ -289,9 +266,7 @@ export default {
 
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("locacionesModule/list"); 
-    console.log("equipo de venta fetch");
-    await this.$store.dispatch("equipoDeVentasModule/list");
+    await this.$store.dispatch("locacionesModule/list");
     await this.$store.dispatch("companiesModule/list"),
     this.initialize();
     this.rolAuth(); 
@@ -318,7 +293,6 @@ export default {
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies
       );
-      this.equipoDeVentas = this.$store.state.equipoDeVentasModule.equipoDeVentas
       console.log('las locaciones: ', this.locaciones)
     },
     editItem(item) {
