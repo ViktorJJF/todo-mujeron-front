@@ -75,13 +75,15 @@
                 <span class="body-1 font-weight-bold"
                   >Compañia</span>
                 <VSelectWithValidation
-                  v-model="user.companies"
+                  v-model="selectedCompanies"
                   :items="companies"
                   rules="required"
                   item-text="alias"
                   item-value="_id"
                   placeholder="Seleccionar Compañia"
                   multiple
+                  clearable
+                  chips
                 />
               </v-col>
               <v-card-actions>
@@ -210,6 +212,7 @@ export default {
       newPassword: "",
       user: null,
       companies: [],
+      selectedCompanies: [],
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
@@ -253,8 +256,8 @@ export default {
           },
         });
       }
-
       this.user = user;
+      this.selectedCompanies = this.user.companies.map(c => c.company);
     },
     async save() {
       this.loadingButton = true;
@@ -266,6 +269,7 @@ export default {
     },
     updateUser() {
       console.log(this.user._id);
+      this.user.companies = this.selectedCompanies;
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
