@@ -88,6 +88,18 @@
                                 v-model="editedItem.locacionId"
                               ></v-select>
                             </v-col>
+                            <v-col cols="12" sm="12">
+                              <span class="font-weight-bold">Equipo de Venta</span>
+                              <v-select
+                                hide-details
+                                placeholder="Selecciona un equipo de venta"
+                                outlined
+                                :items="teams"
+                                item-text="nombre"
+                                item-value="_id"
+                                v-model="editedItem.team"
+                              ></v-select>
+                            </v-col>
                             <!-- <v-col cols="12" sm="12" md="12">
                             <span class="font-weight-bold">Estado</span>
                             <v-select
@@ -209,6 +221,12 @@ export default {
         value: "locacionId.nombre",
       },
       {
+        text: "Equipo de Venta",
+        align: "left",
+        sortable: true,
+        value: "team.nombre",
+      },
+      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -221,6 +239,7 @@ export default {
     editedItem: Agentes(),
     defaultItem: Agentes(),
     locaciones: [],
+    teams: [],
     rolPermisos: {},
   }),
 
@@ -244,12 +263,14 @@ export default {
     await this.$store.dispatch("locacionesModule/list", {
       companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
     });
+    await this.$store.dispatch("equipoDeVentasModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    });
     this.initialize();
     this.rolAuth(); 
   },
 
   methods: {
-
     rolAuth(){
        auth.roleAuthorization(
         {
@@ -266,6 +287,7 @@ export default {
     initialize() {
       this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
       this.locaciones = this.$store.state.locacionesModule.locaciones;
+      this.teams = this.$store.state.equipoDeVentasModule.equipoDeVentas;
     },
     editItem(item) {
       this.editedIndex = this.agentes.indexOf(item);
@@ -296,11 +318,11 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this.agentes[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("agentesModule/update", {
+          const updatedItem = await this.$store.dispatch("agentesModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
+          Object.assign(this.agentes[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;
