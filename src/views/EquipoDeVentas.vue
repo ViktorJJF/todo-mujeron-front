@@ -77,19 +77,6 @@
                             </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
-                                >Compañia</span
-                              >
-                              <VSelectWithValidation
-                                v-model="editedItem.company"
-                                :items="companies"
-                                rules="required"
-                                item-text="alias"
-                                item-value="_id"
-                                placeholder="Seleccionar Compañia"
-                              />
-                            </v-col>
-                            <v-col cols="12">
-                              <span class="body-1 font-weight-bold"
                                 >Locaciones</span
                               >
                               <VSelectWithValidation
@@ -231,12 +218,6 @@ export default {
         value: "nombre",
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: true,
-        value: "company.alias",
-      },
-      {
         text: "Locacion",
         align: "left",
         sortable: true,
@@ -251,7 +232,6 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     equipoDeVentas: [],
-    companies: [],
     locations: [],
     editedIndex: -1,
     editedItem: EquipoDeVentas(),
@@ -283,7 +263,6 @@ export default {
         sort: "name",
         order: "asc",
       }),
-      this.$store.dispatch("companiesModule/list"),
       this.$store.dispatch("locacionesModule/list"),
     ]);
     this.initialize();
@@ -312,9 +291,6 @@ export default {
       );
       this.todofullLabels = this.$deepCopy(
         this.$store.state.todofullLabelsModule.todofullLabels
-      );
-      this.companies = this.$deepCopy(
-        this.$store.state.companiesModule.companies
       );
       this.locations = this.$deepCopy(
         this.$store.state.locacionesModule.locaciones
