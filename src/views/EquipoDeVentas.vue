@@ -265,7 +265,9 @@ export default {
         sort: "name",
         order: "asc",
       }),
-      this.$store.dispatch("locacionesModule/list"),
+      this.$store.dispatch("locacionesModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      }),
     ]);
     this.initialize();
     this.rolAuth();
