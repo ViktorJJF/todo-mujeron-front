@@ -65,19 +65,6 @@
                                 label="Nombre de la locación"
                               />
                             </v-col>
-                            <v-col cols="12">
-                              <span class="body-1 font-weight-bold"
-                                >Compañia</span
-                              >
-                              <VSelectWithValidation
-                                v-model="editedItem.company"
-                                :items="companies"
-                                rules="required"
-                                item-text="alias"
-                                item-value="_id"
-                                placeholder="Seleccionar Compañia"
-                              />
-                            </v-col>
                             <v-col cols="12" sm="6">
                               <span class="font-weight-bold">País</span>
                               <v-select
@@ -173,7 +160,6 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Locaciones from "@/classes/Locaciones";
 import auth from "@/services/api/auth";
@@ -181,7 +167,6 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -208,12 +193,6 @@ export default {
         value: 'value',
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: true,
-        value: "company.alias",
-      },
-      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -222,7 +201,6 @@ export default {
       { text: 'Acciones', value: 'action', sortable: false },
     ],
     locaciones: [],
-    companies: [],
     editedIndex: -1,
     editedItem: Locaciones(),
     defaultItem: Locaciones(),
@@ -292,9 +270,6 @@ export default {
       this.locaciones = this.$deepCopy(
         this.$store.state.locacionesModule.locaciones
       );
-      this.companies = this.$deepCopy(
-        this.$store.state.companiesModule.companies
-      );
       console.log('las locaciones: ', this.locaciones)
     },
     editItem(item) {
@@ -339,6 +314,7 @@ export default {
         //create item
         try {
           console.log('el nuevo item: ', this.editedItem)
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
 
           let newItem = await this.$store.dispatch(
             'locacionesModule/create',
