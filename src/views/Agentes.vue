@@ -76,18 +76,6 @@
                                 label="Ingresa el correo"
                               />
                             </v-col>
-                            <v-col cols="12">
-                              <span class="body-1 font-weight-bold"
-                                >Compañia</span>
-                              <VSelectWithValidation
-                                v-model="editedItem.company"
-                                :items="companies"
-                                rules="required"
-                                item-text="alias"
-                                item-value="_id"
-                                placeholder="Seleccionar Compañia"
-                              />
-                            </v-col>
                             <v-col cols="12" sm="12">
                               <span class="font-weight-bold">Locación</span>
                               <v-select
@@ -175,7 +163,6 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import Agentes from "@/classes/Agentes";
@@ -183,7 +170,6 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -223,12 +209,6 @@ export default {
         value: "locacionId.nombre",
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: true,
-        value: "company.alias",
-      },
-      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -237,7 +217,6 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     agentes: [],
-    companies: [],
     editedIndex: -1,
     editedItem: Agentes(),
     defaultItem: Agentes(),
@@ -259,9 +238,12 @@ export default {
 
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("agentesModule/list"); 
-    await this.$store.dispatch("locacionesModule/list");
-    await this.$store.dispatch("companiesModule/list"),
+    await this.$store.dispatch("agentesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    }); 
+    await this.$store.dispatch("locacionesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    });
     this.initialize();
     this.rolAuth(); 
   },
@@ -284,9 +266,6 @@ export default {
     initialize() {
       this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
       this.locaciones = this.$store.state.locacionesModule.locaciones;
-      this.companies = this.$deepCopy(
-        this.$store.state.companiesModule.companies
-      );
     },
     editItem(item) {
       this.editedIndex = this.agentes.indexOf(item);
@@ -328,6 +307,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             "agentesModule/create",
