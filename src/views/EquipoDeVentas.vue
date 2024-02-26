@@ -258,7 +258,9 @@ export default {
   async created() {
     this.$store.commit("loadingModule/showLoading");
     await Promise.all([
-      this.$store.dispatch("equipoDeVentasModule/list"),
+      this.$store.dispatch("equipoDeVentasModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      }),
       this.$store.dispatch("todofullLabelsModule/list", {
         sort: "name",
         order: "asc",
