@@ -327,13 +327,12 @@ export default {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         let itemId = this.equipoDeVentas[this.editedIndex]._id;
-        this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
         try {
-          await this.$store.dispatch("equipoDeVentasModule/update", {
+          const updatedItem = await this.$store.dispatch("equipoDeVentasModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.equipoDeVentas[this.editedIndex], this.editedItem);
+          Object.assign(this.equipoDeVentas[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;
