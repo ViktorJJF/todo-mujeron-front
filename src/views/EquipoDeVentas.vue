@@ -90,6 +90,19 @@
                             </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
+                                >Locaciones</span
+                              >
+                              <VSelectWithValidation
+                                v-model="editedItem.location"
+                                :items="locations"
+                                rules="required"
+                                item-text="nombre"
+                                item-value="_id"
+                                placeholder="Seleccionar Locacion"
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
                                 >Agentes</span
                               >
                               <VSelectWithValidation
@@ -239,6 +252,7 @@ export default {
     ],
     equipoDeVentas: [],
     companies: [],
+    locations: [],
     editedIndex: -1,
     editedItem: EquipoDeVentas(),
     defaultItem: EquipoDeVentas(),
@@ -270,6 +284,7 @@ export default {
         order: "asc",
       }),
       this.$store.dispatch("companiesModule/list"),
+      this.$store.dispatch("locacionesModule/list"),
     ]);
     this.initialize();
     this.rolAuth();
@@ -300,6 +315,9 @@ export default {
       );
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies
+      );
+      this.locations = this.$deepCopy(
+        this.$store.state.locacionesModule.locaciones
       );
     },
     editItem(item) {
