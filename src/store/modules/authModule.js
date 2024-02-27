@@ -7,6 +7,7 @@ import router from "@/router";
 const state = () => ({
   user: null,
   companies: [],
+  selectedCompany: null,
   token: JSON.parse(!!localStorageGet("token")) || null,
   isTokenSet: !!localStorageGet("token"),
 });
@@ -16,7 +17,7 @@ const getters = {
     state.user ? state.user.first_name + " " + state.user.last_name : " ",
   token: (state) => (state.user ? state.user.token : " "),
   isTokenSet: (state) => state.isTokenSet,
-  getCurrentCompany: (state) => state.companies.find(c => c.selected === true),
+  getCurrentCompany: (state) => state.selectedCompany,
 };
 const actions = {
   initialLoad({ commit }) {
@@ -98,7 +99,7 @@ const actions = {
     router.push({ name: "login" });
     commit("logout");
   },
-  setCurrentCompany({ commit, id }) {
+  setCurrentCompany({ commit }, id) {
     commit("setCurrentCompany", id);
   },
   setCompanies({ commit }, companies) {
@@ -135,17 +136,17 @@ const mutations = {
     state.user = user;
   },
   setCurrentCompany(state, id) {
-    state.companies.map(c => {
+    /* state.companies.map(c => {
       c.selected = false;
-    });
-    state.companies[id].selected = true;
+    }); */
+    const index = state.companies.findIndex(c => c.company._id === id);
+    // state.companies[index].selected = true;
+    state.selectedCompany = state.companies[index];
   },
   setCompanies(state, companies) {
-    const companyList = companies.map(c => {
-      c.selected = c.default === true;
-      return c;
-    });
-    state.companies = companyList;
+    state.companies = companies;
+    const index = state.companies.findIndex(c => c.default === true);
+    state.selectedCompany = state.companies[index];
   }
 };
 
