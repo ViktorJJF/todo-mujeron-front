@@ -34,6 +34,8 @@ const actions = {
           if (response.status === 200) {
             localStorage.setItem("user", JSON.stringify(response.data.user));
             localStorage.setItem("token", response.data.token);
+
+            const index = response.data.user.companies.findIndex(c => c.default === true);
             // window.localStorage.setItem(
             //   "tokenExpiration",
             //   JSON.stringify(
@@ -46,6 +48,7 @@ const actions = {
             commit("saveUser", response.data.user);
             commit("saveToken", response.data.token);
             commit("setCompanies", response.data.user.companies)
+            commit("setCurrentCompany", response.data.user.companies[index].company._id);
             // commit(types.EMAIL_VERIFIED, response.data.user.verified);
             buildSuccess("Bienvenido", commit);
             resolve();
@@ -90,21 +93,25 @@ const actions = {
     commit("saveUser", user);
     commit("saveToken", localStorageGet("token"));
     commit("setCompanies", user.companies)
+    const selectedCompany = JSON.parse(localStorageGet("selectedCompany"));
+    commit("setCurrentCompany", selectedCompany.company._id);
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("tokenExpiration");
     window.localStorage.removeItem("user");
+    window.localStorage.removeItem("selectedCompany");
     router.push({ name: "login" });
     commit("logout");
+  },
+  setCompanies({ commit }, companies) {
+    commit("setCompanies", companies)
   },
   setCurrentCompany({ commit }, id) {
     commit("setCurrentCompany", id);
   },
-  setCompanies({ commit }, companies) {
-    commit("setCompanies", companies)
-  }
+
   // editUser({ commit }, { id, data }) {
   //   return new Promise((resolve, reject) => {
   //     commit("loadingModule/showLoading", true, { root: true });
@@ -136,17 +143,12 @@ const mutations = {
     state.user = user;
   },
   setCurrentCompany(state, id) {
-    /* state.companies.map(c => {
-      c.selected = false;
-    }); */
     const index = state.companies.findIndex(c => c.company._id === id);
-    // state.companies[index].selected = true;
     state.selectedCompany = state.companies[index];
+    localStorage.setItem("selectedCompany", JSON.stringify(state.selectedCompany));
   },
   setCompanies(state, companies) {
     state.companies = companies;
-    const index = state.companies.findIndex(c => c.default === true);
-    state.selectedCompany = state.companies[index];
   }
 };
 

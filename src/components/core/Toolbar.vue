@@ -22,7 +22,7 @@
     <v-menu v-if="$store.state.authModule.user" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text color="white" dark v-on="on">
-          {{ selectedCompany.company.alias }}
+          {{ selectedCompany? selectedCompany.company.alias: "" }}
           <v-icon>mdi-menu-down</v-icon>
         </v-btn>
       </template>
