@@ -298,12 +298,6 @@ export default {
         value: "name",
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: false,
-        value: "company.alias",
-      },
-      {
         text: "Última Actualización",
         align: "left",
         sortable: false,
@@ -352,7 +346,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("botsModule/list")]);
+      await Promise.all([this.$store.dispatch("botsModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      })]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
       // dar formato a autoActivateAfter
       for (const bot of this.bots) {
