@@ -48,7 +48,9 @@ const actions = {
             commit("saveUser", response.data.user);
             commit("saveToken", response.data.token);
             commit("setCompanies", response.data.user.companies)
-            commit("setCurrentCompany", response.data.user.companies[index].company._id);
+            if (index >= 0) {
+              commit("setCurrentCompany", response.data.user.companies[index].company._id);
+            }
             // commit(types.EMAIL_VERIFIED, response.data.user.verified);
             buildSuccess("Bienvenido", commit);
             resolve();
@@ -94,7 +96,10 @@ const actions = {
     commit("saveToken", localStorageGet("token"));
     commit("setCompanies", user.companies)
     const selectedCompany = JSON.parse(localStorageGet("selectedCompany"));
-    commit("setCurrentCompany", selectedCompany.company._id);
+    if (selectedCompany) {
+      commit("setCurrentCompany", selectedCompany.company._id);
+    }
+    
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {
