@@ -69,20 +69,6 @@
                               />
                             </v-col >
 
-                            <v-col cols="12">
-                              <span class="body-1 font-weight-bold"
-                                >Compañia</span
-                              >
-                              <VSelectWithValidation
-                                v-model="editedItem.company"
-                                :items="companies"
-                                rules="required"
-                                item-text="alias"
-                                item-value="_id"
-                                placeholder="Seleccionar Compañia"
-                              />
-                            </v-col>
-                          
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -160,7 +146,6 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
 import Groups from "@/classes/Groups";
 import auth from "@/services/api/auth";
@@ -169,7 +154,6 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -190,12 +174,6 @@ export default {
         value: "nombre",
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: true,
-        value: "company.alias",
-      },
-      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -204,7 +182,6 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     groups: [],
-    companies: [],
     editedIndex: -1,
     editedItem: Groups(),
     defaultItem: Groups(),
@@ -232,7 +209,6 @@ export default {
     await this.$store.dispatch("groupsModule/list", {
       companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
     }); 
-    await this.$store.dispatch("companiesModule/list"),
     this.initialize();
   },
 
@@ -261,9 +237,6 @@ export default {
     initialize() {
       this.groups = this.$deepCopy(this.$store.state.groupsModule.groups); 
       console.log(this.groups);
-      this.companies = this.$deepCopy(
-        this.$store.state.companiesModule.companies
-      );
     },
     async deleteItem(item) {
       const index = this.groups.indexOf(item);
@@ -286,6 +259,7 @@ export default {
       this.loadingButton = true;
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           this.editedItem.permisos =  this.editedPermisos; 
           let newItem = await this.$store.dispatch(
