@@ -840,7 +840,7 @@ export default {
   methods: {
     rolAuth() {
       auth
-        .roleAuthorization({ id: this.$store.state.authModule.user._id })
+        .roleAuthorization({ id: this.$store.state.authModule.user._id, company: this.$store.getters["authModule/getCurrentCompany"].company._id })
         .then((res) => {
           this.rolPermisos = res.data;
         });

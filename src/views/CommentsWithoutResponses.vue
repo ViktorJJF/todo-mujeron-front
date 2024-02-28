@@ -234,7 +234,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Facebook/Facebook',
-          'model':'Comentarios-SinResponder'
+          'model':'Comentarios-SinResponder',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;

@@ -539,6 +539,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "ChatBot/Leads",
           model: "Lista-Completa",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;

@@ -259,6 +259,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: 'Configuracion/TodoFull',
           model: 'Locaciones',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data

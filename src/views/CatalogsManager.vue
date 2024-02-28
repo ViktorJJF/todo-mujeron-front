@@ -381,7 +381,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'MultiPaginas/Paginas',
-          'model':'Paginas'
+          'model':'Paginas',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
