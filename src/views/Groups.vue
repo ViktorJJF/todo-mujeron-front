@@ -229,7 +229,9 @@ export default {
 
   async created(){
     console.log("created groups");
-    await this.$store.dispatch("groupsModule/list"); 
+    await this.$store.dispatch("groupsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    }); 
     await this.$store.dispatch("companiesModule/list"),
     this.initialize();
   },
