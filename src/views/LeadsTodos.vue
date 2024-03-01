@@ -550,6 +550,7 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         sort: "updatedAt",
         order: "desc",
       };
