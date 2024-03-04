@@ -54,7 +54,7 @@
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'Companies' }"
-            v-if="checkAuth('Configuracion/TodoFull', 'Usuarios')"
+            v-if="checkAuth('Configuracion/TodoFull', 'Companies')"
           >
             <v-list-item-content> Compañias </v-list-item-content>
           </v-list-item>
