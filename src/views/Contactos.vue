@@ -427,6 +427,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "GoogleContact/Contactos",
           model: "Contactos",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -440,6 +441,7 @@ export default {
         ...paginationPayload,
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
+      body.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
       await Promise.all([
         this.$store.dispatch("contactosModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
