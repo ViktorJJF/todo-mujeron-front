@@ -125,8 +125,12 @@ export default {
   methods: {
     async initialize() {
       await Promise.all([
-        this.$store.dispatch("telefonosModule/list"),
-        this.$store.dispatch("agentesModule/list"),
+        this.$store.dispatch("telefonosModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("agentesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("ecommercesTagsModule/list"),
         this.$store.dispatch("todofullLabelsModule/list"),
