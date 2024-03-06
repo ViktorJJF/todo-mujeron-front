@@ -1057,8 +1057,12 @@ export default {
           ? this.$store.dispatch("cleanLeadsModule/listWithAdvanceFilter", body)
           : this.$store.dispatch("cleanLeadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
-        this.$store.dispatch("botsModule/list"),
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
