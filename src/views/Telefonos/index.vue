@@ -336,7 +336,9 @@ export default {
 
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("telefonosModule/list", { companyId: this.$store.getters["authModule/getCurrentCompany"].company._id});
+    await this.$store.dispatch("telefonosModule/list", { 
+      companies: [ this.$store.getters["authModule/getCurrentCompany"].company._id ] }
+    );
     await this.$store.dispatch("agentesModule/list");
     this.initialize();
     this.rolAuth();

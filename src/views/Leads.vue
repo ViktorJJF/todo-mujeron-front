@@ -1036,7 +1036,7 @@ export default {
       }
       if (this.selectedCountries.length > 0) {
         body["countries"] = this.selectedCountries;
-      }
+    }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
       }
@@ -1056,7 +1056,9 @@ export default {
         this.selectedSegment
           ? this.$store.dispatch("cleanLeadsModule/listWithAdvanceFilter", body)
           : this.$store.dispatch("cleanLeadsModule/list", body),
-        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("telefonosModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("botsModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
