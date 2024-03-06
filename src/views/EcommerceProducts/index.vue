@@ -743,8 +743,11 @@ export default {
       if (this.selectedWoocommerce && this.selectedWoocommerce._id) {
         payload["woocommerceId"] = this.selectedWoocommerce._id;
       }
+      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
