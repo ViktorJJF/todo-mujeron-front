@@ -312,8 +312,12 @@ export default {
       })
 
       await Promise.all([
-        this.$store.dispatch('woocommercesModule/list'),
-        this.$store.dispatch('locacionesModule/list'),
+        this.$store.dispatch('woocommercesModule/list', {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch('locacionesModule/list', {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ])
 
       this.woocommerces = this.$deepCopy(
