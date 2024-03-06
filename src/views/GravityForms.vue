@@ -354,8 +354,11 @@ export default {
         this.$store.dispatch("botsModule/list", {
           sort: "name",
           order: 1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.todofullLabels =
         this.$store.state["todofullLabelsModule"]["todofullLabels"];
