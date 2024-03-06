@@ -766,6 +766,7 @@ export default {
       if (this.selectedCountry) {
         payload.country = this.selectedCountry;
       }
+      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
