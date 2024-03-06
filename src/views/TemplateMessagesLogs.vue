@@ -315,6 +315,7 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "createdAt",
           order: -1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente
