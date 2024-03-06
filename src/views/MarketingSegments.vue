@@ -301,7 +301,9 @@ export default {
       //llamada asincrona de items
       const response = await Promise.allSettled([
         this.$store.dispatch("cleanLeadsModule/getLeadOdooValues"),
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.odooValues = response[0].value;
       //asignar al data del componente
