@@ -335,8 +335,12 @@ export default {
       })
 
       await Promise.all([
-        this.$store.dispatch("marketplaceSourcesModule/list"),
-        this.$store.dispatch("locacionesModule/list"),
+        this.$store.dispatch("marketplaceSourcesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("locacionesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
 
       this.sources = this.$deepCopy(
