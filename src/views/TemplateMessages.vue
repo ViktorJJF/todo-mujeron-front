@@ -126,7 +126,10 @@ export default {
       this.selectedBot = selectedBot;
       if (!this.selectedBot) {
         this.bots = (
-          await botsService.list({ platform: "whatsapp" })
+          await botsService.list({
+            platform: "whatsapp",
+            companies: [ this.$store.getters["authModule/getCurrentCompany"].company._id ],
+          })
         ).data.payload;
         this.selectedBot = this.bots.length > 0 ? this.bots[0] : null;
       }
