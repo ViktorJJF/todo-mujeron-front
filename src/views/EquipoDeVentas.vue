@@ -77,15 +77,17 @@
                             </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
-                                >Locaciones</span
-                              >
+                                >Locaciones</span>
                               <VSelectWithValidation
-                                v-model="editedItem.location"
+                                v-model="editedItem.locations"
                                 :items="locations"
                                 rules="required"
                                 item-text="nombre"
                                 item-value="_id"
-                                placeholder="Seleccionar Locacion"
+                                placeholder="Seleccionar Locaciones"
+                                multiple
+                                clearable
+                                chips
                               />
                             </v-col>
                             <v-col cols="12">
@@ -218,10 +220,10 @@ export default {
         value: "nombre",
       },
       {
-        text: "Locacion",
+        text: "Locaciones",
         align: "left",
         sortable: true,
-        value: "location.nombre",
+        value: "locations",
       },
       {
         text: "Agregado",
