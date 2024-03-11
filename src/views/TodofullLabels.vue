@@ -463,6 +463,7 @@ export default {
     await this.$store.dispatch(ENTITY + "Module/list", {
       sort: "name",
       order: "1",
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
     });
     this.initialize();
     this.rolAuth();
@@ -484,7 +485,9 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("facebookLabelsModule/list"),
         this.$store.dispatch("retailRocketTagsModule/list"),
