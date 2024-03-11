@@ -87,6 +87,21 @@
                                 v-model="editedItem.ciudad"
                               ></v-select>
                             </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
+                                >Equipos de Venta</span>
+                              <VSelectWithValidation
+                                v-model="editedItem.teams"
+                                :items="teams"
+                                rules="required"
+                                item-text="nombre"
+                                item-value="_id"
+                                placeholder="Seleccionar Equipos de Venta"
+                                multiple
+                                clearable
+                                chips
+                              />
+                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -160,6 +175,7 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 import MaterialCard from "@/components/material/Card";
 import Locaciones from "@/classes/Locaciones";
 import auth from "@/services/api/auth";
@@ -167,6 +183,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation,
   },
   filters: {
     formatDate: function(value) {
@@ -204,6 +221,7 @@ export default {
     editedIndex: -1,
     editedItem: Locaciones(),
     defaultItem: Locaciones(),
+    teams: [],
     paises: ['Peru', 'Chile', 'Colombia', 'Estados Unidos', 'Argentina'],
     ciudades: [
       {
@@ -245,8 +263,13 @@ export default {
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
     await this.$store.dispatch("locacionesModule/list", {
-      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
     });
+    await this.$store.dispatch("equipoDeVentasModule/list", {
+        sort: "name",
+        order: "asc",
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }),
     await this.$store.dispatch("companiesModule/list"),
     this.initialize();
     this.rolAuth(); 
@@ -272,6 +295,9 @@ export default {
         this.$store.state.locacionesModule.locaciones
       );
       console.log('las locaciones: ', this.locaciones)
+      this.teams = this.$deepCopy(
+        this.$store.state.equipoDeVentasModule.equipoDeVentas
+      );
     },
     editItem(item) {
       this.editedIndex = this.locaciones.indexOf(item)
