@@ -773,8 +773,11 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
