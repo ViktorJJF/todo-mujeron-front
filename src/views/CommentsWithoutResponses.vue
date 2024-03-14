@@ -224,7 +224,9 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch(ENTITY + "Module/list"); 
+    await this.$store.dispatch(ENTITY + "Module/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth(); 
   },
