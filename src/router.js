@@ -364,6 +364,11 @@ let routes = [
         component: () => import("@/views/ChatRoom"),
       },
       {
+        path: "/configuracion",
+        name: "SettingsView",
+        component: () => import("@/views/SettingsView"),
+      },
+      {
         path: "/facebook-audiencias",
         name: "FacebookAudiences",
         component: () => import("@/views/FacebookAudiences"),

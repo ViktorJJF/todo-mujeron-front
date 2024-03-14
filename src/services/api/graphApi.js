@@ -4,9 +4,9 @@ export default {
     return axios.post("/api/graph-api/labels", payload);
   },
   getUserInformation(accessToken) {
-    return axios.post("/api/graph-api/get-user-information", {
-      access_token: accessToken,
-    });
+    return axios.get(
+      "/api/graph-api/get_user_information?access_token=" + accessToken
+    );
   },
   getAudiences() {
     return axios.post("/api/graph-api/getAudiences");
@@ -47,5 +47,15 @@ export default {
       ecommercesOrderId,
       marketingCampaignId,
     });
+  },
+  getLongUserToken(fb_exchange_token) {
+    return axios.post(`/api/graph-api/get_long_user_token`, {
+      fb_exchange_token,
+    });
+  },
+  getBusinessPages(access_token) {
+    return axios.get(
+      `/api/graph-api/get_business_pages?access_token=${access_token}`
+    );
   },
 };

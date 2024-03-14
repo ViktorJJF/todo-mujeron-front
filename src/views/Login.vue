@@ -52,7 +52,7 @@
         <v-facebook-login
           :login-options="{
             scope:
-              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list',
+              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management',
           }"
           style="margin: auto"
           @login="facebookLogged"
@@ -105,9 +105,16 @@ export default {
       this.user.email = "pruebas@mujeron.cl";
       this.user.password = "Telepizz@";
       this.login();
+      const accessToken = (
+        await graphApi.getLongUserToken(e.authResponse.accessToken)
+      ).data.payload.access_token;
+      // set to localstorage
+      localStorage.setItem("facebookAccessToken", accessToken);
       let facebookUser = await graphApi.getUserInformation(
         e.authResponse.accessToken
       );
+
+      console.log("🐞 LOG HERE accessToken:", accessToken);
       this.$store.state.facebookName = facebookUser.data.payload.name;
     },
   },
