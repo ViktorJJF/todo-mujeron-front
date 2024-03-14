@@ -52,7 +52,7 @@
         <v-facebook-login
           :login-options="{
             scope:
-              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list',
+              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management',
           }"
           style="margin: auto"
           @login="facebookLogged"
@@ -65,9 +65,9 @@
 </template>
 
 <script>
-import VFacebookLogin from 'vue-facebook-login-component'
-import VTextFieldWithValidation from '@/components/inputs/VTextFieldWithValidation'
-import graphApi from '@/services/api/graphApi'
+import VFacebookLogin from "vue-facebook-login-component";
+import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import graphApi from "@/services/api/graphApi";
 export default {
   components: {
     VTextFieldWithValidation,
@@ -76,46 +76,53 @@ export default {
   data() {
     return {
       loading: false,
-      user: { email: '', password: '' },
-    }
+      user: { email: "", password: "" },
+    };
   },
   created() {
     if (this.$store.state.authModule.isTokenSet) {
-      this.$router.push({ name: 'dashboard' })
+      this.$router.push({ name: "dashboard" });
     }
   },
   methods: {
     login() {
-      let user = this.user
+      let user = this.user;
       // this.loading = true;
       this.$store
-        .dispatch('authModule/login', user)
+        .dispatch("authModule/login", user)
         .then(() => {
-          this.$router.push({ name: 'dashboard' })
+          this.$router.push({ name: "dashboard" });
         })
         .catch((error) => {
-          console.log('error en login: ', error)
+          console.log("error en login: ", error);
         })
-        .finally(() => (this.loading = false))
+        .finally(() => (this.loading = false));
     },
     async facebookLogged(e) {
-      console.log('🚀 Aqui *** -> e', e)
+      console.log("🚀 Aqui *** -> e", e);
       // solo para fines de test, se logea con USUARIO TEST
-      this.$store.state.facebookAccessToken = e.authResponse.accessToken
-      this.user.email = 'pruebas@mujeron.cl'
-      this.user.password = 'Telepizz@'
-      this.login()
+      this.$store.state.facebookAccessToken = e.authResponse.accessToken;
+      this.user.email = "pruebas@mujeron.cl";
+      this.user.password = "Telepizz@";
+      this.login();
+      const accessToken = (
+        await graphApi.getLongUserToken(e.authResponse.accessToken)
+      ).data.payload.access_token;
+      // set to localstorage
+      localStorage.setItem("facebookAccessToken", accessToken);
       let facebookUser = await graphApi.getUserInformation(
         e.authResponse.accessToken
-      )
-      this.$store.state.facebookName = facebookUser.data.payload.name
+      );
+
+      console.log("🐞 LOG HERE accessToken:", accessToken);
+      this.$store.state.facebookName = facebookUser.data.payload.name;
     },
   },
-}
+};
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Poppins');
+@import url("https://fonts.googleapis.com/css?family=Poppins");
 
 /* BASIC */
 
@@ -136,7 +143,7 @@ export default {
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   height: 100vh;
 }
 
@@ -227,15 +234,15 @@ h2.active {
   transition: all 0.3s ease-in-out;
 }
 
-input[type='button']:hover,
-input[type='submit']:hover,
-input[type='reset']:hover {
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover {
   background-color: #39ace7;
 }
 
-input[type='button']:active,
-input[type='submit']:active,
-input[type='reset']:active {
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active {
   -moz-transform: scale(0.95);
   -webkit-transform: scale(0.95);
   -o-transform: scale(0.95);
@@ -243,7 +250,7 @@ input[type='reset']:active {
   transform: scale(0.95);
 }
 
-input[type='text'] {
+input[type="text"] {
   background-color: #f6f6f6;
   border: none;
   color: #0d0d0d;
@@ -264,12 +271,12 @@ input[type='text'] {
   border-radius: 5px 5px 5px 5px;
 }
 
-input[type='text']:focus {
+input[type="text"]:focus {
   background-color: #fff;
   border-bottom: 2px solid #5fbae9;
 }
 
-input[type='text']:placeholder {
+input[type="text"]:placeholder {
   color: #cccccc;
 }
 
@@ -384,7 +391,7 @@ input[type='text']:placeholder {
   width: 0;
   height: 2px;
   background-color: #56baed;
-  content: '';
+  content: "";
   transition: width 0.2s;
 }
 
