@@ -562,7 +562,7 @@ export default {
         order: "desc",
       };
       body["channel"] = "whatsapp";
-      // body["companies"] = [this.$store.getters["authModule/getCurrentCompany"].company._id];
+      // body["companies"] = [this.$store.getters["authModule/getCurrentCompany"].company._id];5
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([
