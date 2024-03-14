@@ -436,16 +436,18 @@ export default {
     this.initialize();
   },
   methods: {
-    async initialize(country) {
+    async initialize() {
       await Promise.all([
         this.$store.dispatch("facebookAudiencesModule/list", {
-          country: country || this.country,
+          // country: country || this.country,
           sort: "name",
           order: "asc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       this.todofullLabels =
