@@ -491,7 +491,9 @@ export default {
         this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("facebookLabelsModule/list"),
         this.$store.dispatch("retailRocketTagsModule/list"),
-        this.$store.dispatch("ecommercesAttributesModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("companiesModule/list"),
       ]);
 
