@@ -354,7 +354,9 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("ecommercesCategoriesModule/list"),
         this.$store.dispatch("ecommercesTagsModule/list"),
         this.$store.dispatch("todofullLabelsModule/list"),
