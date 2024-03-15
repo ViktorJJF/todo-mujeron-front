@@ -325,6 +325,7 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente
