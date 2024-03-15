@@ -410,6 +410,7 @@ export default {
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("categoriesModule/list"),
         this.$store.dispatch("brandsModule/list"),
