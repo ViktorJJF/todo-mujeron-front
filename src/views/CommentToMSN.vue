@@ -880,6 +880,7 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name", "ref"],
           listType: "All",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente
@@ -931,7 +932,10 @@ export default {
       this.selectedProducts = null;
     },
     async generateTemplate(product) {
-      await this.$store.dispatch("facebookLabelsModule/list", { limit: 9999 });
+      await this.$store.dispatch("facebookLabelsModule/list", {
+        limit: 9999,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      });
       // obteniendo etiquetas emparejadas con categorias
       let facebookLabels = [];
       product.categories.forEach((category) => {
