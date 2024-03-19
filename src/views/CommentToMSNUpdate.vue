@@ -447,6 +447,7 @@ export default {
             await Promise.all([
               this.$store.dispatch("ecommercesCategoriesModule/list", {
                 limit: 9999,
+                companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
               }),
             ]);
 
@@ -488,8 +489,12 @@ export default {
           this.$store.dispatch("commentsFacebookModule/list", {
             limit: 9999,
             _id: this.$route.params.id,
+            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
           }),
-          this.$store.dispatch("todofullLabelsModule/list", { limit: 9999 }),
+          this.$store.dispatch("todofullLabelsModule/list", {
+            limit: 9999,
+            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          }),
         ]);
         this.commentsFacebook = this.$deepCopy(
           this.$store.state.commentsFacebookModule.commentsFacebook
@@ -500,13 +505,17 @@ export default {
       } else {
         await Promise.all([
           this.$store.dispatch("todofullLabelsModule/list"),
-          { limit: 9999 },
+          {
+            limit: 9999,
+            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          },
         ]);
         // buscando si existe plantilla asociada a producto
         let commentsFacebok = await this.$store.dispatch(
           "commentsFacebookModule/list",
           {
             ecommerceId: this.productId,
+            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
           }
         );
         if (commentsFacebok.length > 0) {
@@ -624,6 +633,7 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name"],
           listType: "All",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente
