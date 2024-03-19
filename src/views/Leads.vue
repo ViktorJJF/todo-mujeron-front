@@ -1068,6 +1068,7 @@ export default {
           sort: "name",
           order: "asc",
           is_active: true,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);
