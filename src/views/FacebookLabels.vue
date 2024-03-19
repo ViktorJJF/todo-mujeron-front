@@ -466,13 +466,16 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "name",
           order: 1,
-          companyId: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: 1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
