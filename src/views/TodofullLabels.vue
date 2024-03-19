@@ -488,8 +488,12 @@ export default {
         this.$store.dispatch("botsModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
-        this.$store.dispatch("facebookLabelsModule/list"),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("facebookLabelsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("retailRocketTagsModule/list"),
         this.$store.dispatch("ecommercesAttributesModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
