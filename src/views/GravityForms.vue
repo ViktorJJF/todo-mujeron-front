@@ -326,7 +326,9 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("gravityFormsModule/list");
+    await this.$store.dispatch("gravityFormsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth();
   },
@@ -350,6 +352,7 @@ export default {
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: 1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("botsModule/list", {
           sort: "name",
