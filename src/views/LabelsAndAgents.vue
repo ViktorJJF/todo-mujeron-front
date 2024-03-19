@@ -135,7 +135,9 @@ export default {
         this.$store.dispatch("ecommercesTagsModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("todofullLabelsModule/list"),
+        this.$store.dispatch("todofullLabelsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("ecommercesAttributesModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
