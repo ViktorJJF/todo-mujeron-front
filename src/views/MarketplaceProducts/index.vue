@@ -160,7 +160,10 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("marketplaceProductsModule/list", { catalog: this.$route.params.id })]);
+      await Promise.all([this.$store.dispatch("marketplaceProductsModule/list", {
+        catalog: this.$route.params.id,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       this.products = this.$deepCopy(this.$store.state.marketplaceProductsModule.products)
     },
 

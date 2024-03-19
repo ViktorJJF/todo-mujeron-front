@@ -10,9 +10,9 @@ const module = {
     totalPages: 0,
   },
   actions: {
-    list({ commit }) {
+    list({ commit }, query) {
       return new Promise((resolve, reject) => {
-        api.listAll().then((response) => {
+        api.list(query).then((response) => {
           commit("setProducts", response.data.payload);
           commit("totalItems", response.data.totalDocs);
           commit("totalPages", response.data.totalPages);
