@@ -441,7 +441,7 @@ export default {
         ...paginationPayload,
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      body.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
+      body.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
         this.$store.dispatch("contactosModule/list", body),
         this.$store.dispatch("telefonosModule/list", {
