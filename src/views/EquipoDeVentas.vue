@@ -261,19 +261,24 @@ export default {
     this.$store.commit("loadingModule/showLoading");
     await Promise.all([
       this.$store.dispatch("equipoDeVentasModule/list", {
-        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       }),
       this.$store.dispatch("todofullLabelsModule/list", {
         sort: "name",
         order: "asc",
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       }),
       this.$store.dispatch("locacionesModule/list", {
-        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       }),
     ]);
     this.initialize();
     this.rolAuth();
-    agentsApi.list().then((res) => {
+    agentsApi.list({
+      sort: "name",
+      order: "1",
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }).then((res) => {
       this.agents = res.data.payload;
     });
   },
