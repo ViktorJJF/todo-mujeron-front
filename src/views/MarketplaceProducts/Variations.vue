@@ -24,7 +24,7 @@
             <v-container>
               <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
-                <v-col cols="12" sm="5">
+                <v-col cols="12" sm="4">
                   <v-text-field
                     hide-details
                     v-model="search"
@@ -32,12 +32,16 @@
                     placeholder="Escribe el texto"
                     single-line
                     outlined
+                    clearable
                     @input="handleSearchUpdate"
                   ></v-text-field>
                 </v-col>
+                <v-col cols="12" sm="2">
+                  <CountrySelect v-model="country" />
+                </v-col>
                 <v-col>
                   <v-btn color="primary" @click="handleProductsCrossover">
-                    Cruce de Productos
+                    Sincronizar
                   </v-btn>
                   <template v-if="productsCrossoverSku.length">
                     <v-btn
@@ -166,9 +170,10 @@
 <script>
 import productsApi from '@/services/api/marketplaceProducts'
 import MaterialCard from '@/components/material/Card'
+import CountrySelect from '@/components/CountrySelect.vue'
 
 export default {
-  components: { MaterialCard },
+  components: { MaterialCard, CountrySelect },
   filters: {
     currency(val) {
       return new Intl.NumberFormat().format(val)
@@ -197,6 +202,7 @@ export default {
     productsCrossoverSku: [],
     currentProductSku: null,
     currentProductIndex: null,
+    country: 'Chile',
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
       (val) => val >= 0 || 'No puede ser negativo',
@@ -353,7 +359,7 @@ export default {
         return this.handleSearchUpdate(this.currentProductSku)
       }
 
-      const res = await productsApi.getProductsCrossover('Chile')
+      const res = await productsApi.getProductsCrossover(this.country)
       if (res.data?.ok !== true) return
       const productsSku = res.data.payload
       this.productsCrossoverSku = productsSku
