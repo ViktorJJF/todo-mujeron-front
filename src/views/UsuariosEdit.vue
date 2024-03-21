@@ -77,7 +77,7 @@
                 <VSelectWithValidation
                   v-model="selectedCompanies"
                   :items="companies"
-                  rules="require"
+                  rules="required"
                   item-text="alias"
                   item-value="_id"
                   placeholder="Seleccionar Compañia"
