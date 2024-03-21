@@ -25,11 +25,11 @@ const actions = {
       commit("initialLoad");
     }
   },
-  login({ commit }, { email, password }) {
+  login({ commit }, { corporation, user: { email, password } }) {
     return new Promise((resolve, reject) => {
       commit("loadingModule/showLoading", true, { root: true });
       api
-        .login(email, password)
+        .login(email, password, corporation)
         .then((response) => {
           if (response.status === 200) {
             localStorage.setItem("user", JSON.stringify(response.data.user));

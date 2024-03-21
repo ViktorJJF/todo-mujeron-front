@@ -1,7 +1,7 @@
 import axios from "axios";
 export default {
-  login(email, password) {
-    return axios.post("/api/login", { email, password });
+  login(email, password, corporation) {
+    return axios.post("/api/login", { email, password, corporation });
   },
   editUser(id, payload) {
     return axios.put(`/api/users/${id}`, payload);
