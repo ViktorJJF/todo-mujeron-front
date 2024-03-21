@@ -77,7 +77,7 @@
                 <VSelectWithValidation
                   v-model="selectedCompanies"
                   :items="companies"
-                  rules="required"
+                  rules="require"
                   item-text="alias"
                   item-value="_id"
                   placeholder="Seleccionar Compañia"
@@ -262,6 +262,13 @@ export default {
     async save() {
       this.loadingButton = true;
       let itemId = this.user._id;
+      this.user.companies = this.selectedCompanies.map(c => {
+        return {
+          company: {
+            _id: c,
+          }
+        };
+      });
       await this.$store.dispatch("usersModule/update", {
         id: itemId,
         data: this.user,
@@ -269,7 +276,13 @@ export default {
     },
     updateUser() {
       console.log(this.user._id);
-      this.user.companies = this.selectedCompanies;
+      this.user.companies = this.selectedCompanies.map(c => {
+        return {
+          company: {
+            _id: c,
+          }
+        };
+      });
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
