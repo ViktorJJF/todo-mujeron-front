@@ -180,6 +180,12 @@
               </v-row>
             </v-container>
           </template>
+          <template v-slot:item.companies="{ item }">
+            <span v-for="(company, index) in item.companies" :key="index">
+              - {{ company.company.alias }}
+              <br>
+            </span>
+          </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn class="mr-3" small color="secondary" :to="{ name: 'UsuariosEdit',  params: {id: item._id,}, }" v-if="rolPermisos['Edit']"
               >Editar</v-btn
