@@ -89,15 +89,18 @@
                               ></v-select>
                             </v-col>
                             <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">Equipo de Venta</span>
+                              <span class="font-weight-bold">Equipos de Venta</span>
                               <v-select
                                 hide-details
-                                placeholder="Selecciona un equipo de venta"
+                                placeholder="Selecciona los equipos de venta"
                                 outlined
                                 :items="teams"
                                 item-text="nombre"
                                 item-value="_id"
-                                v-model="editedItem.team"
+                                v-model="editedItem.teams"
+                                multiple
+                                clearable
+                                chips
                               ></v-select>
                             </v-col>
                             <!-- <v-col cols="12" sm="12" md="12">
@@ -131,6 +134,12 @@
                 </v-col>
               </v-row>
             </v-container>
+          </template>
+          <template v-slot:item.teams="{ item }">
+            <span v-for="(team, index) in item.teams" :key="index">
+              - {{ team.nombre }}
+              <br>
+            </span>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
@@ -221,10 +230,9 @@ export default {
         value: "locacionId.nombre",
       },
       {
-        text: "Equipo de Venta",
+        text: "Equipos de Venta",
         align: "left",
-        sortable: true,
-        value: "team.nombre",
+        value: "teams",
       },
       {
         text: "Agregado",
