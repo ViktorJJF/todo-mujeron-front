@@ -65,28 +65,6 @@
                                 label="Nombre de la locación"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Ingresa una descripción"
-                                outlined
-                                :items="paises"
-                                v-model="editedItem.pais"
-                              ></v-select>
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">Ciudades</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Ingresa una descripción"
-                                outlined
-                                :items="ciudadesFiltered"
-                                v-model="editedItem.ciudad"
-                              ></v-select>
-                            </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
                                 >Equipos de Venta</span>
@@ -222,35 +200,12 @@ export default {
     editedItem: Locaciones(),
     defaultItem: Locaciones(),
     teams: [],
-    paises: ['Peru', 'Chile', 'Colombia', 'Estados Unidos', 'Argentina'],
-    ciudades: [
-      {
-        pais: 'Peru',
-        ciudades: ['Tacna', 'Arequipa', 'Lima', 'Moquegua', 'Callao'],
-      },
-      {
-        pais: 'Chile',
-        ciudades: ['Santiago', 'Viña', 'Antofagasta', 'Temuco'],
-      },
-      {
-        pais: 'Colombia',
-        ciudades: ['Bogotá', 'Medellin', 'Cali', 'Cartagena'],
-      },
-    ],
     rolPermisos: {},
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? 'Nueva locación' : 'Editar locación'
-    },
-    ciudadesFiltered() {
-      return this.ciudades.find(
-        (ciudad) => ciudad.pais === this.editedItem.pais
-      )
-        ? this.ciudades.find((ciudad) => ciudad.pais === this.editedItem.pais)
-            .ciudades
-        : []
     },
   },
 
