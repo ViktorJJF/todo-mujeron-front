@@ -65,19 +65,6 @@
                                 label="Nombre de etiqueta todofull"
                               />
                             </v-col>
-                            <v-col cols="12">
-                              <span class="body-1 font-weight-bold"
-                                >Compañia</span
-                              >
-                              <VSelectWithValidation
-                                v-model="editedItem.company"
-                                :items="companies"
-                                rules="required"
-                                item-text="alias"
-                                item-value="_id"
-                                placeholder="Seleccionar Compañia"
-                              />
-                            </v-col>
                             <v-col cols="12" sm="12" md="12">
                               <v-divider
                                 style="border: 1px solid #ddd"
@@ -369,7 +356,6 @@ const CLASS_ITEMS = () =>
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import MaterialCard from "@/components/material/Card";
 import { sortAlphabetically, getAttributesWithValues } from "@/utils/utils";
 import { es } from "date-fns/locale";
@@ -378,7 +364,6 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
   },
   filters: {
     formatDate: function (value) {
@@ -429,7 +414,6 @@ export default {
     editedIndex: -1,
     editedItem: CLASS_ITEMS(),
     defaultItem: CLASS_ITEMS(),
-    companies: [],
     menu1: false,
     menu2: false,
     rolPermisos: {},
@@ -498,12 +482,8 @@ export default {
         this.$store.dispatch("ecommercesAttributesModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("companiesModule/list"),
       ]);
 
-      this.companies = this.$deepCopy(
-        this.$store.state.companiesModule.companies
-      );
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -621,6 +601,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
