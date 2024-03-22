@@ -326,7 +326,11 @@ export default {
       this.groups = [];
       if (this.editedItem.companies.length) {
         await this.$store.dispatch("groupsModule/list", { companies: this.editedItem.companies });
-        this.groups = this.$deepCopy(this.$store.state.groupsModule.groups); 
+        this.groups = this.$deepCopy(this.$store.state.groupsModule.groups);
+        this.groups = this.groups.map(g => {
+          g.nombre = `${g.nombre} (${g.company.alias})`;
+          return g;
+        });
       }
     },
      rolAuth(){
