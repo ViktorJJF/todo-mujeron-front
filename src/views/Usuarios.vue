@@ -152,7 +152,6 @@
                          <v-switch
                           v-model="editedItem.status"
                           inset
-                          :label="status"
                         ></v-switch>
                       </v-col>
 
