@@ -22,9 +22,7 @@
         >
           <template v-slot:top>
             <v-container>
-              <span class="font-weight-bold">
-                Filtrar: {{ search }}
-              </span>
+              <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
                 <v-col cols="12" sm="5">
                   <v-text-field
@@ -37,14 +35,34 @@
                     @input="handleSearchUpdate"
                   ></v-text-field>
                 </v-col>
+                <v-col>
+                  <v-btn color="primary" @click="handleProductsCrossover">
+                    Cruce de Productos
+                  </v-btn>
+                  <template v-if="productsCrossoverSku.length">
+                    <v-btn
+                      class="ml-2"
+                      v-if="currentProductIndex > 0"
+                      @click="
+                        handleCurrentProductChange(currentProductIndex - 1)
+                      "
+                    >
+                      Anterior
+                    </v-btn>
+                    <v-btn
+                      class="ml-2"
+                      @click="
+                        handleCurrentProductChange(currentProductIndex + 1)
+                      "
+                    >
+                      Siguiente
+                    </v-btn>
+                  </template>
+                </v-col>
               </v-row>
               <v-row v-if="variationsSelected.length">
                 <v-col>
-                  <v-btn
-                    color="primary"
-                    depressed
-                    @click="batchUpdate(true)"
-                  >
+                  <v-btn color="primary" depressed @click="batchUpdate(true)">
                     On
                   </v-btn>
                   <v-btn
@@ -64,7 +82,7 @@
             <span class="format-breaklines">
               <v-checkbox
                 :value="getCheckboxValue(item)"
-                @change="val => handleCheckboxChange(val, item)"
+                @change="(val) => handleCheckboxChange(val, item)"
               />
             </span>
           </template>
@@ -74,7 +92,7 @@
               <v-switch
                 :input-value="item.stock > 0"
                 :loading="loading.includes(item._id)"
-                @change="val => handleSwitchChange(val, item)"
+                @change="(val) => handleSwitchChange(val, item)"
               />
             </span>
           </template>
@@ -84,7 +102,7 @@
               {{ item.product ? item.product.source : '' }}
             </span>
           </template>
-          
+
           <template v-slot:item.price="{ item }">
             {{ item.price | currency }}
           </template>
@@ -107,7 +125,7 @@
                   label="Edit"
                   type="number"
                   min="0"
-                  :rules="stockRules" 
+                  :rules="stockRules"
                   single-line
                   autofocus
                 ></v-text-field>
@@ -147,7 +165,7 @@
 
 <script>
 import productsApi from '@/services/api/marketplaceProducts'
-import MaterialCard from "@/components/material/Card";
+import MaterialCard from '@/components/material/Card'
 
 export default {
   components: { MaterialCard },
@@ -156,83 +174,86 @@ export default {
       return new Intl.NumberFormat().format(val)
     },
     date(val) {
-      const dateOptions = Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'medium' })
+      const dateOptions = Intl.DateTimeFormat(undefined, {
+        dateStyle: 'short',
+        timeStyle: 'medium',
+      })
       return dateOptions.format(new Date(val))
-    }
+    },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
     loadingButton: false,
-    search: "",
+    search: '',
     debounceTimer: null,
     detailsModal: false,
     pagination: {},
     currentStock: 0,
     loading: [],
     variations: [],
-    fieldsToSearch: [
-      "externalId",
-      "sku",
-    ],
+    fieldsToSearch: ['externalId', 'sku'],
     variationsSelected: [],
+    productsCrossoverSku: [],
+    currentProductSku: null,
+    currentProductIndex: null,
     stockRules: [
-      val => /^[0-9]*$/.test(val) || "Debe ser un número",
-      val => val >=0 || "No puede ser negativo",
-      val => !!val || "El campo es requerido"
+      (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
+      (val) => val >= 0 || 'No puede ser negativo',
+      (val) => !!val || 'El campo es requerido',
     ],
     headers: [
       {
-        text: "",
-        align: "left",
+        text: '',
+        align: 'left',
         sortable: false,
-        value: "checkbox"
+        value: 'checkbox',
       },
       {
-        text: "",
-        align: "left",
+        text: '',
+        align: 'left',
         sortable: false,
-        value: "switch",
+        value: 'switch',
       },
       {
-        text: "Identificador",
-        align: "left",
-        value: "externalId",
+        text: 'Identificador',
+        align: 'left',
+        value: 'externalId',
       },
       {
-        text: "Fuente",
-        align: "left",
-        value: "source",
+        text: 'Fuente',
+        align: 'left',
+        value: 'source',
       },
       {
-        text: "SKU",
-        align: "left",
-        value: "sku",
+        text: 'SKU',
+        align: 'left',
+        value: 'sku',
       },
       {
-        text: "Stock",
-        align: "left",
-        value: "stock",
+        text: 'Stock',
+        align: 'left',
+        value: 'stock',
       },
       {
-        text: "Precio",
-        align: "left",
-        value: "price",
+        text: 'Precio',
+        align: 'left',
+        value: 'price',
       },
-    ]
+    ],
   }),
 
   computed: {
     totalItems() {
-      return this.$store.state["marketplaceProductsModule"].total;
+      return this.$store.state['marketplaceProductsModule'].total
     },
     totalPages() {
-      return this.$store.state["marketplaceProductsModule"].totalPages;
+      return this.$store.state['marketplaceProductsModule'].totalPages
     },
   },
 
   mounted() {
-    this.initialize();
+    this.initialize()
   },
 
   methods: {
@@ -241,11 +262,16 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: "date_modified",
+        sort: 'date_modified',
         order: -1,
-      };
-      await this.$store.dispatch("marketplaceProductsModule/fetchVariations", payload);
-      this.variations = this.$deepCopy(this.$store.state.marketplaceProductsModule.variations)
+      }
+      await this.$store.dispatch(
+        'marketplaceProductsModule/fetchVariations',
+        payload
+      )
+      this.variations = this.$deepCopy(
+        this.$store.state.marketplaceProductsModule.variations
+      )
     },
     debounce(cb, timeout = 600) {
       clearTimeout(this.debounceTimer)
@@ -259,9 +285,9 @@ export default {
       this.debounce(() => this.initialize(this.page))
     },
     async handleStockSave(item) {
-      if(this.$refs.stockTextEdit.valid) {
+      if (this.$refs.stockTextEdit.valid) {
         const changes = {
-          stock: this.currentStock
+          stock: this.currentStock,
         }
 
         await productsApi.updateVariation(item._id, changes)
@@ -271,14 +297,14 @@ export default {
     },
     async handleSwitchChange(value, item) {
       const loadingItemIndex = this.loading.indexOf(item._id)
-      if(loadingItemIndex !== -1) {
-        return;
+      if (loadingItemIndex !== -1) {
+        return
       }
 
       this.loading.push(item._id)
-      
+
       const changes = {
-        stock: value === true ? item.stock + 1 : 0
+        stock: value === true ? item.stock + 1 : 0,
       }
 
       await productsApi.updateVariation(item._id, changes)
@@ -288,34 +314,64 @@ export default {
       this.loading.splice(loadingItemIndex, 1)
     },
     getCheckboxValue(item) {
-      return this.variationsSelected.findIndex(variation => variation._id === item._id) !== -1
+      return (
+        this.variationsSelected.findIndex(
+          (variation) => variation._id === item._id
+        ) !== -1
+      )
     },
     async handleCheckboxChange(value, item) {
-      if(value === true) {
+      if (value === true) {
         this.variationsSelected.push(item)
-        return;
+        return
       }
 
-      const index = this.variationsSelected.findIndex(variation => variation._id === item._id)
+      const index = this.variationsSelected.findIndex(
+        (variation) => variation._id === item._id
+      )
       this.variationsSelected.splice(index, 1)
     },
     async batchUpdate(value) {
       const promises = this.variationsSelected.map(async (variation) => {
-         const shouldProceed = value === true 
-          ? variation.stock === 0   // Only turn on products that are off
-          : variation.stock > 0     // Only turn off products that are on
+        const shouldProceed =
+          value === true
+            ? variation.stock === 0 // Only turn on products that are off
+            : variation.stock > 0 // Only turn off products that are on
 
-        if(!shouldProceed) {
-          return;
+        if (!shouldProceed) {
+          return
         }
-        
+
         await this.handleSwitchChange(value, variation)
       })
 
       await Promise.allSettled(promises)
-    }
+    },
+    async handleProductsCrossover() {
+      const isAlreadyFetched = this.productsCrossoverSku.length > 0
+      if (isAlreadyFetched) {
+        return this.handleSearchUpdate(this.currentProductSku)
+      }
+
+      const res = await productsApi.getProductsCrossover('Chile')
+      if (res.data?.ok !== true) return
+      const productsSku = res.data.payload
+      this.productsCrossoverSku = productsSku
+      const sku = productsSku[0]
+      this.currentProductSku = sku
+      this.currentProductIndex = 0
+      this.handleSearchUpdate(sku)
+    },
+    handleCurrentProductChange(index) {
+      const sku = this.productsCrossoverSku[index]
+      if (sku) {
+        this.currentProductIndex = index
+        this.currentProductSku = sku
+        this.handleSearchUpdate(sku)
+      }
+    },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped></style>
