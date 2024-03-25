@@ -110,7 +110,7 @@ export default {
         text: "Compañia Id",
         align: "left",
         sortable: false,
-        value: "company.id",
+        value: "company.odooId",
       },
       {
         text: "Compañia",
