@@ -107,18 +107,6 @@ export default {
         value: "name",
       },
       {
-        text: "Compañia Id",
-        align: "left",
-        sortable: false,
-        value: "company.odooId",
-      },
-      {
-        text: "Compañia",
-        align: "left",
-        sortable: false,
-        value: "company.name",
-      },
-      {
         text: "Email",
         align: "left",
         sortable: true,
