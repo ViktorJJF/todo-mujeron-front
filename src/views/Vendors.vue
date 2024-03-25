@@ -142,8 +142,12 @@ export default {
 
   async mounted() {
     // this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("vendorsModule/list"); 
-    await this.$store.dispatch("locacionesModule/list");
+    await this.$store.dispatch("vendorsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }); 
+    await this.$store.dispatch("locacionesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth(); 
   },
