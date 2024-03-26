@@ -179,8 +179,8 @@
               </v-row>
             </v-container>
           </template>
-          <template v-slot:item.companies="{ item }">
-            <span v-for="(company, index) in item.companies" :key="index">
+          <template v-slot:item.corporation="{ item }">
+            <span v-for="(company, index) in item.corporation.companies" :key="index">
               - {{ company.company.alias }}
               <br>
             </span>
@@ -273,7 +273,7 @@ export default {
         text: "Companies",
         align: "left",
         sortable: true,
-        value: "companies",
+        value: "corporation",
       },
       {
         text: "Estado",
