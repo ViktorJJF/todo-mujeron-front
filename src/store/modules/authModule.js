@@ -35,7 +35,7 @@ const actions = {
             localStorage.setItem("user", JSON.stringify(response.data.user));
             localStorage.setItem("token", response.data.token);
 
-            const index = response.data.user.companies.findIndex(c => c.default === true);
+            const index = response.data.user.corporation.companies.findIndex(c => c.default === true);
             // window.localStorage.setItem(
             //   "tokenExpiration",
             //   JSON.stringify(
@@ -47,9 +47,9 @@ const actions = {
             // );
             commit("saveUser", response.data.user);
             commit("saveToken", response.data.token);
-            commit("setCompanies", response.data.user.companies)
+            commit("setCompanies", response.data.user.corporation.companies)
             if (index >= 0) {
-              commit("setCurrentCompany", response.data.user.companies[index].company._id);
+              commit("setCurrentCompany", response.data.user.corporation.companies[index].company._id);
             }
             // commit(types.EMAIL_VERIFIED, response.data.user.verified);
             buildSuccess("Bienvenido", commit);
@@ -94,7 +94,7 @@ const actions = {
     const user = JSON.parse(localStorageGet("user"));
     commit("saveUser", user);
     commit("saveToken", localStorageGet("token"));
-    commit("setCompanies", user.companies)
+    commit("setCompanies", user.corporation.companies)
     const selectedCompany = JSON.parse(localStorageGet("selectedCompany"));
     if (selectedCompany) {
       commit("setCurrentCompany", selectedCompany.company._id);
