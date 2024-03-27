@@ -12,7 +12,7 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? total
+                ? $store.state.llmTrackerModule.total
                 : $store.state.itemsPerPage
             }}
             de {{ $store.state.llmTrackerModule.total }} registros
@@ -119,6 +119,23 @@
               {{ item.description }}
             </span></template
           >
+          <template v-slot:[`item.user`]="{ item }">
+            <div v-if="!item.leadId">
+              {{ extractUserNameFromPrompt(item.prompt) }}
+            </div>
+            <div v-else>
+              <div
+                style="cursor: pointer; color: blue; text-decoration: underline;"
+                @click.stop="
+                  chatDialog = true;
+                  selectedLead = item;
+                  getLeadChat(item.leadId._id, item.platform);
+                "
+              >
+                {{ extractUserNameFromPrompt(item.prompt) }}
+              </div>
+            </div>
+          </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
@@ -126,13 +143,16 @@
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
+          <template v-slot:[`item.postUrl`]="{ item }">
+            <a :href="item.postUrl" target="_blank">Visitar post</a>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? total
+                ? $store.state.llmTrackerModule.total
                 : $store.state.itemsPerPage
             }}
             de {{ $store.state.llmTrackerModule.total }} registros
@@ -146,6 +166,71 @@
         </div>
       </material-card>
     </v-row>
+    <v-dialog
+      v-if="chatDialog"
+      v-model="chatDialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn
+            icon
+            dark
+            @click="
+              selectedLead = null;
+              selectedChatId = null;
+              chatDialog = false;
+              noChat = false;
+            "
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title
+            >Chat en vivo con
+            {{ selectedLead.appName || selectedLead.nombre }}</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn
+              dark
+              text
+              @click="
+                selectedLead = null;
+                selectedChatId = null;
+                chatDialog = false;
+                noChat = false;
+              "
+            >
+              Finalizar
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <div>
+          <!-- chat iframe content -->
+          <iframe
+            v-if="selectedChatId"
+            :src="
+              `${
+                getEnvironment === 'local'
+                  ? 'http://localhost:3030'
+                  : getEnvironment === 'development'
+                  ? 'https://dev.chat.todofull.club'
+                  : 'https://chat.todofull.club'
+              }/apps/chat?chatId=${selectedChatId}&isChatOneToOne=true`
+            "
+            width="100%"
+            height="100%"
+            frameborder="0"
+            scrolling="no"
+            style="height: 100vh;"
+          ></iframe>
+          <h3 v-else-if="!noChat">Cargando...</h3>
+          <h3 v-if="noChat">Sin chat</h3>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -158,6 +243,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
+import chatService from "@/services/api/chats";
 import { es } from "date-fns/locale";
 export default {
   components: {
@@ -171,6 +257,10 @@ export default {
     },
   },
   data: () => ({
+    selectedChatId: null,
+    noChat: false,
+    chatDialog: null,
+    selectedLead: null,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -183,6 +273,12 @@ export default {
         align: "left",
         sortable: false,
         value: "createdAt",
+      },
+      {
+        text: "Usuario",
+        align: "left",
+        sortable: false,
+        value: "user",
       },
       {
         text: "Input",
@@ -318,6 +414,25 @@ export default {
         } finally {
           this.loadingButton = false;
         }
+      }
+    },
+    extractUserNameFromPrompt(prompt) {
+      // code to extract string between "Nombre del usuario" and "\n \n"
+      let name = prompt.match(/Nombre del usuario: (.*)\n/);
+      return name ? name[1] : "Sin nombre";
+    },
+    async getLeadChat(id, platform) {
+      console.log("🐞 LOG HERE id lead chat:", id);
+      try {
+        const chats = (await chatService.getAllByLeadId(id, platform)).data
+          .payload;
+        if (chats.length > 0) {
+          this.selectedChatId = chats[0]._id;
+        } else {
+          this.noChat = true;
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
   },
