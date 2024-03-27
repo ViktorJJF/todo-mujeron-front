@@ -304,7 +304,10 @@ export default {
     },
 
     async initialize() {
-      stockBoundaryApi.findByTarget('woocommerce').then((res) => {
+      stockBoundaryApi.findByTarget({
+        target: "woocommerce",
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+      }).then((res) => {
         this.stockBoundary = res.data.payload
         if (this.stockBoundary) {
           this.minStock = this.stockBoundary.min

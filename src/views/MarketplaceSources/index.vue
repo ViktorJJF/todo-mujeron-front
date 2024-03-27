@@ -327,7 +327,10 @@ export default {
   methods: {
 
     async initialize() {
-      stockBoundaryApi.findByTarget('marketplace').then(res => {
+      stockBoundaryApi.findByTarget({
+        target: "marketplace",
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+      }).then(res => {
         this.stockBoundary = res.data.payload
         if (this.stockBoundary) {
           this.minStock = this.stockBoundary.min
