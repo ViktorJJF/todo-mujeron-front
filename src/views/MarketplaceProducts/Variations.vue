@@ -43,25 +43,36 @@
                   <v-btn color="primary" @click="handleProductsCrossover">
                     Sincronizar
                   </v-btn>
-                  <template v-if="productsCrossoverSku.length">
-                    <v-btn
-                      class="ml-2"
-                      v-if="currentProductIndex > 0"
-                      @click="
-                        handleCurrentProductChange(currentProductIndex - 1)
-                      "
-                    >
-                      Anterior
-                    </v-btn>
-                    <v-btn
-                      class="ml-2"
-                      @click="
-                        handleCurrentProductChange(currentProductIndex + 1)
-                      "
-                    >
-                      Siguiente
-                    </v-btn>
-                  </template>
+                  <div
+                    class="controls-container"
+                    v-if="productsCrossoverSku.length"
+                  >
+                    <div>
+                      <v-btn
+                        v-if="currentProductIndex > 0"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex - 1)
+                        "
+                      >
+                        Anterior
+                      </v-btn>
+                      <v-btn
+                        v-if="
+                          currentProductIndex < productsCrossoverSku.length - 1
+                        "
+                        class="ml-2"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex + 1)
+                        "
+                      >
+                        Siguiente
+                      </v-btn>
+                    </div>
+                    <div>
+                      {{ currentProductIndex + 1 }} /
+                      {{ productsCrossoverSku.length }}
+                    </div>
+                  </div>
                 </v-col>
               </v-row>
               <v-row v-if="variationsSelected.length">
@@ -380,4 +391,11 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.controls-container {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 8px;
+  align-items: center;
+}
+</style>
