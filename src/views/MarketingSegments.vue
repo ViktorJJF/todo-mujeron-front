@@ -47,6 +47,7 @@
                     <MarketingSegmentsForm
                       :editedIndex="editedIndex"
                       :editedItem="editedItem"
+                      :odooValues="odooValues"
                       @onClose="dialog = false"
                       @onSave="onSave"
                     ></MarketingSegmentsForm>
@@ -231,10 +232,16 @@ export default {
         minSaleOrderCount: 0,
         minPosOrderCount: 0,
         minSalePosOrderCount: 0,
+        salesTeams: [],
+        rfmScores: [],
       },
       target_countries: [],
       botIds: [],
       type: "static",
+    },
+    odooValues: {
+      rfmValues: [],
+      teamValues: [],
     },
   }),
   computed: {
@@ -304,7 +311,11 @@ export default {
 
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      const response = await Promise.allSettled([
+        this.$store.dispatch("cleanLeadsModule/getLeadOdooValues"),
+        this.$store.dispatch(ENTITY + "Module/list"),
+      ]);
+      this.odooValues = response[0].value;
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]

@@ -114,6 +114,18 @@ const module = {
           });
       });
     },
+    getLeadOdooValues({ commit }) {
+      return new Promise((resolve, reject) => {
+        api
+          .getLeadOdooValues()
+          .then((res) => {
+            resolve(res.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
   },
   mutations: {
     list(state, data) {

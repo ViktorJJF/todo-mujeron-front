@@ -3,7 +3,7 @@
     <div class="wrapper fadeInDown">
       <div id="formContent">
         <ValidationObserver ref="obs" v-slot="{ passes }">
-          <v-form>
+          <v-form @submit.prevent="passes(login)">
             <!-- Tabs Titles -->
             <h2 class="active">Ingreso</h2>
 
@@ -39,12 +39,12 @@
               type="password"
             />
             <v-btn
+              type="submit"
               :loading="loading"
               class="ma-5"
               color="info"
               lass="fadeIn fourth"
               value="Ingresar"
-              @click="passes(login)"
               >Ingresar</v-btn
             >
           </v-form>

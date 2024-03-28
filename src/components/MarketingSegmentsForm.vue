@@ -105,6 +105,26 @@
               type="number"
               v-model="editedItem.filters.minSalePosOrderCount"
             ></v-text-field>
+            <span>Equipos de ventas</span>
+            <v-select
+              dense
+              hide-details
+              placeholder="Selecciona equipos de ventas"
+              outlined
+              :items="odooValues.teamValues"
+              v-model="editedItem.filters.salesTeams"
+              multiple
+            ></v-select>
+            <span>Calificación de RFM</span>
+            <v-select
+              dense
+              hide-details
+              placeholder="Selecciona RFM"
+              outlined
+              :items="odooValues.rfmValues"
+              v-model="editedItem.filters.rfmScores"
+              multiple
+            ></v-select>
           </v-col>
           <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">País</span>
@@ -241,6 +261,8 @@ export default {
           minSaleOrderCount: 0,
           minPosOrderCount: 0,
           minSalePosOrderCount: 0,
+          salesTeams: [],
+          rfmScores: [],
         },
         // dateFrom: new Date().toISOString().substr(0, 10),
         // dateTo: new Date().toISOString().substr(0, 10),
@@ -255,6 +277,13 @@ export default {
     isFinalStep: {
       type: Boolean,
       default: false,
+    },
+    odooValues: {
+      type: Object,
+      default: () => ({
+        rfmScores: [],
+        salesTeams: [],
+      }),
     },
   },
   components: {

@@ -76,4 +76,9 @@ export default {
   delete(id) {
     return axios.delete(`/api/clean-leads/${id}`);
   },
+  getLeadOdooValues() {
+    return axios.get("/api/clean-leads/get_lead_odoo_values", {
+      params: {},
+    });
+  },
 };

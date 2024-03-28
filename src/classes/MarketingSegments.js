@@ -12,6 +12,8 @@ export default () => ({
     minSaleOrderCount: 0,
     minPosOrderCount: 0,
     minSalePosOrderCount: 0,
+    salesTeams: [],
+    rfmScores: [],
   },
   target_countries: [],
   botIds: [],
