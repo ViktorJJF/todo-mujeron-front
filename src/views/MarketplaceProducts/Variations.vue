@@ -148,6 +148,19 @@
             </v-edit-dialog>
           </template>
 
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              small
+              color="secondary"
+              icon
+              @click="handleSyncVariation(item)"
+            >
+              <v-icon :class="loading.includes(item._id) ? 'loading' : ''"
+                >mdi-sync</v-icon
+              >
+            </v-btn>
+          </template>
+
           <template v-slot:no-data>
             <v-alert type="error" :value="true">
               Aún no cuentas con variaciones
@@ -256,6 +269,10 @@ export default {
         text: 'Precio',
         align: 'left',
         value: 'price',
+      },
+      {
+        text: 'Acciones',
+        value: 'actions',
       },
     ],
   }),
@@ -387,6 +404,28 @@ export default {
         this.handleSearchUpdate(sku)
       }
     },
+
+    async handleSyncVariation(variation) {
+      const isLoading = this.loading.includes(variation._id)
+      if (isLoading) return
+
+      try {
+        this.loading.push(variation._id)
+        const res = await productsApi.syncVariation(variation._id)
+        const variationIndex = this.variations.findIndex(
+          (_variation) => _variation._id == variation._id
+        )
+        if (variationIndex === -1) return
+
+        this.variations.splice(variationIndex, 1, res.data.payload)
+      } catch (error) {
+        // @TODO: Handle errors
+        console.error(error)
+      } finally {
+        const loadingIndex = this.loading.indexOf(variation._id)
+        this.loading.splice(loadingIndex, 1)
+      }
+    },
   },
 }
 </script>
@@ -397,5 +436,18 @@ export default {
   flex-direction: column;
   margin-left: 8px;
   align-items: center;
+}
+
+.loading {
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
