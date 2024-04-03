@@ -703,6 +703,12 @@
         </v-list-item-icon>
         <v-list-item-content> Chat en vivo </v-list-item-content>
       </v-list-item>
+      <v-list-item active-class="primary custom2" :to="{ name: 'SettingsView' }">
+        <v-list-item-icon>
+          <v-icon>mdi-check</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content> Configuración </v-list-item-content>
+      </v-list-item>
 
       <v-divider class="mx-3 mb-3"></v-divider>
     </v-list>

@@ -529,7 +529,7 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > commentsFacebook.length
-                ? commentsFacebook.length
+                ? $store.state.llmTracker.total
                 : $store.state.itemsPerPage
             }}
             de {{ commentsFacebook.length }} registros

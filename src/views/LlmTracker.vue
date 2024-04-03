@@ -7,6 +7,23 @@
         :title="$t(entity + '.TITLE')"
         :text="$t(entity + '.SUBTITLE')"
       >
+        <v-col cols="12" sm="12">
+          <span>
+            <strong>Mostrando:</strong>
+            {{
+              $store.state.itemsPerPage > items.length
+                ? total
+                : $store.state.itemsPerPage
+            }}
+            de {{ $store.state.llmTrackerModule.total }} registros
+          </span>
+        </v-col>
+        <div class="text-center pt-2">
+          <v-pagination
+            v-model="page"
+            :length="$store.state.llmTrackerModule.totalPages"
+          ></v-pagination>
+        </div>
         <v-data-table
           no-results-text="No se encontraron resultados"
           hide-default-footer
@@ -115,14 +132,17 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? items.length
+                ? total
                 : $store.state.itemsPerPage
             }}
-            de {{ items.length }} registros
+            de {{ $store.state.llmTrackerModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            v-model="page"
+            :length="$store.state.llmTrackerModule.totalPages"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -155,7 +175,7 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
-    fieldsToSearch: ["postUrl"],
+    fieldsToSearch: ["postUrl", "response", "query"],
     dialog: false,
     headers: [
       {

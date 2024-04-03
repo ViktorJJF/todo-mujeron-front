@@ -457,13 +457,30 @@ export const getFormattedYoutubeUrl = (link) => {
   }
 };
 
-export const stripHtml=(html)=> {
-  var text = html.replace(/<br\s*[/]?>/gi, '\n');
+export const stripHtml = (html) => {
+  var text = html.replace(/<br\s*[/]?>/gi, "\n");
   var tempDivElement = document.createElement("div");
   tempDivElement.innerHTML = text;
   return tempDivElement.textContent || tempDivElement.innerText || "";
-}
+};
 
-export const generateCategoryUrls=(categories,baseUrl)=>{
-  return categories.map(el=>el.parent===0? `${baseUrl}/${el.slug}`:`${baseUrl}/${categories.find(el2=>el2.id===el.parent).slug}/${el.slug}`)
-}
+export const generateCategoryUrls = (categories, baseUrl) => {
+  return categories.map((el) =>
+    el.parent === 0
+      ? `${baseUrl}/${el.slug}`
+      : `${baseUrl}/${categories.find((el2) => el2.id === el.parent).slug}/${
+          el.slug
+        }`
+  );
+};
+
+// Utility function to convert array to CSV, including only email and telefono
+export const convertArrayToCSV = (array) => {
+  const header = "email,telefono";
+  const rows = array.map(
+    (item) =>
+      `${item.details.find((el) => el.email && el.email != "false")?.email ||
+        ""},${item.telefono}`
+  );
+  return [header, ...rows].join("\n");
+};

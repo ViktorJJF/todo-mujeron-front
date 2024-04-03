@@ -87,9 +87,21 @@
               fab
               small
               dark
+              class="mr-1"
               @click="deleteItem(item)"
             >
               <v-icon>mdi-delete</v-icon>
+            </v-btn>
+            <v-btn
+              v-if="!isSelectorMode"
+              fab
+              dark
+              small
+              color="secondary"
+              @click="downloadCsv(item)"
+              :loading="loadingDownloadCsv"
+            >
+              <v-icon>mdi-download</v-icon>
             </v-btn>
             <v-btn
               small
@@ -170,6 +182,7 @@ import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
+import { convertArrayToCSV } from "@/utils/utils";
 
 export default {
   props: {
@@ -200,7 +213,7 @@ export default {
     dialog: false,
     [ENTITY]: [],
     advisors: [],
-
+    loadingDownloadCsv: false,
     menu1: false,
     menu2: false,
     rolPermisos: {},
@@ -333,6 +346,61 @@ export default {
     onSave() {
       this.initialize();
       this.close();
+    },
+    async downloadCsv(segment) {
+      try {
+        this.loadingDownloadCsv = true;
+        console.log("🐞 LOG HERE segment:", segment);
+        const segmentId = segment._id;
+        let totalLeads = [];
+        let page = 1;
+        let hasMoreLeads = true;
+
+        // Get all leads
+        while (hasMoreLeads) {
+          let response = await this.$store.dispatch(
+            "cleanLeadsModule/listWithAdvanceFilter",
+            {
+              page,
+              limit: 1000,
+              segmentId,
+              sort: "updatedAt",
+              order: "desc",
+              fields_to_show: ["details", "telefono"],
+            }
+          );
+          console.log("🐞 LOG HERE response:", response);
+          if (response.length > 0) {
+            totalLeads = [...totalLeads, ...response];
+            page++;
+          } else {
+            hasMoreLeads = false;
+          }
+        }
+        console.log("Total de leads: ", totalLeads.length);
+
+        // Convert data to CSV format
+        const csvContent = convertArrayToCSV(totalLeads);
+
+        // Create a Blob from the CSV content
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+
+        // Create a link element for download
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${segment.name}.csv`;
+        link.style.visibility = "hidden";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.log("🐞 LOG HERE error:", error);
+      } finally {
+        this.loadingDownloadCsv = false;
+      }
     },
   },
 };
