@@ -757,6 +757,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Facebook/Facebook",
           model: "Comentarios",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -772,8 +773,11 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
@@ -876,6 +880,7 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name", "ref"],
           listType: "All",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente
@@ -927,7 +932,10 @@ export default {
       this.selectedProducts = null;
     },
     async generateTemplate(product) {
-      await this.$store.dispatch("facebookLabelsModule/list", { limit: 9999 });
+      await this.$store.dispatch("facebookLabelsModule/list", {
+        limit: 9999,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      });
       // obteniendo etiquetas emparejadas con categorias
       let facebookLabels = [];
       product.categories.forEach((category) => {

@@ -341,7 +341,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Mailchimp',
-          'model':'Etiquetas'
+          'model':'Etiquetas',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -353,12 +354,24 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list"),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
-        this.$store.dispatch("ecommercesTagsModule/list"),
-        this.$store.dispatch("todofullLabelsModule/list"),
-        this.$store.dispatch("ecommercesAttributesModule/list"),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesTagsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("todofullLabelsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesAttributesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         ]);
 
       //asignar al data del componente

@@ -87,6 +87,33 @@
                           label="+51982745576"
                         />
                       </v-col>
+                      <v-col cols="12">
+                        <span class="body-1 font-weight-bold"
+                          >Compañia</span>
+                        <VSelectWithValidation
+                          v-model="editedItem.companies"
+                          :items="companies"
+                          @change="updateGroupsList"
+                          rules="required"
+                          item-text="alias"
+                          item-value="_id"
+                          placeholder="Seleccionar Compañia"
+                          multiple
+                        />
+                      </v-col>
+                      <v-col cols="12">
+                        <span class="body-1 font-weight-bold"
+                          >Grupo</span>
+                        <VSelectWithValidation
+                          v-model="editedItem.roles"
+                          :items="groups"
+                          rules="required"
+                          item-text="nombre"
+                          item-value="_id"
+                          placeholder="Seleccionar Grupos"
+                          multiple
+                        />
+                      </v-col>
                       <!-- <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">País</p>
                         <VSelectWithValidation
@@ -125,7 +152,6 @@
                          <v-switch
                           v-model="editedItem.status"
                           inset
-                          :label="status"
                         ></v-switch>
                       </v-col>
 
@@ -152,6 +178,12 @@
                 </v-col>
               </v-row>
             </v-container>
+          </template>
+          <template v-slot:item.corporation="{ item }">
+            <span v-for="(company, index) in item.corporation.companies" :key="index">
+              - {{ company.company.alias }}
+              <br>
+            </span>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn class="mr-3" small color="secondary" :to="{ name: 'UsuariosEdit',  params: {id: item._id,}, }" v-if="rolPermisos['Edit']"
@@ -196,6 +228,7 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 import MaterialCard from "@/components/material/Card";
 import Usuarios from "@/classes/Users";
 import auth from "@/services/api/auth";
@@ -203,6 +236,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -236,6 +270,12 @@ export default {
         value: "email",
       },
       {
+        text: "Companies",
+        align: "left",
+        sortable: true,
+        value: "corporation",
+      },
+      {
         text: "Estado",
         align: "left",
         sortable: true,
@@ -244,6 +284,9 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     usuarios: [],
+    companies: [],
+    selectedGroup: "",
+    groups: [],
     editedIndex: -1,
     editedItem: Usuarios(),
     defaultItem: Usuarios(),
@@ -271,7 +314,8 @@ export default {
   },
 
    async created(){
-    await         this.$store.dispatch("usersModule/list");
+    await this.$store.dispatch("usersModule/list");
+    await this.$store.dispatch("companiesModule/list"),
 
     this.initialize();
   },
@@ -283,12 +327,24 @@ export default {
 
 
   methods: {
+    async updateGroupsList() {
+      this.groups = [];
+      if (this.editedItem.companies.length) {
+        await this.$store.dispatch("groupsModule/list", { companies: this.editedItem.companies });
+        this.groups = this.$deepCopy(this.$store.state.groupsModule.groups);
+        this.groups = this.groups.map(g => {
+          g.nombre = `${g.nombre} (${g.company.alias})`;
+          return g;
+        });
+      }
+    },
      rolAuth(){
       auth.roleAuthorization(
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/TodoFull',
-          'model':'Usuarios'
+          'model':'Usuarios',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -298,6 +354,9 @@ export default {
     },
     initialize() {
       this.usuarios = this.$deepCopy(this.$store.state.usersModule.users);
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies
+      );
       // this.locaciones = this.$store.state.locacionesModule.locaciones;
     },
     editItem(item) {
@@ -327,11 +386,13 @@ export default {
       this.loadingButton = true;
         //create item
         try {
+          this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           let newItem = await this.$store.dispatch(
             "usersModule/create",
             this.editedItem
           );
           this.usuarios.push(newItem);
+          console.log("newItem", newItem);
           this.close();
         } finally {
           this.loadingButton = false;

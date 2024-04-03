@@ -76,7 +76,6 @@
                                 label="Ingresa el correo"
                               />
                             </v-col>
-
                             <v-col cols="12" sm="12">
                               <span class="font-weight-bold">Locación</span>
                               <v-select
@@ -87,6 +86,21 @@
                                 item-text="nombre"
                                 item-value="_id"
                                 v-model="editedItem.locacionId"
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="12">
+                              <span class="font-weight-bold">Equipos de Venta</span>
+                              <v-select
+                                hide-details
+                                placeholder="Selecciona los equipos de venta"
+                                outlined
+                                :items="teams"
+                                item-text="nombre"
+                                item-value="_id"
+                                v-model="editedItem.teams"
+                                multiple
+                                clearable
+                                chips
                               ></v-select>
                             </v-col>
                             <!-- <v-col cols="12" sm="12" md="12">
@@ -120,6 +134,12 @@
                 </v-col>
               </v-row>
             </v-container>
+          </template>
+          <template v-slot:item.teams="{ item }">
+            <span v-for="(team, index) in item.teams" :key="index">
+              - {{ team.nombre }}
+              <br>
+            </span>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
@@ -210,6 +230,11 @@ export default {
         value: "locacionId.nombre",
       },
       {
+        text: "Equipos de Venta",
+        align: "left",
+        value: "teams",
+      },
+      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -222,6 +247,7 @@ export default {
     editedItem: Agentes(),
     defaultItem: Agentes(),
     locaciones: [],
+    teams: [],
     rolPermisos: {},
   }),
 
@@ -239,20 +265,27 @@ export default {
 
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("agentesModule/list"); 
-    await this.$store.dispatch("locacionesModule/list");
+    await this.$store.dispatch("agentesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    }); 
+    await this.$store.dispatch("locacionesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    });
+    await this.$store.dispatch("equipoDeVentasModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    });
     this.initialize();
     this.rolAuth(); 
   },
 
   methods: {
-
     rolAuth(){
        auth.roleAuthorization(
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/TodoFull',
-          'model':'Agentes'
+          'model':'Agentes',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -263,6 +296,7 @@ export default {
     initialize() {
       this.agentes = this.$deepCopy(this.$store.state.agentesModule.agentes);
       this.locaciones = this.$store.state.locacionesModule.locaciones;
+      this.teams = this.$store.state.equipoDeVentasModule.equipoDeVentas;
     },
     editItem(item) {
       this.editedIndex = this.agentes.indexOf(item);
@@ -289,20 +323,22 @@ export default {
 
     async save() {
       this.loadingButton = true;
+      this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
       if (this.editedIndex > -1) {
         let itemId = this.agentes[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("agentesModule/update", {
+          const updatedItem = await this.$store.dispatch("agentesModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.agentes[this.editedIndex], this.editedItem);
+          Object.assign(this.agentes[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             "agentesModule/create",

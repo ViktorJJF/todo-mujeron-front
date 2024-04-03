@@ -327,7 +327,10 @@ export default {
   methods: {
 
     async initialize() {
-      stockBoundaryApi.findByTarget('marketplace').then(res => {
+      stockBoundaryApi.findByTarget({
+        target: "marketplace",
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+      }).then(res => {
         this.stockBoundary = res.data.payload
         if (this.stockBoundary) {
           this.minStock = this.stockBoundary.min
@@ -335,8 +338,12 @@ export default {
       })
 
       await Promise.all([
-        this.$store.dispatch("marketplaceSourcesModule/list"),
-        this.$store.dispatch("locacionesModule/list"),
+        this.$store.dispatch("marketplaceSourcesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("locacionesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
 
       this.sources = this.$deepCopy(

@@ -546,6 +546,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "ChatBot/Leads",
           model: "Sin-Asignar",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -561,16 +562,24 @@ export default {
         order: "desc",
       };
       body["estado"] = "SIN ASIGNAR";
+      // body["companies"] = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
-        this.$store.dispatch("telefonosModule/list"),
-        this.$store.dispatch("botsModule/list"),
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("telefonosModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);

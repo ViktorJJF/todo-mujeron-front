@@ -336,8 +336,12 @@ export default {
 
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("telefonosModule/list");
-    await this.$store.dispatch("agentesModule/list");
+    await this.$store.dispatch("telefonosModule/list", { 
+      companies: [ this.$store.getters["authModule/getCurrentCompany"].company._id ],
+    });
+    await this.$store.dispatch("agentesModule/list", {
+      companies: [ this.$store.getters["authModule/getCurrentCompany"].company._id ],
+    });
     this.initialize();
     this.rolAuth();
   },
@@ -349,6 +353,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades",
           model: "Telefonos",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;

@@ -22,6 +22,20 @@
     <v-menu v-if="$store.state.authModule.user" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text color="white" dark v-on="on">
+          {{ selectedCompany? selectedCompany.company.alias: "" }}
+          <v-icon>mdi-menu-down</v-icon>
+        </v-btn>
+      </template>
+      <v-list v-if="companies.length">
+        <v-list-item v-for="element in companies" :key="element.company._id" @click="setCurrentCompany(element.company._id)">
+          <v-list-item-title>{{ element.company.alias }} - {{ element.selected }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+    <v-menu v-if="$store.state.authModule.user" offset-y>
+      <template v-slot:activator="{ on }">
+        <v-btn text color="white" dark v-on="on">
           {{ user }}
           <v-icon>mdi-menu-down</v-icon>
         </v-btn>
@@ -58,6 +72,13 @@ export default {
         this.$store.state.authModule.user.email
       );
     },
+    companies() {
+      return this.$store.state.authModule.companies;
+    },
+    selectedCompany() {
+      console.log(this.$store.getters["authModule/getCurrentCompany"])
+      return this.$store.getters["authModule/getCurrentCompany"];
+    }
   },
   methods: {
     logout() {
@@ -68,6 +89,9 @@ export default {
           console.log("algo salio mal en logout:", err);
         });
     },
+    setCurrentCompany(id) {
+      this.$store.dispatch("authModule/setCurrentCompany", id)
+    }
   },
 };
 </script>

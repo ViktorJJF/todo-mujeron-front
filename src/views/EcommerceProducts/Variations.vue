@@ -344,6 +344,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Woocommerces",
           model: "Productos",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -356,13 +357,16 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: "date_modified",
+        sort: "updatedAt",
         order: -1,
         listType: "All",
         country: this.country,
       };
+      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente

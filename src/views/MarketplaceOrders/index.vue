@@ -385,6 +385,7 @@ export default {
       if (this.fulfillmentFilter.length) {
         body.fulfillment = this.fulfillmentFilter
       }
+      body.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       this.orders = await this.$store.dispatch(
         'marketplaceOrdersModule/list',
         body

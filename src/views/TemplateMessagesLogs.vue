@@ -301,6 +301,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Facebook/Facebook",
           model: "Etiquetas",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -314,6 +315,7 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "createdAt",
           order: -1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       //asignar al data del componente

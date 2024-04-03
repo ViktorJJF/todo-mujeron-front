@@ -243,6 +243,7 @@ export default {
         fieldsToSearch: this.fieldsToSearch,
         sort: "date_modified",
         order: -1,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       };
       await this.$store.dispatch("marketplaceProductsModule/fetchVariations", payload);
       this.variations = this.$deepCopy(this.$store.state.marketplaceProductsModule.variations)

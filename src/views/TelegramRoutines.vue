@@ -365,7 +365,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades',
-          'model':'Facebook'
+          'model':'Facebook',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -382,7 +383,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list")]);
+      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       this.routines = this.$deepCopy(this.$store.state.telegramRoutinesModule.routines);
     },
     editItem(item) {

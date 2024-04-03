@@ -302,6 +302,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -313,7 +314,9 @@ export default {
       //llamada asincrona de items
       const response = await Promise.allSettled([
         this.$store.dispatch("cleanLeadsModule/getLeadOdooValues"),
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.odooValues = response[0].value;
       //asignar al data del componente

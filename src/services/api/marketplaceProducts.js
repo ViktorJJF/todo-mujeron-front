@@ -1,8 +1,12 @@
 import axios from 'axios'
 
 export default {
-  listAll() {
-    return axios.get(`/api/marketplace-products`)
+  list(query) {
+    if (query && !query.sort && !query.order) {
+      query.sort = 'createdAt'
+      query.order = 'desc'
+    }
+    return axios.get(`/api/marketplace-products`, { params: query })
   },
 
   listVariations(query) {

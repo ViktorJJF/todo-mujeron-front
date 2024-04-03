@@ -338,6 +338,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades",
           model: "Facebook",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -346,7 +347,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("botsModule/list")]);
+      await Promise.all([this.$store.dispatch("botsModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      })]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
       // dar formato a autoActivateAfter
       for (const bot of this.bots) {
@@ -401,6 +404,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch("botsModule/create", {
             ...this.editedItem,
             autoActivateAfter,

@@ -107,18 +107,6 @@ export default {
         value: "name",
       },
       {
-        text: "Compañia Id",
-        align: "left",
-        sortable: false,
-        value: "company.id",
-      },
-      {
-        text: "Compañia",
-        align: "left",
-        sortable: false,
-        value: "company.name",
-      },
-      {
         text: "Email",
         align: "left",
         sortable: true,
@@ -142,8 +130,12 @@ export default {
 
   async mounted() {
     // this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch("vendorsModule/list"); 
-    await this.$store.dispatch("locacionesModule/list");
+    await this.$store.dispatch("vendorsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }); 
+    await this.$store.dispatch("locacionesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth(); 
   },
@@ -154,7 +146,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Genial',
-          'model':'Vendedores'
+          'model':'Vendedores',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;

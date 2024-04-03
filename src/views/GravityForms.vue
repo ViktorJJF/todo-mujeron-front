@@ -326,7 +326,9 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("gravityFormsModule/list");
+    await this.$store.dispatch("gravityFormsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth();
   },
@@ -337,6 +339,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades",
           model: "GravityForms",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -349,12 +352,16 @@ export default {
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: 1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("botsModule/list", {
           sort: "name",
           order: 1,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.todofullLabels =
         this.$store.state["todofullLabelsModule"]["todofullLabels"];

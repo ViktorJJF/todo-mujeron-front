@@ -6,11 +6,10 @@ module.exports = {
     proxy: {
       "/api": {
         target: "http://localhost:5000",
+        ws: true,
+        changeOrigin: true
         // target: 'https://mastermindgeeks.herokuapp.com'
       },
     },
-    watchOptions: {
-      poll: true
-    }
   },
 };

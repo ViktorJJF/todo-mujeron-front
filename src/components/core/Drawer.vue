@@ -53,6 +53,13 @@
           </template>
           <v-list-item
             active-class="primary custom2"
+            :to="{ name: 'Companies' }"
+            v-if="checkAuth('Configuracion/TodoFull', 'Companies')"
+          >
+            <v-list-item-content> Compañias </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
             :to="{ name: 'Usuarios' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Usuarios')"
           >
@@ -839,7 +846,7 @@ export default {
   methods: {
     rolAuth() {
       auth
-        .roleAuthorization({ id: this.$store.state.authModule.user._id })
+        .roleAuthorization({ id: this.$store.state.authModule.user._id, company: this.$store.getters["authModule/getCurrentCompany"].company._id })
         .then((res) => {
           this.rolPermisos = res.data;
         });

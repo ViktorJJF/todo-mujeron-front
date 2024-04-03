@@ -65,43 +65,20 @@
                                 label="Nombre de la locación"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Ingresa una descripción"
-                                outlined
-                                :items="paises"
-                                v-model="editedItem.pais"
-                              ></v-select>
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">Ciudades</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Ingresa una descripción"
-                                outlined
-                                :items="ciudadesFiltered"
-                                v-model="editedItem.ciudad"
-                              ></v-select>
-                            </v-col>
-
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold"
-                                >Equipo De Ventas</span
-                              >
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un equipo de ventas"
-                                outlined
-                                :items="equipoDeVentas"
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
+                                >Equipos de Venta</span>
+                              <VSelectWithValidation
+                                v-model="editedItem.teams"
+                                :items="teams"
+                                rules="required"
                                 item-text="nombre"
                                 item-value="_id"
-                                v-model="editedItem.equipoDeVentaId"
-                              ></v-select>
+                                placeholder="Seleccionar Equipos de Venta"
+                                multiple
+                                clearable
+                                chips
+                              />
                             </v-col>
                           </v-row>
                         </v-container>
@@ -174,15 +151,17 @@
 </template>
 
 <script>
-import { format } from 'date-fns'
-import VTextFieldWithValidation from '@/components/inputs/VTextFieldWithValidation'
-import MaterialCard from '@/components/material/Card'
-import Locaciones from '@/classes/Locaciones'
-import auth from '@/services/api/auth'
+import { format } from "date-fns";
+import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
+import MaterialCard from "@/components/material/Card";
+import Locaciones from "@/classes/Locaciones";
+import auth from "@/services/api/auth";
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation,
   },
   filters: {
     formatDate: function(value) {
@@ -209,14 +188,8 @@ export default {
         value: 'value',
       },
       {
-        text: 'Equipo de Ventas',
-        align: 'left',
-        sortable: false,
-        value: 'equipoDeVentaId.nombre',
-      },
-      {
-        text: 'Agregado',
-        align: 'left',
+        text: "Agregado",
+        align: "left",
         sortable: true,
         value: 'createdAt',
       },
@@ -226,36 +199,13 @@ export default {
     editedIndex: -1,
     editedItem: Locaciones(),
     defaultItem: Locaciones(),
-    paises: ['Peru', 'Chile', 'Colombia', 'Estados Unidos', 'Argentina'],
-    ciudades: [
-      {
-        pais: 'Peru',
-        ciudades: ['Tacna', 'Arequipa', 'Lima', 'Moquegua', 'Callao'],
-      },
-      {
-        pais: 'Chile',
-        ciudades: ['Santiago', 'Viña', 'Antofagasta', 'Temuco'],
-      },
-      {
-        pais: 'Colombia',
-        ciudades: ['Bogotá', 'Medellin', 'Cali', 'Cartagena'],
-      },
-    ],
-    equipoDeVentas: [],
+    teams: [],
     rolPermisos: {},
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? 'Nueva locación' : 'Editar locación'
-    },
-    ciudadesFiltered() {
-      return this.ciudades.find(
-        (ciudad) => ciudad.pais === this.editedItem.pais
-      )
-        ? this.ciudades.find((ciudad) => ciudad.pais === this.editedItem.pais)
-            .ciudades
-        : []
     },
   },
 
@@ -266,12 +216,18 @@ export default {
   },
 
   async mounted() {
-    this.$store.commit('loadingModule/showLoading')
-    await this.$store.dispatch('locacionesModule/list')
-    console.log('equipo de venta fetch')
-    await this.$store.dispatch('equipoDeVentasModule/list')
-    this.initialize()
-    this.rolAuth()
+    this.$store.commit("loadingModule/showLoading")
+    await this.$store.dispatch("locacionesModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
+    await this.$store.dispatch("equipoDeVentasModule/list", {
+        sort: "name",
+        order: "asc",
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }),
+    await this.$store.dispatch("companiesModule/list"),
+    this.initialize();
+    this.rolAuth(); 
   },
 
   methods: {
@@ -281,6 +237,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: 'Configuracion/TodoFull',
           model: 'Locaciones',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data
@@ -291,9 +248,11 @@ export default {
     initialize() {
       this.locaciones = this.$deepCopy(
         this.$store.state.locacionesModule.locaciones
-      )
-      this.equipoDeVentas = this.$store.state.equipoDeVentasModule.equipoDeVentas
+      );
       console.log('las locaciones: ', this.locaciones)
+      this.teams = this.$deepCopy(
+        this.$store.state.equipoDeVentasModule.equipoDeVentas
+      );
     },
     editItem(item) {
       this.editedIndex = this.locaciones.indexOf(item)
@@ -321,7 +280,8 @@ export default {
     async save() {
       this.loadingButton = true
       if (this.editedIndex > -1) {
-        let itemId = this.locaciones[this.editedIndex]._id
+        let itemId = this.locaciones[this.editedIndex]._id;
+        this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
         try {
           await this.$store.dispatch('locacionesModule/update', {
             id: itemId,
@@ -336,6 +296,7 @@ export default {
         //create item
         try {
           console.log('el nuevo item: ', this.editedItem)
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
 
           let newItem = await this.$store.dispatch(
             'locacionesModule/create',

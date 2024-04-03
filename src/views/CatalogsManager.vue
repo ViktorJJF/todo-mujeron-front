@@ -381,7 +381,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'MultiPaginas/Paginas',
-          'model':'Paginas'
+          'model':'Paginas',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -392,7 +393,9 @@ export default {
 
     async initialize() {
       await Promise.all([
-        this.$store.dispatch("catalogsModule/list"),
+        this.$store.dispatch("catalogsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         // this.$store.dispatch("locacionesModule/list"),
         ]);
       this.catalogs = this.$deepCopy(this.$store.state.catalogsModule.catalogs).map(c => {
@@ -448,6 +451,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             "catalogsModule/create",
             this.editedItem

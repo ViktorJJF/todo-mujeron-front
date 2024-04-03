@@ -273,7 +273,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Mailchimp',
-          'model':'Credenciales'
+          'model':'Credenciales',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -284,7 +285,9 @@ export default {
 
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      await Promise.all([this.$store.dispatch(ENTITY + "Module/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       // console.log(
       //   "el resultado: ",
       //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])

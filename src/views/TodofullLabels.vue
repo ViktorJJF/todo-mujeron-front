@@ -396,6 +396,12 @@ export default {
         value: "name",
       },
       {
+        text: "Company",
+        align: "left",
+        sortable: true,
+        value: "company.alias",
+      },
+      {
         text: "¿Activo?",
         align: "left",
         sortable: false,
@@ -441,6 +447,7 @@ export default {
     await this.$store.dispatch(ENTITY + "Module/list", {
       sort: "name",
       order: "1",
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
     });
     this.initialize();
     this.rolAuth();
@@ -452,6 +459,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/TodoFull",
           model: "TodofullLabels",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -461,12 +469,21 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch("botsModule/list"),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
-        this.$store.dispatch("facebookLabelsModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("facebookLabelsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("retailRocketTagsModule/list"),
-        this.$store.dispatch("ecommercesAttributesModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
+
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -557,6 +574,8 @@ export default {
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
           let editedItem = this.$deepCopy(this.editedItem);
+          // add corporationId
+          editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           // mandando solo id de tags
           editedItem.attributeTags = editedItem.attributeTags
             ? editedItem.attributeTags.map((el) => el._id)
@@ -582,6 +601,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
