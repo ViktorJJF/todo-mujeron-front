@@ -109,10 +109,12 @@
             <v-container>
               <v-row dense>
                 <v-col>
-                  <p class="body-1 font-weight-bold mb-0">Paises</p>
+                  <p class="body-1 font-weight-bold mb-0">Compañias</p>
                   <VSelectWithValidation
-                    :items="countries"
-                    v-model="user.chatsPermissions.countries"
+                    :items="companies"
+                    item-text="alias"
+                    item-value="_id"
+                    v-model="user.chatsPermissions.companies"
                     clearable
                     multiple
                     chips
@@ -257,7 +259,7 @@ export default {
         });
       }
       this.user = user;
-      this.selectedCompanies = this.user.companies.map(c => c.company);
+      this.selectedCompanies = this.user.corporation.companies.map(c => c.company);
     },
     async save() {
       this.loadingButton = true;
