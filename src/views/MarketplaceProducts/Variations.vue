@@ -75,6 +75,15 @@
                   </div>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="2">
+                  <v-checkbox
+                    v-model="filterByArchived"
+                    label="Archivados"
+                    @change="initialize(page)"
+                  />
+                </v-col>
+              </v-row>
               <v-row v-if="variationsSelected.length">
                 <v-col>
                   <v-btn color="primary" depressed @click="batchUpdate(true)">
@@ -215,6 +224,7 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: '',
+    filterByArchived: false,
     debounceTimer: null,
     detailsModal: false,
     pagination: {},
@@ -299,6 +309,11 @@ export default {
         sort: 'date_modified',
         order: -1,
       }
+
+      if (this.filterByArchived) {
+        payload.status = 'archived'
+      }
+
       await this.$store.dispatch(
         'marketplaceProductsModule/fetchVariations',
         payload
@@ -306,6 +321,7 @@ export default {
       this.variations = this.$deepCopy(
         this.$store.state.marketplaceProductsModule.variations
       )
+      this.variationsSelected = []
     },
     debounce(cb, timeout = 600) {
       clearTimeout(this.debounceTimer)
