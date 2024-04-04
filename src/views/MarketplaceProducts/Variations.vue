@@ -433,9 +433,13 @@ export default {
         )
         if (variationIndex === -1) return
 
-        this.variations.splice(variationIndex, 1, res.data.payload)
+        const updatedVariation = res.data.payload
+        if (updatedVariation.status === 'archived' && !this.filterByArchived) {
+          this.variations.splice(variationIndex, 1)
+        } else {
+          this.variations.splice(variationIndex, 1, res.data.payload)
+        }
       } catch (error) {
-        // @TODO: Handle errors
         console.error(error)
       } finally {
         const loadingIndex = this.loading.indexOf(variation._id)
