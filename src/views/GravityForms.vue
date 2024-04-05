@@ -352,7 +352,6 @@ export default {
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: 1,
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("botsModule/list", {
           sort: "name",

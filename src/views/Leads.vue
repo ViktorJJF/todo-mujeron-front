@@ -1055,20 +1055,13 @@ export default {
         this.selectedSegment
           ? this.$store.dispatch("cleanLeadsModule/listWithAdvanceFilter", body)
           : this.$store.dispatch("cleanLeadsModule/list", body),
-        this.$store.dispatch("telefonosModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-        }),
-        this.$store.dispatch("botsModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-        }),
-        this.$store.dispatch("woocommercesModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-        }),
+        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("woocommercesModule/list"),
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
           is_active: true,
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);

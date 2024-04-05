@@ -455,7 +455,6 @@ export default {
         this.$store.dispatch("todofullLabelsModule/list", {
           sort: "name",
           order: "asc",
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
       ]);
       this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;

@@ -493,7 +493,6 @@ export default {
           }),
           this.$store.dispatch("todofullLabelsModule/list", {
             limit: 9999,
-            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
           }),
         ]);
         this.commentsFacebook = this.$deepCopy(
@@ -507,7 +506,6 @@ export default {
           this.$store.dispatch("todofullLabelsModule/list"),
           {
             limit: 9999,
-            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
           },
         ]);
         // buscando si existe plantilla asociada a producto
