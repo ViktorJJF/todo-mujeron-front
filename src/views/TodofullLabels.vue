@@ -447,7 +447,6 @@ export default {
     await this.$store.dispatch(ENTITY + "Module/list", {
       sort: "name",
       order: "1",
-      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
     });
     this.initialize();
     this.rolAuth();
