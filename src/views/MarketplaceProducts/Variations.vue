@@ -24,7 +24,7 @@
             <v-container>
               <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
-                <v-col cols="12" sm="5">
+                <v-col cols="12" sm="4">
                   <v-text-field
                     hide-details
                     v-model="search"
@@ -32,32 +32,56 @@
                     placeholder="Escribe el texto"
                     single-line
                     outlined
+                    clearable
                     @input="handleSearchUpdate"
                   ></v-text-field>
                 </v-col>
+                <v-col cols="12" sm="2">
+                  <CountrySelect v-model="country" />
+                </v-col>
                 <v-col>
                   <v-btn color="primary" @click="handleProductsCrossover">
-                    Cruce de Productos
+                    Sincronizar
                   </v-btn>
-                  <template v-if="productsCrossoverSku.length">
-                    <v-btn
-                      class="ml-2"
-                      v-if="currentProductIndex > 0"
-                      @click="
-                        handleCurrentProductChange(currentProductIndex - 1)
-                      "
-                    >
-                      Anterior
-                    </v-btn>
-                    <v-btn
-                      class="ml-2"
-                      @click="
-                        handleCurrentProductChange(currentProductIndex + 1)
-                      "
-                    >
-                      Siguiente
-                    </v-btn>
-                  </template>
+                  <div
+                    class="controls-container"
+                    v-if="productsCrossoverSku.length"
+                  >
+                    <div>
+                      <v-btn
+                        v-if="currentProductIndex > 0"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex - 1)
+                        "
+                      >
+                        Anterior
+                      </v-btn>
+                      <v-btn
+                        v-if="
+                          currentProductIndex < productsCrossoverSku.length - 1
+                        "
+                        class="ml-2"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex + 1)
+                        "
+                      >
+                        Siguiente
+                      </v-btn>
+                    </div>
+                    <div>
+                      {{ currentProductIndex + 1 }} /
+                      {{ productsCrossoverSku.length }}
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="2">
+                  <v-checkbox
+                    v-model="filterByArchived"
+                    label="Archivados"
+                    @change="initialize(page)"
+                  />
                 </v-col>
               </v-row>
               <v-row v-if="variationsSelected.length">
@@ -133,6 +157,19 @@
             </v-edit-dialog>
           </template>
 
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              small
+              color="secondary"
+              icon
+              @click="handleSyncVariation(item)"
+            >
+              <v-icon :class="loading.includes(item._id) ? 'loading' : ''"
+                >mdi-sync</v-icon
+              >
+            </v-btn>
+          </template>
+
           <template v-slot:no-data>
             <v-alert type="error" :value="true">
               Aún no cuentas con variaciones
@@ -166,9 +203,10 @@
 <script>
 import productsApi from '@/services/api/marketplaceProducts'
 import MaterialCard from '@/components/material/Card'
+import CountrySelect from '@/components/CountrySelect.vue'
 
 export default {
-  components: { MaterialCard },
+  components: { MaterialCard, CountrySelect },
   filters: {
     currency(val) {
       return new Intl.NumberFormat().format(val)
@@ -186,6 +224,7 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: '',
+    filterByArchived: false,
     debounceTimer: null,
     detailsModal: false,
     pagination: {},
@@ -197,6 +236,7 @@ export default {
     productsCrossoverSku: [],
     currentProductSku: null,
     currentProductIndex: null,
+    country: 'Chile',
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
       (val) => val >= 0 || 'No puede ser negativo',
@@ -240,6 +280,10 @@ export default {
         align: 'left',
         value: 'price',
       },
+      {
+        text: 'Acciones',
+        value: 'actions',
+      },
     ],
   }),
 
@@ -265,6 +309,11 @@ export default {
         sort: 'date_modified',
         order: -1,
       }
+
+      if (this.filterByArchived) {
+        payload.status = 'archived'
+      }
+
       await this.$store.dispatch(
         'marketplaceProductsModule/fetchVariations',
         payload
@@ -272,6 +321,7 @@ export default {
       this.variations = this.$deepCopy(
         this.$store.state.marketplaceProductsModule.variations
       )
+      this.variationsSelected = []
     },
     debounce(cb, timeout = 600) {
       clearTimeout(this.debounceTimer)
@@ -353,7 +403,7 @@ export default {
         return this.handleSearchUpdate(this.currentProductSku)
       }
 
-      const res = await productsApi.getProductsCrossover('Chile')
+      const res = await productsApi.getProductsCrossover(this.country)
       if (res.data?.ok !== true) return
       const productsSku = res.data.payload
       this.productsCrossoverSku = productsSku
@@ -370,8 +420,50 @@ export default {
         this.handleSearchUpdate(sku)
       }
     },
+
+    async handleSyncVariation(variation) {
+      const isLoading = this.loading.includes(variation._id)
+      if (isLoading) return
+
+      try {
+        this.loading.push(variation._id)
+        const res = await productsApi.syncVariation(variation._id)
+        const variationIndex = this.variations.findIndex(
+          (_variation) => _variation._id == variation._id
+        )
+        if (variationIndex === -1) return
+
+        this.variations.splice(variationIndex, 1, res.data.payload)
+      } catch (error) {
+        // @TODO: Handle errors
+        console.error(error)
+      } finally {
+        const loadingIndex = this.loading.indexOf(variation._id)
+        this.loading.splice(loadingIndex, 1)
+      }
+    },
   },
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.controls-container {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 8px;
+  align-items: center;
+}
+
+.loading {
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>

@@ -27,4 +27,10 @@ export default {
   getProductsCrossover(country) {
     return axios.get(`/api/marketplace-products/crossover/country/${country}`)
   },
+
+  syncVariation(variationId) {
+    return axios.post(
+      `/api/marketplace-products/variations/${variationId}/sync`
+    )
+  },
 }
