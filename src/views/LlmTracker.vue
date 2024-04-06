@@ -22,6 +22,7 @@
           <v-pagination
             v-model="page"
             :length="$store.state.llmTrackerModule.totalPages"
+            @input="initialize(page)"
           ></v-pagination>
         </div>
         <v-data-table
@@ -162,6 +163,7 @@
           <v-pagination
             v-model="page"
             :length="$store.state.llmTrackerModule.totalPages"
+            @input="initialize(page)"
           ></v-pagination>
         </div>
       </material-card>
