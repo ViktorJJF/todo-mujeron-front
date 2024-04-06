@@ -127,6 +127,17 @@
             </span>
           </template>
 
+          <template v-slot:item.sku="{ item }">
+            <a
+              v-if="item.url || (item.product && item.product.url)"
+              :href="item.url || item.product.url"
+              target="_blank"
+            >
+              {{ item.sku }}
+            </a>
+            <span v-else>{{ item.sku }}</span>
+          </template>
+
           <template v-slot:item.price="{ item }">
             {{ item.price | currency }}
           </template>
