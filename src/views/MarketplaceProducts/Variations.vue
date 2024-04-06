@@ -127,6 +127,17 @@
             </span>
           </template>
 
+          <template v-slot:item.sku="{ item }">
+            <a
+              v-if="item.url || (item.product && item.product.url)"
+              :href="item.url || item.product.url"
+              target="_blank"
+            >
+              {{ item.sku }}
+            </a>
+            <span v-else>{{ item.sku }}</span>
+          </template>
+
           <template v-slot:item.price="{ item }">
             {{ item.price | currency }}
           </template>
@@ -433,9 +444,13 @@ export default {
         )
         if (variationIndex === -1) return
 
-        this.variations.splice(variationIndex, 1, res.data.payload)
+        const updatedVariation = res.data.payload
+        if (updatedVariation.status === 'archived' && !this.filterByArchived) {
+          this.variations.splice(variationIndex, 1)
+        } else {
+          this.variations.splice(variationIndex, 1, res.data.payload)
+        }
       } catch (error) {
-        // @TODO: Handle errors
         console.error(error)
       } finally {
         const loadingIndex = this.loading.indexOf(variation._id)
