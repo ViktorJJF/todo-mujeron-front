@@ -392,8 +392,15 @@
               </div>
               {{ $store.state.cleanLeadsModule.total }} Contactos cumplen las
               condiciones
-              <template v-slot:[`close`]
-                ><v-btn
+              <template v-slot:[`close`]>
+                <v-btn
+                  v-show="selectedSegment"
+                  color="primary"
+                  outlined
+                  @click="setTodofullLabelsMassiveDialog = true"
+                  >Etiquetas masivas</v-btn
+                >
+                <v-btn
                   v-show="!selectedSegment"
                   color="primary"
                   outlined
@@ -736,6 +743,64 @@
       </v-card>
     </v-dialog>
     <v-dialog
+      v-model="setTodofullLabelsMassiveDialog"
+      v-if="setTodofullLabelsMassiveDialog"
+      max-width="700px"
+    >
+      <v-card>
+        <v-container fluid>
+          <v-card-title class="text-h5">
+            Etiquetas masivas Todofull
+          </v-card-title>
+          <v-row>
+            <v-col cols="12" sm="12">
+              <TodofullLabelsSelector
+                class="ma-3"
+                @onSelectTodofullLabels="onSelectTodofullLabels"
+              ></TodofullLabelsSelector>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <span
+                >Las etiquetas
+                <b>{{
+                  selectedLabels.length > 0
+                    ? selectedLabels.map((el) => el.name).join(", ")
+                    : "No seleccionaste ninguna etiqueta"
+                }}</b>
+                serán asignadas a
+                <b>{{ $store.state.cleanLeadsModule.total }} leads</b> del
+                segmento <b>{{ selectedSegment.name }}</b></span
+              >
+            </v-col>
+            <v-col cols="12" sm="6" md="6">
+              <span class="font-weight-bold">Sobre Mailchimp</span>
+              <v-checkbox
+                v-model="hasToSendToMailchimp"
+                label="Actualizar en mailchimp luego de etiquetado masivo"
+              ></v-checkbox>
+            </v-col>
+          </v-row>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="green darken-1"
+              text
+              @click="
+                setTodofullLabelsMassive(
+                  selectedSegment._id,
+                  selectedLabels.map((el) => el._id),
+                  hasToSendToMailchimp
+                )
+              "
+            >
+              Enviar
+            </v-btn>
+          </v-card-actions>
+        </v-container>
+      </v-card>
+    </v-dialog>
+    <v-dialog
       v-if="chatDialog"
       v-model="chatDialog"
       fullscreen
@@ -812,6 +877,7 @@ import auth from "@/services/api/auth";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 import odooService from "@/services/api/odoo";
 import graphApiService from "@/services/api/graphApi";
+import cleanLeadsService from "@/services/api/cleanLeads";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import CountriesSelector from "@/components/CountriesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
@@ -843,6 +909,8 @@ export default {
     },
   },
   data: () => ({
+    hasToSendToMailchimp: false,
+    setTodofullLabelsMassiveDialog: false,
     noChat: false,
     selectedChatId: null,
     selectedCleanLead: null,
@@ -1401,6 +1469,42 @@ export default {
         }
       } catch (error) {
         console.log(error);
+      }
+    },
+    async setTodofullLabelsMassive(
+      segmentId,
+      todofullLabelIds,
+      hasToSendToMailchimp
+    ) {
+      if (!todofullLabelIds || todofullLabelIds.length === 0) {
+        this.$swal({
+          title: "Error",
+          text: "Debes seleccionar al menos una etiqueta",
+          icon: "error",
+        });
+      } else {
+        // ask for confirmation
+        if (await this.$confirm("¿Confirmas esta acción?")) {
+          this.$swal({
+            title: "Procesando...",
+            text: "El etiquetado masivo está en proceso",
+            icon: "info",
+            button: false,
+          });
+          this.setTodofullLabelsMassiveDialog = false;
+          cleanLeadsService
+            .setTodofullLabelsMassive(
+              segmentId,
+              todofullLabelIds,
+              hasToSendToMailchimp
+            )
+            .then((res) => {
+              console.log("Response: ", res.data);
+            })
+            .catch((err) => {
+              console.log("Error: ", err);
+            });
+        }
       }
     },
   },
