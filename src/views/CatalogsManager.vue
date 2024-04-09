@@ -117,19 +117,6 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Pais</div>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Seleccione un pais"
-                                outlined
-                                :items="paises"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
-                          </v-row>
-                          <v-row>
-                            <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Asesor Comercial</div>
                               <VTextFieldWithValidation
                                 rules=""
@@ -350,7 +337,6 @@ export default {
     editedItem: Catalogs(),
     defaultItem: Catalogs(),
     colorPickerMenu: false,
-    paises: ["Peru", "Chile", "Colombia"],
     categories: ['Fajas', 'Jeans', 'Pijamas', 'Vestuario'],
     rolPermisos: {},
 
