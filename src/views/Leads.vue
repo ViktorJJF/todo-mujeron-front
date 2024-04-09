@@ -1355,10 +1355,9 @@ export default {
       this.botIds = [];
       this.showAllLeads();
     },
-    onPreviewSegment({ todofullLabels, countries, dateFrom, dateTo, botIds }) {
+    onPreviewSegment({ todofullLabels, dateFrom, dateTo, botIds }) {
       this.isSegmentPreviewMode = true;
       this.segmentDialog = false;
-      this.selectedCountries = countries;
       this.dateFrom = dateFrom;
       this.dateTo = dateTo;
       this.botIds = botIds;
