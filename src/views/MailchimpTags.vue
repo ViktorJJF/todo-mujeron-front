@@ -68,17 +68,6 @@
                                 label="server. Ejemplo: us5"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un país"
-                                outlined
-                                :items="$store.state.countries"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -266,12 +255,6 @@ export default {
         value: "name",
       },
       {
-        text: "Pais",
-        align: "left",
-        sortable: false,
-        value: "country",
-      },
-      {
         text: "Etiquetas Todofull",
         align: "left",
         sortable: false,
@@ -429,6 +412,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
