@@ -2,16 +2,16 @@
   <v-sheet max-width="700">
     <v-slide-group @change="
       $emit(
-        'onSelectedCountries',
+        'onSelectedCompanies',
         multiple
-          ? getCountries(selectedCountries)
-          : getCountry(selectedCountries)
+          ? getCompanies(selectedCompanies)
+          : getCompany(selectedCompanies)
       )
-    " v-model="selectedCountries" :multiple="multiple" show-arrows>
-      <v-slide-item v-for="country in $store.state.countries" :key="country" v-slot="{ active, toggle }">
+    " v-model="selectedCompanies" :multiple="multiple" show-arrows>
+      <v-slide-item v-for="company in companies" :key="company._id" v-slot="{ active, toggle }">
         <v-btn :disabled="disabled" class="mx-2" :input-value="active" active-class="purple white--text" depressed
           rounded @click="toggle">
-          {{ country }}
+          {{ company.alias }}
         </v-btn>
       </v-slide-item>
     </v-slide-group>
@@ -36,34 +36,50 @@ export default {
   },
   data() {
     return {
-      selectedCountries: [],
+      selectedCompanies: [],
+      companies: [],
     };
   },
   watch: {
     initialData: {
       handler() {
-        this.selectedCountries = this.multiple
+        console.log("handelr");
+        this.selectedCompanies = this.multiple
           ? this.initialData.map(
             (el) =>
-              this.$store.state.countries[
-              this.$store.state.countries.findIndex((el2) => el2 === el)
+              this.companies[
+              this.companies.findIndex((el2) => el2._id === el._id)
               ]
           )
-          : this.$store.state.countries.findIndex(
-            (el) => el === (this.initialData ? this.initialData[0] : null)
+          : this.companies.findIndex(
+            (el) => el === (this.initialData ? this.initialData[0]._id : null)
           );
       },
       immediate: true,
     },
   },
+  async created() {
+    await this.$store.dispatch("companiesModule/list"),
+    this.initialize();
+    console.log("created companies list");
+  },
   methods: {
-    getCountries(selectedCountries) {
-      return selectedCountries.map(
-        (country) => this.$store.state.countries[country]
+    initialize() {
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies,
       );
     },
-    getCountry(selectedCountries) {
-      return [this.$store.state.countries[selectedCountries]];
+    getCompanies(selectedCompanies) {
+      console.log("get companies", selectedCompanies);
+      const a = selectedCompanies.map(
+        (company) => this.companies[company]
+      );
+      console.log("gettted comptanies" , a);
+      return a;
+    },
+    getCompany(selectedCompanies) {
+      console.log("get company", selectedCompanies);
+      return [this.companies[selectedCompanies]];
     },
   },
 };

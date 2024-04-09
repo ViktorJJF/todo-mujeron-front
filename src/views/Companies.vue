@@ -190,7 +190,7 @@
       },
     },
   
-     async created(){
+    async created() {
       await this.$store.dispatch("companiesModule/list"),
   
       this.initialize();

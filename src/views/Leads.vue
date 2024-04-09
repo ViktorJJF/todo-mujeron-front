@@ -63,8 +63,8 @@
                 <v-sheet max-width="700">
                   <CountriesSelector
                     :multiple="true"
-                    @onSelectedCountries="
-                      selectedCountries = $event;
+                    @onSelectedCompanies="
+                      selectedCompanies = $event;
                       initialize(
                         buildPayloadPagination(
                           {
@@ -856,6 +856,7 @@ export default {
     seeAllSegmentsDialog: false,
     todofullLabelsDialog: false,
     selectedCountries: [],
+    selectedCompanies: [],
     activatePreview: true,
     isSegmentFinalStep: false,
     segmentName: "",
@@ -1035,6 +1036,9 @@ export default {
       if (this.selectedCountries.length > 0) {
         body["countries"] = this.selectedCountries;
     }
+      if (this.selectedCompanies.length > 0) {
+          body["companies"] = this.selectedCompanies.map(c => c._id);
+      }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
       }
