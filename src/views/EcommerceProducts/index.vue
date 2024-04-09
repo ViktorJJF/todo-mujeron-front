@@ -596,12 +596,6 @@ export default {
         value: "woocommerceId",
       },
       {
-        text: "País",
-        align: "left",
-        sortable: false,
-        value: "country",
-      },
-      {
         text: "Link",
         align: "left",
         sortable: false,
