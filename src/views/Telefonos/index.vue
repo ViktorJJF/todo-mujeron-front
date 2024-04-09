@@ -280,7 +280,6 @@ export default {
     search: "",
     dialog: false,
     dialog2: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
         text: "Número",

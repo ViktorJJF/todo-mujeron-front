@@ -650,7 +650,6 @@ export default {
     dialog: false,
     dialog3: false,
     dialogGpt: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
         text: "Fecha",

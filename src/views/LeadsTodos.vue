@@ -411,7 +411,6 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
