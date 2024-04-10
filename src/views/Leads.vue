@@ -855,7 +855,6 @@ export default {
     selectedSegment: null,
     seeAllSegmentsDialog: false,
     todofullLabelsDialog: false,
-    selectedCountries: [],
     selectedCompanies: [],
     activatePreview: true,
     isSegmentFinalStep: false,
@@ -867,7 +866,6 @@ export default {
     globalSelector: false,
     selectedLabels: [],
     isFilterEmptyActive: false,
-    filterCountries: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
@@ -965,13 +963,13 @@ export default {
         ...this.$store.state.botsModule.bots.map((bot) => ({
           _id: bot._id,
           name: bot.name,
-          country: bot.country,
+          company: bot.company,
         })),
         ...this.$store.state.woocommercesModule.woocommerces.map(
           (woocommerce) => ({
             _id: woocommerce._id,
             name: woocommerce.domain,
-            country: woocommerce.country,
+            company: woocommerce.company,
           })
         ),
         { name: "WHATSAPP" },
@@ -992,9 +990,6 @@ export default {
       }, 400);
     },
     telefonoId() {
-      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    },
-    filterCountries() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
@@ -1029,13 +1024,9 @@ export default {
         order: "desc",
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       if (this.selectedLabels && this.selectedLabels.length > 0) {
         body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
       }
-      if (this.selectedCountries.length > 0) {
-        body["countries"] = this.selectedCountries;
-    }
       if (this.selectedCompanies.length > 0) {
           body["companies"] = this.selectedCompanies.map(c => c._id);
       }
@@ -1235,19 +1226,16 @@ export default {
             //Generando nota
             this.editedItem.estado = "SIN ASIGNAR";
           }
-          //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.details[0].pais = this.sourceSelectList.find(
-            (el) => el._id === this.editedItem.details[0].fuente
-          )
-            ? this.sourceSelectList.find(
-                (el) => el._id === this.editedItem.details[0].fuente
-              ).country
-            : "Chile";
           this.editedItem.details[0].type = "CHATBOT"; //pagina por defecto
+          const selectedSource = this.sourceSelectList.find(source => {
+            return source._id ? source._id === this.editedItem.details[0].fuente : false;
+          });
+          if (selectedSource) {
+            this.editedItem.details[0].company = selectedSource ? selectedSource.company : null;
+          }
           await this.$store.dispatch("cleanLeadsModule/create", {
             ...this.editedItem,
             is_manual: true,
-            company: this.$store.getters["authModule/getCurrentCompany"].company._id,
           });
           //refrescar tabla
           this.initialize(
@@ -1350,7 +1338,6 @@ export default {
       this.segmentDialog = false;
       this.isSegmentPreviewMode = false;
       this.selectedLabels = [];
-      this.selectedCountries = [];
       this.isSegmentFinalStep = false;
       this.activatePreview = true;
       this.dateFrom = null;
@@ -1370,7 +1357,6 @@ export default {
       this.selectedSegment = null;
       this.isSegmentPreviewMode = false;
       this.selectedLabels = [];
-      this.selectedCountries = [];
       this.dateFrom = null;
       this.dateTo = null;
       this.botIds = [];
