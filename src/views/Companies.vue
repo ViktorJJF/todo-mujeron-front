@@ -67,6 +67,15 @@
                             label="Alias"
                           />
                         </v-col>
+                        <v-col cols="12" sm="12">
+                          <span class="font-weight-bold">Icono (url)</span>
+                            <v-textarea
+                              hide-details
+                              placeholder="Ingresa el url del icono"
+                              outlined
+                              v-model="editedItem.iconUrl"
+                            ></v-textarea>
+                        </v-col>
                       </v-row>
                           </v-container>
                           <v-card-actions rd-actions>
@@ -181,7 +190,7 @@
       },
     },
   
-     async created(){
+    async created() {
       await this.$store.dispatch("companiesModule/list"),
   
       this.initialize();

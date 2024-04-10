@@ -67,20 +67,6 @@
                               />
                             </v-col>
                           </v-row>
-
-                          <v-row>
-                            <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Pais</div>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Seleccione un pais"
-                                outlined
-                                :items="paises"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
-                          </v-row>
                           <v-row v-if="editedItem.country.length">
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Categoria</div>
@@ -310,7 +296,6 @@ export default {
     editedIndex: -1,
     editedItem: TelegramRoutines(),
     defaultItem: TelegramRoutines(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
     scheduleTimeMenu: false,
     scheduleTime: null,
     status: [

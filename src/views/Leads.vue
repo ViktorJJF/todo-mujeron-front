@@ -63,8 +63,8 @@
                 <v-sheet max-width="700">
                   <CountriesSelector
                     :multiple="true"
-                    @onSelectedCountries="
-                      selectedCountries = $event;
+                    @onSelectedCompanies="
+                      selectedCompanies = $event;
                       initialize(
                         buildPayloadPagination(
                           {
@@ -856,6 +856,7 @@ export default {
     seeAllSegmentsDialog: false,
     todofullLabelsDialog: false,
     selectedCountries: [],
+    selectedCompanies: [],
     activatePreview: true,
     isSegmentFinalStep: false,
     segmentName: "",
@@ -873,7 +874,6 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
@@ -1036,6 +1036,9 @@ export default {
       if (this.selectedCountries.length > 0) {
         body["countries"] = this.selectedCountries;
     }
+      if (this.selectedCompanies.length > 0) {
+          body["companies"] = this.selectedCompanies.map(c => c._id);
+      }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
       }
@@ -1355,10 +1358,9 @@ export default {
       this.botIds = [];
       this.showAllLeads();
     },
-    onPreviewSegment({ todofullLabels, countries, dateFrom, dateTo, botIds }) {
+    onPreviewSegment({ todofullLabels, dateFrom, dateTo, botIds }) {
       this.isSegmentPreviewMode = true;
       this.segmentDialog = false;
-      this.selectedCountries = countries;
       this.dateFrom = dateFrom;
       this.dateTo = dateTo;
       this.botIds = botIds;

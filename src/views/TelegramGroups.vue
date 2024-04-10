@@ -202,7 +202,6 @@ export default {
     editedIndex: -1,
     editedItem: TelegramGroups(),
     defaultItem: TelegramGroups(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
     rolPermisos: {},
   }),
 

@@ -40,13 +40,6 @@
                                 label="Ingresa el nombre del bot" />
                             </v-col>
                           </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">País</span>
-                              <v-select dense hide-details placeholder="Ingresa una descripción" outlined
-                                :items="paises" v-model="editedItem.country"></v-select>
-                            </v-col>
-                          </v-row>
                           <!-- <v-row dense>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Url Webhook</p>
@@ -309,7 +302,6 @@ export default {
     editedIndex: -1,
     editedItem: Bots(),
     defaultItem: Bots(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina", "España"],
     rolPermisos: {},
   }),
 
