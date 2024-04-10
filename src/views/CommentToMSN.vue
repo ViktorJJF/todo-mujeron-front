@@ -323,7 +323,7 @@
                                 <v-select
                                   dense
                                   hide-details
-                                  placeholder="Selecciona un país"
+                                  placeholder="Selecciona un tipo de publicacion"
                                   item-value="value"
                                   outlined
                                   :items="[
@@ -352,19 +352,6 @@
                                   item-text="name"
                                 ></v-select>
                               </v-col>
-
-                              <v-col
-                                cols="12"
-                                sm="6"
-                                v-show="getBotId(editedItem.postUrl)"
-                              >
-                                <b>País: </b>
-                                {{
-                                  getBotId(editedItem.postUrl)
-                                    ? getBotId(editedItem.postUrl).country
-                                    : ""
-                                }}
-                              </v-col>
                               <v-col
                                 cols="12"
                                 sm="12"
@@ -376,7 +363,7 @@
                                 </p>
                                 <v-autocomplete
                                   :disabled="!selectedFanpage"
-                                  item-text="nameWithCountry"
+                                  item-text="name"
                                   item-value="_id"
                                   :search-input.sync="searchProduct"
                                   v-model="selectedProducts"
@@ -669,12 +656,6 @@ export default {
         sortable: false,
         value: "postUrl",
       },
-      {
-        text: "País",
-        align: "left",
-        sortable: true,
-        value: "botId.country",
-      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     commentsFacebook: [],
@@ -873,7 +854,6 @@ export default {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
-          country: this.selectedFanpage.country,
           sort: "name",
           page,
           search: this.searchProduct,
@@ -887,10 +867,7 @@ export default {
       // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
       this.rawProducts = this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
-      ).map((el) => ({
-        ...el,
-        nameWithCountry: el.name + ` (${el.country})`,
-      }));
+      );
     },
     deleteCurrentSearch() {
       this.searchProduct = "";
@@ -901,28 +878,13 @@ export default {
       }
     },
     getBotId(link) {
-      if (link.trim().length > 0)
-        return this.$store.state.botsModule.bots.find(
+      if (link.trim().length > 0) {
+        const filteredBot = this.$store.state.botsModule.bots.find(
           (bot) =>
-            bot.country == this.getCountryByPostLink(link) ||
             link.toLowerCase().includes(bot.fanpageId) ||
             link.toLowerCase().includes(bot.fanpageName)
         );
-    },
-    getCountryByPostLink(link) {
-      let bots = this.$store.state.botsModule.bots;
-      for (const bot of bots) {
-        if (bot.platform == "facebook") {
-          if (
-            link
-              .toLowerCase()
-              .includes(bot.fanpageName.toLowerCase().replace("@", "")) ||
-            link.toLowerCase().includes(bot.fanpageId) ||
-            link.toLowerCase().includes(bot.fanpageName)
-          ) {
-            return bot.country;
-          }
-        }
+        return filteredBot;
       }
     },
     remove(item) {
