@@ -473,8 +473,8 @@ export default {
           rotate: degrees(90),
         })
       }
-      console.log(items)
-      for (const [index, item] of [...items, ...items].entries()) {
+
+      for (const [index, item] of items.entries()) {
         const price = new Intl.NumberFormat().format(item.price)
 
         if (order.source === 'dafiti') {
