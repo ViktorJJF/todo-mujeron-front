@@ -58,24 +58,21 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <v-slide-group v-model="filterCountries" multiple show-arrows>
-                    <v-slide-item
-                      v-for="country in $store.state.countries"
-                      :key="country"
-                      v-slot="{ active, toggle }"
-                    >
-                      <v-btn
-                        class="mx-2"
-                        :input-value="active"
-                        active-class="purple white--text"
-                        depressed
-                        rounded
-                        @click="toggle"
-                      >
-                        {{ country }}
-                      </v-btn>
-                    </v-slide-item>
-                  </v-slide-group>
+                  <CompaniesSelector
+                    :multiple="true"
+                    @onSelectedCompanies="
+                      selectedCompanies = $event;
+                      initialize(
+                        buildPayloadPagination(
+                          {
+                            page: 1,
+                            itemsPerPage: $store.state.itemsPerPage,
+                          },
+                          buildSearch()
+                        )
+                      );
+                    "
+                  ></CompaniesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -311,6 +308,7 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import Leads from "@/classes/Leads";
 import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
@@ -320,6 +318,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    CompaniesSelector,
   },
   filters: {
     formatDate: function (value) {
@@ -329,7 +328,7 @@ export default {
     },
   },
   data: () => ({
-    filterCountries: [],
+    selectedCompanies: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
@@ -427,7 +426,7 @@ export default {
     telefonoId() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
-    filterCountries() {
+    filterCompanies() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
@@ -464,7 +463,9 @@ export default {
       };
       body["estado"] = "INFORMADO AL AGENTE";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
+      if (this.selectedCompanies.length > 0) {
+          body["companies"] = this.selectedCompanies.map(c => c._id);
+      }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
         this.$store.dispatch("telefonosModule/list"),
