@@ -61,7 +61,7 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <CountriesSelector
+                  <CompaniesSelector
                     :multiple="true"
                     @onSelectedCompanies="
                       selectedCompanies = $event;
@@ -75,7 +75,7 @@
                         )
                       );
                     "
-                  ></CountriesSelector>
+                  ></CompaniesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -813,7 +813,7 @@ import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
 import odooService from "@/services/api/odoo";
 import graphApiService from "@/services/api/graphApi";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
-import CountriesSelector from "@/components/CountriesSelector.vue";
+import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
 import MarketingCampaignsService from "@/services/api/marketingCampaigns";
 import chatService from "@/services/api/chats";
@@ -832,7 +832,7 @@ export default {
     VTextFieldWithValidation,
     TodofullLabelsSelector,
     MarketingSegmentsForm,
-    CountriesSelector,
+    CompaniesSelector,
     MarketingSegments,
   },
   filters: {

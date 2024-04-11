@@ -23,11 +23,11 @@
       >
         <template v-slot:top>
           <v-container>
-            <span class="font-weight-bold">Selecciona el País</span>
+            <span class="font-weight-bold">Selecciona la compañía</span>
             <v-row class="my-1">
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <CountriesSelector
+                  <CompaniesSelector
                     :multiple="true"
                     @onSelectedCompanies="
                       selectedCompanies = $event;
@@ -41,7 +41,7 @@
                         )
                       );
                     "
-                  ></CountriesSelector>
+                  ></CompaniesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -416,7 +416,7 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import CountriesSelector from "@/components/CountriesSelector.vue";
+import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import MaterialCard from "@/components/material/Card";
 import Leads from "@/classes/Leads";
 import auth from "@/services/api/auth";
@@ -431,7 +431,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    CountriesSelector,
+    CompaniesSelector,
   },
   filters: {
     formatDate: function (value) {
