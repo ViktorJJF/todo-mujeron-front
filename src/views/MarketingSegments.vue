@@ -367,6 +367,7 @@ export default {
               sort: "updatedAt",
               order: "desc",
               fields_to_show: ["details", "telefono"],
+              companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
             }
           );
           console.log("🐞 LOG HERE response:", response);
