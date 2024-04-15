@@ -46,7 +46,7 @@
           <v-col cols="12" sm="12" md="12">
             <p class="body-1 font-weight-bold">Productos</p>
             <v-combobox
-              item-text="nameWithCountry"
+              item-text="name"
               :search-input.sync="searchProduct"
               v-model="commentFacebook.products"
               :items="products"
@@ -254,11 +254,7 @@
                     @click="openLink"
                     >Ver en
                     {{
-                      commentFacebook.botId.country == "Chile"
-                        ? "mujeron.cl"
-                        : commentFacebook.botId.country == "Colombia"
-                        ? "mujeron.co"
-                        : "mujeron.pe"
+                      commentFacebook.botId.fanpageName
                     }}
                   </v-btn>
                   <v-btn
@@ -492,6 +488,7 @@ export default {
             companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
           }),
           this.$store.dispatch("todofullLabelsModule/list", {
+            webtagsDetails: true,
             limit: 9999,
           }),
         ]);
@@ -505,6 +502,7 @@ export default {
         await Promise.all([
           this.$store.dispatch("todofullLabelsModule/list"),
           {
+            webtagsDetails: true,
             limit: 9999,
           },
         ]);
@@ -611,6 +609,16 @@ export default {
         return "";
       }
     },
+    getDomain(fullDomain = this.getCurrentUrl()) {
+      let cleanedDomain = fullDomain.replace(/^https?:\/\//, '');
+
+      const domainParts = cleanedDomain.split('/')[0];
+
+      const parts = domainParts.split('.');
+      const domain = parts.length > 2 ? parts.slice(-2).join('.') : domainParts;
+
+      return domain;
+    },
     remove(item) {
       this.commentFacebook.products.splice(
         this.commentFacebook.products.indexOf(item),
@@ -623,9 +631,6 @@ export default {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
-          country: !this.isTemplate
-            ? this.commentFacebook.botId.country
-            : this.country,
           sort: "name",
           page,
           search: this.searchProduct,
@@ -641,7 +646,7 @@ export default {
       );
       this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
-      ).map((el) => ({ ...el, nameWithCountry: el.name + ` (${el.country})` }));
+      );
     },
     deleteCurrentSearch() {
       this.searchProduct = "";
@@ -676,7 +681,7 @@ export default {
           el.webTags.find(
             (tag) =>
               tag.idCategory == category.id &&
-              tag.country === this.commentFacebook.botId.country
+              tag.woocommerceId.company === this.commentFacebook.botId.company
           )
       );
       if (selectedTodofullLabels) {
@@ -720,13 +725,7 @@ export default {
                     {
                       type: "web_url",
                       url: this.getCurrentUrl(),
-                      title: `Ver en ${
-                        this.commentFacebook.botId.country == "Chile"
-                          ? "mujeron.cl"
-                          : this.commentFacebook.botId.country == "Colombia"
-                          ? "mujeron.co"
-                          : "mujeron.pe"
-                      } `,
+                      title: `Ver en ${this.getDomain()} `,
                     },
                     {
                       type: "postback",
