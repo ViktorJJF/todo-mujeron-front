@@ -90,7 +90,8 @@ export default {
         });
     },
     setCurrentCompany(id) {
-      this.$store.dispatch("authModule/setCurrentCompany", id)
+      this.$store.dispatch("authModule/setCurrentCompany", id);
+      window.location.reload();
     }
   },
 };
