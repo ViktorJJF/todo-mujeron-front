@@ -254,7 +254,7 @@
                     @click="openLink"
                     >Ver en
                     {{
-                      commentFacebook.botId.fanpageName
+                      getDomain()
                     }}
                   </v-btn>
                   <v-btn
