@@ -5,6 +5,5 @@ export default () => ({
   parent: 0,
   menu_order: "",
   url: "",
-  country: "",
   date_modified: "",
 });
