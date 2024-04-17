@@ -174,12 +174,10 @@ import MaterialCard from "@/components/material/Card";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
 import EcommercesApi from "@/services/api/ecommerces";
-import CountrySelect from "@/components/catalog/CountrySelect";
 
 export default {
   components: {
     MaterialCard,
-    CountrySelect,
   },
   filters: {
     formatDate: function(value) {
