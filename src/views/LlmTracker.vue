@@ -418,7 +418,7 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: "updatedAt",
+        sort: "createdAt",
         order: "desc",
       };
       if (this.selectedPlatforms.length > 0) {
