@@ -516,7 +516,7 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > commentsFacebook.length
-                ? $store.state.llmTracker.total
+                ? $store.state.llmTracker?.total
                 : $store.state.itemsPerPage
             }}
             de {{ commentsFacebook.length }} registros
