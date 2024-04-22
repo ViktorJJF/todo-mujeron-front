@@ -67,3 +67,9 @@ th {
 .openai-prompt{
   white-space: pre-wrap;
 }
+
+.selected{
+  border: 4px solid #28156c;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.5); /* Darker and more pronounced shadow */
+  transition: box-shadow 0.3s;   
+}

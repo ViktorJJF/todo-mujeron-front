@@ -31,6 +31,20 @@ const module = {
           });
       });
     },
+    listOne({ commit }, id) {
+      commit("loadingModule/showLoading", true, { root: true });
+      return new Promise((resolve, reject) => {
+        api
+          .listOne(id)
+          .then((response) => {
+            commit("loadingModule/showLoading", false, { root: true });
+            resolve(response.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
     create({ commit }, data) {
       return new Promise((resolve, reject) => {
         api
