@@ -133,15 +133,11 @@
           <template v-slot:[`item.foreignLabel`]="{ item }">
             {{ item.foreignLabel }}
             <v-combobox
-              item-text="nameWithCountry"
+              item-text="name"
               :search-input.sync="searchLabel"
               v-model="item.foreignLabelId"
               item-value="_id"
-              :items="[
-                ...labelsFromTodoFull,
-                ...labelsFromPeru,
-                ...labelsFromChile,
-              ]"
+              :items="labels"
               chips
               no-data-text="No se encontraron etiquetas"
               label="Busca las etiquetas"
@@ -158,16 +154,11 @@
                   outlined
                 >
                   <strong
-                    >{{ item.foreignLabelId.name }} ({{
-                      item.foreignLabelId.country
-                    }})</strong
+                    >{{ item.foreignLabelId.name }}</strong
                   >
                 </v-chip>
               </template>
             </v-combobox>
-          </template>
-          <template v-slot:[`item.country`]="{ item }">
-            <span>{{ item.mailchimpId.country }}</span>
           </template>
           <template v-slot:[`item.categories`]="{ item }">
             <ul
@@ -272,30 +263,6 @@ export default {
     rolPermisos: {},
   }),
   computed: {
-    labelsFromTodoFull() {
-      return this.labels
-        .filter((el) => !el.country)
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({ ...el, nameWithCountry: el.name }));
-    },
-    labelsFromPeru() {
-      return this.labels
-        .filter((el) => el.country === "Peru")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
-    labelsFromChile() {
-      return this.labels
-        .filter((el) => el.country === "Chile")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
@@ -367,7 +334,7 @@ export default {
         ...this.getAttributesWithValues(
           this.$store.state.ecommercesAttributesModule.ecommercesAttributes
         ),
-      ];
+      ].sort((a, b) => this.sortAlphabetically(a, b, "name"));
       // poblando datos del label en base a id
       for (let i = 0; i < this[ENTITY].length; i++) {
         this[ENTITY][i].foreignLabelId = this.labels.find(
@@ -431,27 +398,12 @@ export default {
           attributesWithValues.push({
             name: attribute.name + " " + term.name,
             _id: term._id,
-            country: attribute.woocommerceId.country,
-            nameWithCountry:
-              attribute.name +
-              " " +
-              term.name +
-              (attribute.woocommerceId.country
-                ? ` (${attribute.woocommerceId.country})`
-                : ""),
             source: "EcommercesAttributes",
           });
         }
       }
       return attributesWithValues.sort((a, b) =>
-        this.sortAlphabetically(a, b, "nameWithCountry")
-      );
-    },
-    filterByCountry(facebookLabel, country) {
-      return (
-        this.$store.state.botsModule.bots.find(
-          (bot) => bot.fanpageId === facebookLabel.fanpageId
-        ).country === country
+        this.sortAlphabetically(a, b, "name")
       );
     },
     sortAlphabetically(a, b, attribute) {
