@@ -25,15 +25,11 @@
               </td>
               <td>
                 <v-combobox
-                  item-text="nameWithCountry"
+                  item-text="name"
                   :search-input.sync="searchLabel"
                   v-model="telefono.labels"
                   item-value="_id"
-                  :items="[
-                    ...labelsFromTodoFull,
-                    ...labelsFromPeru,
-                    ...labelsFromChile,
-                  ]"
+                  :items="labels"
                   multiple
                   chips
                   no-data-text="No se encontraron etiquetas"
@@ -52,7 +48,7 @@
                       color="deep-purple accent-4"
                       outlined
                     >
-                      <strong>{{ item.name }} {{ item.country }}</strong>
+                      <strong>{{ item?.name ? item.name : "" }}</strong>
                     </v-chip>
                   </template>
                 </v-combobox>
@@ -93,30 +89,6 @@ export default {
     this.initialize();
   },
   computed: {
-    labelsFromTodoFull() {
-      return this.labels
-        .filter((el) => !el.country)
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({ ...el, nameWithCountry: el.name }));
-    },
-    labelsFromPeru() {
-      return this.labels
-        .filter((el) => el.country === "Peru")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
-    labelsFromChile() {
-      return this.labels
-        .filter((el) => el.country === "Chile")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
     activeTelefonos() {
       return this.telefonos.filter((el) => el.active);
     },
@@ -131,7 +103,9 @@ export default {
         this.$store.dispatch("agentesModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("ecommercesTagsModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
@@ -150,12 +124,12 @@ export default {
       // inicializando etiquetas de todofull
       this.labels = [
         ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
-        ...this.$store.state.ecommercesTagsModule.ecommercesTags,
-        ...this.$store.state.todofullLabelsModule.todofullLabels,
+         ...this.$store.state.ecommercesTagsModule.ecommercesTags,
+         ...this.$store.state.todofullLabelsModule.todofullLabels,
         ...this.getAttributesWithValues(
           this.$store.state.ecommercesAttributesModule.ecommercesAttributes
         ),
-      ];
+      ].sort((a, b) => this.sortAlphabetically(a, b, 'name'));
       // agregando labels y dando formato adecuado
       this.telefonos = this.telefonos.map((el) => {
         if (!el.labels) {
@@ -176,20 +150,12 @@ export default {
           attributesWithValues.push({
             name: attribute.name + " " + term.name,
             _id: term._id,
-            country: attribute.woocommerceId.country,
-            nameWithCountry:
-              attribute.name +
-              " " +
-              term.name +
-              (attribute.woocommerceId.country
-                ? ` (${attribute.woocommerceId.country})`
-                : ""),
             source: "EcommercesAttributes",
           });
         }
       }
       return attributesWithValues.sort((a, b) =>
-        this.sortAlphabetically(a, b, "nameWithCountry")
+        this.sortAlphabetically(a, b, "name")
       );
     },
     sortAlphabetically(a, b, attribute) {
