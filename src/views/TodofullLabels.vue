@@ -113,7 +113,7 @@
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Página Web</p>
                               <v-combobox
-                                item-text="nameWithCountry"
+                                item-text="name"
                                 v-model="editedItem.webTags"
                                 :items="webTags"
                                 multiple
@@ -141,7 +141,7 @@
                                     color="deep-purple accent-4"
                                     outlined
                                   >
-                                    <strong>{{ item.nameWithCountry }}</strong>
+                                    <strong>{{ item.name }}</strong>
                                   </v-chip>
                                 </template>
                               </v-combobox>
@@ -149,7 +149,7 @@
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Atributos</p>
                               <v-combobox
-                                item-text="nameWithCountry"
+                                item-text="name"
                                 v-model="editedItem.attributeTags"
                                 :items="attributeTags"
                                 multiple
@@ -177,7 +177,7 @@
                                     color="deep-purple accent-4"
                                     outlined
                                   >
-                                    <strong>{{ item.nameWithCountry }}</strong>
+                                    <strong>{{ item.name }}</strong>
                                   </v-chip>
                                 </template>
                               </v-combobox>
@@ -496,16 +496,10 @@ export default {
               nameWithFanpage: `${el.name} (${
                 this.$store.state.botsModule.bots.find(
                   (bot) => bot.fanpageId === el.fanpageId
-                ).name
+                )?.name
               })`,
             })
           );
-        }
-        if (todoFullLabel.webTags) {
-          todoFullLabel.webTags = todoFullLabel.webTags.map((el) => ({
-            ...el,
-            nameWithCountry: `${el.name} (${el.country})`,
-          }));
         }
         if (todoFullLabel.attributeTags) {
           todoFullLabel.attributeTags = getAttributesWithValues(
@@ -521,12 +515,7 @@ export default {
       // etiquetas messenger
       this.webTags = this.$store.state[
         "ecommercesCategoriesModule"
-      ].ecommercesCategories
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }))
-        .sort((a, b) => sortAlphabetically(a, b, "name"));
+      ].ecommercesCategories.sort((a, b) => sortAlphabetically(a, b, "name"));
       this.messengerTags = this.$store.state[
         "facebookLabelsModule"
       ].facebookLabels
