@@ -36,15 +36,6 @@
                     outlined
                   />
                 </v-col>
-                <v-col>
-                  <country-select
-                    class="mr-2 d-flex"
-                    style="max-width: 200px;"
-                    v-model="country"
-                    clearable
-                    @input="() => initialize(page)"
-                  />
-                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
@@ -192,7 +183,6 @@ export default {
     switchLoading: [],
     currentStock: 0,
     items: [],
-    country: null,
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || "Debe ser un número",
       (val) => val >= 0 || "No puede ser negativo",
@@ -201,7 +191,6 @@ export default {
     fieldsToSearch: [
       "externalId",
       "name",
-      "country",
       "permalink",
       "ref",
       "stock_status",
@@ -231,12 +220,6 @@ export default {
         align: "left",
         sortable: false,
         value: "title",
-      },
-      {
-        text: "Ciudad",
-        align: "left",
-        sortable: false,
-        value: "country",
       },
       {
         text: "Fuente",
@@ -358,7 +341,6 @@ export default {
         sort: "updatedAt",
         order: -1,
         listType: "All",
-        country: this.country,
       };
       payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
@@ -384,7 +366,6 @@ export default {
           attributesFormatted: this.getFormatAttributes(variation.attributes),
           woocommerceId: product.woocommerceId,
           url: product.url,
-          country: product.country,
         }));
 
         Object.assign(product, { variations });
