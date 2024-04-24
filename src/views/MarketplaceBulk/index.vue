@@ -155,6 +155,7 @@ export default {
       const data = {
         country: this.country,
         products: this.items,
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
       };
 
       try {
