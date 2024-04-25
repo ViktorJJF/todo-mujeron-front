@@ -13,14 +13,6 @@
             <v-col>
               <v-form class="form" @submit.prevent="handleBulkUpdate">
                 <h2>Modificar productos</h2>
-                <v-select
-                  v-model="country"
-                  :items="countries"
-                  label="Paise"
-                  hide-details
-                  outlined
-                  dense
-                />
                 <v-textarea
                   outlined
                   v-model="rawItems"
@@ -124,16 +116,11 @@ export default {
       items: [],
       rawItems: "",
       loading: false,
-      country: 1,
-      countries: [
-        { text: "Chile", value: 1 },
-        { text: "Perú", value: 6 },
-      ],
     };
   },
   computed: {
     canSubmitProducts() {
-      return this.rawItems.length && this.country !== null;
+      return this.rawItems.length;
     },
   },
   methods: {
@@ -148,12 +135,10 @@ export default {
     },
     async handleBulkUpdate() {
       if (this.loading) return;
-      if (this.country === null) return;
 
       this.loading = true;
 
       const data = {
-        country: this.country,
         products: this.items,
         company: this.$store.getters["authModule/getCurrentCompany"].company._id,
       };
