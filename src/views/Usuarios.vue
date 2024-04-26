@@ -114,17 +114,7 @@
                           multiple
                         />
                       </v-col>
-                      <!-- <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">País</p>
-                        <VSelectWithValidation
-                          rules=""
-                          :items="countries"
-                          v-model="editedItem.country"
-                          label="Selecciona país"
-                          itemText="name"
-                          itemValue="_id"
-                        />
-                      </v-col>
+                      <!--
                       <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Ciudad</p>
                         <VSelectWithValidation
@@ -296,9 +286,6 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo usuarios" : "Editar usuario";
-    },
-      countries() {
-      return this.$store.state.countries;
     },
     cities() {
       return this.$store.state.cities;
