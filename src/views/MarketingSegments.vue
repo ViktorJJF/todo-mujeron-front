@@ -235,7 +235,6 @@ export default {
         salesTeams: [],
         rfmScores: [],
       },
-      target_countries: [],
       botIds: [],
       type: "static",
     },

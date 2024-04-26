@@ -239,7 +239,6 @@ export default {
         name: "",
         description: "",
         todofullLabels: [],
-        target_countries: [],
         filters: {
           includeWithEmail: true,
           includeWithoutEmail: true,

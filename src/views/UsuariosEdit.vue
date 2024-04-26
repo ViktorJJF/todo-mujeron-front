@@ -251,7 +251,6 @@ export default {
       if (!user.chatsPermissions) {
         Object.assign(user, {
           chatsPermissions: {
-            countries: [],
             platforms: [],
             assigned: null,
             status: [],
@@ -309,9 +308,6 @@ export default {
     },
   },
   computed: {
-    countries() {
-      return this.$store.state.countries;
-    },
     cities() {
       return this.$store.state.cities;
     },
