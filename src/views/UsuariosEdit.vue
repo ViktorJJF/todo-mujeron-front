@@ -277,13 +277,11 @@ export default {
     },
     updateUser() {
       console.log(this.user._id);
-      this.user.companies = this.selectedCompanies.map(c => {
-        return {
-          company: {
-            _id: c,
-          }
-        };
-      });
+      this.user.corporation.companies = this.selectedCompanies.map(c => ({
+        company: {
+          _id: c,
+        }
+      }));
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
