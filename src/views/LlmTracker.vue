@@ -8,6 +8,47 @@
         :text="$t(entity + '.SUBTITLE')"
       >
         <v-col cols="12" sm="12">
+          <v-sheet max-width="700">
+            <v-slide-group
+              @change="
+                selectedPlatforms = selectedPlatformsIndexes.map(
+                  (index) => $store.state.platforms[index]
+                );
+                initialize();
+              "
+              v-model="selectedPlatformsIndexes"
+              :multiple="true"
+              show-arrows
+            >
+              <v-slide-item
+                v-for="platform in $store.state.platforms"
+                :key="platform"
+                v-slot="{ active, toggle }"
+              >
+                <v-btn
+                  class="mx-2"
+                  :input-value="active"
+                  active-class="purple white--text"
+                  depressed
+                  rounded
+                  @click="toggle"
+                >
+                  {{ platform }}
+                </v-btn>
+              </v-slide-item>
+            </v-slide-group>
+          </v-sheet>
+        </v-col>
+        <v-col cols="12" sm="12">
+          <CountriesSelector
+            :multiple="true"
+            @onSelectedCountries="
+              selectedCountries = $event;
+              initialize();
+            "
+          ></CountriesSelector>
+        </v-col>
+        <v-col cols="12" sm="12">
           <span>
             <strong>Mostrando:</strong>
             {{
@@ -247,9 +288,12 @@ import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import chatService from "@/services/api/chats";
 import { es } from "date-fns/locale";
+import CountriesSelector from "@/components/CountriesSelector";
+
 export default {
   components: {
     MaterialCard,
+    CountriesSelector,
   },
   filters: {
     formatDate: function(value) {
@@ -259,6 +303,9 @@ export default {
     },
   },
   data: () => ({
+    selectedPlatformsIndexes: [],
+    selectedPlatforms: [],
+    selectedCountries: [],
     selectedChatId: null,
     noChat: false,
     chatDialog: null,
@@ -293,6 +340,18 @@ export default {
         align: "left",
         sortable: false,
         value: "response",
+      },
+      {
+        text: "Plataforma",
+        align: "left",
+        sortable: false,
+        value: "platform",
+      },
+      {
+        text: "Pais",
+        align: "left",
+        sortable: false,
+        value: "country",
       },
       {
         text: "Post",
@@ -336,7 +395,6 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("brandsModule/list");
     this.initialize();
     this.rolAuth();
   },
@@ -356,14 +414,22 @@ export default {
 
     async initialize(page = 1) {
       //llamada asincrona de items
-      await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          page,
-          search: this.search,
-          fieldsToSearch: this.fieldsToSearch,
-          sort: "updatedAt",
-          order: "desc",
-        }),
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "createdAt",
+        order: "desc",
+      };
+      if (this.selectedPlatforms.length > 0) {
+        payload.platforms = this.selectedPlatforms;
+      }
+      if (this.selectedCountries.length > 0) {
+        payload.countries = this.selectedCountries;
+      }
+      await Promise.allSettled([
+        this.$store.dispatch("botsModule/list", payload),
+        this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(

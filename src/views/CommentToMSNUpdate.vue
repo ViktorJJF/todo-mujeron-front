@@ -328,7 +328,7 @@ export default {
     VueJsonPretty,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -414,8 +414,7 @@ export default {
     console.log("los active: ", this.activeProducts);
     // inicializando imagen producto inicial
     if (this.commentFacebook.products.length > 0) {
-      this.commentFacebook.postUrl =
-        this.commentFacebook.products.images[0].src;
+      this.commentFacebook.postUrl = this.commentFacebook.products.images[0].src;
     }
   },
   watch: {
@@ -428,10 +427,10 @@ export default {
     // "commentFacebook.labels": function(newVal) {
     //   console.log("el nuevo valor: ", newVal);
     // },
-    commentFacebook: function () {
+    commentFacebook: function() {
       this.generateCode();
     },
-    "commentFacebook.products": async function (products) {
+    "commentFacebook.products": async function(products) {
       let urls = [];
       this.filteredLabels = [];
       for (const product of products) {
@@ -450,10 +449,9 @@ export default {
               }),
             ]);
 
-            let searchedCategory =
-              this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
-                (el) => el.idCategory == category.id
-              );
+            let searchedCategory = this.$store.state.ecommercesCategoriesModule.ecommercesCategories.find(
+              (el) => el.idCategory == category.id
+            );
             if (searchedCategory) {
               urls.push({
                 url: searchedCategory.url,
@@ -485,39 +483,23 @@ export default {
     async initialize() {
       if (!this.isTemplate) {
         await Promise.all([
-          this.$store.dispatch("commentsFacebookModule/list", {
-            limit: 9999,
-            _id: this.$route.params.id,
-          }),
           this.$store.dispatch("todofullLabelsModule/list", { limit: 9999 }),
         ]);
-        this.commentsFacebook = this.$deepCopy(
-          this.$store.state.commentsFacebookModule.commentsFacebook
-        );
-        this.commentFacebook = this.commentsFacebook.find(
-          (commentFacebook) => commentFacebook._id === this.$route.params.id
+        this.commentFacebook = await this.$store.dispatch(
+          "commentsFacebookModule/listOne",
+          this.$route.params.id
         );
       } else {
-        await Promise.all([
-          this.$store.dispatch("todofullLabelsModule/list"),
-          { limit: 9999 },
-        ]);
         // buscando si existe plantilla asociada a producto
-        let commentsFacebok = await this.$store.dispatch(
-          "commentsFacebookModule/list",
-          {
-            ecommerceId: this.productId,
-          }
+        this.commentFacebook = await this.$store.dispatch(
+          "commentsFacebookModule/listOne",
+          this.productId
         );
-        if (commentsFacebok.length > 0) {
-          this.commentFacebook = commentsFacebok[0];
-        }
       }
       this.originalCommentFacebook = JSON.parse(
         JSON.stringify(this.commentFacebook.responses)
       );
-      this.todofullLabels =
-        this.$store.state.todofullLabelsModule.todofullLabels;
+      this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
       //inicializando URL seleccionados
       if (
         !this.commentFacebook.selectedUrlIndex &&
@@ -556,10 +538,9 @@ export default {
         this.commentFacebook.selectedCategories = this.selectedCategories;
         //aca se sobreescribe la url seleccionada por la custom (si hubiera)
         this.commentFacebook.selectedUrl = this.getCurrentUrl();
-        this.commentFacebook.selectedLabel =
-          this.filteredLabels[
-            parseInt(this.commentFacebook.selectedLabelIndex)
-          ]._id;
+        this.commentFacebook.selectedLabel = this.filteredLabels[
+          parseInt(this.commentFacebook.selectedLabelIndex)
+        ]._id;
         if (
           this.isTemplate &&
           this.commentFacebook.postImgUrl.trim().length == 0
@@ -584,7 +565,8 @@ export default {
         this.$swal({
           icon: "error",
           title: "Es probable que se diera alguno de estos errores",
-          html: "<ul>Falta colocar imagen personalizada (si es plantilla)<ul><ul>Falta seleccionar una etiqueta<ul>Falta seleccionar una categoría<br>Falta seleccionar una URL o completar URL personalizada</ul>",
+          html:
+            "<ul>Falta colocar imagen personalizada (si es plantilla)<ul><ul>Falta seleccionar una etiqueta<ul>Falta seleccionar una categoría<br>Falta seleccionar una URL o completar URL personalizada</ul>",
         });
       } finally {
         this.loadingButton = false;
