@@ -396,12 +396,6 @@ export default {
         value: "name",
       },
       {
-        text: "Company",
-        align: "left",
-        sortable: true,
-        value: "company.alias",
-      },
-      {
         text: "¿Activo?",
         align: "left",
         sortable: false,
@@ -562,8 +556,6 @@ export default {
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
           let editedItem = this.$deepCopy(this.editedItem);
-          // add corporationId
-          editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           // mandando solo id de tags
           editedItem.attributeTags = editedItem.attributeTags
             ? editedItem.attributeTags.map((el) => el._id)
@@ -589,7 +581,8 @@ export default {
       } else {
         //create item
         try {
-          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
+          this.editedItem.corporation = this.$store.state.authModule.user.corporation.corporation;
+          
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
