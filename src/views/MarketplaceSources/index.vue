@@ -351,7 +351,9 @@ export default {
       );
       this.locaciones = this.$store.state.locacionesModule.locaciones;
 
-      const res = await vendorsApi.list()
+      const res = await vendorsApi.list({
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })
       this.vendors = res.data.payload
     },
     editItem(item) {
@@ -406,6 +408,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             "marketplaceSourcesModule/create",
