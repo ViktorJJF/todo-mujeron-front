@@ -292,6 +292,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             "telegramGroupsModule/create",
             this.editedItem
