@@ -63,6 +63,7 @@
                 <v-sheet max-width="700">
                   <CompaniesSelector
                     :multiple="true"
+                    :initial-data="[getCurrentCompany()]"
                     @onSelectedCompanies="
                       selectedCompanies = $event;
                       initialize(
@@ -996,6 +997,7 @@ export default {
 
   mounted() {
     this.$store.commit("loadingModule/showLoading");
+    this.selectedCompanies = [this.getCurrentCompany()];
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     console.log(this.sourceSelectList);
     this.rolAuth();
@@ -1028,7 +1030,7 @@ export default {
         body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
       }
       if (this.selectedCompanies.length > 0) {
-          body["companies"] = this.selectedCompanies.map(c => c._id);
+          body["companies"] = this.selectedCompanies.map(c => c?._id);
       }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
@@ -1096,6 +1098,9 @@ export default {
             });
         }
       });
+    },
+    getCurrentCompany() {
+      return this.$store.getters["authModule/getCurrentCompany"].company;
     },
     buildPayloadPagination(page, searchPayload) {
       return buildPayloadPagination(

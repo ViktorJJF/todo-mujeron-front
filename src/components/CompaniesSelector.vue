@@ -40,24 +40,6 @@ export default {
       companies: [],
     };
   },
-  watch: {
-    initialData: {
-      handler() {
-        console.log("handelr");
-        this.selectedCompanies = this.multiple
-          ? this.initialData.map(
-            (el) =>
-              this.companies[
-              this.companies.findIndex((el2) => el2._id === el._id)
-              ]
-          )
-          : this.companies.findIndex(
-            (el) => el === (this.initialData ? this.initialData[0]._id : null)
-          );
-      },
-      immediate: true,
-    },
-  },
   async created() {
     await this.$store.dispatch("companiesModule/list"),
     this.initialize();
@@ -68,6 +50,21 @@ export default {
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies,
       );
+      this.handleInitialData();
+    },
+    handleInitialData () {
+      this.selectedCompanies = this.multiple
+          ? this.initialData.map(
+            (el) => {
+              console.log("this.initialData, this.companies");
+              console.log(this.initialData, this.companies);
+              return this.companies.findIndex((el2) => el2._id === el._id);
+            }
+              
+          )
+          : this.companies.findIndex(
+            (el) => el === (this.initialData ? this.initialData[0]._id : null)
+          );
     },
     getCompanies(selectedCompanies) {
       console.log("get companies", selectedCompanies);
