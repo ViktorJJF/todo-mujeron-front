@@ -60,6 +60,7 @@
                 <v-sheet max-width="700">
                   <CompaniesSelector
                     :multiple="true"
+                    :initial-data="[getCurrentCompany()]"
                     @onSelectedCompanies="
                       selectedCompanies = $event;
                       initialize(
@@ -522,6 +523,7 @@ export default {
 
   mounted() {
     this.$store.commit("loadingModule/showLoading");
+    this.selectedCompanies = [this.getCurrentCompany()];
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     this.rolAuth();
   },
@@ -551,7 +553,7 @@ export default {
       body["estado"] = "COMPRA FALLIDA";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
       if (this.selectedCompanies.length > 0) {
-          body["companies"] = this.selectedCompanies.map(c => c._id);
+          body["companies"] = this.selectedCompanies.map(c => c?._id);
       }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
@@ -575,6 +577,9 @@ export default {
         })
       );
       this.dataTableLoading = false;
+    },
+    getCurrentCompany() {
+      return this.$store.getters["authModule/getCurrentCompany"].company;
     },
     buildPayloadPagination(page, searchPayload) {
       return buildPayloadPagination(
