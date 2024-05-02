@@ -9,20 +9,6 @@
         text="Listado audiencias"
       >
         <v-col cols="12" sm="10">
-          <v-row class="mb-3">
-            <v-col cols="12" sm="6" md="6">
-              <v-select
-                color="primary"
-                prepend-icon="mdi-map"
-                dense
-                hide-details
-                outlined
-                :items="$store.state.countries"
-                v-model="country"
-                @change="initialize(country)"
-              ></v-select>
-            </v-col>
-          </v-row>
           <v-dialog v-model="dialog" max-width="600px">
             <template v-slot:activator="{ on }">
               <v-btn
@@ -58,18 +44,6 @@
                         v-model="adManagerId"
                         label="Coloca el nombre de la audiencia"
                       />
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <div class="body-1 font-weight-bold">Pais</div>
-                      <v-select
-                        disabled
-                        dense
-                        hide-details
-                        placeholder="Seleccione un pais"
-                        outlined
-                        :items="['Peru', 'Colombia', 'Chile']"
-                        v-model="country"
-                      ></v-select>
                     </v-col>
                     <v-col cols="12" sm="12" md="12">
                       <span class="font-weight-bold">Nombre</span>
@@ -377,7 +351,7 @@ export default {
     return {
       showMissingLeads: false,
       currentView: null,
-      country: "Chile",
+      company: this.$store.getters["authModule/getCurrentCompany"].company,
       adManagerId: null,
       totalDocs: 0,
       cleanLeads: [],
@@ -391,7 +365,6 @@ export default {
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
-        country: "",
         conditions: [],
       },
       defaultItem: {
@@ -399,7 +372,6 @@ export default {
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
-        country: "",
         conditions: [],
       },
       dialog: false,
@@ -447,7 +419,6 @@ export default {
     async initialize() {
       await Promise.all([
         this.$store.dispatch("facebookAudiencesModule/list", {
-          // country: country || this.country,
           sort: "name",
           order: "asc",
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
@@ -464,7 +435,7 @@ export default {
 
       // leyendo audiencias de api facebook
       let res = await axios.get("/api/graph-api/getAudiences", {
-        params: { country: this.country },
+        params: { company: this.$store.getters["authModule/getCurrentCompany"].company._id },
       });
       console.log("🚀 Aqui *** -> res", res);
       this.adManagerId = res.data.payload.ad_manager_id;
@@ -501,7 +472,6 @@ export default {
             id: itemId,
             data: {
               ...this.editedItem,
-              country: this.country,
               ad_manager_id: this.adManagerId,
             },
           });
@@ -513,6 +483,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           axios
             .post("/api/graph-api/audiences", { ...this.editedItem })
             .then(async (res) => {
@@ -521,14 +492,12 @@ export default {
                 "facebookAudiences" + "Module/create",
                 {
                   ...this.editedItem,
-                  country: this.country,
                   ad_manager_id: this.adManagerId,
                   external_id: res.data.payload.id,
                 }
               );
               this.audiences.unshift({
                 ...createdItem,
-                country: this.country,
                 ad_manager_id: this.adManagerId,
                 external_id: res.data.payload.id,
               });
@@ -573,7 +542,7 @@ export default {
       const response = (
         await cleanLeadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country,
+          this.company._id,
           audienceId,
           this.showMissingLeads
         )
@@ -585,7 +554,7 @@ export default {
       const response = (
         await leadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country,
+          this.company._id,
           audienceId,
           this.showMissingLeads
         )
@@ -605,7 +574,7 @@ export default {
           audience.external_id,
           selectedLabels.map((el) => el._id),
           this.showMissingLeads,
-          this.country
+          this.company._id,
         );
         this.$swal("Los leads se están enviando a la audiencia");
       }
@@ -622,7 +591,7 @@ export default {
           audience.external_id,
           selectedLabels.map((el) => el._id),
           this.showMissingLeads,
-          this.country
+          this.company._id,
         );
         this.$swal("Los leads potenciales se están enviando a la audiencia");
       }
@@ -632,9 +601,6 @@ export default {
         id: item._id,
         data: item,
       });
-    },
-    openForm() {
-      this.editItem.country = this.country;
     },
   },
 };
