@@ -351,7 +351,7 @@ export default {
     return {
       showMissingLeads: false,
       currentView: null,
-      country: this.$store.getters["authModule/getCurrentCompany"].company.country,
+      company: this.$store.getters["authModule/getCurrentCompany"].company,
       adManagerId: null,
       totalDocs: 0,
       cleanLeads: [],
@@ -365,7 +365,6 @@ export default {
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
-        country: "",
         conditions: [],
       },
       defaultItem: {
@@ -373,7 +372,6 @@ export default {
         subtype: "CUSTOM",
         customer_file_source: "USER_PROVIDED_ONLY",
         todofullLabels: [],
-        country: "",
         conditions: [],
       },
       dialog: false,
@@ -544,7 +542,7 @@ export default {
       const response = (
         await cleanLeadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country,
+          this.company._id,
           audienceId,
           this.showMissingLeads
         )
@@ -556,7 +554,7 @@ export default {
       const response = (
         await leadsService.getByTodofullLabels(
           selectedLabels.map((el) => el._id),
-          this.country,
+          this.company._id,
           audienceId,
           this.showMissingLeads
         )
@@ -576,7 +574,7 @@ export default {
           audience.external_id,
           selectedLabels.map((el) => el._id),
           this.showMissingLeads,
-          this.country
+          this.company._id,
         );
         this.$swal("Los leads se están enviando a la audiencia");
       }
@@ -593,7 +591,7 @@ export default {
           audience.external_id,
           selectedLabels.map((el) => el._id),
           this.showMissingLeads,
-          this.country
+          this.company._id,
         );
         this.$swal("Los leads potenciales se están enviando a la audiencia");
       }
