@@ -271,18 +271,32 @@
 
           <v-list-item-content> Bots </v-list-item-content>
         </v-list-item>
-
-        <v-list-item
-          active-class="primary custom2"
-          :to="{ name: 'TelegramGroups' }"
-          v-if="checkAuth('ChatBot/Bots', 'Bots')"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content> Telegram </v-list-item-content>
-        </v-list-item>
+        <v-list-group
+            color="white"
+            :value="false"
+            no-action
+            sub-group
+            active-class="primary custom2"
+            v-if="checkAuth('ChatBot/Bots', 'Bots')"
+          >
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Telegram</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'TelegramGroups' }"
+            >
+              <v-list-item-content> Grupos </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'TelegramRoutines' }"
+            >
+              <v-list-item-content> Rutinas </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
         <v-list-group
           color="white"
           :value="false"
