@@ -25,31 +25,6 @@
             <v-container>
               <v-row>
                 <v-col cols="12" sm="6">
-                  <div class="country-buttons">
-                    <button
-                      v-for="country in countries"
-                      :key="country.value"
-                      @click="toggleCountry(country)"
-                      class="country-button"
-                      :class="{ selected: selectedCountry === country.value }"
-                    >
-                      <img :src="country.icon" class="country-icon" />
-                    </button>
-                  </div>
-                  <span class="font-weight-bold"
-                    >Filtrar por N°Orden o Cliente: {{ search }}</span
-                  >
-                  <v-text-field
-                    dense
-                    hide-details
-                    v-model="search"
-                    append-icon="search"
-                    placeholder="Búsqueda por N°Orden o Cliente"
-                    single-line
-                    outlined
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6">
                   <v-select
                     v-model="selectedOrderStates"
                     :items="orderStates"
@@ -593,7 +568,6 @@ export default {
     //datos del componente
     chatDialog: false,
     noChat: false,
-    selectedCountry: "Chile",
     selectedOrderStates: [],
     selectedPendingTasks: [],
     orderStates: [
@@ -606,12 +580,6 @@ export default {
       { label: "En Espera", value: "on-hold" },
     ],
     fieldsToSearch: ["idOrder", "odooOrderName", "status", "phone"],
-    countries: [
-      { value: "Peru", icon: "/assets/images/flags/peru.png" },
-      { value: "Chile", icon: "/assets/images/flags/chile.png" },
-      { value: "Colombia", icon: "/assets/images/flags/colombia.png" },
-      { value: "España", icon: "/assets/images/flags/espania.png" },
-    ],
     headers: [
       {
         text: "Última modificación",
@@ -740,9 +708,6 @@ export default {
     selectedPendingTasks() {
       this.initialize(1);
     },
-    selectedCountry() {
-      this.initialize(1);
-    },
   },
   mounted() {
     this.initialize();
@@ -762,9 +727,6 @@ export default {
       }
       if (this.selectedPendingTasks.length > 0) {
         payload.pendingTasks = this.selectedPendingTasks;
-      }
-      if (this.selectedCountry) {
-        payload.country = this.selectedCountry;
       }
       payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
@@ -799,13 +761,6 @@ export default {
             });
         }
       });
-    },
-    toggleCountry(country) {
-      if (this.selectedCountry === country.value) {
-        return (this.selectedCountry = null);
-      }
-
-      this.selectedCountry = country.value;
     },
     openDetails(order) {
       this.currentOrder = order;
@@ -943,36 +898,6 @@ export default {
 <style lang="scss" scoped>
 .selected {
   background-color: #f5f5f5 !important;
-}
-
-.country-buttons {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.country-button {
-  display: flex;
-  align-items: center;
-  background-color: white;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 5px;
-}
-
-.country-button:hover {
-  background-color: #f0f0f0;
-}
-
-.country-icon {
-  width: 25px;
-  height: 25px;
-  margin-right: 5px;
-}
-
-.country-name {
-  font-size: 14px;
 }
 
 .text-link {
