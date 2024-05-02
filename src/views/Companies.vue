@@ -67,6 +67,13 @@
                             label="Alias"
                           />
                         </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <p class="body-1 font-weight-bold mb-0">País</p>
+                          <VTextFieldWithValidation
+                            v-model="editedItem.country"
+                            label="País"
+                          />
+                        </v-col>
                         <v-col cols="12" sm="12">
                           <span class="font-weight-bold">Icono (url)</span>
                             <v-textarea
@@ -167,6 +174,12 @@
           align: "left",
           sortable: false,
           value: "alias",
+        },
+        {
+          text: "País",
+          align: "left",
+          sortable: false,
+          value: "country",
         },
         { text: "Acciones", value: "action", sortable: false },
       ],
