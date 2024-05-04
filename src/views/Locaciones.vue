@@ -71,7 +71,6 @@
                               <VSelectWithValidation
                                 v-model="editedItem.teams"
                                 :items="teams"
-                                rules="required"
                                 item-text="nombre"
                                 item-value="_id"
                                 placeholder="Seleccionar Equipos de Venta"

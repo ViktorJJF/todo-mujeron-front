@@ -81,7 +81,6 @@
                               <VSelectWithValidation
                                 v-model="editedItem.locations"
                                 :items="locations"
-                                rules="required"
                                 item-text="nombre"
                                 item-value="_id"
                                 placeholder="Seleccionar Locaciones"
