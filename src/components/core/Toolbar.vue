@@ -28,7 +28,7 @@
       </template>
       <v-list v-if="companies.length">
         <v-list-item v-for="element in companies" :key="element.company._id" @click="setCurrentCompany(element.company._id)">
-          <v-list-item-title>{{ element.company.alias }} - {{ element.selected }}</v-list-item-title>
+          <v-list-item-title>{{ element.company.alias }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
