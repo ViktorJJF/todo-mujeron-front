@@ -64,4 +64,11 @@ export default {
       params: {},
     });
   },
+  setTodofullLabelsMassive(segmentId, todoFullLabelIds, hasToSendToMailchimp) {
+    return axios.post("/api/clean-leads/set_todofull_labels_massive", {
+      segmentId,
+      todoFullLabelIds,
+      hasToSendToMailchimp,
+    });
+  },
 };

@@ -8,11 +8,43 @@
         :text="$t(entity + '.SUBTITLE')"
       >
         <v-col cols="12" sm="12">
+          <v-sheet max-width="700">
+            <v-slide-group
+              @change="
+                selectedPlatforms = selectedPlatformsIndexes.map(
+                  (index) => $store.state.platforms[index]
+                );
+                initialize();
+              "
+              v-model="selectedPlatformsIndexes"
+              :multiple="true"
+              show-arrows
+            >
+              <v-slide-item
+                v-for="platform in $store.state.platforms"
+                :key="platform"
+                v-slot="{ active, toggle }"
+              >
+                <v-btn
+                  class="mx-2"
+                  :input-value="active"
+                  active-class="purple white--text"
+                  depressed
+                  rounded
+                  @click="toggle"
+                >
+                  {{ platform }}
+                </v-btn>
+              </v-slide-item>
+            </v-slide-group>
+          </v-sheet>
+        </v-col>
+        <v-col cols="12" sm="12">
           <span>
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? total
+                ? $store.state.llmTrackerModule.total
                 : $store.state.itemsPerPage
             }}
             de {{ $store.state.llmTrackerModule.total }} registros
@@ -22,6 +54,7 @@
           <v-pagination
             v-model="page"
             :length="$store.state.llmTrackerModule.totalPages"
+            @input="initialize(page)"
           ></v-pagination>
         </div>
         <v-data-table
@@ -119,6 +152,23 @@
               {{ item.description }}
             </span></template
           >
+          <template v-slot:[`item.user`]="{ item }">
+            <div v-if="!item.leadId">
+              {{ extractUserNameFromPrompt(item.prompt) }}
+            </div>
+            <div v-else>
+              <div
+                style="cursor: pointer; color: blue; text-decoration: underline;"
+                @click.stop="
+                  chatDialog = true;
+                  selectedLead = item;
+                  getLeadChat(item.leadId._id, item.platform);
+                "
+              >
+                {{ extractUserNameFromPrompt(item.prompt) }}
+              </div>
+            </div>
+          </template>
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
@@ -126,13 +176,16 @@
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
+          <template v-slot:[`item.postUrl`]="{ item }">
+            <a :href="item.postUrl" target="_blank">Visitar post</a>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? total
+                ? $store.state.llmTrackerModule.total
                 : $store.state.itemsPerPage
             }}
             de {{ $store.state.llmTrackerModule.total }} registros
@@ -142,10 +195,76 @@
           <v-pagination
             v-model="page"
             :length="$store.state.llmTrackerModule.totalPages"
+            @input="initialize(page)"
           ></v-pagination>
         </div>
       </material-card>
     </v-row>
+    <v-dialog
+      v-if="chatDialog"
+      v-model="chatDialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn
+            icon
+            dark
+            @click="
+              selectedLead = null;
+              selectedChatId = null;
+              chatDialog = false;
+              noChat = false;
+            "
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title
+            >Chat en vivo con
+            {{ selectedLead.appName || selectedLead.nombre }}</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-toolbar-items>
+            <v-btn
+              dark
+              text
+              @click="
+                selectedLead = null;
+                selectedChatId = null;
+                chatDialog = false;
+                noChat = false;
+              "
+            >
+              Finalizar
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <div>
+          <!-- chat iframe content -->
+          <iframe
+            v-if="selectedChatId"
+            :src="
+              `${
+                getEnvironment === 'local'
+                  ? 'http://localhost:3030'
+                  : getEnvironment === 'development'
+                  ? 'https://dev.chat.todofull.club'
+                  : 'https://chat.todofull.club'
+              }/apps/chat?chatId=${selectedChatId}&isChatOneToOne=true`
+            "
+            width="100%"
+            height="100%"
+            frameborder="0"
+            scrolling="no"
+            style="height: 100vh;"
+          ></iframe>
+          <h3 v-else-if="!noChat">Cargando...</h3>
+          <h3 v-if="noChat">Sin chat</h3>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -158,7 +277,9 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
+import chatService from "@/services/api/chats";
 import { es } from "date-fns/locale";
+
 export default {
   components: {
     MaterialCard,
@@ -171,6 +292,12 @@ export default {
     },
   },
   data: () => ({
+    selectedPlatformsIndexes: [],
+    selectedPlatforms: [],
+    selectedChatId: null,
+    noChat: false,
+    chatDialog: null,
+    selectedLead: null,
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -185,6 +312,12 @@ export default {
         value: "createdAt",
       },
       {
+        text: "Usuario",
+        align: "left",
+        sortable: false,
+        value: "user",
+      },
+      {
         text: "Input",
         align: "left",
         sortable: false,
@@ -195,6 +328,12 @@ export default {
         align: "left",
         sortable: false,
         value: "response",
+      },
+      {
+        text: "Plataforma",
+        align: "left",
+        sortable: false,
+        value: "platform",
       },
       {
         text: "Post",
@@ -238,7 +377,6 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("brandsModule/list");
     this.initialize();
     this.rolAuth();
   },
@@ -259,14 +397,19 @@ export default {
 
     async initialize(page = 1) {
       //llamada asincrona de items
-      await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          page,
-          search: this.search,
-          fieldsToSearch: this.fieldsToSearch,
-          sort: "updatedAt",
-          order: "desc",
-        }),
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "createdAt",
+        order: "desc",
+      };
+      if (this.selectedPlatforms.length > 0) {
+        payload.platforms = this.selectedPlatforms;
+      }
+      await Promise.allSettled([
+        this.$store.dispatch("botsModule/list", payload),
+        this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
@@ -319,6 +462,25 @@ export default {
         } finally {
           this.loadingButton = false;
         }
+      }
+    },
+    extractUserNameFromPrompt(prompt) {
+      // code to extract string between "Nombre del usuario" and "\n \n"
+      let name = prompt.match(/Nombre del usuario: (.*)\n/);
+      return name ? name[1] : "Sin nombre";
+    },
+    async getLeadChat(id, platform) {
+      console.log("🐞 LOG HERE id lead chat:", id);
+      try {
+        const chats = (await chatService.getAllByLeadId(id, platform)).data
+          .payload;
+        if (chats.length > 0) {
+          this.selectedChatId = chats[0]._id;
+        } else {
+          this.noChat = true;
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
   },
