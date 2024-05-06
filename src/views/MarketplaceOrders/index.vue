@@ -225,7 +225,6 @@ import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib'
 
 const SellerCenterSources = ['dafiti', 'falabella']
 const DafitiYSpace = 20
-const FalabellaYSpace = 15
 
 export default {
   components: {
@@ -465,19 +464,28 @@ export default {
         })
       }
 
+      if (order.source === 'falabella') {
+        firstPage.drawText(order.odooOrderName || '********', {
+          x: 244,
+          y: 467,
+          size: 8,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+          rotate: degrees(90),
+        })
+      }
+
       for (const [index, item] of items.entries()) {
         const price = new Intl.NumberFormat().format(item.price)
 
-        if (SellerCenterSources.includes(order.source)) {
+        if (order.source === 'dafiti') {
           const text = order.odooOrderName
             ? `${order.odooOrderName} \t ${item.sku} \t ${price}`
             : `${item.sku} \t ${price}`
 
           const baseTextYPosition = height / 2 - 10 * index
 
-          const textYPosition =
-            baseTextYPosition +
-            (order.source === 'dafiti' ? DafitiYSpace : FalabellaYSpace)
+          const textYPosition = baseTextYPosition + DafitiYSpace
 
           firstPage.drawText(text, {
             x: order.odooOrderName ? 90 : 105,
@@ -500,21 +508,26 @@ export default {
             rotate: degrees(90),
           })
         }
-      }
 
-      if (order.source === 'falabella' && order.deliveryPrice > 0) {
-        const deliveryPrice = new Intl.NumberFormat().format(
-          order.deliveryPrice
-        )
-        const text = `Envío ${deliveryPrice}`
+        if (order.source === 'falabella') {
+          const deliveryPrice =
+            order.deliveryPrice > 0
+              ? new Intl.NumberFormat().format(order.deliveryPrice)
+              : undefined
 
-        firstPage.drawText(text, {
-          x: 130,
-          y: height / 2 - 10 * items.length + FalabellaYSpace,
-          size: 8,
-          font: helveticaFont,
-          color: rgb(0, 0, 0),
-        })
+          const text = deliveryPrice
+            ? `${item.sku}   ${price}    Envio: ${deliveryPrice}`
+            : `${item.sku}   ${price}`
+
+          firstPage.drawText(text, {
+            x: 244,
+            y: 500 + (deliveryPrice ? 130 : 75) * index,
+            size: 8,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+            rotate: degrees(90),
+          })
+        }
       }
 
       // Serialize the PDFDocument to bytes (a Uint8Array)

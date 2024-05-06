@@ -12,7 +12,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="filteredCommentsFacebook"
+          :items="commentsFacebook"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -22,6 +22,12 @@
         >
           <template v-slot:top>
             <v-container>
+              <CountrySelectorFlags
+                @onSelectedCountry="
+                  selectedCountry = $event;
+                  initialize();
+                "
+              ></CountrySelectorFlags>
               <span class="font-weight-bold"
                 >Filtrar por URL: {{ search }}</span
               >
@@ -429,14 +435,57 @@
                     item-text="fanpageName"
                     item-value="_id"
                     v-model="filterByFanpage"
+                    @change="initialize(1)"
                   ></v-select>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <span class="font-weight-bold">Filtrar por productos</span>
+                  <v-autocomplete
+                    item-text="nameWithCountry"
+                    item-value="_id"
+                    :search-input.sync="searchProduct"
+                    :items="products"
+                    chips
+                    dense
+                    clearable
+                    label="Busca los productos"
+                    no-data-text="No se encontraron productos"
+                    no-filter
+                    solo
+                    outlined
+                    hide-details
+                    @change="onSelectedProducts"
+                    :multiple="editedIndex > -1 ? false : true"
+                  >
+                    <template
+                      v-slot:selection="{
+                        attrs,
+                        item,
+                        select,
+                        selected,
+                      }"
+                    >
+                      <v-chip
+                        v-bind="attrs"
+                        :input-value="selected"
+                        close
+                        @click="select"
+                        @click:close="remove(item)"
+                        color="deep-purple accent-4"
+                        outlined
+                      >
+                        <strong>{{ item.name }}</strong>
+                      </v-chip>
+                    </template>
+                  </v-autocomplete>
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
-                  <span>
+                  <span v-if="$store.state.commentsFacebookModule">
                     <strong>Mostrando:</strong>
-                    {{ filteredCommentsFacebook.length }} registros
+                    {{ commentsFacebook.length }} registros de
+                    {{ $store.state.commentsFacebookModule.total }}
                   </span>
                 </v-col>
               </v-row>
@@ -449,6 +498,13 @@
                 ></v-pagination>
               </div>
             </v-container>
+          </template>
+          <template v-slot:[`item.products`]="{ item }">
+            {{
+              item.products && item.products.length > 0
+                ? item.products.map((el) => el.name).join(", ")
+                : "Sin productos"
+            }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
@@ -474,6 +530,7 @@
                 dialogGpt = true;
                 generatePrompt(item);
               "
+              class="mr-1 mb-1"
               >GPT</v-btn
             >
           </template>
@@ -483,7 +540,44 @@
             >
           </template>
           <template v-slot:[`item.postUrl`]="{ item }">
-            <a :href="item.postUrl" target="_blank">{{ item.postUrl }}</a>
+            <a
+              style="display: block; max-width: 250px; overflow-wrap: break-word;"
+              class="mb-2"
+              :href="item.postUrl"
+              target="_blank"
+            >
+              {{ item.postUrl }}
+            </a>
+            <div>
+              <div
+                v-for="(postUrl, postUrlsIndex) in item.postUrls"
+                :key="postUrlsIndex"
+              >
+                <a
+                  style="display: inline; max-width: 250px; overflow-wrap: break-word;"
+                  class="mb-2"
+                  :href="postUrl.url"
+                  target="_blank"
+                >
+                  {{ postUrl.url }}
+                </a>
+                <button
+                  type="danger"
+                  small
+                  @click="removePostUrl(item, postUrlsIndex)"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+            <v-text-field
+              class="mb-2"
+              placeholder="Nueva URL"
+              dense
+              hide-details=""
+              v-model="item.newPostUrl"
+              @keyup.enter="addPostUrl(item, item.newPostUrl)"
+            ></v-text-field>
           </template>
           <template v-slot:[`item.responses`]="{ item }">
             <v-chip
@@ -512,7 +606,7 @@
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
-          <span>
+          <span v-if="$store.state.llmTracker">
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > commentsFacebook.length
@@ -590,6 +684,7 @@
 import { format, formatDistance } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import CountrySelectorFlags from "@/components/CountrySelectorFlags";
 import CommentsFacebook from "@/classes/CommentsFacebook";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
@@ -603,6 +698,7 @@ export default {
     MaterialCard,
     VTextFieldWithValidation,
     InfiniteScroll,
+    CountrySelectorFlags,
   },
   filters: {
     formatDate: function(value) {
@@ -618,6 +714,7 @@ export default {
     },
   },
   data: () => ({
+    selectedCountry: null,
     commentToTest: "Informacion",
     isGPTLoading: false,
     aiResponse: "",
@@ -625,6 +722,7 @@ export default {
     searchPost: "",
     updateScroll: 0,
     fieldsToSearch: ["postUrl"],
+    selectedProductsSearch: [],
     selectedProducts: null,
     products: [],
     searchProduct: "",
@@ -655,10 +753,18 @@ export default {
         align: "left",
         sortable: false,
         value: "postUrl",
+        width: "100px",
+      },
+      {
+        text: "Productos agregados",
+        align: "left",
+        sortable: true,
+        value: "products",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
     commentsFacebook: [],
+    items: [],
     editedIndex: -1,
     editedItem: CommentsFacebook(),
     defaultItem: CommentsFacebook(),
@@ -680,13 +786,6 @@ export default {
       return this.editedIndex === -1
         ? "Nuevo URL"
         : "Editar respuestas de publicación";
-    },
-    filteredCommentsFacebook() {
-      return this.filterByFanpage
-        ? this.commentsFacebook
-            .filter((comment) => comment.botId._id == this.filterByFanpage)
-            .filter((el) => el.type == this.type)
-        : this.commentsFacebook.filter((el) => el.type !== "ad");
     },
     isCommentView() {
       return this.$route.name == "CommentToMSN";
@@ -746,6 +845,22 @@ export default {
     },
 
     async initialize(page = 1) {
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "updatedAt",
+        order: "desc",
+      };
+      if (this.filterByFanpage) {
+        payload.botId = this.filterByFanpage;
+      }
+      if (this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
+      if (this.selectedProductsSearch.length > 0) {
+        payload.products = this.selectedProductsSearch;
+      }
       await Promise.all([
         this.$store.dispatch("commentsFacebookModule/list", {
           page,
@@ -762,6 +877,12 @@ export default {
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
       );
+      // postUrls field in case it doesnt exist
+      this.commentsFacebook.forEach((comment) => {
+        if (!comment.postUrls) {
+          comment.postUrls = [];
+        }
+      });
     },
     initializeAds() {
       console.log("iniciando...");
@@ -852,6 +973,19 @@ export default {
     async getProducts(page = 1) {
       if (!this.searchProduct) return;
       //llamada asincrona de items
+      let payload = {
+        sort: "name",
+        page,
+        search: this.searchProduct,
+        fieldsToSearch: ["name", "ref"],
+        listType: "All",
+      };
+      if (this.editedIndex > -1) {
+        payload.country = this.selectedFanpage.country;
+      }
+      if (this.editedIndex === -1 && this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
       await Promise.all([
         this.$store.dispatch("ecommercesModule/list", {
           sort: "name",
@@ -869,8 +1003,13 @@ export default {
         this.$store.state.ecommercesModule.ecommerces
       );
     },
-    deleteCurrentSearch() {
+    onSelectedProducts(e) {
       this.searchProduct = "";
+      // in case in product search for filter
+      if (this.editedIndex === -1) {
+        this.selectedProductsSearch = e; // ids products
+        this.initialize();
+      }
     },
     clearResponses() {
       if (this.editedIndex == -1) {
@@ -1004,7 +1143,7 @@ Misión: Nuestros productos deben abrazar los cuerpos de las mujeres y acompaña
 $Información General de Tiendas MUjeron
 País: ${commentToMsn.products[0].country}
 Página Web: Mujeron.cl
-URL de guia de tallas de todos nuestros productos: https://mujeron.cl/guia-de-tallas/ 
+URL de guia de tallas de todos nuestros productos: https://mujeron.cl/guia-de-tallas/
 Redes Sociales:
 facebook: https://www.facebook.com/MujeronCL
 Instagram: @mujeronjeans
@@ -1018,7 +1157,7 @@ Envíos: Realizan envíos a todas las regiones de Chile. Por compras superiores 
 Métodos de Pago:
 Pago en página web o por transferencia.
 Datos de Depósito:
-Principal: 
+Principal:
 Nombre: Tiendas Mujeron
 Rut: 77.303.262-9
 BANCO CHILE/EDWARDS
@@ -1047,17 +1186,17 @@ Origen Colombiano
 
 Tarea:
 
-Te Actúa como el experto community manager de Tiendas Mujeron, y darás respuesta a el $comentario hecho por un $Usuario de nuestras redes sociales, haciendo uso del $ADN de Tiendas Mujeron, y la $Información del Producto 
+Te Actúa como el experto community manager de Tiendas Mujeron, y darás respuesta a el $comentario hecho por un $Usuario de nuestras redes sociales, haciendo uso del $ADN de Tiendas Mujeron, y la $Información del Producto
 
 instrucciones:
 
 No alucines solo responde con la información contenida en este prompt
 Cumplir con las políticas de la red social.
 LA respuesta no debe contener más de 500 caracteres Se breve
-Simula que responde un humano, puedes usar emoticones. 
+Simula que responde un humano, puedes usar emoticones.
 Responde con el nombre de quien te hace la consulta.
 Si te preguntan información adicional de otros productos que no estén en $Detalles de los productos, amablemente le dirás que en el inbox le has dejado más información.
-Si te llegara a faltar información para resolver el comentario debes persuadir de hablarnos en el chat. 
+Si te llegara a faltar información para resolver el comentario debes persuadir de hablarnos en el chat.
 No envíes URL inventadas.
 
 Pos: https://www.facebook.com/photo/?fbid=728831582620268&set=pcb.728834829286610
@@ -1097,6 +1236,31 @@ Descripción producto larga: ${stripHtml(product.description)}`
           console.log(error);
         })
         .finally(() => (this.isGPTLoading = false));
+    },
+    addPostUrl(item, newPostUrl) {
+      let indexComment = this.commentsFacebook.findIndex(
+        (el) => el._id === item._id
+      );
+      this.commentsFacebook[indexComment].postUrls.push({ url: newPostUrl });
+      // save it
+      this.$store.dispatch("commentsFacebookModule/update", {
+        id: item._id,
+        data: this.commentsFacebook[indexComment],
+      });
+      if(item.newPostUrl){
+        item.newPostUrl = "";
+      }
+    },
+    async removePostUrl(item, index) {
+      let indexComment = this.commentsFacebook.findIndex(
+        (el) => el._id === item._id
+      );
+      this.commentsFacebook[indexComment].postUrls.splice(index, 1);
+      // save it
+      await this.$store.dispatch("commentsFacebookModule/update", {
+        id: item._id,
+        data: this.commentsFacebook[indexComment],
+      });
     },
   },
 };

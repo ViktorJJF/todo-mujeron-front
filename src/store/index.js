@@ -37,6 +37,7 @@ export default new Vuex.Store({
     },
     selectedCommentFacebook: {},
     countries: ["Peru", "Chile", "Colombia", "España"],
+    platforms: ["facebook", "whatsapp", "instagram"],
     maxPaginationButtons: 16,
     facebookAccessToken: "",
     facebookName: "",

@@ -69,7 +69,6 @@
             <v-checkbox
               v-model="editedItem.filters.includeWithChats"
               label="Incluir leads con chats"
-              :disabled="true"
             ></v-checkbox>
             <v-checkbox
               v-model="editedItem.filters.includeWithSales"
