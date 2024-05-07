@@ -100,13 +100,6 @@
           >
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
-          <v-list-item
-            active-class="primary custom2"
-            :to="{ name: 'Groups' }"
-            v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
-          >
-            <v-list-item-content> Grupos </v-list-item-content>
-          </v-list-item>
         </v-list-group>
         <v-list-group
           color="white"
