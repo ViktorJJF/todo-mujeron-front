@@ -259,7 +259,7 @@ export default {
         value: "email",
       },
       {
-        text: "Companies",
+        text: "Compañias",
         align: "left",
         sortable: true,
         value: "corporation",
