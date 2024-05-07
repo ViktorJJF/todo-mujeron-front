@@ -84,7 +84,7 @@
             :to="{ name: 'Locaciones' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Locaciones')"
           >
-            <v-list-item-content> Ubicaciones </v-list-item-content>
+            <v-list-item-content> Locaciones </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
