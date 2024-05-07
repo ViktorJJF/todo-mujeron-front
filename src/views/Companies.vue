@@ -69,10 +69,7 @@
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
                           <p class="body-1 font-weight-bold mb-0">País</p>
-                          <VTextFieldWithValidation
-                            v-model="editedItem.country"
-                            label="País"
-                          />
+                          <CountrySelect :show-all-countries="true" v-model="editedItem.country" />
                         </v-col>
                         <v-col cols="12" sm="12">
                           <span class="font-weight-bold">Icono (url)</span>
@@ -145,11 +142,13 @@
   import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
   import MaterialCard from "@/components/material/Card";
   import Companies from "@/classes/Companies";
+  import CountrySelect from "@/components/CountrySelect.vue";
   import auth from "@/services/api/auth";
   export default {
     components: {
       MaterialCard,
       VTextFieldWithValidation,
+      CountrySelect,
     },
     filters: {
       formatDate: function(value) {

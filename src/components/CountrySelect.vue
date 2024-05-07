@@ -16,13 +16,22 @@ export default {
     value: {
       type: String,
     },
+    showAllCountries: {
+      type: Boolean,
+    },
   },
   data() {
+    const countries = !this.showAllCountries ? [
+      { text: 'Chile', value: 'Chile' },
+      { text: 'Perú', value: 'Peru' },
+    ] : [
+      { text: 'Chile', value: 'Chile' },
+      { text: 'Perú', value: 'Peru' },
+      { text: 'Colombia', value: 'Colombia' },
+      // Add more countries
+    ]
     return {
-      countries: [
-        { text: 'Chile', value: 'Chile' },
-        { text: 'Perú', value: 'Peru' },
-      ],
+      countries,
     }
   },
   methods: {
