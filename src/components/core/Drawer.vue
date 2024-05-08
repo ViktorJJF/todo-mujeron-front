@@ -749,11 +749,6 @@ export default {
         },
         {
           icon: "mdi-check",
-          text: "Facebook",
-          to: "Facebook",
-        },
-        {
-          icon: "mdi-check",
           text: "Dialogflow",
           to: "Dialogflow",
         },
