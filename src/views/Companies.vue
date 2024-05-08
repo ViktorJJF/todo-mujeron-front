@@ -80,6 +80,19 @@
                               v-model="editedItem.iconUrl"
                             ></v-textarea>
                         </v-col>
+                        <v-col cols="12" v-if="editedIndex < 0">
+                          <span class="body-1 font-weight-bold"
+                            >Usuarios Iniciales</span>
+                          <VSelectWithValidation
+                            v-model="selectedUsers"
+                            :items="users"
+                            rules="required"
+                            item-text="email"
+                            item-value="_id"
+                            placeholder="Seleccionar Usuarios"
+                            multiple
+                          />
+                        </v-col>
                       </v-row>
                           </v-container>
                           <v-card-actions rd-actions>
@@ -140,6 +153,7 @@
   <script>
   import { format } from "date-fns";
   import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+  import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
   import MaterialCard from "@/components/material/Card";
   import Companies from "@/classes/Companies";
   import CountrySelect from "@/components/CountrySelect.vue";
@@ -149,6 +163,7 @@
       MaterialCard,
       VTextFieldWithValidation,
       CountrySelect,
+      VSelectWithValidation,
     },
     filters: {
       formatDate: function(value) {
@@ -183,6 +198,8 @@
         { text: "Acciones", value: "action", sortable: false },
       ],
       companies: [],
+      users: [],
+      selectedUsers: [],
       editedIndex: -1,
       editedItem: Companies(),
       defaultItem: Companies(),
@@ -203,8 +220,8 @@
     },
   
     async created() {
-      await this.$store.dispatch("companiesModule/list"),
-  
+      await this.$store.dispatch("companiesModule/list");
+      await this.$store.dispatch("usersModule/list");
       this.initialize();
     },
   
@@ -233,7 +250,7 @@
         this.companies = this.$deepCopy(
           this.$store.state.companiesModule.companies
         );
-        // this.locaciones = this.$store.state.locacionesModule.locaciones;
+        this.users = this.$deepCopy(this.$store.state.usersModule.users);
       },
       editItem(item) {
         this.editedIndex = this.companies.indexOf(item);
@@ -277,6 +294,8 @@
           //create item
           try {
             this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
+            this.editedItem.users = this.selectedUsers;
+
             let newItem = await this.$store.dispatch(
               "companiesModule/create",
               this.editedItem
@@ -286,6 +305,7 @@
             this.close();
           } finally {
             this.loadingButton = false;
+            this.selectedUsers = [];
           }
         }
       },
