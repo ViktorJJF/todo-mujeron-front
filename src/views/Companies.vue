@@ -80,9 +80,9 @@
                               v-model="editedItem.iconUrl"
                             ></v-textarea>
                         </v-col>
-                        <v-col cols="12">
+                        <v-col cols="12" v-if="editedIndex < 0">
                           <span class="body-1 font-weight-bold"
-                            >Usuarios</span>
+                            >Usuarios Iniciales</span>
                           <VSelectWithValidation
                             v-model="selectedUsers"
                             :items="users"
@@ -305,6 +305,7 @@
             this.close();
           } finally {
             this.loadingButton = false;
+            this.selectedUsers = [];
           }
         }
       },
