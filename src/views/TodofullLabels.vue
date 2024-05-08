@@ -182,7 +182,7 @@
                                 </template>
                               </v-combobox>
                             </v-col>
-                            <v-col cols="12" sm="12" md="12">
+                            <!-- <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
                                 Retail Rocket
                               </p>
@@ -223,7 +223,7 @@
                                   </v-chip>
                                 </template>
                               </v-combobox>
-                            </v-col>
+                            </v-col> -->
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -414,7 +414,7 @@ export default {
     labels: [],
     messengerTags: [],
     webTags: [],
-    retailRocketTags: [],
+    // retailRocketTags: [],
     usedTags: [],
     attributeTags: [],
   }),
@@ -471,7 +471,7 @@ export default {
         this.$store.dispatch("facebookLabelsModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
-        this.$store.dispatch("retailRocketTagsModule/list"),
+        // this.$store.dispatch("retailRocketTagsModule/list"),
         this.$store.dispatch("ecommercesAttributesModule/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
@@ -523,8 +523,8 @@ export default {
           })`,
         }))
         .sort((a, b) => sortAlphabetically(a, b, "name"));
-      this.retailRocketTags =
-        this.$store.state["retailRocketTagsModule"].retailRocketTags;
+      /*this.retailRocketTags =
+        this.$store.state["retailRocketTagsModule"].retailRocketTags;*/
       // attriutes
       this.attributeTags = getAttributesWithValues(
         this.$store.state["ecommercesAttributesModule"].ecommercesAttributes
@@ -566,9 +566,9 @@ export default {
           editedItem.webTags = editedItem.webTags
             ? editedItem.webTags.map((el) => el._id)
             : [];
-          editedItem.retailRocketTags = editedItem.retailRocketTags
+          /*editedItem.retailRocketTags = editedItem.retailRocketTags
             ? editedItem.retailRocketTags.map((el) => el._id)
-            : [];
+            : [];*/
           await this.$store.dispatch(ENTITY + "Module/update", {
             id: itemId,
             data: editedItem,
