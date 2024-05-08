@@ -777,11 +777,11 @@ export default {
           text: "Marketplace",
           to: "MarketplaceFuentes",
         },
-        {
+        /*{
           icon: "mdi-check",
           text: "RetailRocket - Etiquetas",
           to: "RetailRocketTags",
-        },
+        },*/
         // { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         // { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
         // { icon: "mdi-format-color-fill", text: "Colores", to: "colors" },
