@@ -332,7 +332,9 @@ export default {
         (locacion) => locacion.value !== undefined
       )
 
-      const res = await vendorsApi.list()
+      const res = await vendorsApi.list({
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })
       this.vendors = res.data.payload
       console.log('🚀 Aqui *** -> this.vendors', this.vendors)
     },
