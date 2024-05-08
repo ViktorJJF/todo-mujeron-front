@@ -399,6 +399,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             'woocommercesModule/create',
