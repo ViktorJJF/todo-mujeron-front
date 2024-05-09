@@ -5,7 +5,7 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Facebook"
+        title="Telegram - Rutinas"
         text="Resumen de Rutinas"
       >
         <v-data-table

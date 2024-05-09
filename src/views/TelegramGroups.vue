@@ -5,7 +5,7 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Facebook"
+        title="Telegram - Grupos"
         text="Resumen de Grupos"
       >
         <v-data-table
