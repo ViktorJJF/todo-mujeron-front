@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <material-card width="90%" icon="mdi-cellphone-dock" color="primary" title="Facebook" text="Resumen de Bots">
+      <material-card width="90%" icon="mdi-cellphone-dock" color="primary" title="Bots" text="Resumen de Bots">
         <v-data-table no-results-text="No se encontraron resultados" :search="search" hide-default-footer
           :headers="headers" :items="bots" sort-by="calories" @page-count="pageCount = $event" :page.sync="page"
           :items-per-page="$store.state.itemsPerPage">
