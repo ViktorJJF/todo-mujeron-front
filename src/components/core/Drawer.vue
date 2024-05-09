@@ -183,27 +183,6 @@
             </template>
             <v-list-item
               active-class="primary custom2"
-              :to="{ name: 'Products' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Productos')"
-            >
-              <v-list-item-content> Productos </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'Categories' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Categorias')"
-            >
-              <v-list-item-content> Categorías </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'Brands' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Marcas')"
-            >
-              <v-list-item-content> Marcas </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
               :to="{ name: 'Vendors' }"
               v-if="checkAuth('Configuracion/Propiedades/Genial', 'Vendedores')"
             >
