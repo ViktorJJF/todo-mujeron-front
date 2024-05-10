@@ -644,11 +644,6 @@ export default {
           text: "Gravity Forms",
           to: "GravityForms",
         },
-        {
-          icon: "mdi-check",
-          text: "Dialogflow",
-          to: "Dialogflow",
-        },
         // {
         //   icon: "mdi-check",
         //   text: "Woocommerce",
