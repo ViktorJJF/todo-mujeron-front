@@ -101,15 +101,6 @@
                                   label="Ingresa el token de acceso" />
                               </v-col>
                             </v-row>
-                            <v-row dense>
-                              <v-col cols="12" sm="12" md="12">
-                                <p class="body-1 font-weight-bold">
-                                  Token de Verificación
-                                </p>
-                                <VTextFieldWithValidation disabled rules="" value="MUJERON"
-                                  label="Ingresa el token (ejmp: BOTSMUJERON)" />
-                              </v-col>
-                            </v-row>
                             <v-row v-if="editedItem.platform !== 'whatsapp'" dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
