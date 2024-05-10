@@ -656,11 +656,6 @@ export default {
         // },
         {
           icon: "mdi-check",
-          text: "Whatsapp",
-          to: "Whatsapp",
-        },
-        {
-          icon: "mdi-check",
           text: "Drive",
           to: "Drive",
         },
