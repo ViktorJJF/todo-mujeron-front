@@ -651,11 +651,6 @@ export default {
         // },
         {
           icon: "mdi-check",
-          text: "Drive",
-          to: "Drive",
-        },
-        {
-          icon: "mdi-check",
           text: "Marketplace",
           to: "MarketplaceFuentes",
         },
