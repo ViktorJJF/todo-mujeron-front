@@ -18,7 +18,6 @@ axios.interceptors.request.use(
     const urlsExcludedForBearerHeader = [
       "/api/login",
       "/api/forgot",
-      "/api/register",
       "/api/reset",
       `${window.location.origin}/version.json`,
     ];

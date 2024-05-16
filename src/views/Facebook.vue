@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <material-card width="90%" icon="mdi-cellphone-dock" color="primary" title="Facebook" text="Resumen de Bots">
+      <material-card width="90%" icon="mdi-cellphone-dock" color="primary" title="Bots" text="Resumen de Bots">
         <v-data-table no-results-text="No se encontraron resultados" :search="search" hide-default-footer
           :headers="headers" :items="bots" sort-by="calories" @page-count="pageCount = $event" :page.sync="page"
           :items-per-page="$store.state.itemsPerPage">
@@ -38,13 +38,6 @@
                               <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation rules="required" v-model="editedItem.name"
                                 label="Ingresa el nombre del bot" />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">País</span>
-                              <v-select dense hide-details placeholder="Ingresa una descripción" outlined
-                                :items="paises" v-model="editedItem.country"></v-select>
                             </v-col>
                           </v-row>
                           <!-- <v-row dense>
@@ -106,15 +99,6 @@
                                 </p>
                                 <VTextFieldWithValidation rules="" v-model="editedItem.fbPageToken"
                                   label="Ingresa el token de acceso" />
-                              </v-col>
-                            </v-row>
-                            <v-row dense>
-                              <v-col cols="12" sm="12" md="12">
-                                <p class="body-1 font-weight-bold">
-                                  Token de Verificación
-                                </p>
-                                <VTextFieldWithValidation disabled rules="" value="MUJERON"
-                                  label="Ingresa el token (ejmp: BOTSMUJERON)" />
                               </v-col>
                             </v-row>
                             <v-row v-if="editedItem.platform !== 'whatsapp'" dense>
@@ -309,7 +293,6 @@ export default {
     editedIndex: -1,
     editedItem: Bots(),
     defaultItem: Bots(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina", "España"],
     rolPermisos: {},
   }),
 
@@ -338,6 +321,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades",
           model: "Facebook",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -346,7 +330,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("botsModule/list")]);
+      await Promise.all([this.$store.dispatch("botsModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+      })]);
       this.bots = this.$deepCopy(this.$store.state.botsModule.bots);
       // dar formato a autoActivateAfter
       for (const bot of this.bots) {
@@ -401,6 +387,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch("botsModule/create", {
             ...this.editedItem,
             autoActivateAfter,

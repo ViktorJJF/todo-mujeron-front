@@ -69,8 +69,6 @@
                               />
                             </v-col >
 
-
-                          
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -183,7 +181,7 @@ export default {
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    groups: [],    
+    groups: [],
     editedIndex: -1,
     editedItem: Groups(),
     defaultItem: Groups(),
@@ -208,7 +206,9 @@ export default {
 
   async created(){
     console.log("created groups");
-    await this.$store.dispatch("groupsModule/list"); 
+    await this.$store.dispatch("groupsModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id]
+    }); 
     this.initialize();
   },
 
@@ -225,7 +225,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/TodoFull',
-          'model':'Groups'
+          'model':'Groups',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -259,6 +260,8 @@ export default {
       this.loadingButton = true;
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
+          this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
           this.editedItem.permisos =  this.editedPermisos; 
           let newItem = await this.$store.dispatch(
             "groupsModule/create",

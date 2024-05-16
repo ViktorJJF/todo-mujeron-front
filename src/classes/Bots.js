@@ -13,6 +13,5 @@ export default () => ({
   dialogflowLanguageCode: "",
   googleClientEmail: "",
   googlePrivateKey: "",
-  country: "",
   autoActivateAfter: 0,
 });

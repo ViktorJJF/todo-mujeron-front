@@ -5,7 +5,7 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Facebook"
+        title="Telegram - Grupos"
         text="Resumen de Grupos"
       >
         <v-data-table
@@ -202,7 +202,6 @@ export default {
     editedIndex: -1,
     editedItem: TelegramGroups(),
     defaultItem: TelegramGroups(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
     rolPermisos: {},
   }),
 
@@ -230,7 +229,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades',
-          'model':'Facebook'
+          'model':'Facebook',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -247,7 +247,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("telegramGroupsModule/list")]);
+      await Promise.all([this.$store.dispatch("telegramGroupsModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       this.groups = this.$deepCopy(this.$store.state.telegramGroupsModule.groups);
     },
     editItem(item) {
@@ -290,6 +292,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             "telegramGroupsModule/create",
             this.editedItem

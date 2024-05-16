@@ -68,17 +68,6 @@
                                 label="server. Ejemplo: us5"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un país"
-                                outlined
-                                :items="$store.state.countries"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -144,15 +133,11 @@
           <template v-slot:[`item.foreignLabel`]="{ item }">
             {{ item.foreignLabel }}
             <v-combobox
-              item-text="nameWithCountry"
+              item-text="name"
               :search-input.sync="searchLabel"
               v-model="item.foreignLabelId"
               item-value="_id"
-              :items="[
-                ...labelsFromTodoFull,
-                ...labelsFromPeru,
-                ...labelsFromChile,
-              ]"
+              :items="labels"
               chips
               no-data-text="No se encontraron etiquetas"
               label="Busca las etiquetas"
@@ -169,16 +154,11 @@
                   outlined
                 >
                   <strong
-                    >{{ item.foreignLabelId.name }} ({{
-                      item.foreignLabelId.country
-                    }})</strong
+                    >{{ item.foreignLabelId.name }}</strong
                   >
                 </v-chip>
               </template>
             </v-combobox>
-          </template>
-          <template v-slot:[`item.country`]="{ item }">
-            <span>{{ item.mailchimpId.country }}</span>
           </template>
           <template v-slot:[`item.categories`]="{ item }">
             <ul
@@ -266,12 +246,6 @@ export default {
         value: "name",
       },
       {
-        text: "Pais",
-        align: "left",
-        sortable: false,
-        value: "country",
-      },
-      {
         text: "Etiquetas Todofull",
         align: "left",
         sortable: false,
@@ -289,30 +263,6 @@ export default {
     rolPermisos: {},
   }),
   computed: {
-    labelsFromTodoFull() {
-      return this.labels
-        .filter((el) => !el.country)
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({ ...el, nameWithCountry: el.name }));
-    },
-    labelsFromPeru() {
-      return this.labels
-        .filter((el) => el.country === "Peru")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
-    labelsFromChile() {
-      return this.labels
-        .filter((el) => el.country === "Chile")
-        .sort((a, b) => this.sortAlphabetically(a, b, "name"))
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }));
-    },
     formTitle() {
       return this.editedIndex === -1
         ? this.$t(this.entity + ".NEW_ITEM")
@@ -341,7 +291,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Mailchimp',
-          'model':'Etiquetas'
+          'model':'Etiquetas',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -353,12 +304,22 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list"),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
-        this.$store.dispatch("ecommercesTagsModule/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesTagsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch("todofullLabelsModule/list"),
-        this.$store.dispatch("ecommercesAttributesModule/list"),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         ]);
 
       //asignar al data del componente
@@ -373,7 +334,7 @@ export default {
         ...this.getAttributesWithValues(
           this.$store.state.ecommercesAttributesModule.ecommercesAttributes
         ),
-      ];
+      ].sort((a, b) => this.sortAlphabetically(a, b, "name"));
       // poblando datos del label en base a id
       for (let i = 0; i < this[ENTITY].length; i++) {
         this[ENTITY][i].foreignLabelId = this.labels.find(
@@ -418,6 +379,7 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem
@@ -436,27 +398,12 @@ export default {
           attributesWithValues.push({
             name: attribute.name + " " + term.name,
             _id: term._id,
-            country: attribute.woocommerceId.country,
-            nameWithCountry:
-              attribute.name +
-              " " +
-              term.name +
-              (attribute.woocommerceId.country
-                ? ` (${attribute.woocommerceId.country})`
-                : ""),
             source: "EcommercesAttributes",
           });
         }
       }
       return attributesWithValues.sort((a, b) =>
-        this.sortAlphabetically(a, b, "nameWithCountry")
-      );
-    },
-    filterByCountry(facebookLabel, country) {
-      return (
-        this.$store.state.botsModule.bots.find(
-          (bot) => bot.fanpageId === facebookLabel.fanpageId
-        ).country === country
+        this.sortAlphabetically(a, b, "name")
       );
     },
     sortAlphabetically(a, b, attribute) {

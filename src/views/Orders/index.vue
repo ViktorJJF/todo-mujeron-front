@@ -159,7 +159,11 @@ export default {
 
   methods: {
     async initialize() {
-      await Promise.all([this.$store.dispatch("ordersModule/list", { catalog: this.$route.params.id })]);
+      await Promise.all([this.$store.dispatch("ordersModule/list", {
+        sort: "updatedAt",
+        order: -1,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       this.orders = this.$deepCopy(this.$store.state.ordersModule.orders)
       this.locaciones = this.$store.state.locacionesModule.locaciones;
     },

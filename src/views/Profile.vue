@@ -101,9 +101,6 @@ export default {
     },
   },
   computed: {
-    countries() {
-      return this.$store.state.countries;
-    },
     cities() {
       return this.$store.state.cities;
     },

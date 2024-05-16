@@ -59,7 +59,6 @@ export default {
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
         text: "Nombres",

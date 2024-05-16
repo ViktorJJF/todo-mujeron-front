@@ -329,7 +329,7 @@
                                 <v-select
                                   dense
                                   hide-details
-                                  placeholder="Selecciona un país"
+                                  placeholder="Selecciona un tipo de publicacion"
                                   item-value="value"
                                   outlined
                                   :items="[
@@ -358,19 +358,6 @@
                                   item-text="name"
                                 ></v-select>
                               </v-col>
-
-                              <v-col
-                                cols="12"
-                                sm="6"
-                                v-show="getBotId(editedItem.postUrl)"
-                              >
-                                <b>País: </b>
-                                {{
-                                  getBotId(editedItem.postUrl)
-                                    ? getBotId(editedItem.postUrl).country
-                                    : ""
-                                }}
-                              </v-col>
                               <v-col
                                 cols="12"
                                 sm="12"
@@ -382,7 +369,7 @@
                                 </p>
                                 <v-autocomplete
                                   :disabled="!selectedFanpage"
-                                  item-text="nameWithCountry"
+                                  item-text="name"
                                   item-value="_id"
                                   :search-input.sync="searchProduct"
                                   v-model="selectedProducts"
@@ -623,7 +610,7 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > commentsFacebook.length
-                ? $store.state.llmTracker.total
+                ? $store.state.llmTracker?.total
                 : $store.state.itemsPerPage
             }}
             de {{ commentsFacebook.length }} registros
@@ -748,7 +735,6 @@ export default {
     dialog: false,
     dialog3: false,
     dialogGpt: false,
-    paises: ["Peru", "Chile", "Colombia"],
     headers: [
       {
         text: "Fecha",
@@ -768,12 +754,6 @@ export default {
         sortable: false,
         value: "postUrl",
         width: "100px",
-      },
-      {
-        text: "País",
-        align: "left",
-        sortable: true,
-        value: "botId.country",
       },
       {
         text: "Productos agregados",
@@ -856,6 +836,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Facebook/Facebook",
           model: "Comentarios",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -881,8 +862,17 @@ export default {
         payload.products = this.selectedProductsSearch;
       }
       await Promise.all([
-        this.$store.dispatch("commentsFacebookModule/list", payload),
-        this.$store.dispatch("botsModule/list"),
+        this.$store.dispatch("commentsFacebookModule/list", {
+          page,
+          search: this.search,
+          fieldsToSearch: this.fieldsToSearch,
+          sort: "updatedAt",
+          order: "desc",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
@@ -997,17 +987,21 @@ export default {
         payload.country = this.selectedCountry;
       }
       await Promise.all([
-        this.$store.dispatch("ecommercesModule/list", payload),
+        this.$store.dispatch("ecommercesModule/list", {
+          sort: "name",
+          page,
+          search: this.searchProduct,
+          fieldsToSearch: ["name", "ref"],
+          listType: "All",
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       //asignar al data del componente
 
       // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
       this.rawProducts = this.products = this.$deepCopy(
         this.$store.state.ecommercesModule.ecommerces
-      ).map((el) => ({
-        ...el,
-        nameWithCountry: el.name + ` (${el.country})`,
-      }));
+      );
     },
     onSelectedProducts(e) {
       this.searchProduct = "";
@@ -1023,28 +1017,13 @@ export default {
       }
     },
     getBotId(link) {
-      if (link.trim().length > 0)
-        return this.$store.state.botsModule.bots.find(
+      if (link.trim().length > 0) {
+        const filteredBot = this.$store.state.botsModule.bots.find(
           (bot) =>
-            bot.country == this.getCountryByPostLink(link) ||
             link.toLowerCase().includes(bot.fanpageId) ||
             link.toLowerCase().includes(bot.fanpageName)
         );
-    },
-    getCountryByPostLink(link) {
-      let bots = this.$store.state.botsModule.bots;
-      for (const bot of bots) {
-        if (bot.platform == "facebook") {
-          if (
-            link
-              .toLowerCase()
-              .includes(bot.fanpageName.toLowerCase().replace("@", "")) ||
-            link.toLowerCase().includes(bot.fanpageId) ||
-            link.toLowerCase().includes(bot.fanpageName)
-          ) {
-            return bot.country;
-          }
-        }
+        return filteredBot;
       }
     },
     remove(item) {
@@ -1053,7 +1032,10 @@ export default {
       this.selectedProducts = null;
     },
     async generateTemplate(product) {
-      await this.$store.dispatch("facebookLabelsModule/list", { limit: 9999 });
+      await this.$store.dispatch("facebookLabelsModule/list", {
+        limit: 9999,
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      });
       // obteniendo etiquetas emparejadas con categorias
       let facebookLabels = [];
       product.categories.forEach((category) => {

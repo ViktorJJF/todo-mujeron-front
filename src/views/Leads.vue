@@ -61,10 +61,11 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <CountriesSelector
+                  <CompaniesSelector
                     :multiple="true"
-                    @onSelectedCountries="
-                      selectedCountries = $event;
+                    :initial-data="[getCurrentCompany()]"
+                    @onSelectedCompanies="
+                      selectedCompanies = $event;
                       initialize(
                         buildPayloadPagination(
                           {
@@ -75,7 +76,7 @@
                         )
                       );
                     "
-                  ></CountriesSelector>
+                  ></CompaniesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -879,7 +880,7 @@ import odooService from "@/services/api/odoo";
 import graphApiService from "@/services/api/graphApi";
 import cleanLeadsService from "@/services/api/cleanLeads";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
-import CountriesSelector from "@/components/CountriesSelector.vue";
+import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
 import MarketingCampaignsService from "@/services/api/marketingCampaigns";
 import chatService from "@/services/api/chats";
@@ -898,7 +899,7 @@ export default {
     VTextFieldWithValidation,
     TodofullLabelsSelector,
     MarketingSegmentsForm,
-    CountriesSelector,
+    CompaniesSelector,
     MarketingSegments,
   },
   filters: {
@@ -923,7 +924,7 @@ export default {
     selectedSegment: null,
     seeAllSegmentsDialog: false,
     todofullLabelsDialog: false,
-    selectedCountries: [],
+    selectedCompanies: [],
     activatePreview: true,
     isSegmentFinalStep: false,
     segmentName: "",
@@ -934,14 +935,12 @@ export default {
     globalSelector: false,
     selectedLabels: [],
     isFilterEmptyActive: false,
-    filterCountries: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
@@ -1033,13 +1032,13 @@ export default {
         ...this.$store.state.botsModule.bots.map((bot) => ({
           _id: bot._id,
           name: bot.name,
-          country: bot.country,
+          company: bot.company,
         })),
         ...this.$store.state.woocommercesModule.woocommerces.map(
           (woocommerce) => ({
             _id: woocommerce._id,
             name: woocommerce.domain,
-            country: woocommerce.country,
+            company: woocommerce.company,
           })
         ),
         { name: "WHATSAPP" },
@@ -1062,13 +1061,11 @@ export default {
     telefonoId() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
-    filterCountries() {
-      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    },
   },
 
   mounted() {
     this.$store.commit("loadingModule/showLoading");
+    this.selectedCompanies = [this.getCurrentCompany()];
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     console.log(this.sourceSelectList);
     this.rolAuth();
@@ -1081,6 +1078,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "ChatBot/Leads",
           model: "Leads",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -1096,12 +1094,11 @@ export default {
         order: "desc",
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       if (this.selectedLabels && this.selectedLabels.length > 0) {
         body["todofullLabels"] = this.selectedLabels.map((el) => el._id);
       }
-      if (this.selectedCountries.length > 0) {
-        body["countries"] = this.selectedCountries;
+      if (this.selectedCompanies.length > 0) {
+          body["companies"] = this.selectedCompanies.map(c => c?._id);
       }
       if (this.showLeadsWithoutLabel) {
         body["showLeadsWithoutLabels"] = true;
@@ -1169,6 +1166,9 @@ export default {
             });
         }
       });
+    },
+    getCurrentCompany() {
+      return this.$store.getters["authModule/getCurrentCompany"].company;
     },
     buildPayloadPagination(page, searchPayload) {
       return buildPayloadPagination(
@@ -1299,15 +1299,13 @@ export default {
             //Generando nota
             this.editedItem.estado = "SIN ASIGNAR";
           }
-          //ASIGNANDO PAIS POR DEFECTO
-          this.editedItem.details[0].pais = this.sourceSelectList.find(
-            (el) => el._id === this.editedItem.details[0].fuente
-          )
-            ? this.sourceSelectList.find(
-                (el) => el._id === this.editedItem.details[0].fuente
-              ).country
-            : "Chile";
           this.editedItem.details[0].type = "CHATBOT"; //pagina por defecto
+          const selectedSource = this.sourceSelectList.find(source => {
+            return source._id ? source._id === this.editedItem.details[0].fuente : false;
+          });
+          if (selectedSource) {
+            this.editedItem.details[0].company = selectedSource ? selectedSource.company : null;
+          }
           await this.$store.dispatch("cleanLeadsModule/create", {
             ...this.editedItem,
             is_manual: true,
@@ -1413,7 +1411,6 @@ export default {
       this.segmentDialog = false;
       this.isSegmentPreviewMode = false;
       this.selectedLabels = [];
-      this.selectedCountries = [];
       this.isSegmentFinalStep = false;
       this.activatePreview = true;
       this.dateFrom = null;
@@ -1421,10 +1418,9 @@ export default {
       this.botIds = [];
       this.showAllLeads();
     },
-    onPreviewSegment({ todofullLabels, countries, dateFrom, dateTo, botIds }) {
+    onPreviewSegment({ todofullLabels, dateFrom, dateTo, botIds }) {
       this.isSegmentPreviewMode = true;
       this.segmentDialog = false;
-      this.selectedCountries = countries;
       this.dateFrom = dateFrom;
       this.dateTo = dateTo;
       this.botIds = botIds;
@@ -1434,7 +1430,6 @@ export default {
       this.selectedSegment = null;
       this.isSegmentPreviewMode = false;
       this.selectedLabels = [];
-      this.selectedCountries = [];
       this.dateFrom = null;
       this.dateTo = null;
       this.botIds = [];

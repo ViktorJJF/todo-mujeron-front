@@ -56,28 +56,6 @@
                   </template>
                 </v-combobox>
               </v-col>
-              <v-col cols="12" sm="6">
-                <v-sheet max-width="700">
-                  <v-slide-group v-model="filterCountries" multiple show-arrows>
-                    <v-slide-item
-                      v-for="country in $store.state.countries"
-                      :key="country"
-                      v-slot="{ active, toggle }"
-                    >
-                      <v-btn
-                        class="mx-2"
-                        :input-value="active"
-                        active-class="purple white--text"
-                        depressed
-                        rounded
-                        @click="toggle"
-                      >
-                        {{ country }}
-                      </v-btn>
-                    </v-slide-item>
-                  </v-slide-group>
-                </v-sheet>
-              </v-col>
             </v-row>
             <span class="font-weight-bold"
               >Filtrar por nombre/apellido/teléfono: {{ search }}</span
@@ -404,14 +382,12 @@ export default {
     },
   },
   data: () => ({
-    filterCountries: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
@@ -522,9 +498,6 @@ export default {
     telefonoId() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
-    filterCountries() {
-      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
-    },
   },
   mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -539,6 +512,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "ChatBot/Leads",
           model: "Lista-Completa",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -549,16 +523,22 @@ export default {
       this.$store.commit("loadingModule/showLoading", true);
       let body = {
         ...paginationPayload,
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         sort: "updatedAt",
         order: "desc",
       };
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
       await Promise.all([
         this.$store.dispatch("leadsModule/list", body),
-        this.$store.dispatch("telefonosModule/list"),
-        this.$store.dispatch("botsModule/list"),
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("telefonosModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.$store.commit("loadingModule/showLoading", false);
 

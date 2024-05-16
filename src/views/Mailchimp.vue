@@ -54,17 +54,6 @@
                                 label="server. Ejemplo: us5"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <span class="font-weight-bold">País</span>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Selecciona un país"
-                                outlined
-                                :items="$store.state.countries"
-                                v-model="editedItem.country"
-                              ></v-select>
-                            </v-col>
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -227,12 +216,6 @@ export default {
         sortable: false,
         value: "server",
       },
-      {
-        text: "País",
-        align: "left",
-        sortable: false,
-        value: "country",
-      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     [ENTITY]: [],
@@ -273,7 +256,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Mailchimp',
-          'model':'Credenciales'
+          'model':'Credenciales',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -284,7 +268,9 @@ export default {
 
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list")]);
+      await Promise.all([this.$store.dispatch(ENTITY + "Module/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       // console.log(
       //   "el resultado: ",
       //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
@@ -330,6 +316,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",

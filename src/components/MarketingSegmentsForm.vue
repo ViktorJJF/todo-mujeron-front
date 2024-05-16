@@ -125,14 +125,6 @@
               multiple
             ></v-select>
           </v-col>
-          <v-col cols="12" sm="12" md="12">
-            <span class="font-weight-bold">País</span>
-            <CountriesSelector
-              :multiple="false"
-              :initialData="initialCountries"
-              @onSelectedCountries="onSelectedCountries"
-            ></CountriesSelector>
-          </v-col>
           <!-- <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">Bots WhatsApp</span>
             <v-sheet max-width="700">
@@ -196,7 +188,6 @@
             <strong>{{ label.name }}</strong>
           </v-chip>
         </div>
-        <div><b>País: </b>{{ editedItem.target_countries.join(" ,") }}</div>
         <!-- <div><b>Desde: </b>{{ editedItem.dateFrom }}</div>
         <div><b>Hasta: </b>{{ editedItem.dateTo }}</div> -->
       </v-container>
@@ -216,7 +207,6 @@
           @click="
             $emit('onPreview', {
               todofullLabels: editedItem.todofullLabels,
-              countries: editedItem.target_countries,
               botIds: editedItem.botIds,
             })
           "
@@ -236,7 +226,6 @@ const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import TodofullLabelsSelector from "@/components/TodofullLabelsSelector.vue";
-import CountriesSelector from "@/components/CountriesSelector.vue";
 export default {
   props: {
     editedIndex: {
@@ -249,7 +238,6 @@ export default {
         name: "",
         description: "",
         todofullLabels: [],
-        target_countries: [],
         filters: {
           includeWithEmail: true,
           includeWithoutEmail: true,
@@ -288,7 +276,6 @@ export default {
   components: {
     VTextFieldWithValidation,
     TodofullLabelsSelector,
-    CountriesSelector,
   },
   data() {
     return {
@@ -326,9 +313,6 @@ export default {
         ? []
         : this.editedItem.excludeTodofullLabels;
     },
-    initialCountries() {
-      return this.editedIndex === -1 ? [] : this.editedItem.target_countries;
-    },
   },
   methods: {
     onSelectTodofullLabels(selectedLabels) {
@@ -336,9 +320,6 @@ export default {
     },
     onSelectEcludeTodofullLabels(selectedLabels) {
       this.editedItem.excludeTodofullLabels = selectedLabels;
-    },
-    onSelectedCountries(selectedCountries) {
-      this.editedItem.target_countries = selectedCountries;
     },
     async save() {
       this.loadingButton = true;
@@ -353,6 +334,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           await this.$store.dispatch(ENTITY + "Module/create", this.editedItem);
         } finally {

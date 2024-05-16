@@ -5,7 +5,7 @@
         width="90%"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Facebook"
+        title="Telegram - Rutinas"
         text="Resumen de Rutinas"
       >
         <v-data-table
@@ -65,20 +65,6 @@
                                 v-model="editedItem.name"
                                 label="Ingresa el nombre"
                               />
-                            </v-col>
-                          </v-row>
-
-                          <v-row>
-                            <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Pais</div>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Seleccione un pais"
-                                outlined
-                                :items="paises"
-                                v-model="editedItem.country"
-                              ></v-select>
                             </v-col>
                           </v-row>
                           <v-row v-if="editedItem.country.length">
@@ -310,7 +296,6 @@ export default {
     editedIndex: -1,
     editedItem: TelegramRoutines(),
     defaultItem: TelegramRoutines(),
-    paises: ["Peru", "Chile", "Colombia", "Estados Unidos", "Argentina"],
     scheduleTimeMenu: false,
     scheduleTime: null,
     status: [
@@ -365,7 +350,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades',
-          'model':'Facebook'
+          'model':'Facebook',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -382,7 +368,9 @@ export default {
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list")]);
+      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })]);
       this.routines = this.$deepCopy(this.$store.state.telegramRoutinesModule.routines);
     },
     editItem(item) {

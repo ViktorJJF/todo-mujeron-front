@@ -66,6 +66,42 @@
         width="800px"
         icon="mdi-lock-check"
         color="primary"
+        title="Compañias"
+      >
+        <ValidationObserver ref="obs" v-slot="{ passes }">
+          <v-form>
+            <v-container>
+              <v-col cols="12">
+                <span class="body-1 font-weight-bold"
+                  >Compañia</span>
+                <VSelectWithValidation
+                  v-model="selectedCompanies"
+                  :items="companies"
+                  rules="required"
+                  item-text="alias"
+                  item-value="_id"
+                  placeholder="Seleccionar Compañia"
+                  multiple
+                  clearable
+                  chips
+                />
+              </v-col>
+              <v-card-actions>
+                <div class="flex-grow-1"></div>
+                <v-btn color="success" @click="passes(updateUser)"
+                  >Guardar</v-btn
+                >
+              </v-card-actions>
+            </v-container>
+          </v-form>
+        </ValidationObserver>
+      </material-card>
+    </v-row>
+    <v-row justify="center">
+      <material-card
+        width="800px"
+        icon="mdi-lock-check"
+        color="primary"
         title="Permisos del Chat"
       >
         <ValidationObserver ref="obs" v-slot="{ passes }">
@@ -73,10 +109,12 @@
             <v-container>
               <v-row dense>
                 <v-col>
-                  <p class="body-1 font-weight-bold mb-0">Paises</p>
+                  <p class="body-1 font-weight-bold mb-0">Compañias</p>
                   <VSelectWithValidation
-                    :items="countries"
-                    v-model="user.chatsPermissions.countries"
+                    :items="companies"
+                    item-text="alias"
+                    item-value="_id"
+                    v-model="user.chatsPermissions.companies"
                     clearable
                     multiple
                     chips
@@ -175,6 +213,8 @@ export default {
     return {
       newPassword: "",
       user: null,
+      companies: [],
+      selectedCompanies: [],
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
@@ -203,22 +243,33 @@ export default {
         query: { chatsPermissions: true },
       });
 
+      await this.$store.dispatch("companiesModule/list"),
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies
+      );
+
       if (!user.chatsPermissions) {
         Object.assign(user, {
           chatsPermissions: {
-            countries: [],
             platforms: [],
             assigned: null,
             status: [],
           },
         });
       }
-
       this.user = user;
+      this.selectedCompanies = this.user.corporation.companies.map(c => c.company);
     },
     async save() {
       this.loadingButton = true;
       let itemId = this.user._id;
+      this.user.companies = this.selectedCompanies.map(c => {
+        return {
+          company: {
+            _id: c,
+          }
+        };
+      });
       await this.$store.dispatch("usersModule/update", {
         id: itemId,
         data: this.user,
@@ -226,6 +277,11 @@ export default {
     },
     updateUser() {
       console.log(this.user._id);
+      this.user.corporation.companies = this.selectedCompanies.map(c => ({
+        company: {
+          _id: c,
+        }
+      }));
       this.$store.dispatch("usersModule/update", {
         id: this.user._id,
         data: this.user,
@@ -250,9 +306,6 @@ export default {
     },
   },
   computed: {
-    countries() {
-      return this.$store.state.countries;
-    },
     cities() {
       return this.$store.state.cities;
     },
