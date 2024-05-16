@@ -230,8 +230,8 @@
               {{ item.description }}
             </span></template
           >
-          <template v-slot:[`item.date_modified`]="{ item }">{{
-            item.date_modified | formatDate
+          <template v-slot:[`item.updatedAt`]="{ item }">{{
+            item.updatedAt | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
@@ -292,7 +292,7 @@ export default {
         text: "Última modificación",
         align: "left",
         sortable: false,
-        value: "date_modified",
+        value: "updatedAt",
       },
       {
         text: "Fuente",
@@ -395,7 +395,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Configuracion/Propiedades/Woocommerces',
-          'model':'Contactos'
+          'model':'Contactos',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;
@@ -407,11 +408,12 @@ export default {
       //llamada asincrona de items
       await Promise.all([
         this.$store.dispatch(ENTITY + "Module/list", {
-          sort: "date_modified",
+          sort: "updatedAt",
           order: -1,
           page,
           search: this.search,
           fieldsToSearch: this.fieldsToSearch,
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
         this.$store.dispatch("categoriesModule/list"),
         this.$store.dispatch("brandsModule/list"),

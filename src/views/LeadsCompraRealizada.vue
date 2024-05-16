@@ -58,24 +58,22 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-sheet max-width="700">
-                  <v-slide-group v-model="filterCountries" multiple show-arrows>
-                    <v-slide-item
-                      v-for="country in $store.state.countries"
-                      :key="country"
-                      v-slot="{ active, toggle }"
-                    >
-                      <v-btn
-                        class="mx-2"
-                        :input-value="active"
-                        active-class="purple white--text"
-                        depressed
-                        rounded
-                        @click="toggle"
-                      >
-                        {{ country }}
-                      </v-btn>
-                    </v-slide-item>
-                  </v-slide-group>
+                  <CompaniesSelector
+                    :multiple="true"
+                    :initial-data="[getCurrentCompany()]"
+                    @onSelectedCompanies="
+                      selectedCompanies = $event;
+                      initialize(
+                        buildPayloadPagination(
+                          {
+                            page: 1,
+                            itemsPerPage: $store.state.itemsPerPage,
+                          },
+                          buildSearch()
+                        )
+                      );
+                    "
+                  ></CompaniesSelector>
                 </v-sheet>
               </v-col>
             </v-row>
@@ -400,6 +398,7 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import Leads from "@/classes/Leads";
 import { buildPayloadPagination } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
@@ -408,6 +407,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    CompaniesSelector,
   },
   filters: {
     formatDate: function (value) {
@@ -417,14 +417,13 @@ export default {
     },
   },
   data: () => ({
-    filterCountries: [],
+    selectedCompanies: [],
     dataTableLoading: true,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
     dialog: false,
-    paises: ["Peru", "Chile", "Colombia"],
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
@@ -516,13 +515,14 @@ export default {
     telefonoId() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
-    filterCountries() {
+    filterCompanies() {
       this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     },
   },
 
   mounted() {
     this.$store.commit("loadingModule/showLoading");
+    this.selectedCompanies = [this.getCurrentCompany()];
     this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
     this.rolAuth();
   },
@@ -534,6 +534,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "ChatBot/Leads",
           model: "Compra-Realizada",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -550,10 +551,12 @@ export default {
       };
       body["estado"] = "COMPRA REALIZADA";
       if (this.telefonoId) body["telefonoId"] = this.telefonoId._id;
-      if (this.filterCountries.length > 0) body["pais"] = this.filterCountries;
+      if (this.selectedCompanies.length > 0) {
+          body["companies"] = this.selectedCompanies.map(c => c?._id);
+      }
       await Promise.all([
         this.$store.dispatch("cleanLeadsModule/list", body),
-        this.$store.dispatch("telefonosModule/list"),
+        this.$store.dispatch("telefonosModule/list",),
         this.$store.dispatch("botsModule/list"),
         this.$store.dispatch("woocommercesModule/list"),
       ]);
@@ -572,6 +575,9 @@ export default {
         })
       );
       this.dataTableLoading = false;
+    },
+    getCurrentCompany() {
+      return this.$store.getters["authModule/getCurrentCompany"].company;
     },
     buildPayloadPagination(page, searchPayload) {
       return buildPayloadPagination(

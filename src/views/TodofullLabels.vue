@@ -113,7 +113,7 @@
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Página Web</p>
                               <v-combobox
-                                item-text="nameWithCountry"
+                                item-text="name"
                                 v-model="editedItem.webTags"
                                 :items="webTags"
                                 multiple
@@ -141,7 +141,7 @@
                                     color="deep-purple accent-4"
                                     outlined
                                   >
-                                    <strong>{{ item.nameWithCountry }}</strong>
+                                    <strong>{{ item.name }}</strong>
                                   </v-chip>
                                 </template>
                               </v-combobox>
@@ -149,7 +149,7 @@
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Atributos</p>
                               <v-combobox
-                                item-text="nameWithCountry"
+                                item-text="name"
                                 v-model="editedItem.attributeTags"
                                 :items="attributeTags"
                                 multiple
@@ -177,12 +177,12 @@
                                     color="deep-purple accent-4"
                                     outlined
                                   >
-                                    <strong>{{ item.nameWithCountry }}</strong>
+                                    <strong>{{ item.name }}</strong>
                                   </v-chip>
                                 </template>
                               </v-combobox>
                             </v-col>
-                            <v-col cols="12" sm="12" md="12">
+                            <!-- <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">
                                 Retail Rocket
                               </p>
@@ -223,7 +223,7 @@
                                   </v-chip>
                                 </template>
                               </v-combobox>
-                            </v-col>
+                            </v-col> -->
                           </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
@@ -414,7 +414,7 @@ export default {
     labels: [],
     messengerTags: [],
     webTags: [],
-    retailRocketTags: [],
+    // retailRocketTags: [],
     usedTags: [],
     attributeTags: [],
   }),
@@ -452,6 +452,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/TodoFull",
           model: "TodofullLabels",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -461,12 +462,21 @@ export default {
     async initialize() {
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch("botsModule/list"),
-        this.$store.dispatch("ecommercesCategoriesModule/list"),
-        this.$store.dispatch("facebookLabelsModule/list"),
-        this.$store.dispatch("retailRocketTagsModule/list"),
-        this.$store.dispatch("ecommercesAttributesModule/list"),
+        this.$store.dispatch("botsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("ecommercesCategoriesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch("facebookLabelsModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        // this.$store.dispatch("retailRocketTagsModule/list"),
+        this.$store.dispatch("ecommercesAttributesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
+
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -480,16 +490,10 @@ export default {
               nameWithFanpage: `${el.name} (${
                 this.$store.state.botsModule.bots.find(
                   (bot) => bot.fanpageId === el.fanpageId
-                ).name
+                )?.name
               })`,
             })
           );
-        }
-        if (todoFullLabel.webTags) {
-          todoFullLabel.webTags = todoFullLabel.webTags.map((el) => ({
-            ...el,
-            nameWithCountry: `${el.name} (${el.country})`,
-          }));
         }
         if (todoFullLabel.attributeTags) {
           todoFullLabel.attributeTags = getAttributesWithValues(
@@ -505,12 +509,7 @@ export default {
       // etiquetas messenger
       this.webTags = this.$store.state[
         "ecommercesCategoriesModule"
-      ].ecommercesCategories
-        .map((el) => ({
-          ...el,
-          nameWithCountry: `${el.name} (${el.country})`,
-        }))
-        .sort((a, b) => sortAlphabetically(a, b, "name"));
+      ].ecommercesCategories.sort((a, b) => sortAlphabetically(a, b, "name"));
       this.messengerTags = this.$store.state[
         "facebookLabelsModule"
       ].facebookLabels
@@ -524,8 +523,8 @@ export default {
           })`,
         }))
         .sort((a, b) => sortAlphabetically(a, b, "name"));
-      this.retailRocketTags =
-        this.$store.state["retailRocketTagsModule"].retailRocketTags;
+      /*this.retailRocketTags =
+        this.$store.state["retailRocketTagsModule"].retailRocketTags;*/
       // attriutes
       this.attributeTags = getAttributesWithValues(
         this.$store.state["ecommercesAttributesModule"].ecommercesAttributes
@@ -567,9 +566,9 @@ export default {
           editedItem.webTags = editedItem.webTags
             ? editedItem.webTags.map((el) => el._id)
             : [];
-          editedItem.retailRocketTags = editedItem.retailRocketTags
+          /*editedItem.retailRocketTags = editedItem.retailRocketTags
             ? editedItem.retailRocketTags.map((el) => el._id)
-            : [];
+            : [];*/
           await this.$store.dispatch(ENTITY + "Module/update", {
             id: itemId,
             data: editedItem,
@@ -582,6 +581,8 @@ export default {
       } else {
         //create item
         try {
+          this.editedItem.corporation = this.$store.state.authModule.user.corporation.corporation;
+          
           let newItem = await this.$store.dispatch(
             ENTITY + "Module/create",
             this.editedItem

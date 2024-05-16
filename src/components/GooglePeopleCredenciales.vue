@@ -88,7 +88,9 @@ export default {
     };
   },
   async mounted() {
-    await this.$store.dispatch("telefonosModule/list"); 
+    await this.$store.dispatch("telefonosModule/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }); 
     this.initialize();
   },
   methods: {
@@ -147,6 +149,7 @@ export default {
           credenciales: this.credenciales,
         },
       });
+      
     },
   },
 };

@@ -77,6 +77,20 @@
                             </v-col>
                             <v-col cols="12">
                               <span class="body-1 font-weight-bold"
+                                >Locaciones</span>
+                              <VSelectWithValidation
+                                v-model="editedItem.locations"
+                                :items="locations"
+                                item-text="nombre"
+                                item-value="_id"
+                                placeholder="Seleccionar Locaciones"
+                                multiple
+                                clearable
+                                chips
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
                                 >Agentes</span
                               >
                               <VSelectWithValidation
@@ -121,6 +135,12 @@
                 </v-col>
               </v-row>
             </v-container>
+          </template>
+          <template v-slot:item.locations="{ item }">
+            <span v-for="(team, index) in item.locations" :key="index">
+              - {{ team.nombre }}
+              <br>
+            </span>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
@@ -205,6 +225,12 @@ export default {
         value: "nombre",
       },
       {
+        text: "Locaciones",
+        align: "left",
+        sortable: true,
+        value: "locations",
+      },
+      {
         text: "Agregado",
         align: "left",
         sortable: true,
@@ -213,6 +239,7 @@ export default {
       { text: "Acciones", value: "action", sortable: false },
     ],
     equipoDeVentas: [],
+    locations: [],
     editedIndex: -1,
     editedItem: EquipoDeVentas(),
     defaultItem: EquipoDeVentas(),
@@ -238,15 +265,24 @@ export default {
   async created() {
     this.$store.commit("loadingModule/showLoading");
     await Promise.all([
-      this.$store.dispatch("equipoDeVentasModule/list"),
+      this.$store.dispatch("equipoDeVentasModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      }),
       this.$store.dispatch("todofullLabelsModule/list", {
         sort: "name",
         order: "asc",
       }),
+      this.$store.dispatch("locacionesModule/list", {
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      }),
     ]);
     this.initialize();
     this.rolAuth();
-    agentsApi.list().then((res) => {
+    agentsApi.list({
+      sort: "name",
+      order: "1",
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    }).then((res) => {
       this.agents = res.data.payload;
     });
   },
@@ -258,6 +294,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/TodoFull",
           model: "EquipodeVentas",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -270,6 +307,9 @@ export default {
       );
       this.todofullLabels = this.$deepCopy(
         this.$store.state.todofullLabelsModule.todofullLabels
+      );
+      this.locations = this.$deepCopy(
+        this.$store.state.locacionesModule.locaciones
       );
     },
     editItem(item) {
@@ -300,17 +340,18 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this.equipoDeVentas[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("equipoDeVentasModule/update", {
+          const updatedItem = await this.$store.dispatch("equipoDeVentasModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.equipoDeVentas[this.editedIndex], this.editedItem);
+          Object.assign(this.equipoDeVentas[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             "equipoDeVentasModule/create",

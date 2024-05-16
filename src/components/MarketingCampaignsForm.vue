@@ -214,9 +214,6 @@ export default {
     initialTodofullLabels() {
       return this.editedIndex === -1 ? [] : this.editedItem.todofullLabels;
     },
-    initialCountries() {
-      return this.editedIndex === -1 ? [] : this.editedItem.target_countries;
-    },
     scheduleDateTime() {
       return new Date(this.date + " " + this.editedItem.scheduleTime);
     },
@@ -247,9 +244,6 @@ export default {
     },
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
-    },
-    onSelectedCountries(selectedCountries) {
-      this.editedItem.target_countries = selectedCountries;
     },
     async save() {
       this.loadingButton = true;

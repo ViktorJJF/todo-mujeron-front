@@ -6,6 +6,8 @@ import router from "@/router";
 
 const state = () => ({
   user: null,
+  companies: [],
+  selectedCompany: null,
   token: JSON.parse(!!localStorageGet("token")) || null,
   isTokenSet: !!localStorageGet("token"),
 });
@@ -15,6 +17,7 @@ const getters = {
     state.user ? state.user.first_name + " " + state.user.last_name : " ",
   token: (state) => (state.user ? state.user.token : " "),
   isTokenSet: (state) => state.isTokenSet,
+  getCurrentCompany: (state) => state.selectedCompany,
 };
 const actions = {
   initialLoad({ commit }) {
@@ -22,15 +25,17 @@ const actions = {
       commit("initialLoad");
     }
   },
-  login({ commit }, { email, password }) {
+  login({ commit }, { corporation, user: { email, password } }) {
     return new Promise((resolve, reject) => {
       commit("loadingModule/showLoading", true, { root: true });
       api
-        .login(email, password)
+        .login(email, password, corporation)
         .then((response) => {
           if (response.status === 200) {
             localStorage.setItem("user", JSON.stringify(response.data.user));
             localStorage.setItem("token", response.data.token);
+
+            const index = response.data.user.corporation.companies.findIndex(c => c.default === true);
             // window.localStorage.setItem(
             //   "tokenExpiration",
             //   JSON.stringify(
@@ -42,6 +47,10 @@ const actions = {
             // );
             commit("saveUser", response.data.user);
             commit("saveToken", response.data.token);
+            commit("setCompanies", response.data.user.corporation.companies)
+            if (index >= 0) {
+              commit("setCurrentCompany", response.data.user.corporation.companies[index].company._id);
+            }
             // commit(types.EMAIL_VERIFIED, response.data.user.verified);
             buildSuccess("Bienvenido", commit);
             resolve();
@@ -85,15 +94,29 @@ const actions = {
     const user = JSON.parse(localStorageGet("user"));
     commit("saveUser", user);
     commit("saveToken", localStorageGet("token"));
+    commit("setCompanies", user.corporation.companies)
+    const selectedCompany = JSON.parse(localStorageGet("selectedCompany"));
+    if (selectedCompany) {
+      commit("setCurrentCompany", selectedCompany.company._id);
+    }
+    
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("tokenExpiration");
     window.localStorage.removeItem("user");
+    window.localStorage.removeItem("selectedCompany");
     router.push({ name: "login" });
     commit("logout");
   },
+  setCompanies({ commit }, companies) {
+    commit("setCompanies", companies)
+  },
+  setCurrentCompany({ commit }, id) {
+    commit("setCurrentCompany", id);
+  },
+
   // editUser({ commit }, { id, data }) {
   //   return new Promise((resolve, reject) => {
   //     commit("loadingModule/showLoading", true, { root: true });
@@ -124,6 +147,14 @@ const mutations = {
   saveUser(state, user) {
     state.user = user;
   },
+  setCurrentCompany(state, id) {
+    const index = state.companies.findIndex(c => c.company._id === id);
+    state.selectedCompany = state.companies[index];
+    localStorage.setItem("selectedCompany", JSON.stringify(state.selectedCompany));
+  },
+  setCompanies(state, companies) {
+    state.companies = companies;
+  }
 };
 
 const namespaced = true;

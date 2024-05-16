@@ -9,10 +9,10 @@ const module = {
     totalPages: 0,
   },
   actions: {
-    list({ commit }, { catalog }) {
+    list({ commit }, query) {
       return new Promise((resolve, reject) => {
-        let resPromise = catalog
-          ? api.list(catalog)
+        let resPromise = query
+          ? api.list(query)
           : api.listAll()
 
         resPromise.then((response) => {

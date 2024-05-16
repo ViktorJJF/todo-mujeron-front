@@ -40,15 +40,6 @@
           </v-sheet>
         </v-col>
         <v-col cols="12" sm="12">
-          <CountriesSelector
-            :multiple="true"
-            @onSelectedCountries="
-              selectedCountries = $event;
-              initialize();
-            "
-          ></CountriesSelector>
-        </v-col>
-        <v-col cols="12" sm="12">
           <span>
             <strong>Mostrando:</strong>
             {{
@@ -288,12 +279,10 @@ import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import chatService from "@/services/api/chats";
 import { es } from "date-fns/locale";
-import CountriesSelector from "@/components/CountriesSelector";
 
 export default {
   components: {
     MaterialCard,
-    CountriesSelector,
   },
   filters: {
     formatDate: function(value) {
@@ -305,7 +294,6 @@ export default {
   data: () => ({
     selectedPlatformsIndexes: [],
     selectedPlatforms: [],
-    selectedCountries: [],
     selectedChatId: null,
     noChat: false,
     chatDialog: null,
@@ -346,12 +334,6 @@ export default {
         align: "left",
         sortable: false,
         value: "platform",
-      },
-      {
-        text: "Pais",
-        align: "left",
-        sortable: false,
-        value: "country",
       },
       {
         text: "Post",
@@ -405,6 +387,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Genial",
           model: "Marcas",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -423,9 +406,6 @@ export default {
       };
       if (this.selectedPlatforms.length > 0) {
         payload.platforms = this.selectedPlatforms;
-      }
-      if (this.selectedCountries.length > 0) {
-        payload.countries = this.selectedCountries;
       }
       await Promise.allSettled([
         this.$store.dispatch("botsModule/list", payload),

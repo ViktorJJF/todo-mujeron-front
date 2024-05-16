@@ -36,15 +36,6 @@
                     outlined
                   />
                 </v-col>
-                <v-col>
-                  <country-select
-                    class="mr-2 d-flex"
-                    style="max-width: 200px;"
-                    v-model="country"
-                    clearable
-                    @input="() => initialize(page)"
-                  />
-                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
@@ -195,12 +186,10 @@ import MaterialCard from '@/components/material/Card'
 import { es } from 'date-fns/locale'
 import auth from '@/services/api/auth'
 import EcommercesApi from '@/services/api/ecommerces'
-import CountrySelect from '@/components/catalog/CountrySelect'
 
 export default {
   components: {
     MaterialCard,
-    CountrySelect,
   },
   filters: {
     formatDate: function(value) {
@@ -215,7 +204,6 @@ export default {
     switchLoading: [],
     currentStock: 0,
     items: [],
-    country: null,
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
       (val) => val >= 0 || 'No puede ser negativo',
@@ -254,12 +242,6 @@ export default {
         align: 'left',
         sortable: false,
         value: 'title',
-      },
-      {
-        text: 'Ciudad',
-        align: 'left',
-        sortable: false,
-        value: 'country',
       },
       {
         text: 'Fuente',
@@ -367,8 +349,9 @@ export default {
       auth
         .roleAuthorization({
           id: this.$store.state.authModule.user._id,
-          menu: 'Configuracion/Propiedades/Woocommerces',
-          model: 'Productos',
+          menu: "Configuracion/Propiedades/Woocommerces",
+          model: "Productos",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data
@@ -381,15 +364,17 @@ export default {
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
-        sort: 'date_modified',
+        sort: "updatedAt",
         order: -1,
-        listType: 'All',
-        country: this.country,
-      }
+        listType: "All",
+      };
+      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
-        this.$store.dispatch('woocommercesModule/list'),
-        this.$store.dispatch(ENTITY + 'Module/list', payload),
-      ])
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch(ENTITY + "Module/list", payload),
+      ]);
       //asignar al data del componente
       const products = this.$deepCopy(
         this.$store.state[ENTITY + 'Module'][ENTITY]

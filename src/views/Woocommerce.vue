@@ -295,6 +295,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: 'Configuracion/Propiedades/Woocommerces',
           model: 'Woocommerces',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data
@@ -303,7 +304,10 @@ export default {
     },
 
     async initialize() {
-      stockBoundaryApi.findByTarget('woocommerce').then((res) => {
+      stockBoundaryApi.findByTarget({
+        target: "woocommerce",
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+      }).then((res) => {
         this.stockBoundary = res.data.payload
         if (this.stockBoundary) {
           this.minStock = this.stockBoundary.min
@@ -311,8 +315,12 @@ export default {
       })
 
       await Promise.all([
-        this.$store.dispatch('woocommercesModule/list'),
-        this.$store.dispatch('locacionesModule/list'),
+        this.$store.dispatch('woocommercesModule/list', {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
+        this.$store.dispatch('locacionesModule/list', {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ])
 
       this.woocommerces = this.$deepCopy(
@@ -324,7 +332,9 @@ export default {
         (locacion) => locacion.value !== undefined
       )
 
-      const res = await vendorsApi.list()
+      const res = await vendorsApi.list({
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      })
       this.vendors = res.data.payload
       console.log('🚀 Aqui *** -> this.vendors', this.vendors)
     },
@@ -389,6 +399,7 @@ export default {
         }
       } else {
         //create item
+        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           let newItem = await this.$store.dispatch(
             'woocommercesModule/create',

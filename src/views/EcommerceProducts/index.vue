@@ -596,12 +596,6 @@ export default {
         value: "woocommerceId",
       },
       {
-        text: "País",
-        align: "left",
-        sortable: false,
-        value: "country",
-      },
-      {
         text: "Link",
         align: "left",
         sortable: false,
@@ -674,6 +668,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Woocommerces",
           model: "Productos",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -742,8 +737,11 @@ export default {
       if (this.selectedWoocommerce && this.selectedWoocommerce._id) {
         payload["woocommerceId"] = this.selectedWoocommerce._id;
       }
+      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
-        this.$store.dispatch("woocommercesModule/list"),
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
       //asignar al data del componente

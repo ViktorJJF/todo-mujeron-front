@@ -23,6 +23,5 @@ export default () => ({
     value: "",
   },
   line_items: [],
-  country: "",
   url: "",
 });

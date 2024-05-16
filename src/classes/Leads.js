@@ -9,6 +9,5 @@ export default () => ({
   estado: "",
   resultado: "",
   nota: "",
-  pais: "",
   labels: [],
 });

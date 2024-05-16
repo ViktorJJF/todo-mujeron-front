@@ -224,7 +224,9 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading")
-    await this.$store.dispatch(ENTITY + "Module/list"); 
+    await this.$store.dispatch(ENTITY + "Module/list", {
+      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+    });
     this.initialize();
     this.rolAuth(); 
   },
@@ -234,7 +236,8 @@ export default {
         {
           'id':this.$store.state.authModule.user._id, 
           'menu':'Facebook/Facebook',
-          'model':'Comentarios-SinResponder'
+          'model':'Comentarios-SinResponder',
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
           .then((res) => {
           this.rolPermisos = res.data;

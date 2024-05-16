@@ -235,7 +235,6 @@ export default {
         salesTeams: [],
         rfmScores: [],
       },
-      target_countries: [],
       botIds: [],
       type: "static",
     },
@@ -302,6 +301,7 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
+          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -313,7 +313,9 @@ export default {
       //llamada asincrona de items
       const response = await Promise.allSettled([
         this.$store.dispatch("cleanLeadsModule/getLeadOdooValues"),
-        this.$store.dispatch(ENTITY + "Module/list"),
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       this.odooValues = response[0].value;
       //asignar al data del componente
@@ -364,6 +366,7 @@ export default {
               sort: "updatedAt",
               order: "desc",
               fields_to_show: ["details", "telefono"],
+              companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
             }
           );
           console.log("🐞 LOG HERE response:", response);

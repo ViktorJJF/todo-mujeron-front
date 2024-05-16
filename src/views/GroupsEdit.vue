@@ -270,6 +270,7 @@ export default {
     users:[],
     modelos : {
             'Configuracion/TodoFull':{
+              'Companies': [],
               'Agentes': [], 
               'EquipodeVentas' : [], 
               'Usuarios':[], 

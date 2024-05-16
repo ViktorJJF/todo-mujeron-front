@@ -19,6 +19,15 @@
 
             <!-- Login Form -->
             <VTextFieldWithValidation
+              id="corporation"
+              class="fadeIn second"
+              customClasses="mx-9 my-3"
+              rules="required"
+              v-model="corporation"
+              label="Corporación"
+              prepend-inner-icon="mdi-domain"
+            />
+            <VTextFieldWithValidation
               id="login"
               name="login"
               class="fadeIn second"
@@ -76,8 +85,9 @@ export default {
   data() {
     return {
       loading: false,
-      user: { email: "", password: "" },
-    };
+      user: { email: '', password: '' },
+      corporation: null,
+    }
   },
   created() {
     if (this.$store.state.authModule.isTokenSet) {
@@ -87,9 +97,13 @@ export default {
   methods: {
     login() {
       let user = this.user;
+      let corporation = this.corporation;
       // this.loading = true;
       this.$store
-        .dispatch("authModule/login", user)
+        .dispatch('authModule/login', {
+          user,
+          corporation,
+        })
         .then(() => {
           this.$router.push({ name: "dashboard" });
         })

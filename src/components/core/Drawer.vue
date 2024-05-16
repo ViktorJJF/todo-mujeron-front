@@ -53,6 +53,13 @@
           </template>
           <v-list-item
             active-class="primary custom2"
+            :to="{ name: 'Companies' }"
+            v-if="checkAuth('Configuracion/TodoFull', 'Companies')"
+          >
+            <v-list-item-content> Compañias </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
             :to="{ name: 'Usuarios' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Usuarios')"
           >
@@ -77,7 +84,7 @@
             :to="{ name: 'Locaciones' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Locaciones')"
           >
-            <v-list-item-content> Ubicaciones </v-list-item-content>
+            <v-list-item-content> Locaciones </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
@@ -85,13 +92,6 @@
             v-if="checkAuth('Configuracion/TodoFull', 'TodofullLabels')"
           >
             <v-list-item-content> Etiquetas Todofull</v-list-item-content>
-          </v-list-item>
-          <v-list-item
-            active-class="primary custom2"
-            :to="{ name: 'Groups' }"
-            v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
-          >
-            <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
@@ -183,27 +183,6 @@
             </template>
             <v-list-item
               active-class="primary custom2"
-              :to="{ name: 'Products' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Productos')"
-            >
-              <v-list-item-content> Productos </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'Categories' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Categorias')"
-            >
-              <v-list-item-content> Categorías </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'Brands' }"
-              v-if="checkAuth('Configuracion/Propiedades/Genial', 'Marcas')"
-            >
-              <v-list-item-content> Marcas </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
               :to="{ name: 'Vendors' }"
               v-if="checkAuth('Configuracion/Propiedades/Genial', 'Vendedores')"
             >
@@ -264,18 +243,32 @@
 
           <v-list-item-content> Bots </v-list-item-content>
         </v-list-item>
-
-        <v-list-item
-          active-class="primary custom2"
-          :to="{ name: 'TelegramGroups' }"
-          v-if="checkAuth('ChatBot/Bots', 'Bots')"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content> Telegram </v-list-item-content>
-        </v-list-item>
+        <v-list-group
+            color="white"
+            :value="false"
+            no-action
+            sub-group
+            active-class="primary custom2"
+            v-if="checkAuth('ChatBot/Bots', 'Bots')"
+          >
+            <template v-slot:activator>
+              <v-list-item-content>
+                <v-list-item-title>Telegram</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'TelegramGroups' }"
+            >
+              <v-list-item-content> Grupos </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              active-class="primary custom2"
+              :to="{ name: 'TelegramRoutines' }"
+            >
+              <v-list-item-content> Rutinas </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
         <v-list-group
           color="white"
           :value="false"
@@ -343,88 +336,6 @@
           >
             <v-list-item-content> Leads WhatsApp</v-list-item-content>
           </v-list-item>
-        </v-list-group>
-        <v-list-group
-          color="white"
-          :value="false"
-          no-action
-          sub-group
-          v-if="checkAuth('ChatBot/MSN-Facebook')"
-        >
-          <template v-slot:activator>
-            <v-list-item-content>
-              <v-list-item-title>MSN Facebook</v-list-item-title>
-            </v-list-item-content>
-          </template>
-          <v-list-group
-            color="white"
-            :value="false"
-            no-action
-            sub-group
-            v-if="
-              checkAuth('ChatBot/MSN-Facebook', 'Etiqutas-FB-Messenger') ||
-                checkAuth('ChatBot/MSN-Facebook', 'Etiquetas-FB-Ads')
-            "
-          >
-            <template v-slot:activator>
-              <v-list-item-content>
-                <v-list-item-title>Etiquetas</v-list-item-title>
-              </v-list-item-content>
-            </template>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'Usuarios' }"
-            >
-              <v-list-item-content> FB Messenger </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'EquipoDeVentas' }"
-            >
-              <v-list-item-content> FB Ads </v-list-item-content>
-            </v-list-item>
-          </v-list-group>
-          <v-list-group
-            color="white"
-            :value="false"
-            no-action
-            sub-group
-            v-if="
-              checkAuth(
-                'ChatBot/MSN-Facebook',
-                'Publicaciones-Comentarios-Defecto'
-              ) ||
-                checkAuth(
-                  'ChatBot/MSN-Facebook',
-                  'Publicaciones-Comentarios-Programado'
-                )
-            "
-          >
-            <template v-slot:activator>
-              <v-list-item-content>
-                <v-list-item-title>Publicaciones</v-list-item-title>
-              </v-list-item-content>
-            </template>
-            <v-list-group color="white" :value="false" no-action sub-group>
-              <template v-slot:activator>
-                <v-list-item-content>
-                  <v-list-item-title>Comentarios</v-list-item-title>
-                </v-list-item-content>
-              </template>
-              <v-list-item
-                active-class="primary custom2"
-                :to="{ name: 'Usuarios' }"
-              >
-                <v-list-item-content> Defecto </v-list-item-content>
-              </v-list-item>
-              <v-list-item
-                active-class="primary custom2"
-                :to="{ name: 'EquipoDeVentas' }"
-              >
-                <v-list-item-content> Programado </v-list-item-content>
-              </v-list-item>
-            </v-list-group>
-          </v-list-group>
         </v-list-group>
       </v-list-group>
       <v-list-group
@@ -733,16 +644,6 @@ export default {
           text: "Gravity Forms",
           to: "GravityForms",
         },
-        {
-          icon: "mdi-check",
-          text: "Facebook",
-          to: "Facebook",
-        },
-        {
-          icon: "mdi-check",
-          text: "Dialogflow",
-          to: "Dialogflow",
-        },
         // {
         //   icon: "mdi-check",
         //   text: "Woocommerce",
@@ -750,24 +651,14 @@ export default {
         // },
         {
           icon: "mdi-check",
-          text: "Whatsapp",
-          to: "Whatsapp",
-        },
-        {
-          icon: "mdi-check",
-          text: "Drive",
-          to: "Drive",
-        },
-        {
-          icon: "mdi-check",
           text: "Marketplace",
           to: "MarketplaceFuentes",
         },
-        {
+        /*{
           icon: "mdi-check",
           text: "RetailRocket - Etiquetas",
           to: "RetailRocketTags",
-        },
+        },*/
         // { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         // { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
         // { icon: "mdi-format-color-fill", text: "Colores", to: "colors" },
@@ -839,7 +730,7 @@ export default {
   methods: {
     rolAuth() {
       auth
-        .roleAuthorization({ id: this.$store.state.authModule.user._id })
+        .roleAuthorization({ id: this.$store.state.authModule.user._id, company: this.$store.getters["authModule/getCurrentCompany"].company._id })
         .then((res) => {
           this.rolPermisos = res.data;
         });
