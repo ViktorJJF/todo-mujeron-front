@@ -403,6 +403,7 @@ export default {
         fieldsToSearch: this.fieldsToSearch,
         sort: "createdAt",
         order: "desc",
+        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       };
       if (this.selectedPlatforms.length > 0) {
         payload.platforms = this.selectedPlatforms;
