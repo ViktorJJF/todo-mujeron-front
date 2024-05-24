@@ -441,7 +441,7 @@
                 <v-col cols="12" sm="6">
                   <span class="font-weight-bold">Filtrar por productos</span>
                   <v-autocomplete
-                    item-text="nameWithCountry"
+                    item-text="name"
                     item-value="_id"
                     :search-input.sync="searchProduct"
                     :items="products"
@@ -1034,9 +1034,11 @@ export default {
       }
     },
     remove(item) {
-      this.products.splice(this.products.indexOf(item), 1);
-      this.products = [...this.products];
-      this.selectedProducts = null;
+      const index = this.selectedProductsSearch.findIndex(
+        (p) => p === item._id
+      );
+      this.selectedProductsSearch.splice(index, 1);
+      this.initialize();
     },
     async generateTemplate(product) {
       await this.$store.dispatch("facebookLabelsModule/list", {
