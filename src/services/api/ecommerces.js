@@ -21,6 +21,9 @@ export default {
   update(id, payload) {
     return axios.put(`/api/ecommerces/${id}`, payload);
   },
+  updateProductV2(id, payload) {
+    return axios.patch(`/api/ecommerces/v2/${id}`, payload);
+  },
   updateVariation(id, variation, payload) {
     return axios.put(`/api/ecommerces/${id}/variations/${variation}`, payload);
   },
