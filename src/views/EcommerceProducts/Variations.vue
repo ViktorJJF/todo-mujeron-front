@@ -244,9 +244,27 @@
               </div>
             </v-col>
             <v-col cols="8">
-              <div class="d-flex justify-space-around">
-                <div>Fecha de inicio</div>
-                <div>Fecha de fin</div>
+              <div class="d-flex justify-space-around mb-5" style="gap: 10px;">
+                <div>
+                  Fecha de inicio
+                  <v-text-field
+                    v-model="discountStartDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
+                <div>
+                  Fecha de fin
+                  <v-text-field
+                    v-model="discountEndDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
               </div>
               <div class="d-flex justify-center">
                 <v-date-picker
@@ -289,6 +307,21 @@ import MaterialCard from '@/components/material/Card'
 import { es } from 'date-fns/locale'
 import auth from '@/services/api/auth'
 import EcommercesApi from '@/services/api/ecommerces'
+
+const clearTimeTo = (date) => {
+  const target = new Date(date)
+  target.setHours(0, 0, 0 , 0)
+  return target
+}
+
+const getDatePartOnly = (date) => {
+  const target = new Date(date)
+  const year = target.getFullYear()
+  const month = target.getMonth()
+  const day = target.getDate()
+
+  return `${year}-${month}-${day}`
+}
 
 export default {
   components: {
@@ -424,6 +457,22 @@ export default {
     currentItemDiscountRate: 0
   }),
   computed: {
+    discountStartDate: {
+      get: function () {
+        return this.discountDates[0]
+      },
+      set: function(value) {
+        this.discountDates.splice(0, 1, value)
+      }
+    },
+    discountEndDate: {
+      get: function () {
+        return this.discountDates[1]
+      },
+      set: function(value) {
+        this.discountDates.splice(1, 1, value)
+      }
+    },
     totalItems() {
       return this.$store.state['ecommercesModule'].total
     },
@@ -500,11 +549,13 @@ export default {
 
       this.items = products.flatMap((product) => {
         const firstVariation = product.variations[0]
-        
+
         Object.assign(product, {
           isParent: true,
           regular_price: product.regular_price ?? firstVariation.regular_price,
           sale_price: product.sale_price ?? firstVariation.sale_price,
+          dateOnSaleFrom: product.dateOnSaleFrom ?? firstVariation.date_on_sale_from,
+          dateOnSaleTo: product.dateOnSaleTo ?? firstVariation.date_on_sale_to,
           attributesFormatted: this.getFormatAttributes(product.attributes),
         })
 
@@ -591,7 +642,6 @@ export default {
             old_inventory_quantity: variation.old_inventory_quantity,
             inventory_quantity: variation.inventory_quantity,
           }))
-          console.log('el payload: ', payload)
 
           await EcommercesApi.updateVariationBatch(item._id, payload)
 
@@ -677,6 +727,8 @@ export default {
       this.currentItem = item
       this.discountDialog = true
       this.currentItemSalePrice = item.sale_price ?? item.regular_price
+      this.discountStartDate = item.dateOnSaleFrom ? getDatePartOnly(item.dateOnSaleFrom) : ''
+      this.discountEndDate = item.dateOnSaleTo ? getDatePartOnly(item.dateOnSaleTo) : ''
       this.reCalculateDiscountRate()
     },
     async handleSaveDiscount() {
@@ -684,8 +736,8 @@ export default {
 
       const changes = {
         sale_price: this.currentItemSalePrice,
-        dateOnSaleFrom,
-        dateOnSaleTo
+        dateOnSaleFrom: dateOnSaleFrom ? clearTimeTo(new Date(dateOnSaleFrom)) : undefined,
+        dateOnSaleTo: dateOnSaleTo ? clearTimeTo(new Date(dateOnSaleTo)) : undefined
       }
 
       await EcommercesApi.updateProductV2(this.currentItem._id, changes)
