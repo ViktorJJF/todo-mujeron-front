@@ -308,19 +308,12 @@ import { es } from 'date-fns/locale'
 import auth from '@/services/api/auth'
 import EcommercesApi from '@/services/api/ecommerces'
 
-const clearTimeTo = (date) => {
-  const target = new Date(date)
-  target.setHours(0, 0, 0 , 0)
-  return target
-}
-
 const getDatePartOnly = (date) => {
-  const target = new Date(date)
-  const year = target.getFullYear()
-  const month = target.getMonth()
-  const day = target.getDate()
-
-  return `${year}-${month}-${day}`
+  return new Intl.DateTimeFormat('fr-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date(date))
 }
 
 export default {
@@ -733,11 +726,13 @@ export default {
     },
     async handleSaveDiscount() {
       const [dateOnSaleFrom, dateOnSaleTo] = this.discountDates
+      const dateOnSaleFromLocal = dateOnSaleFrom ? new Date(`${dateOnSaleFrom}T00:00:00`) : undefined
+      const dateOnSaleToLocal = dateOnSaleTo ? new Date(`${dateOnSaleTo}T00:00:00`): undefined
 
       const changes = {
         sale_price: this.currentItemSalePrice,
-        dateOnSaleFrom: dateOnSaleFrom ? clearTimeTo(new Date(dateOnSaleFrom)) : undefined,
-        dateOnSaleTo: dateOnSaleTo ? clearTimeTo(new Date(dateOnSaleTo)) : undefined
+        dateOnSaleFrom: dateOnSaleFrom ? dateOnSaleFromLocal : undefined,
+        dateOnSaleTo: dateOnSaleTo ? dateOnSaleToLocal : undefined
       }
 
       await EcommercesApi.updateProductV2(this.currentItem._id, changes)
