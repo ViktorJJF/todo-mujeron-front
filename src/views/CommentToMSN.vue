@@ -872,6 +872,7 @@ export default {
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
+          ...payload,
         }),
         this.$store.dispatch("botsModule/list", {
           companies: [
