@@ -158,6 +158,7 @@
   import Companies from "@/classes/Companies";
   import CountrySelect from "@/components/CountrySelect.vue";
   import auth from "@/services/api/auth";
+
   export default {
     components: {
       MaterialCard,

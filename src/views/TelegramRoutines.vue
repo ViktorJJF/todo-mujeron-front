@@ -72,6 +72,23 @@
                               />
                             </v-col>
                           </v-row>
+                          <v-row v-if="editedItem.country.length">
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Categoria
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione una categoria"
+                                outlined
+                                :items="categories"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.category"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
