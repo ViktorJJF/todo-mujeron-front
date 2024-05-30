@@ -14,10 +14,19 @@
                     single-line outlined></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="500px">
+                  <v-dialog v-model="dialog" max-width="900px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']">Agregar
                         bot</v-btn>
+                      <v-facebook-login
+                        :login-options="{
+                          scope:
+                            'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management',
+                        }"
+                        @login="facebookLogged"
+                        app-id="309102442977190"
+                        class="mb-3"
+                      ></v-facebook-login>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -247,14 +256,18 @@
 <script>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
+import VFacebookLogin from "vue-facebook-login-component";
 import MaterialCard from "@/components/material/Card";
 import Bots from "@/classes/Bots";
 import auth from "@/services/api/auth";
 import { convertMsToTime } from "@/utils/utils";
+import graphApi from "@/services/api/graphApi";
+
 export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VFacebookLogin,
   },
   filters: {
     formatDate: function (value) {
@@ -398,6 +411,12 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+
+    async facebookLogged(e) {
+      console.log("🚀 Aqui *** -> e", e);
+      const responses = await graphApi.createMetaIntegration(e.authResponse.accessToken);
+      console.log(responses);
     },
   },
 };
