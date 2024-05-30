@@ -93,19 +93,6 @@
                             multiple
                           />
                         </v-col>
-                        <v-col cols="12" sm="6" md="6">
-                          <p class="body-1 font-weight-bold mb-0">Conectar con Facebook</p>
-                          <v-facebook-login
-                            :login-options="{
-                              scope:
-                                'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management',
-                            }"
-                            style="margin: auto"
-                            @login="facebookLogged"
-                            app-id="309102442977190"
-                            class="mb-3"
-                          ></v-facebook-login>
-                        </v-col>
                       </v-row>
                           </v-container>
                           <v-card-actions rd-actions>
@@ -167,12 +154,10 @@
   import { format } from "date-fns";
   import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
   import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
-  import VFacebookLogin from "vue-facebook-login-component";
   import MaterialCard from "@/components/material/Card";
   import Companies from "@/classes/Companies";
   import CountrySelect from "@/components/CountrySelect.vue";
   import auth from "@/services/api/auth";
-  import graphApi from "@/services/api/graphApi";
 
   export default {
     components: {
@@ -180,7 +165,6 @@
       VTextFieldWithValidation,
       CountrySelect,
       VSelectWithValidation,
-      VFacebookLogin,
     },
     filters: {
       formatDate: function(value) {
@@ -325,12 +309,6 @@
             this.selectedUsers = [];
           }
         }
-      },
-
-      async facebookLogged(e) {
-        console.log("🚀 Aqui *** -> e", e);
-        const responses = await graphApi.createMetaIntegration(e.authResponse.accessToken);
-        console.log(responses);
       },
     },
   };
