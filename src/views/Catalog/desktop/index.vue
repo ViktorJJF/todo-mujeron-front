@@ -205,11 +205,14 @@
             <v-list-item @click="handleDownloadPdf()">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleDownloadPdf(13)">
+            <v-list-item @click="handleDownloadPdf({ maxSize: 13 })">
               <v-list-item-title>Descargar para whatsapp</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleDownloadPdf(undefined, true)">
+            <v-list-item @click="handleDownloadPdf({ includePrice: true })">
               <v-list-item-title>Descargar con precio</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleDownloadPdf({ promotionsOnly: true, includePrice: true })">
+              <v-list-item-title>Descargar promociones</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -562,10 +565,8 @@ export default {
     },
   },
   methods: {
-    async downloadPdf(maxSize, price) {
-      if (!this.productsSource.length) {
-        return
-      }
+    async downloadPdf(products, { maxSize, includePrice }) {
+      if (!products.length) return
 
       let doc = new jsPDF()
 
@@ -573,7 +574,7 @@ export default {
       let width = doc.internal.pageSize.getWidth() - x * 2
       let height = doc.internal.pageSize.getHeight() - y * 2
 
-      for (const [index, product] of this.productsSource.entries()) {
+      for (const [index, product] of products.entries()) {
         let leftText = `Rerefencia: ${
           product.ref
         } - Tallas disponibles: ${this.getTallas(product).join(', ')}`
@@ -584,7 +585,7 @@ export default {
         }`
         doc.text(rightText, width + x + 6, height + y, { angle: 90 })
 
-        if (price) {
+        if (includePrice) {
           const productPrice = product.regular_price || product.variations[0].regular_price
           const salePrice = product.sale_price || product.variations[0].sale_price
           
@@ -595,7 +596,7 @@ export default {
             y: height + y - rightText.length * 2.65
           }
 
-          const hasDiscount = !!salePrice
+          const hasDiscount = salePrice > 0
           if (hasDiscount) {
             const priceTextWidth = doc.getTextWidth(priceText)
             const discountText = `Precio: ${this.formatAmount(salePrice)}`
@@ -620,6 +621,7 @@ export default {
               priceLinePosition.y
             )
             .setTextColor(0, 0, 0)
+            .setFontSize(doc.getFontSize() + 2)
             .setFont(undefined, 'bold')
             .text(
               discountText,
@@ -649,7 +651,7 @@ export default {
 
         const filename = `${Date.now()}.pdf`
 
-        const isLast = index === this.productsSource.length - 1
+        const isLast = index === products.length - 1
         if (isLast) {
           doc.save(filename)
           return await this.delay(500)
@@ -669,14 +671,22 @@ export default {
         doc.addPage()
       }
     },
-    async handleDownloadPdf(...args) {
+    async handleDownloadPdf({ maxSize, includePrice, promotionsOnly } = {}) {
       this.downloadLoading = true
 
       while (this.productsDocsSource.nextPage) {
         await this.fetchProducts(this.productsDocsSource.nextPage)
       }
 
-      await this.downloadPdf(...args)
+      const products = promotionsOnly
+        ? this.productsSource.filter(product => (product.sale_price || product.variations[0].sale_price) > 0)
+        : this.productsSource
+
+      if (promotionsOnly && !products.length) {
+        alert('No hay promociones disponibles con el filtro seleccionado')
+      }
+
+      await this.downloadPdf(products, { maxSize, includePrice })
 
       this.downloadLoading = false
     },
