@@ -585,22 +585,60 @@ export default {
         doc.text(rightText, width + x + 6, height + y, { angle: 90 })
 
         if (price) {
-          let productPrice =
-            product.regular_price || product.variations[0].regular_price
+          const productPrice = product.regular_price || product.variations[0].regular_price
+          const salePrice = product.sale_price || product.variations[0].sale_price
+          
+          const priceText = `Precio: ${this.formatAmount(productPrice)}`
 
-          productPrice = new Intl.NumberFormat().format(productPrice)
+          const priceTextPosition = {
+            x: width + x + 6,
+            y: height + y - rightText.length * 2.65
+          }
 
-          const priceText = `Precio: ${productPrice}`
+          const hasDiscount = !!salePrice
+          if (hasDiscount) {
+            const priceTextWidth = doc.getTextWidth(priceText)
+            const discountText = `Precio: ${this.formatAmount(salePrice)}`
 
-          doc
-            .setFontSize(doc.getFontSize() + 2)
-            .setFont(undefined, 'bold')
+            const priceLinePosition = {
+              x: priceTextPosition.x,
+              y: priceTextPosition.y - priceTextWidth
+            }
+            
+            doc
+            .setTextColor(204, 204, 204)
             .text(
               priceText,
-              width + x + 6,
-              height + y - rightText.length * 2.65,
+              priceTextPosition.x,
+              priceTextPosition.y,
               { angle: 90 }
             )
+            .line(
+              priceTextPosition.x - 2,
+              priceTextPosition.y,
+              priceLinePosition.x - 2,
+              priceLinePosition.y
+            )
+            .setTextColor(0, 0, 0)
+            .setFont(undefined, 'bold')
+            .text(
+              discountText,
+              priceLinePosition.x,
+              priceLinePosition.y - 4,
+              { angle: 90 }
+            )
+
+          } else {
+            doc
+              .setFontSize(doc.getFontSize() + 2)
+              .setFont(undefined, 'bold')
+              .text(
+                priceText,
+                priceTextPosition.x,
+                priceTextPosition.y,
+                { angle: 90 }
+              )
+          }
 
           // return font to normal
           doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
@@ -662,6 +700,9 @@ export default {
     clearFilters() {
       this.filter.categories = []
       this.productsSelected = []
+    },
+    formatAmount(amount) {
+      return new Intl.NumberFormat().format(amount)
     },
     getTallas(product) {
       const tallas = []
@@ -829,7 +870,7 @@ export default {
         const price =
           item.product.regular_price || item.product.variations[0].regular_price
         const productTotal = price * item.quantity
-        const totalFormat = new Intl.NumberFormat().format(productTotal)
+        const totalFormat = this.formatAmount(productTotal)
         total += productTotal
         message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
         if (item.color) {
@@ -846,7 +887,7 @@ export default {
         })
       }
 
-      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
+      message += `\n\nTotal: ${this.formatAmount(total)}`
 
       this.$gtag.event('begin_checkout', {
         currency: this.currencyCode,
