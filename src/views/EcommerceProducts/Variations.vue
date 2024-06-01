@@ -36,6 +36,18 @@
                     outlined
                   />
                 </v-col>
+                <v-col cols="12" sm="3">
+                  <v-select
+                    :items="sources"
+                    v-model="currentSourceUrl"
+                    dense
+                    hide-details
+                    single-line
+                    outlined
+                    clearable
+                    placeholder="Selecciona la Fuente"
+                  />
+                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
@@ -447,7 +459,14 @@ export default {
     discountDialog: false,
     discountDates: [],
     currentItemSalePrice: 0,
-    currentItemDiscountRate: 0
+    currentItemDiscountRate: 0,
+    currentSourceUrl: null,
+    sources: [
+      { text: 'Mujeron Chile', value: 'https://mujeron.cl' },
+      { text: 'Fajas Salome Chile', value: 'https://fajassalome.cl' },
+      { text: 'Pushup Chile', value: 'https://pushup.cl' },
+      { text: 'Mujeron Peru', value: 'https://mujeron.pe' },
+    ]
   }),
   computed: {
     discountStartDate: {
@@ -498,6 +517,9 @@ export default {
         this.initialize(this.page)
       }, 600)
     },
+    currentSourceUrl() {
+      this.initialize(this.page)
+    }
   },
   mounted() {
     this.$store.commit('loadingModule/showLoading')
@@ -527,6 +549,7 @@ export default {
         sort: "updatedAt",
         order: -1,
         listType: "All",
+        url: this.currentSourceUrl
       };
       payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
@@ -545,10 +568,10 @@ export default {
 
         Object.assign(product, {
           isParent: true,
-          regular_price: product.regular_price ?? firstVariation.regular_price,
-          sale_price: product.sale_price ?? firstVariation.sale_price,
-          dateOnSaleFrom: product.dateOnSaleFrom ?? firstVariation.date_on_sale_from,
-          dateOnSaleTo: product.dateOnSaleTo ?? firstVariation.date_on_sale_to,
+          regular_price: product.regular_price ?? firstVariation?.regular_price,
+          sale_price: product.sale_price ?? firstVariation?.sale_price,
+          dateOnSaleFrom: product.dateOnSaleFrom ?? firstVariation?.date_on_sale_from,
+          dateOnSaleTo: product.dateOnSaleTo ?? firstVariation?.date_on_sale_to,
           attributesFormatted: this.getFormatAttributes(product.attributes),
         })
 
