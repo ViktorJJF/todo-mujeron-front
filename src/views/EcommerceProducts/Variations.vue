@@ -107,7 +107,6 @@
           </template>
 
           <template v-slot:item.discount="{ item }">
-            
             <div v-if="item.isParent">
               <v-btn
                 small
@@ -354,14 +353,7 @@ import MaterialCard from '@/components/material/Card'
 import { es } from 'date-fns/locale'
 import auth from '@/services/api/auth'
 import EcommercesApi from '@/services/api/ecommerces'
-
-const getDatePartOnly = (date) => {
-  return new Intl.DateTimeFormat('fr-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date(date))
-}
+import { getDatePartOnly } from '@/utils/dates-handle'
 
 export default {
   components: {
@@ -383,7 +375,6 @@ export default {
     switchLoading: [],
     currentStock: 0,
     items: [],
-    currentItem: null,
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
       (val) => val >= 0 || 'No puede ser negativo',
@@ -492,6 +483,7 @@ export default {
     rolPermisos: {},
     discountDialog: false,
     discountDates: [],
+    currentItem: null,
     currentItemSalePrice: 0,
     currentItemDiscountRate: 0,
     currentSourceUrl: null,
