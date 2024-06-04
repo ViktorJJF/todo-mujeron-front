@@ -42,6 +42,9 @@ export default {
   syncSelected(payload) {
     return axios.post(`/api/ecommerces/sync-selected`, payload);
   },
+  getProductsCrossover(country) {
+    return axios.get(`/api/ecommerces/crossover/country/${country}`)
+  },
   syncVariation(productId, variationId) {
     return axios.post(`/api/ecommerces/${productId}/variations/${variationId}`);
   },

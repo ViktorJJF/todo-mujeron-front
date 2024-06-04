@@ -25,7 +25,7 @@
             <v-container>
               <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="4">
                   <v-text-field
                     dense
                     hide-details
@@ -47,6 +47,41 @@
                     clearable
                     placeholder="Selecciona la Fuente"
                   />
+                </v-col>
+                <v-col>
+                  <v-btn color="primary" @click="handleProductsCrossover">
+                    Sincronizar
+                  </v-btn>
+                  <div
+                    class="controls-container"
+                    v-if="productsCrossoverSku.length"
+                  >
+                    <div>
+                      <v-btn
+                        v-if="currentProductIndex > 0"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex - 1)
+                        "
+                      >
+                        Anterior
+                      </v-btn>
+                      <v-btn
+                        v-if="
+                          currentProductIndex < productsCrossoverSku.length - 1
+                        "
+                        class="ml-2"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex + 1)
+                        "
+                      >
+                        Siguiente
+                      </v-btn>
+                    </div>
+                    <div class="mt-2">
+                      {{ currentProductIndex + 1 }} /
+                      {{ productsCrossoverSku.length }}
+                    </div>
+                  </div>
                 </v-col>
               </v-row>
               <v-row>
@@ -349,7 +384,6 @@ export default {
     currentStock: 0,
     items: [],
     currentItem: null,
-    country: null,
     stockRules: [
       (val) => /^[0-9]*$/.test(val) || 'Debe ser un número',
       (val) => val >= 0 || 'No puede ser negativo',
@@ -461,6 +495,9 @@ export default {
     currentItemSalePrice: 0,
     currentItemDiscountRate: 0,
     currentSourceUrl: null,
+    productsCrossoverSku: [],
+    currentProductSku: null,
+    currentProductIndex: null,
     sources: [
       { text: 'Mujeron Chile', value: 'https://mujeron.cl' },
       { text: 'Fajas Salome Chile', value: 'https://fajassalome.cl' },
@@ -707,6 +744,31 @@ export default {
         this.switchLoading = this.switchLoading.filter((v) => v !== item.id)
       }
     },
+    async handleProductsCrossover() {
+      const isAlreadyFetched = this.productsCrossoverSku.length > 0
+      if (isAlreadyFetched) {
+        return this.search = this.currentProductSku
+      }
+      const company = this.$store.getters["authModule/getCurrentCompany"].company
+      const res = await EcommercesApi.getProductsCrossover(company.country)
+      if (res.data?.ok !== true) return
+
+      const productsSku = res.data.payload
+      this.productsCrossoverSku = productsSku
+      const sku = productsSku[0]
+      this.currentProductSku = sku
+      this.currentProductIndex = 0
+      this.search = sku
+    },
+    handleCurrentProductChange(index) {
+      const sku = this.productsCrossoverSku[index]
+      if (sku) {
+        this.currentProductIndex = index
+        this.currentProductSku = sku
+        this.search = sku
+      }
+    },
+
     async handleSyncVariation(variation) {
       const isLoading = this.switchLoading.includes(variation.id)
       if (isLoading) return
@@ -769,6 +831,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.controls-container {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 8px;
+  align-items: center;
+}
+
 .loading {
   animation: rotation 1s linear infinite;
 }
