@@ -72,7 +72,11 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row v-if="editedItem.country.length">
+                          <v-row
+                            v-if="
+                              editedItem.country && editedItem.country.length
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Categoria
