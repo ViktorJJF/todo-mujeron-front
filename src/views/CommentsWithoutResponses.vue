@@ -19,81 +19,28 @@
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
         >
-          <template v-slot:top>
-            <v-container>
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
-                    <v-card>
-                      <v-card-title>
-                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-                        <span class="headline">{{ formTitle }}</span>
-                      </v-card-title>
-                      <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombre</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Nombre de la categoría"
-                              />
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
-                </v-col>
-              </v-row>
-              <!-- <span class="font-weight-bold">Ordenar por</span
-              ><v-row>
-                <v-col cols="12" sm="6">
-                  <v-select
-                    outlined
-                    dense
-                    :items="headers"
-                    name="text"
-                  ></v-select>
-                </v-col>
-              </v-row> -->
-            </v-container>
-          </template>
           <template v-slot:[`item.url`]="{ item }">
             <a :href="item.url" target="_blank">{{ item.url }}</a>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
+            <v-btn
               class="mr-1 mb-1"
               color="primary"
               fab
               small
               dark
-              @click="editItem(item)"
+              @click="dialog = true"
             >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']"
->
+              <v-icon>mdi-checkbox-multiple-marked</v-icon>
+            </v-btn>
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -142,6 +89,30 @@
         </div>
       </material-card>
     </v-row>
+    <v-dialog v-model="dialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <v-icon color="primary" class="mr-1">mdi-update</v-icon>
+          <span class="headline">Asignar a publicación existente</span>
+          <v-container fluid>
+            <v-select
+              hide-details
+              single-line
+              outlined
+              dense
+              :items="commentsFacebook"
+              v-model="selectedCommentFacebook"
+            />
+          </v-container>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-container class="pa-5"></v-container>
+        <v-card-actions rd-actions>
+          <div class="flex-grow-1"></div>
+          <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -152,28 +123,28 @@ const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
     MaterialCard,
-    VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
     },
   },
   data: () => ({
+    commentsFacebook: [],
+    selectedCommentFacebook: null,
+    dialog: false,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
-    dialog: false,
     headers: [
       {
         text: "Agregado",
@@ -223,27 +194,29 @@ export default {
     },
   },
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
+    this.$store.commit("loadingModule/showLoading");
     await this.$store.dispatch(ENTITY + "Module/list", {
-      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      companies: [
+        this.$store.getters["authModule/getCurrentCompany"].company._id,
+      ],
     });
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Facebook/Facebook',
-          'model':'Comentarios-SinResponder',
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Facebook/Facebook",
+          model: "Comentarios-SinResponder",
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     async initialize() {
       //llamada asincrona de items
@@ -252,6 +225,22 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+    },
+    getCommentsFacebook() {
+      let payload = {
+        page: 1,
+        search: this.search,
+        fieldsToSearch: ["postUrl"],
+        sort: "updatedAt",
+        order: "desc",
+        companies: [
+          this.$store.getters["authModule/getCurrentCompany"].company._id,
+        ],
+        ...payload,
+      };
+      if (this.searchCommentFacebook)
+        payload["search"] = this.searchCommentFacebook;
+      this.$store.dispatch("commentsFacebookModule/list", payload);
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
