@@ -72,11 +72,7 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row
-                            v-if="
-                              editedItem.country && editedItem.country.length
-                            "
-                          >
+                          <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Categoria
@@ -407,7 +403,7 @@ export default {
       val || this.close();
     },
     "editedItem.country": function(val) {
-      if (val.length) {
+      if (val && val.length) {
         const query = { country: val };
         categoriesApi.list(query).then((res) => {
           this.categories = res.data.payload;
@@ -446,6 +442,8 @@ export default {
     },
 
     async initialize() {
+      const company = this.$store.getters["authModule/getCurrentCompany"]
+        .company;
       await Promise.all([
         this.$store.dispatch("telegramRoutinesModule/list", {
           companies: [
@@ -458,6 +456,10 @@ export default {
           ],
         }),
       ]);
+      // in case a company is selected, get categories
+      if (company) {
+        this.getCategories(company.country);
+      }
       this.routines = this.$deepCopy(
         this.$store.state.telegramRoutinesModule.routines
       );
@@ -466,6 +468,12 @@ export default {
       this.bots = this.bots.filter(
         (bot) => bot.platform === "instagram" || bot.platform === "facebook"
       );
+    },
+    getCategories(country) {
+      const query = { country };
+      categoriesApi.list(query).then((res) => {
+        this.categories = res.data.payload;
+      });
     },
     editItem(item) {
       this.editedIndex = this.routines.indexOf(item);
