@@ -327,6 +327,13 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
+            color="red"
+            text
+            @click="clerDiscount"
+          >
+            Borrar
+          </v-btn>
+          <v-btn
             text
             @click="discountDialog = false"
           >
@@ -817,6 +824,11 @@ export default {
       Object.assign(this.currentItem, changes)
 
       this.discountDialog = false
+    },
+    clerDiscount() {
+      this.discountDates = []
+      this.currentItemSalePrice = this.currentItem.regular_price
+      this.currentItemDiscountRate = 0
     }
   },
 }
