@@ -36,7 +36,7 @@
                     dense
                     class="mt-2"
                     clearable
-                    @change="initialize"
+                    @change="initialize()"
                   >
                     <template v-slot:no-data>
                       <v-list-item>
