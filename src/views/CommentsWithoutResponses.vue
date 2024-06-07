@@ -92,66 +92,96 @@
         </div>
       </material-card>
     </v-row>
-    <v-dialog v-model="dialog" max-width="500px">
+    <v-dialog v-model="dialog" max-width="900px">
       <v-card>
         <v-card-title>
           <v-icon color="primary" class="mr-1">mdi-update</v-icon>
           <span class="headline">Asignar a publicación existente</span>
           <v-container fluid>
-            <v-combobox
-              :key="updateSearch"
-              v-model="selectedCommentFacebook"
-              :items="commentsFacebook"
-              :search-input.sync="searchPost"
-              hide-selected
-              item-value="_id"
-              item-text="postUrl"
-              placeholder="Busca una publicación por URL"
-              outlined
-              dense
-              class="mt-2"
-              clearable
-            >
-              <template v-slot:no-data>
-                <v-list-item>
-                  <v-list-item-content>
-                    <v-list-item-title>
-                      No se encontraron resultados
-                    </v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-combobox>
-            <div v-if="selectedCommentFacebook">
-              <div>
-                <b>Se vinculará este post sin responder:</b>
-                <a :href="selectedCommentWithoutResponse" target="_blank">{{
-                  selectedCommentWithoutResponse.url
-                }}</a>
-              </div>
-              <div>
-                <b>Post Objetivo:</b>
-                <span v-if="selectedCommentFacebook.postUrl"
-                  ><a :href="selectedCommentFacebook.postUrl" target="_blank">{{
-                    selectedCommentFacebook.postUrl
-                  }}</a></span
+            <v-col cols="12" sm="12">
+              <span class="font-weight-bold">Filtrar por productos</span>
+              <v-autocomplete
+                item-text="name"
+                item-value="_id"
+                :search-input.sync="searchProduct"
+                :items="products"
+                chips
+                dense
+                clearable
+                label="Busca los productos"
+                no-data-text="No se encontraron productos"
+                no-filter
+                solo
+                outlined
+                hide-details
+                @change="onSelectedProducts"
+                :multiple="editedIndex > -1 ? false : true"
+              >
+                <template
+                  v-slot:selection="{
+                    attrs,
+                    item,
+                    select,
+                    selected,
+                  }"
                 >
-                <span v-else>Selecciona un post</span>
-              </div>
-            </div>
+                  <v-chip
+                    v-bind="attrs"
+                    :input-value="selected"
+                    close
+                    @click="select"
+                    @click:close="remove(item)"
+                    color="deep-purple accent-4"
+                    outlined
+                  >
+                    <strong>{{ item.name }}</strong>
+                  </v-chip>
+                </template>
+              </v-autocomplete>
+            </v-col>
+            <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
+              <p class="body-1 font-weight-bold">Selección para respuesta</p>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">Fecha</th>
+                      <th class="text-left">Url</th>
+                      <th class="text-left">Acciones</th>
+                      <!-- <th class="text-left">Url</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(commentFacebook, idx) in commentsFacebook"
+                      :key="idx"
+                    >
+                      <td>{{ commentFacebook.updatedAt | formatDate }}</td>
+                      <td>
+                        <a :href="commentFacebook.postUrl" target="_blank">{{
+                          commentFacebook.postUrl
+                        }}</a>
+                      </td>
+                      <td>
+                        <v-btn
+                          outlined
+                          color="secondary"
+                          text
+                          @click="assignCommentWithoutResponse(commentFacebook)"
+                          >Asignar</v-btn
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-col>
           </v-container>
         </v-card-title>
         <v-divider></v-divider>
         <v-container class="pa-5"></v-container>
         <v-card-actions rd-actions>
           <div class="flex-grow-1"></div>
-          <v-btn
-            outlined
-            color="primary"
-            text
-            @click="assignCommentWithoutResponse"
-            >Asignar</v-btn
-          >
           <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
@@ -182,10 +212,12 @@ export default {
     },
   },
   data: () => ({
+    searchProduct: null,
     selectedCommentWithoutResponse: null,
     selectedCommentFacebook: null,
     searchPost: "",
     commentsFacebook: [],
+    selectedProductsSearch: [],
     dialog: false,
     page: 1,
     pageCount: 0,
@@ -222,6 +254,7 @@ export default {
     rolPermisos: {},
     updateSearch: 0,
     delayTimer: null,
+    products: [],
   }),
   computed: {
     formTitle() {
@@ -247,6 +280,12 @@ export default {
           this.searchPost = this.searchPost.trim();
         }
         this.getCommentsFacebook();
+      }, 600);
+    },
+    async searchProduct() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.getProducts(1);
       }, 600);
     },
   },
@@ -295,6 +334,9 @@ export default {
         ],
         ...payload,
       };
+      if (this.selectedProductsSearch.length > 0) {
+        payload.products = this.selectedProductsSearch;
+      }
       if (this.searchPost) {
         payload.filter = this.searchPost.trim();
       }
@@ -310,6 +352,41 @@ export default {
       }
 
       // // Ensure reactivity
+    },
+    async getProducts(page = 1) {
+      if (!this.searchProduct) return;
+      //llamada asincrona de items
+      let payload = {
+        sort: "name",
+        page,
+        search: this.searchProduct,
+        fieldsToSearch: ["name", "ref"],
+        listType: "All",
+      };
+      if (this.editedIndex > -1) {
+        payload.country = this.selectedFanpage.country;
+      }
+      if (this.editedIndex === -1 && this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
+      await Promise.all([
+        this.$store.dispatch("ecommercesModule/list", {
+          sort: "name",
+          page,
+          search: this.searchProduct,
+          fieldsToSearch: ["name", "ref"],
+          listType: "All",
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
+      ]);
+      //asignar al data del componente
+
+      // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
+      this.rawProducts = this.products = this.$deepCopy(
+        this.$store.state.ecommercesModule.ecommerces
+      );
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -359,28 +436,48 @@ export default {
         }
       }
     },
-    assignCommentWithoutResponse() {
-      if (!this.selectedCommentFacebook) {
+    async assignCommentWithoutResponse(commentFacebook) {
+      if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
+        return;
+      }
+
+      if (!commentFacebook) {
         return;
       }
       // add url to postUrls
-      this.selectedCommentFacebook.postUrls.push({
+      if (!commentFacebook.postUrls) commentFacebook.postUrls = [];
+      commentFacebook.postUrls.push({
         url: this.selectedCommentWithoutResponse.url,
       });
       // set postId
-      this.selectedCommentFacebook.external_id = this.selectedCommentWithoutResponse.postId;
+      commentFacebook.external_id = this.selectedCommentWithoutResponse.postId;
       // update
-      this.$store.dispatch("commentsFacebookModule/update", {
-        id: this.selectedCommentFacebook._id,
-        data: this.selectedCommentFacebook,
+      await this.$store.dispatch("commentsFacebookModule/update", {
+        id: commentFacebook._id,
+        data: commentFacebook,
+        showMessage: false,
       });
-      this.selectedCommentFacebook = null;
-      // remove current post without response
-      this.$store.dispatch(
-        "commentsWithoutResponsesModule/delete",
-        this.selectedCommentWithoutResponse._id
+      this.$store.commit(
+        "successModule/success",
+        "Comentario sin responder asignado con éxito",
+        { root: true }
       );
+      this.$store.commit("loadingModule/showLoading", false, { root: true });
+      this.selectedProductsSearch = [];
+      // remove current post without response
+      // this.$store.dispatch(
+      //   "commentsWithoutResponsesModule/delete",
+      //   this.selectedCommentWithoutResponse._id
+      // );
       this.dialog = false;
+    },
+    onSelectedProducts(e) {
+      this.searchProduct = "";
+      // in case in product search for filter
+      if (this.editedIndex === -1) {
+        this.selectedProductsSearch = e; // ids products
+        this.getCommentsFacebook();
+      }
     },
   },
 };
