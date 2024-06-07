@@ -29,7 +29,10 @@
               fab
               small
               dark
-              @click="dialog = true"
+              @click="
+                selectedCommentWithoutResponse = item;
+                dialog = true;
+              "
             >
               <v-icon>mdi-checkbox-multiple-marked</v-icon>
             </v-btn>
@@ -95,20 +98,60 @@
           <v-icon color="primary" class="mr-1">mdi-update</v-icon>
           <span class="headline">Asignar a publicación existente</span>
           <v-container fluid>
-            <v-select
-              hide-details
-              single-line
+            <v-combobox
+              :key="updateSearch"
+              v-model="selectedCommentFacebook"
+              :items="commentsFacebook"
+              :search-input.sync="searchPost"
+              hide-selected
+              item-value="_id"
+              item-text="postUrl"
+              placeholder="Busca una publicación por URL"
               outlined
               dense
-              :items="commentsFacebook"
-              v-model="selectedCommentFacebook"
-            />
+              class="mt-2"
+              clearable
+            >
+              <template v-slot:no-data>
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-list-item-title>
+                      No se encontraron resultados
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+            </v-combobox>
+            <div v-if="selectedCommentFacebook">
+              <div>
+                <b>Se vinculará este post sin responder:</b>
+                <a :href="selectedCommentWithoutResponse" target="_blank">{{
+                  selectedCommentWithoutResponse.url
+                }}</a>
+              </div>
+              <div>
+                <b>Post Objetivo:</b>
+                <span v-if="selectedCommentFacebook.postUrl"
+                  ><a :href="selectedCommentFacebook.postUrl" target="_blank">{{
+                    selectedCommentFacebook.postUrl
+                  }}</a></span
+                >
+                <span v-else>Selecciona un post</span>
+              </div>
+            </div>
           </v-container>
         </v-card-title>
         <v-divider></v-divider>
         <v-container class="pa-5"></v-container>
         <v-card-actions rd-actions>
           <div class="flex-grow-1"></div>
+          <v-btn
+            outlined
+            color="primary"
+            text
+            @click="assignCommentWithoutResponse"
+            >Asignar</v-btn
+          >
           <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
@@ -118,6 +161,7 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
+import Vue from "vue";
 const ENTITY = "commentsWithoutResponses"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
@@ -138,8 +182,10 @@ export default {
     },
   },
   data: () => ({
-    commentsFacebook: [],
+    selectedCommentWithoutResponse: null,
     selectedCommentFacebook: null,
+    searchPost: "",
+    commentsFacebook: [],
     dialog: false,
     page: 1,
     pageCount: 0,
@@ -174,6 +220,8 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
+    updateSearch: 0,
+    delayTimer: null,
   }),
   computed: {
     formTitle() {
@@ -191,6 +239,15 @@ export default {
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    searchPost() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        if (this.searchPost && this.searchPost.length > 0) {
+          this.searchPost = this.searchPost.trim();
+        }
+        this.getCommentsFacebook();
+      }, 600);
     },
   },
   async mounted() {
@@ -226,7 +283,7 @@ export default {
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
     },
-    getCommentsFacebook() {
+    async getCommentsFacebook() {
       let payload = {
         page: 1,
         search: this.search,
@@ -238,9 +295,21 @@ export default {
         ],
         ...payload,
       };
-      if (this.searchCommentFacebook)
-        payload["search"] = this.searchCommentFacebook;
-      this.$store.dispatch("commentsFacebookModule/list", payload);
+      if (this.searchPost) {
+        payload.filter = this.searchPost.trim();
+      }
+
+      const comments = await this.$store.dispatch(
+        "commentsFacebookModule/list",
+        payload
+      );
+      Vue.set(this, "commentsFacebook", comments);
+      this.commentsFacebook = [];
+      for (const comment of comments) {
+        this.commentsFacebook.push(comment);
+      }
+
+      // // Ensure reactivity
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -289,6 +358,29 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    assignCommentWithoutResponse() {
+      if (!this.selectedCommentFacebook) {
+        return;
+      }
+      // add url to postUrls
+      this.selectedCommentFacebook.postUrls.push({
+        url: this.selectedCommentWithoutResponse.url,
+      });
+      // set postId
+      this.selectedCommentFacebook.external_id = this.selectedCommentWithoutResponse.postId;
+      // update
+      this.$store.dispatch("commentsFacebookModule/update", {
+        id: this.selectedCommentFacebook._id,
+        data: this.selectedCommentFacebook,
+      });
+      this.selectedCommentFacebook = null;
+      // remove current post without response
+      this.$store.dispatch(
+        "commentsWithoutResponsesModule/delete",
+        this.selectedCommentWithoutResponse._id
+      );
+      this.dialog = false;
     },
   },
 };
