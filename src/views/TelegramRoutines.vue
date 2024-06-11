@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar rutina</v-btn
                       >
                     </template>
@@ -67,9 +72,11 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row v-if="editedItem.country.length">
+                          <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Categoria</div>
+                              <div class="body-1 font-weight-bold">
+                                Categoria
+                              </div>
                               <v-select
                                 dense
                                 hide-details
@@ -84,7 +91,46 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Grupo de telegram</div>
+                              <div class="body-1 font-weight-bold">
+                                Red social
+                              </div>
+                              <v-select
+                                clearable
+                                dense
+                                hide-details
+                                placeholder="Selecciona las redes sociales"
+                                outlined
+                                :items="bots"
+                                item-text="fanpageName"
+                                item-value="_id"
+                                v-model="editedItem.bots"
+                                multiple
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Tipo de publicación
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione una categoria"
+                                outlined
+                                :items="typeOfPosts"
+                                item-text="name"
+                                item-value="value"
+                                multiple
+                                v-model="editedItem.typeOfPosts"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Grupo de telegram
+                              </div>
                               <v-select
                                 dense
                                 hide-details
@@ -99,7 +145,9 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Minimo de inventario</div>
+                              <div class="body-1 font-weight-bold">
+                                Minimo de inventario
+                              </div>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.minStock"
@@ -109,7 +157,9 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Minimo de tallas</div>
+                              <div class="body-1 font-weight-bold">
+                                Minimo de tallas
+                              </div>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.minSize"
@@ -119,7 +169,9 @@
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Dias de envío</div>
+                              <div class="body-1 font-weight-bold">
+                                Dias de envío
+                              </div>
                               <v-select
                                 dense
                                 hide-details
@@ -134,7 +186,9 @@
                           </v-row>
                           <v-row>
                             <v-col>
-                              <div class="body-1 font-weight-bold">Hora de envío</div>
+                              <div class="body-1 font-weight-bold">
+                                Hora de envío
+                              </div>
                               <v-menu
                                 ref="timeMenu"
                                 v-model="scheduleTimeMenu"
@@ -157,18 +211,22 @@
                                     v-on="on"
                                   ></VTextFieldWithValidation>
                                 </template>
-                                  <v-time-picker
-                                    v-if="scheduleTimeMenu"
-                                    v-model="scheduleTime"
-                                    full-width
-                                    @click:minute="$refs.timeMenu.save(scheduleTime)"
-                                  ></v-time-picker>
+                                <v-time-picker
+                                  v-if="scheduleTimeMenu"
+                                  v-model="scheduleTime"
+                                  full-width
+                                  @click:minute="
+                                    $refs.timeMenu.save(scheduleTime)
+                                  "
+                                ></v-time-picker>
                               </v-menu>
                             </v-col>
                           </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">Cantidad de imagenes</div>
+                              <div class="body-1 font-weight-bold">
+                                Cantidad de imagenes
+                              </div>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.imagesQuantity"
@@ -210,10 +268,19 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" @click="editItem(item)" v-if="rolPermisos['Edit']"
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              @click="editItem(item)"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -226,7 +293,9 @@
             item.createdAt | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status==='active'" color="success">Activo</v-chip>
+            <v-chip v-if="item.status === 'active'" color="success"
+              >Activo</v-chip
+            >
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
         </v-data-table>
@@ -255,8 +324,8 @@ import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidati
 import MaterialCard from "@/components/material/Card";
 import TelegramRoutines from "@/classes/TelegramRoutines";
 import auth from "@/services/api/auth";
-import telegramGroupsApi from '@/services/api/telegramGroups'
-import categoriesApi from '@/services/api/ecommercesCategories'
+import telegramGroupsApi from "@/services/api/telegramGroups";
+import categoriesApi from "@/services/api/ecommercesCategories";
 
 export default {
   components: {
@@ -287,7 +356,7 @@ export default {
         sortable: false,
         value: "updatedAt",
       },
-      { text: 'Estado', value:'status', sortable: false },
+      { text: "Estado", value: "status", sortable: false },
       { text: "Acciones", value: "action", sortable: false },
     ],
     categories: [],
@@ -299,24 +368,29 @@ export default {
     scheduleTimeMenu: false,
     scheduleTime: null,
     status: [
-      {text: 'Activo', value: 'active'},
-      {text: 'Inactivo', value: 'inactive'}
+      { text: "Activo", value: "active" },
+      { text: "Inactivo", value: "inactive" },
     ],
     scheduleDays: [
-      {text: 'Lunes', value: 1},
-      {text: 'Martes', value: 2},
-      {text: 'Miercoles', value: 3},
-      {text: 'Jueves', value: 4},
-      {text: 'Viernes', value: 5},
-      {text: 'Sabado', value: 6},
-      {text: 'Domingo', value: 0},
+      { text: "Lunes", value: 1 },
+      { text: "Martes", value: 2 },
+      { text: "Miercoles", value: 3 },
+      { text: "Jueves", value: 4 },
+      { text: "Viernes", value: 5 },
+      { text: "Sabado", value: 6 },
+      { text: "Domingo", value: 0 },
     ],
     rolPermisos: {},
+    bots: [],
+    typeOfPosts: [
+      { name: "Reels", value: "reels" },
+      { name: "Historias", value: "stories" },
+    ],
   }),
   created() {
-    telegramGroupsApi.list().then(res => {
-      this.groups = res.data.payload
-    })
+    telegramGroupsApi.list().then((res) => {
+      this.groups = res.data.payload;
+    });
   },
   computed: {
     formTitle() {
@@ -328,50 +402,78 @@ export default {
     dialog(val) {
       val || this.close();
     },
-    'editedItem.country': function(val) {
-      if(val.length) {
-        const query = {country: val}
-        categoriesApi.list(query).then(res => {
-          this.categories = res.data.payload
-        })
+    "editedItem.country": function(val) {
+      if (val && val.length) {
+        const query = { country: val };
+        categoriesApi.list(query).then((res) => {
+          this.categories = res.data.payload;
+        });
       }
-    }
+    },
   },
 
-    async mounted() {
-      this.$store.commit("loadingModule/showLoading")
-      this.initialize();
-      this.rolAuth(); 
+  async mounted() {
+    this.$store.commit("loadingModule/showLoading");
+    this.initialize();
+    this.rolAuth();
   },
 
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/Propiedades',
-          'model':'Facebook',
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/Propiedades",
+          model: "Facebook",
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
-    
+
     addUser() {
-      this.editedItem.users.push("")
+      this.editedItem.users.push("");
     },
     removeUser(index) {
-      this.editedItem.users.splice(index, 1)
+      this.editedItem.users.splice(index, 1);
     },
 
     async initialize() {
-      await Promise.all([this.$store.dispatch("telegramRoutinesModule/list", {
-        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-      })]);
-      this.routines = this.$deepCopy(this.$store.state.telegramRoutinesModule.routines);
+      const company = this.$store.getters["authModule/getCurrentCompany"]
+        .company;
+      await Promise.all([
+        this.$store.dispatch("telegramRoutinesModule/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
+      ]);
+      // in case a company is selected, get categories
+      if (company) {
+        this.getCategories(company.country);
+      }
+      this.routines = this.$deepCopy(
+        this.$store.state.telegramRoutinesModule.routines
+      );
+      this.bots = this.$store.state.botsModule.bots;
+      // filter bot only allow ig and facebook
+      this.bots = this.bots.filter(
+        (bot) => bot.platform === "instagram" || bot.platform === "facebook"
+      );
+    },
+    getCategories(country) {
+      const query = { country };
+      categoriesApi.list(query).then((res) => {
+        this.categories = res.data.payload;
+      });
     },
     editItem(item) {
       this.editedIndex = this.routines.indexOf(item);
@@ -397,7 +499,7 @@ export default {
     },
 
     async save() {
-      console.log(this.editedItem)
+      console.log(this.editedItem);
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         let itemId = this.routines[this.editedIndex]._id;

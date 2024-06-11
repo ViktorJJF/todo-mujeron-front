@@ -48,7 +48,7 @@
                       color="deep-purple accent-4"
                       outlined
                     >
-                      <strong>{{ item?.name ? item.name : "" }}</strong>
+                      <strong>{{ item && item.name ? item.name : "" }}</strong>
                     </v-chip>
                   </template>
                 </v-combobox>
@@ -70,7 +70,7 @@ export default {
     MaterialCard,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -98,20 +98,30 @@ export default {
     async initialize() {
       await Promise.all([
         this.$store.dispatch("telefonosModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
         this.$store.dispatch("agentesModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
         this.$store.dispatch("ecommercesCategoriesModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
         this.$store.dispatch("ecommercesTagsModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
         this.$store.dispatch("todofullLabelsModule/list"),
         this.$store.dispatch("ecommercesAttributesModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
 
@@ -124,12 +134,12 @@ export default {
       // inicializando etiquetas de todofull
       this.labels = [
         ...this.$store.state.ecommercesCategoriesModule.ecommercesCategories,
-         ...this.$store.state.ecommercesTagsModule.ecommercesTags,
-         ...this.$store.state.todofullLabelsModule.todofullLabels,
+        ...this.$store.state.ecommercesTagsModule.ecommercesTags,
+        ...this.$store.state.todofullLabelsModule.todofullLabels,
         ...this.getAttributesWithValues(
           this.$store.state.ecommercesAttributesModule.ecommercesAttributes
         ),
-      ].sort((a, b) => this.sortAlphabetically(a, b, 'name'));
+      ].sort((a, b) => this.sortAlphabetically(a, b, "name"));
       // agregando labels y dando formato adecuado
       this.telefonos = this.telefonos.map((el) => {
         if (!el.labels) {

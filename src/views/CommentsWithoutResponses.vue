@@ -19,81 +19,31 @@
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
         >
-          <template v-slot:top>
-            <v-container>
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
-                    <v-card>
-                      <v-card-title>
-                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-                        <span class="headline">{{ formTitle }}</span>
-                      </v-card-title>
-                      <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombre</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Nombre de la categoría"
-                              />
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
-                </v-col>
-              </v-row>
-              <!-- <span class="font-weight-bold">Ordenar por</span
-              ><v-row>
-                <v-col cols="12" sm="6">
-                  <v-select
-                    outlined
-                    dense
-                    :items="headers"
-                    name="text"
-                  ></v-select>
-                </v-col>
-              </v-row> -->
-            </v-container>
-          </template>
           <template v-slot:[`item.url`]="{ item }">
             <a :href="item.url" target="_blank">{{ item.url }}</a>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
+            <v-btn
               class="mr-1 mb-1"
               color="primary"
               fab
               small
               dark
-              @click="editItem(item)"
+              @click="
+                selectedCommentWithoutResponse = item;
+                dialog = true;
+              "
             >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
-            <v-btn color="error" fab small dark @click="deleteItem(item)" v-if="rolPermisos['Delete']"
->
+              <v-icon>mdi-checkbox-multiple-marked</v-icon>
+            </v-btn>
+            <v-btn
+              color="error"
+              fab
+              small
+              dark
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -142,38 +92,137 @@
         </div>
       </material-card>
     </v-row>
+    <v-dialog v-model="dialog" max-width="900px">
+      <v-card>
+        <v-card-title>
+          <v-icon color="primary" class="mr-1">mdi-update</v-icon>
+          <span class="headline">Asignar a publicación existente</span>
+          <v-container fluid>
+            <v-col cols="12" sm="12">
+              <span class="font-weight-bold">Filtrar por productos</span>
+              <v-autocomplete
+                item-text="name"
+                item-value="_id"
+                :search-input.sync="searchProduct"
+                :items="products"
+                chips
+                dense
+                clearable
+                label="Busca los productos"
+                no-data-text="No se encontraron productos"
+                no-filter
+                solo
+                outlined
+                hide-details
+                @change="onSelectedProducts"
+                :multiple="editedIndex > -1 ? false : true"
+              >
+                <template
+                  v-slot:selection="{
+                    attrs,
+                    item,
+                    select,
+                    selected,
+                  }"
+                >
+                  <v-chip
+                    v-bind="attrs"
+                    :input-value="selected"
+                    close
+                    @click="select"
+                    @click:close="remove(item)"
+                    color="deep-purple accent-4"
+                    outlined
+                  >
+                    <strong>{{ item.name }}</strong>
+                  </v-chip>
+                </template>
+              </v-autocomplete>
+            </v-col>
+            <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
+              <p class="body-1 font-weight-bold">Selección para respuesta</p>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">Fecha</th>
+                      <th class="text-left">Url</th>
+                      <th class="text-left">Acciones</th>
+                      <!-- <th class="text-left">Url</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(commentFacebook, idx) in commentsFacebook"
+                      :key="idx"
+                    >
+                      <td>{{ commentFacebook.updatedAt | formatDate }}</td>
+                      <td>
+                        <a :href="commentFacebook.postUrl" target="_blank">{{
+                          commentFacebook.postUrl
+                        }}</a>
+                      </td>
+                      <td>
+                        <v-btn
+                          outlined
+                          color="secondary"
+                          text
+                          @click="assignCommentWithoutResponse(commentFacebook)"
+                          >Asignar</v-btn
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-col>
+          </v-container>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-container class="pa-5"></v-container>
+        <v-card-actions rd-actions>
+          <div class="flex-grow-1"></div>
+          <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
 //Nota: Modifica los campos de la tabla
+import Vue from "vue";
 const ENTITY = "commentsWithoutResponses"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 export default {
   components: {
     MaterialCard,
-    VTextFieldWithValidation,
   },
   filters: {
-    formatDate: function (value) {
+    formatDate: function(value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
     },
   },
   data: () => ({
+    searchProduct: null,
+    selectedCommentWithoutResponse: null,
+    selectedCommentFacebook: null,
+    searchPost: "",
+    commentsFacebook: [],
+    selectedProductsSearch: [],
+    dialog: false,
     page: 1,
     pageCount: 0,
     loadingButton: false,
     search: "",
-    dialog: false,
     headers: [
       {
         text: "Agregado",
@@ -203,6 +252,9 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
+    updateSearch: 0,
+    delayTimer: null,
+    products: [],
   }),
   computed: {
     formTitle() {
@@ -221,29 +273,46 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    searchPost() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        if (this.searchPost && this.searchPost.length > 0) {
+          this.searchPost = this.searchPost.trim();
+        }
+        this.getCommentsFacebook();
+      }, 600);
+    },
+    async searchProduct() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.getProducts(1);
+      }, 600);
+    },
   },
   async mounted() {
-    this.$store.commit("loadingModule/showLoading")
+    this.$store.commit("loadingModule/showLoading");
     await this.$store.dispatch(ENTITY + "Module/list", {
-      companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+      companies: [
+        this.$store.getters["authModule/getCurrentCompany"].company._id,
+      ],
     });
     this.initialize();
-    this.rolAuth(); 
+    this.rolAuth();
   },
   methods: {
-    rolAuth(){
-       auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Facebook/Facebook',
-          'model':'Comentarios-SinResponder',
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Facebook/Facebook",
+          model: "Comentarios-SinResponder",
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     async initialize() {
       //llamada asincrona de items
@@ -251,6 +320,72 @@ export default {
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
+      );
+    },
+    async getCommentsFacebook() {
+      let payload = {
+        page: 1,
+        search: this.search,
+        fieldsToSearch: ["postUrl"],
+        sort: "updatedAt",
+        order: "desc",
+        companies: [
+          this.$store.getters["authModule/getCurrentCompany"].company._id,
+        ],
+        ...payload,
+      };
+      if (this.selectedProductsSearch.length > 0) {
+        payload.products = this.selectedProductsSearch;
+      }
+      if (this.searchPost) {
+        payload.filter = this.searchPost.trim();
+      }
+
+      const comments = await this.$store.dispatch(
+        "commentsFacebookModule/list",
+        payload
+      );
+      Vue.set(this, "commentsFacebook", comments);
+      this.commentsFacebook = [];
+      for (const comment of comments) {
+        this.commentsFacebook.push(comment);
+      }
+
+      // // Ensure reactivity
+    },
+    async getProducts(page = 1) {
+      if (!this.searchProduct) return;
+      //llamada asincrona de items
+      let payload = {
+        sort: "name",
+        page,
+        search: this.searchProduct,
+        fieldsToSearch: ["name", "ref"],
+        listType: "All",
+      };
+      if (this.editedIndex > -1) {
+        payload.country = this.selectedFanpage.country;
+      }
+      if (this.editedIndex === -1 && this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
+      await Promise.all([
+        this.$store.dispatch("ecommercesModule/list", {
+          sort: "name",
+          page,
+          search: this.searchProduct,
+          fieldsToSearch: ["name", "ref"],
+          listType: "All",
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
+      ]);
+      //asignar al data del componente
+
+      // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
+      this.rawProducts = this.products = this.$deepCopy(
+        this.$store.state.ecommercesModule.ecommerces
       );
     },
     editItem(item) {
@@ -299,6 +434,49 @@ export default {
         } finally {
           this.loadingButton = false;
         }
+      }
+    },
+    async assignCommentWithoutResponse(commentFacebook) {
+      if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
+        return;
+      }
+
+      if (!commentFacebook) {
+        return;
+      }
+      // add url to postUrls
+      if (!commentFacebook.postUrls) commentFacebook.postUrls = [];
+      commentFacebook.postUrls.push({
+        url: this.selectedCommentWithoutResponse.url,
+      });
+      // set postId
+      commentFacebook.external_id = this.selectedCommentWithoutResponse.postId;
+      // update
+      await this.$store.dispatch("commentsFacebookModule/update", {
+        id: commentFacebook._id,
+        data: commentFacebook,
+        showMessage: false,
+      });
+      this.$store.commit(
+        "successModule/success",
+        "Comentario sin responder asignado con éxito",
+        { root: true }
+      );
+      this.$store.commit("loadingModule/showLoading", false, { root: true });
+      this.selectedProductsSearch = [];
+      // remove current post without response
+      // this.$store.dispatch(
+      //   "commentsWithoutResponsesModule/delete",
+      //   this.selectedCommentWithoutResponse._id
+      // );
+      this.dialog = false;
+    },
+    onSelectedProducts(e) {
+      this.searchProduct = "";
+      // in case in product search for filter
+      if (this.editedIndex === -1) {
+        this.selectedProductsSearch = e; // ids products
+        this.getCommentsFacebook();
       }
     },
   },

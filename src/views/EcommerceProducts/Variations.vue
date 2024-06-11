@@ -25,7 +25,7 @@
             <v-container>
               <span class="font-weight-bold"> Filtrar: {{ search }} </span>
               <v-row>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="4">
                   <v-text-field
                     dense
                     hide-details
@@ -35,6 +35,53 @@
                     single-line
                     outlined
                   />
+                </v-col>
+                <v-col cols="12" sm="3">
+                  <v-select
+                    :items="sources"
+                    v-model="currentSourceUrl"
+                    dense
+                    hide-details
+                    single-line
+                    outlined
+                    clearable
+                    placeholder="Selecciona la Fuente"
+                  />
+                </v-col>
+                <v-col>
+                  <v-btn color="primary" @click="handleProductsCrossover">
+                    Sincronizar
+                  </v-btn>
+                  <div
+                    class="controls-container"
+                    v-if="productsCrossoverSku.length"
+                  >
+                    <div>
+                      <v-btn
+                        v-if="currentProductIndex > 0"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex - 1)
+                        "
+                      >
+                        Anterior
+                      </v-btn>
+                      <v-btn
+                        v-if="
+                          currentProductIndex < productsCrossoverSku.length - 1
+                        "
+                        class="ml-2"
+                        @click="
+                          handleCurrentProductChange(currentProductIndex + 1)
+                        "
+                      >
+                        Siguiente
+                      </v-btn>
+                    </div>
+                    <div class="mt-2">
+                      {{ currentProductIndex + 1 }} /
+                      {{ productsCrossoverSku.length }}
+                    </div>
+                  </div>
                 </v-col>
               </v-row>
               <v-row>
@@ -51,6 +98,29 @@
                 </v-col>
               </v-row>
             </v-container>
+          </template>
+
+          <template v-slot:item.regular_price="{ item }">
+            <span>
+              {{ item.regular_price | money }}
+            </span>
+          </template>
+
+          <template v-slot:item.discount="{ item }">
+            <div v-if="item.isParent">
+              <v-btn
+                small
+                color="secondary"
+                icon
+                @click="openDiscountDialog(item)"
+              >
+                <v-icon>mdi-sale</v-icon
+                >
+              </v-btn>
+              <span class="format-breaklines" v-if="!!item.sale_price">
+                {{ item.regular_price - item.sale_price | money }}
+              </span>
+            </div>
           </template>
 
           <template v-slot:item.switch="{ item }">
@@ -176,7 +246,111 @@
         </div>
       </material-card>
     </v-row>
+    <v-dialog
+      v-model="discountDialog"
+      width="500"
+    >
+      <v-card v-if="currentItem">
+        <v-card-title class="text-h5 grey lighten-2">
+          Descuento
+        </v-card-title>
+
+        <v-card-text>
+          <v-row class="pt-5">
+            <v-col cols="4">
+              <div class="pa-3 mb-2 rounded-lg elevation-1">
+                <div>Precio Regular</div>
+                <div>{{currentItem.regular_price}}</div>
+              </div>
+              <div class="pa-3 mb-2 rounded-lg elevation-1">
+                <div>Precio de venta</div>
+                <v-text-field
+                  v-model="currentItemSalePrice"
+                  type="number"
+                  single-line
+                  dense
+                  outlined
+                  hide-details
+                  min="0"
+                  @change="reCalculateDiscountRate"
+                />
+              </div>
+              <div class="pa-3 rounded-lg elevation-1">
+                <div>Descuento %</div>
+                <v-text-field
+                  v-model="currentItemDiscountRate"
+                  type="number"
+                  single-line
+                  dense
+                  outlined
+                  hide-details
+                  min="0"
+                  @change="reCalculateSalePrice"
+                />
+              </div>
+            </v-col>
+            <v-col cols="8">
+              <div class="d-flex justify-space-around mb-5" style="gap: 10px;">
+                <div>
+                  Fecha de inicio
+                  <v-text-field
+                    v-model="discountStartDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
+                <div>
+                  Fecha de fin
+                  <v-text-field
+                    v-model="discountEndDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
+              </div>
+              <div class="d-flex justify-center">
+                <v-date-picker
+                  v-model="discountDates"
+                  range
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="red"
+            text
+            @click="clerDiscount"
+          >
+            Borrar
+          </v-btn>
+          <v-btn
+            text
+            @click="discountDialog = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="secondary"
+            text
+            @click="handleSaveDiscount"
+          >
+            Aceptar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
+
 </template>
 
 <script>
@@ -186,6 +360,7 @@ import MaterialCard from '@/components/material/Card'
 import { es } from 'date-fns/locale'
 import auth from '@/services/api/auth'
 import EcommercesApi from '@/services/api/ecommerces'
+import { getDatePartOnly } from '@/utils/dates-handle'
 
 export default {
   components: {
@@ -197,6 +372,9 @@ export default {
         locale: es,
       })
     },
+    money: function(value) {
+      return Intl.NumberFormat().format(value)
+    }
   },
   data: () => ({
     page: 1,
@@ -256,6 +434,18 @@ export default {
         value: 'sku',
       },
       {
+        text: 'Descuento',
+        align: 'center',
+        sortable: false,
+        value: 'discount',
+      },
+      {
+        text: 'Precio Regular',
+        align: 'left',
+        sortable: false,
+        value: 'regular_price',
+      },
+      {
         text: 'Stock ',
         align: 'left',
         sortable: false,
@@ -272,12 +462,6 @@ export default {
         align: 'left',
         sortable: false,
         value: 'color',
-      },
-      {
-        text: 'Stock',
-        align: 'left',
-        sortable: false,
-        value: '',
       },
       {
         text: 'Stock Estado',
@@ -304,8 +488,39 @@ export default {
     ],
     [ENTITY]: [],
     rolPermisos: {},
+    discountDialog: false,
+    discountDates: [],
+    currentItem: null,
+    currentItemSalePrice: 0,
+    currentItemDiscountRate: 0,
+    currentSourceUrl: null,
+    productsCrossoverSku: [],
+    currentProductSku: null,
+    currentProductIndex: null,
+    sources: [
+      { text: 'Mujeron Chile', value: 'https://mujeron.cl' },
+      { text: 'Fajas Salome Chile', value: 'https://fajassalome.cl' },
+      { text: 'Pushup Chile', value: 'https://pushup.cl' },
+      { text: 'Mujeron Peru', value: 'https://mujeron.pe' },
+    ]
   }),
   computed: {
+    discountStartDate: {
+      get: function () {
+        return this.discountDates[0]
+      },
+      set: function(value) {
+        this.discountDates.splice(0, 1, value)
+      }
+    },
+    discountEndDate: {
+      get: function () {
+        return this.discountDates[1]
+      },
+      set: function(value) {
+        this.discountDates.splice(1, 1, value)
+      }
+    },
     totalItems() {
       return this.$store.state['ecommercesModule'].total
     },
@@ -338,6 +553,9 @@ export default {
         this.initialize(this.page)
       }, 600)
     },
+    currentSourceUrl() {
+      this.initialize(this.page)
+    }
   },
   mounted() {
     this.$store.commit('loadingModule/showLoading')
@@ -367,6 +585,7 @@ export default {
         sort: "updatedAt",
         order: -1,
         listType: "All",
+        url: this.currentSourceUrl
       };
       payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
       await Promise.all([
@@ -381,8 +600,14 @@ export default {
       ).map((el) => ({ ...el, originalRef: el.ref }))
 
       this.items = products.flatMap((product) => {
+        const firstVariation = product.variations[0]
+
         Object.assign(product, {
           isParent: true,
+          regular_price: product.regular_price ?? firstVariation?.regular_price,
+          sale_price: product.sale_price ?? firstVariation?.sale_price,
+          dateOnSaleFrom: product.dateOnSaleFrom ?? firstVariation?.date_on_sale_from,
+          dateOnSaleTo: product.dateOnSaleTo ?? firstVariation?.date_on_sale_to,
           attributesFormatted: this.getFormatAttributes(product.attributes),
         })
 
@@ -469,7 +694,6 @@ export default {
             old_inventory_quantity: variation.old_inventory_quantity,
             inventory_quantity: variation.inventory_quantity,
           }))
-          console.log('el payload: ', payload)
 
           await EcommercesApi.updateVariationBatch(item._id, payload)
 
@@ -519,6 +743,31 @@ export default {
         this.switchLoading = this.switchLoading.filter((v) => v !== item.id)
       }
     },
+    async handleProductsCrossover() {
+      const isAlreadyFetched = this.productsCrossoverSku.length > 0
+      if (isAlreadyFetched) {
+        return this.search = this.currentProductSku
+      }
+      const company = this.$store.getters["authModule/getCurrentCompany"].company
+      const res = await EcommercesApi.getProductsCrossover(company.country)
+      if (res.data?.ok !== true) return
+
+      const productsSku = res.data.payload
+      this.productsCrossoverSku = productsSku
+      const sku = productsSku[0]
+      this.currentProductSku = sku
+      this.currentProductIndex = 0
+      this.search = sku
+    },
+    handleCurrentProductChange(index) {
+      const sku = this.productsCrossoverSku[index]
+      if (sku) {
+        this.currentProductIndex = index
+        this.currentProductSku = sku
+        this.search = sku
+      }
+    },
+
     async handleSyncVariation(variation) {
       const isLoading = this.switchLoading.includes(variation.id)
       if (isLoading) return
@@ -540,11 +789,59 @@ export default {
         this.switchLoading.splice(loadingIndex, 1)
       }
     },
+    reCalculateDiscountRate() {
+      const regularPrice = this.currentItem.regular_price
+      const salePrice = this.currentItemSalePrice
+      const rate = (regularPrice - salePrice) / regularPrice
+      this.currentItemDiscountRate = rate * 100
+    },
+    reCalculateSalePrice() {
+      const regularPrice = this.currentItem.regular_price
+      const discountRate = this.currentItemDiscountRate / 100
+      this.currentItemSalePrice = regularPrice - (this.currentItem.regular_price * discountRate)
+    },
+    openDiscountDialog(item) {
+      this.currentItem = item
+      this.discountDialog = true
+      this.currentItemSalePrice = item.sale_price ?? item.regular_price
+      this.discountStartDate = item.dateOnSaleFrom ? getDatePartOnly(item.dateOnSaleFrom) : ''
+      this.discountEndDate = item.dateOnSaleTo ? getDatePartOnly(item.dateOnSaleTo) : ''
+      this.reCalculateDiscountRate()
+    },
+    async handleSaveDiscount() {
+      const [dateOnSaleFrom, dateOnSaleTo] = this.discountDates
+      const dateOnSaleFromLocal = dateOnSaleFrom ? new Date(`${dateOnSaleFrom}T00:00:00`) : undefined
+      const dateOnSaleToLocal = dateOnSaleTo ? new Date(`${dateOnSaleTo}T00:00:00`): undefined
+
+      const changes = {
+        sale_price: this.currentItemSalePrice,
+        dateOnSaleFrom: dateOnSaleFrom ? dateOnSaleFromLocal : undefined,
+        dateOnSaleTo: dateOnSaleTo ? dateOnSaleToLocal : undefined
+      }
+
+      await EcommercesApi.updateProductV2(this.currentItem._id, changes)
+
+      Object.assign(this.currentItem, changes)
+
+      this.discountDialog = false
+    },
+    clerDiscount() {
+      this.discountDates = []
+      this.currentItemSalePrice = this.currentItem.regular_price
+      this.currentItemDiscountRate = 0
+    }
   },
 }
 </script>
 
 <style lang="scss" scoped>
+.controls-container {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 8px;
+  align-items: center;
+}
+
 .loading {
   animation: rotation 1s linear infinite;
 }

@@ -60,13 +60,15 @@ const module = {
           });
       });
     },
-    update({ commit }, { id, data }) {
+    update({ commit }, { id, data, showMessage = true }) {
       return new Promise((resolve, reject) => {
         api
           .update(id, data)
           .then((res) => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro actualizado con éxito", commit);
+            if (showMessage) {
+              buildSuccess("Registro actualizado con éxito", commit);
+            }
             commit("update", {
               id,
               data: res.data.payload,

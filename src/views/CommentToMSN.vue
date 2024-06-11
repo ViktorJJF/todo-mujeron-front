@@ -610,7 +610,7 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > commentsFacebook.length
-                ? $store.state.llmTracker?.total
+                ? $store.state.llmTracker.total
                 : $store.state.itemsPerPage
             }}
             de {{ commentsFacebook.length }} registros
@@ -836,7 +836,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Facebook/Facebook",
           model: "Comentarios",
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -868,11 +869,15 @@ export default {
           fieldsToSearch: this.fieldsToSearch,
           sort: "updatedAt",
           order: "desc",
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
           ...payload,
         }),
         this.$store.dispatch("botsModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       this.commentsFacebook = this.$deepCopy(
@@ -994,7 +999,9 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name", "ref"],
           listType: "All",
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       //asignar al data del componente
@@ -1028,15 +1035,18 @@ export default {
       }
     },
     remove(item) {
-      const index = this.selectedProductsSearch.findIndex(p => p === item._id);
+      const index = this.selectedProductsSearch.findIndex(
+        (p) => p === item._id
+      );
       this.selectedProductsSearch.splice(index, 1);
       this.initialize();
-      
     },
     async generateTemplate(product) {
       await this.$store.dispatch("facebookLabelsModule/list", {
         limit: 9999,
-        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        companies: [
+          this.$store.getters["authModule/getCurrentCompany"].company._id,
+        ],
       });
       // obteniendo etiquetas emparejadas con categorias
       let facebookLabels = [];
@@ -1249,7 +1259,7 @@ Descripción producto larga: ${stripHtml(product.description)}`
         id: item._id,
         data: this.commentsFacebook[indexComment],
       });
-      if(item.newPostUrl){
+      if (item.newPostUrl) {
         item.newPostUrl = "";
       }
     },

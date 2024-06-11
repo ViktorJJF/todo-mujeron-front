@@ -61,7 +61,7 @@
         <v-facebook-login
           :login-options="{
             scope:
-              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management',
+              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management,instagram_content_publish,catalog_management',
           }"
           style="margin: auto"
           @login="facebookLogged"
@@ -85,9 +85,9 @@ export default {
   data() {
     return {
       loading: false,
-      user: { email: '', password: '' },
+      user: { email: "", password: "" },
       corporation: null,
-    }
+    };
   },
   created() {
     if (this.$store.state.authModule.isTokenSet) {
@@ -100,7 +100,7 @@ export default {
       let corporation = this.corporation;
       // this.loading = true;
       this.$store
-        .dispatch('authModule/login', {
+        .dispatch("authModule/login", {
           user,
           corporation,
         })
