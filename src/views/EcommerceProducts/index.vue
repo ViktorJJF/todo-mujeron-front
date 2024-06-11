@@ -36,7 +36,7 @@
                     dense
                     class="mt-2"
                     clearable
-                    @change="initialize"
+                    @change="initialize()"
                   >
                     <template v-slot:no-data>
                       <v-list-item>
@@ -352,6 +352,22 @@
               :value="item._id"
             />
           </template>
+          <template v-slot:item.discount="{ item }">
+            <div>
+              <v-btn
+                small
+                color="secondary"
+                icon
+                @click="openDiscountDialog(item)"
+              >
+                <v-icon>mdi-sale</v-icon
+                >
+              </v-btn>
+              <span class="format-breaklines" v-if="!!item.sale_price">
+                {{ item.regular_price - item.sale_price | money }}
+              </span>
+            </div>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -490,6 +506,109 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="discountDialog"
+      width="500"
+    >
+      <v-card v-if="currentItem">
+        <v-card-title class="text-h5 grey lighten-2">
+          Descuento
+        </v-card-title>
+
+        <v-card-text>
+          <v-row class="pt-5">
+            <v-col cols="4">
+              <div class="pa-3 mb-2 rounded-lg elevation-1">
+                <div>Precio Regular</div>
+                <div>{{currentItem.regular_price}}</div>
+              </div>
+              <div class="pa-3 mb-2 rounded-lg elevation-1">
+                <div>Precio de venta</div>
+                <v-text-field
+                  v-model="currentItemSalePrice"
+                  type="number"
+                  single-line
+                  dense
+                  outlined
+                  hide-details
+                  min="0"
+                  @change="reCalculateDiscountRate"
+                />
+              </div>
+              <div class="pa-3 rounded-lg elevation-1">
+                <div>Descuento %</div>
+                <v-text-field
+                  v-model="currentItemDiscountRate"
+                  type="number"
+                  single-line
+                  dense
+                  outlined
+                  hide-details
+                  min="0"
+                  @change="reCalculateSalePrice"
+                />
+              </div>
+            </v-col>
+            <v-col cols="8">
+              <div class="d-flex justify-space-around mb-5" style="gap: 10px;">
+                <div>
+                  Fecha de inicio
+                  <v-text-field
+                    v-model="discountStartDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
+                <div>
+                  Fecha de fin
+                  <v-text-field
+                    v-model="discountEndDate"
+                    single-line
+                    dense
+                    outlined
+                    hide-details
+                  />
+                </div>
+              </div>
+              <div class="d-flex justify-center">
+                <v-date-picker
+                  v-model="discountDates"
+                  range
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="red"
+            text
+            @click="clerDiscount"
+          >
+            Borrar
+          </v-btn>
+          <v-btn
+            text
+            @click="discountDialog = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="secondary"
+            text
+            @click="handleSaveDiscount"
+          >
+            Aceptar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -514,6 +633,8 @@ import {
 } from "@/utils/utils";
 import auth from "@/services/api/auth";
 import Vue from "vue";
+import { getDatePartOnly } from '@/utils/dates-handle'
+
 export default {
   components: {
     MaterialCard,
@@ -526,6 +647,9 @@ export default {
         locale: es,
       });
     },
+    money: function(value) {
+      return Intl.NumberFormat().format(value)
+    }
   },
   data: () => ({
     selectedWoocommerce: null,
@@ -578,6 +702,12 @@ export default {
         value: "ref",
       },
       {
+        text: 'Descuento',
+        align: 'center',
+        sortable: false,
+        value: 'discount',
+      },
+      {
         text: "Atributos",
         align: "left",
         sortable: false,
@@ -619,8 +749,29 @@ export default {
     selectedProductsSize: 1,
     updateCheckbox: 0,
     rolPermisos: {},
+    discountDialog: false,
+    discountDates: [],
+    currentItem: null,
+    currentItemSalePrice: 0,
+    currentItemDiscountRate: 0,
   }),
   computed: {
+    discountStartDate: {
+      get: function () {
+        return this.discountDates[0]
+      },
+      set: function(value) {
+        this.discountDates.splice(0, 1, value)
+      }
+    },
+    discountEndDate: {
+      get: function () {
+        return this.discountDates[1]
+      },
+      set: function(value) {
+        this.discountDates.splice(1, 1, value)
+      }
+    },
     totalItems() {
       return this.$store.state["ecommercesModule"].total;
     },
@@ -747,8 +898,18 @@ export default {
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
-      ).map((el) => ({ ...el, originalRef: el.ref }));
-      //se agrego el campo ref original
+      ).map((el) => {
+        const firstVariation = el.variations[0]
+
+        return {
+          ...el,
+          regular_price: el.regular_price ?? firstVariation?.regular_price,
+          sale_price: el.sale_price ?? firstVariation?.sale_price,
+          dateOnSaleFrom: el.dateOnSaleFrom ?? firstVariation?.date_on_sale_from,
+          dateOnSaleTo: el.dateOnSaleTo ?? firstVariation?.date_on_sale_to,
+          originalRef: el.ref
+        }
+      });
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
@@ -911,6 +1072,47 @@ export default {
         console.log(error);
       }
     },
+    reCalculateDiscountRate() {
+      const regularPrice = this.currentItem.regular_price
+      const salePrice = this.currentItemSalePrice
+      const rate = (regularPrice - salePrice) / regularPrice
+      this.currentItemDiscountRate = rate * 100
+    },
+    reCalculateSalePrice() {
+      const regularPrice = this.currentItem.regular_price
+      const discountRate = this.currentItemDiscountRate / 100
+      this.currentItemSalePrice = regularPrice - (this.currentItem.regular_price * discountRate)
+    },
+    openDiscountDialog(item) {
+      this.currentItem = item
+      this.discountDialog = true
+      this.currentItemSalePrice = item.sale_price ?? item.regular_price
+      this.discountStartDate = item.dateOnSaleFrom ? getDatePartOnly(item.dateOnSaleFrom) : ''
+      this.discountEndDate = item.dateOnSaleTo ? getDatePartOnly(item.dateOnSaleTo) : ''
+      this.reCalculateDiscountRate()
+    },
+    async handleSaveDiscount() {
+      const [dateOnSaleFrom, dateOnSaleTo] = this.discountDates
+      const dateOnSaleFromLocal = dateOnSaleFrom ? new Date(`${dateOnSaleFrom}T00:00:00`) : undefined
+      const dateOnSaleToLocal = dateOnSaleTo ? new Date(`${dateOnSaleTo}T00:00:00`): undefined
+
+      const changes = {
+        sale_price: this.currentItemSalePrice,
+        dateOnSaleFrom: dateOnSaleFrom ? dateOnSaleFromLocal : undefined,
+        dateOnSaleTo: dateOnSaleTo ? dateOnSaleToLocal : undefined
+      }
+
+      await ecommercesApi.updateProductV2(this.currentItem._id, changes)
+
+      Object.assign(this.currentItem, changes)
+
+      this.discountDialog = false
+    },
+    clerDiscount() {
+      this.discountDates = []
+      this.currentItemSalePrice = this.currentItem.regular_price
+      this.currentItemDiscountRate = 0
+    }
   },
 };
 </script>

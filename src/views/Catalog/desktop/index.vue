@@ -205,11 +205,14 @@
             <v-list-item @click="handleDownloadPdf()">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleDownloadPdf(13)">
+            <v-list-item @click="handleDownloadPdf({ maxSize: 13 })">
               <v-list-item-title>Descargar para whatsapp</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleDownloadPdf(undefined, true)">
+            <v-list-item @click="handleDownloadPdf({ includePrice: true })">
               <v-list-item-title>Descargar con precio</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleDownloadPdf({ promotionsOnly: true, includePrice: true })">
+              <v-list-item-title>Descargar promociones</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -562,56 +565,101 @@ export default {
     },
   },
   methods: {
-    async downloadPdf(maxSize, price) {
-      if (!this.productsSource.length) {
-        return
-      }
+    async downloadPdf(products, { maxSize, includePrice }) {
+      if (!products.length) return
 
       let doc = new jsPDF()
 
-      const [x, y] = [30, 7]
-      let width = doc.internal.pageSize.getWidth() - x * 2
-      let height = doc.internal.pageSize.getHeight() - y * 2
+      const PAGE_WIDTH = doc.internal.pageSize.getWidth()
+      const PAGE_HEIGHT = doc.internal.pageSize.getHeight()
 
-      for (const [index, product] of this.productsSource.entries()) {
+      const imageSize = { width: 1080, height: 1920 }
+      const height = PAGE_HEIGHT - 4
+      const scaleFactor = height / imageSize.height
+      const width = imageSize.width * scaleFactor
+
+      const [x, y] = [(PAGE_WIDTH - width) / 2, (PAGE_HEIGHT - height) / 2]
+
+      for (const [index, product] of products.entries()) {
+        const baseY = height + y - 4
+
         let leftText = `Rerefencia: ${
           product.ref
         } - Tallas disponibles: ${this.getTallas(product).join(', ')}`
-        doc.text(leftText, x - 3, height + y, { angle: 90 })
+        doc.text(leftText, x - 3, baseY, { angle: 90 })
 
         let rightText = `Actualizado al ${this.getDate()} - Pais: ${
           this.country
         }`
-        doc.text(rightText, width + x + 6, height + y, { angle: 90 })
+        doc.text(rightText, width + x + 6, baseY, { angle: 90 })
 
-        if (price) {
-          let productPrice =
-            product.regular_price || product.variations[0].regular_price
+        if (includePrice) {
+          const productPrice = product.regular_price || product.variations[0].regular_price
+          const salePrice = product.sale_price || product.variations[0].sale_price
+          
+          const priceText = `Precio: ${this.formatAmount(productPrice)}`
 
-          productPrice = new Intl.NumberFormat().format(productPrice)
+          const priceTextPosition = {
+            x: width + x + 6,
+            y: baseY - rightText.length * 2.65
+          }
 
-          const priceText = `Precio: ${productPrice}`
+          const hasDiscount = salePrice > 0
+          if (hasDiscount) {
+            const priceTextWidth = doc.getTextWidth(priceText)
+            const discountText = `Precio: ${this.formatAmount(salePrice)}`
 
-          doc
+            const priceLinePosition = {
+              x: priceTextPosition.x,
+              y: priceTextPosition.y - priceTextWidth
+            }
+            
+            doc
+            .setTextColor(204, 204, 204)
+            .text(
+              priceText,
+              priceTextPosition.x,
+              priceTextPosition.y,
+              { angle: 90 }
+            )
+            .line(
+              priceTextPosition.x - 2,
+              priceTextPosition.y,
+              priceLinePosition.x - 2,
+              priceLinePosition.y
+            )
+            .setTextColor(0, 0, 0)
             .setFontSize(doc.getFontSize() + 2)
             .setFont(undefined, 'bold')
             .text(
-              priceText,
-              width + x + 6,
-              height + y - rightText.length * 2.65,
+              discountText,
+              priceLinePosition.x,
+              priceLinePosition.y - 4,
               { angle: 90 }
             )
+
+          } else {
+            doc
+              .setFontSize(doc.getFontSize() + 2)
+              .setFont(undefined, 'bold')
+              .text(
+                priceText,
+                priceTextPosition.x,
+                priceTextPosition.y,
+                { angle: 90 }
+              )
+          }
 
           // return font to normal
           doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
         }
 
-        let image = this.getProductImageUrl(product)
+        const image = this.getProductImageUrl(product)
         doc.addImage(image, 'JPEG', x, y, width, height)
 
         const filename = `${Date.now()}.pdf`
 
-        const isLast = index === this.productsSource.length - 1
+        const isLast = index === products.length - 1
         if (isLast) {
           doc.save(filename)
           return await this.delay(500)
@@ -631,14 +679,22 @@ export default {
         doc.addPage()
       }
     },
-    async handleDownloadPdf(...args) {
+    async handleDownloadPdf({ maxSize, includePrice, promotionsOnly } = {}) {
       this.downloadLoading = true
 
       while (this.productsDocsSource.nextPage) {
         await this.fetchProducts(this.productsDocsSource.nextPage)
       }
 
-      await this.downloadPdf(...args)
+      const products = promotionsOnly
+        ? this.productsSource.filter(product => (product.sale_price || product.variations[0].sale_price) > 0)
+        : this.productsSource
+
+      if (promotionsOnly && !products.length) {
+        alert('No hay promociones disponibles con el filtro seleccionado')
+      }
+
+      await this.downloadPdf(products, { maxSize, includePrice })
 
       this.downloadLoading = false
     },
@@ -662,6 +718,9 @@ export default {
     clearFilters() {
       this.filter.categories = []
       this.productsSelected = []
+    },
+    formatAmount(amount) {
+      return new Intl.NumberFormat().format(amount)
     },
     getTallas(product) {
       const tallas = []
@@ -829,7 +888,7 @@ export default {
         const price =
           item.product.regular_price || item.product.variations[0].regular_price
         const productTotal = price * item.quantity
-        const totalFormat = new Intl.NumberFormat().format(productTotal)
+        const totalFormat = this.formatAmount(productTotal)
         total += productTotal
         message += `\n${item.product.name} | Talla: ${tallas} - ${totalFormat}`
         if (item.color) {
@@ -846,7 +905,7 @@ export default {
         })
       }
 
-      message += `\n\nTotal: ${new Intl.NumberFormat().format(total)}`
+      message += `\n\nTotal: ${this.formatAmount(total)}`
 
       this.$gtag.event('begin_checkout', {
         currency: this.currencyCode,

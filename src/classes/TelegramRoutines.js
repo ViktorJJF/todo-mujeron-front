@@ -1,11 +1,13 @@
 export default () => ({
-  status: 'active',
-  name: '',
+  status: "active",
+  name: "",
   category: null,
   telegramGroup: null,
   minStock: 0,
   minSize: 0,
   scheduleDays: [],
-  scheduleTime: '',
+  scheduleTime: "",
   imagesQuantity: 0,
+  bots: [],
+  typeOfPosts: [],
 });
