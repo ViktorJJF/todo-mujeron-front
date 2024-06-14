@@ -1306,6 +1306,7 @@ export default {
           if (selectedSource) {
             this.editedItem.details[0].company = selectedSource ? selectedSource.company : null;
           }
+          this.editedItem.corporation = this.$store.getters["authModule/getCurrentCompany"].company.corporation;
           await this.$store.dispatch("cleanLeadsModule/create", {
             ...this.editedItem,
             is_manual: true,

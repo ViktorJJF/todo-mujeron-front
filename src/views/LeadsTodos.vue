@@ -471,11 +471,13 @@ export default {
         ...this.$store.state.botsModule.bots.map((bot) => ({
           _id: bot._id,
           name: bot.name,
+          company: bot.company,
         })),
         ...this.$store.state.woocommercesModule.woocommerces.map(
           (woocommerce) => ({
             _id: woocommerce._id,
             name: woocommerce.domain,
+            company: woocommerce.company,
           })
         ),
       ];
@@ -649,6 +651,13 @@ export default {
           fuente == "www.annchery.cl"
             ? "Chile"
             : "Peru";
+        const selectedSource = this.sourceSelectList.find(source => {
+          return source._id ? source._id === this.editedItem.details[0].fuente : false;
+        });
+        if (selectedSource) {
+          this.editedItem.details[0].company = selectedSource ? selectedSource.company : null;
+        }
+        this.editedItem.corporation = this.$store.getters["authModule/getCurrentCompany"].company.corporation;
         console.log("CREANDO...");
         let createdItem = await this.$store.dispatch(
           "cleanLeadsModule/create",

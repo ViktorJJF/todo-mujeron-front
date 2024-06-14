@@ -570,20 +570,28 @@ export default {
 
       let doc = new jsPDF()
 
-      const [x, y] = [30, 7]
-      let width = doc.internal.pageSize.getWidth() - x * 2
-      let height = doc.internal.pageSize.getHeight() - y * 2
+      const PAGE_WIDTH = doc.internal.pageSize.getWidth()
+      const PAGE_HEIGHT = doc.internal.pageSize.getHeight()
+
+      const imageSize = { width: 1080, height: 1920 }
+      const height = PAGE_HEIGHT - 4
+      const scaleFactor = height / imageSize.height
+      const width = imageSize.width * scaleFactor
+
+      const [x, y] = [(PAGE_WIDTH - width) / 2, (PAGE_HEIGHT - height) / 2]
 
       for (const [index, product] of products.entries()) {
+        const baseY = height + y - 4
+
         let leftText = `Rerefencia: ${
           product.ref
         } - Tallas disponibles: ${this.getTallas(product).join(', ')}`
-        doc.text(leftText, x - 3, height + y, { angle: 90 })
+        doc.text(leftText, x - 3, baseY, { angle: 90 })
 
         let rightText = `Actualizado al ${this.getDate()} - Pais: ${
           this.country
         }`
-        doc.text(rightText, width + x + 6, height + y, { angle: 90 })
+        doc.text(rightText, width + x + 6, baseY, { angle: 90 })
 
         if (includePrice) {
           const productPrice = product.regular_price || product.variations[0].regular_price
@@ -593,7 +601,7 @@ export default {
 
           const priceTextPosition = {
             x: width + x + 6,
-            y: height + y - rightText.length * 2.65
+            y: baseY - rightText.length * 2.65
           }
 
           const hasDiscount = salePrice > 0
@@ -646,7 +654,7 @@ export default {
           doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
         }
 
-        let image = this.getProductImageUrl(product)
+        const image = this.getProductImageUrl(product)
         doc.addImage(image, 'JPEG', x, y, width, height)
 
         const filename = `${Date.now()}.pdf`
