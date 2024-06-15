@@ -420,14 +420,14 @@
               <div class="d-flex flex-column align-center">
                 <template v-if="getTypeUrl(multimedia.url) === 'video'">
                   <video
-                    :src="image"
+                    :src="multimedia.url"
                     controls
                     style="width: 100%; height: 350px"
                   ></video>
                 </template>
                 <template v-if="getTypeUrl(multimedia.url) === 'image'">
                   <img
-                    :src="image"
+                    :src="multimedia.url"
                     class="mb-2"
                     style="width: 100%; height: 350px"
                   />
