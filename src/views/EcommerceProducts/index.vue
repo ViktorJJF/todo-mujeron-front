@@ -413,37 +413,39 @@
         <div class="px-5">
           <v-row>
             <v-col
-              v-for="(image, index) of currentProduct.customImages"
+              v-for="(multimedia, index) of currentProduct.multimedia"
               :key="index"
               cols="4"
             >
               <div class="d-flex flex-column align-center">
-                <template v-if="getTypeUrl(image) === 'video'">
+                <template v-if="getTypeUrl(multimedia.url) === 'video'">
                   <video
-                    :src="image"
+                    :src="multimedia.url"
                     controls
                     style="width: 100%; height: 350px"
                   ></video>
                 </template>
-                <template v-if="getTypeUrl(image) === 'image'">
+                <template v-if="getTypeUrl(multimedia.url) === 'image'">
                   <img
-                    :src="image"
+                    :src="multimedia.url"
                     class="mb-2"
                     style="width: 100%; height: 350px"
                   />
                 </template>
-                <template v-if="getTypeUrl(image) === 'youtube'">
+                <template v-if="getTypeUrl(multimedia.url) === 'youtube'">
                   <iframe
                     width="100%"
                     height="350px"
-                    :src="getFormattedYoutube(image)"
+                    :src="getFormattedYoutube(multimedia.url)"
                   >
                   </iframe>
                 </template>
+                <MiltimediaCategorySelect class="mb-2" style="width:100%;" v-model="multimedia.categoryId"/>
                 <v-textarea
+                  style="width:100%;"
                   dense
                   hide-details
-                  v-model="currentProduct.customImages[index]"
+                  v-model="multimedia.url"
                   placeholder="Escribe la url de la imagen"
                   single-line
                   outlined
@@ -622,6 +624,7 @@ const CLASS_ITEMS = () =>
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue"
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
@@ -640,6 +643,7 @@ export default {
     MaterialCard,
     VTextFieldWithValidation,
     CommentToMSNUpdate,
+    MiltimediaCategorySelect
   },
   filters: {
     formatDate: function(value) {
@@ -932,10 +936,15 @@ export default {
       }, 300);
     },
     handleAddCustomImage() {
-      this.currentProduct.customImages.push("");
+      if (!this.currentProduct.multimedia) {
+        Vue.set(this.currentProduct, "multimedia", [])
+      }
+      this.currentProduct.multimedia.push({
+        url: ''
+      })
     },
     handleRemoveCustomImage(index) {
-      this.currentProduct.customImages.splice(index, 1);
+      this.currentProduct.multimedia.splice(index, 1);
       // remove index from featured_images
       this.currentProduct.featured_images.splice(
         this.currentProduct.featured_images.findIndex(
