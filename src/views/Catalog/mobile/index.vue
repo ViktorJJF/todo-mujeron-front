@@ -1150,14 +1150,14 @@ export default {
 
       return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
     },
-    getProductImageUrl({ customImages }) {
+    getProductImageUrl({ multimedia }) {
       // search the the first image available
       let finalImage;
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
-      for (const image of customImages) {
-        const extension = image.split(".").pop();
+      for (const media of multimedia) {
+        const extension = media.url.split(".").pop();
         if (imageExtensions.includes(extension)) {
-          finalImage = image;
+          finalImage = media.url;
           break;
         }
       }
