@@ -810,9 +810,8 @@ export default {
 
       const productsRes = await EcommercesApi.list(query)
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct)
+      const products = productsRes.data.payload.map(this.getFormatProduct)
+
       if (page === 1) {
         this.products = products
       } else {
@@ -856,9 +855,7 @@ export default {
 
       const productsRes = await EcommercesApi.list(query)
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct)
+      const products = productsRes.data.payload.map(this.getFormatProduct)
 
       this.productsSearch = products
     },
