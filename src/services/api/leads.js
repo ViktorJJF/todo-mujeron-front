@@ -11,11 +11,11 @@ export default {
   listOne(id) {
     return axios.get("/api/leads/" + id);
   },
-  getByTodofullLabels(todoFullLabels, country, audienceId, showMissingLeads) {
+  getByTodofullLabels(todoFullLabels, company, audienceId, showMissingLeads) {
     return axios.get("/api/leads/get-by-todofulllabels", {
       params: {
         todoFullLabels: JSON.stringify(todoFullLabels),
-        country,
+        company,
         audienceId,
         showMissingLeads,
       },
@@ -26,14 +26,14 @@ export default {
     facebookAudienceId,
     todoFullLabels,
     showMissingLeads,
-    country
+    company
   ) {
     return axios.post("/api/leads/send-to-audience", {
       audienceId,
       facebookAudienceId,
       todoFullLabels,
       showMissingLeads,
-      country,
+      company,
     });
   },
   update(id, payload) {
