@@ -131,16 +131,17 @@
                               <div class="body-1 font-weight-bold">
                                 Grupo de telegram
                               </div>
-                              <v-select
+                              <VSelectWithValidation
                                 dense
                                 hide-details
                                 placeholder="Seleccione un grupo"
                                 outlined
+                                rules="required"
                                 :items="groups"
-                                item-text="name"
-                                item-value="_id"
                                 v-model="editedItem.telegramGroup"
-                              ></v-select>
+                                itemText="phone"
+                                itemValue="_id"
+                              />
                             </v-col>
                           </v-row>
                           <v-row>
@@ -320,6 +321,7 @@
 
 <script>
 import { format } from "date-fns";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import TelegramRoutines from "@/classes/TelegramRoutines";
@@ -331,6 +333,7 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    VSelectWithValidation,
   },
   filters: {
     formatDate: function(value) {
@@ -518,7 +521,12 @@ export default {
         try {
           let newItem = await this.$store.dispatch(
             "telegramRoutinesModule/create",
-            this.editedItem
+            {
+              ...this.editedItem,
+              companies: [
+                this.$store.getters["authModule/getCurrentCompany"].company._id,
+              ],
+            }
           );
           this.routines.push(newItem);
           this.close();
