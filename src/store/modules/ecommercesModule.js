@@ -51,7 +51,7 @@ const module = {
       return new Promise((resolve, reject) => {
         commit("loadingModule/showLoading", true, { root: true });
         api
-          .update(id, data)
+          .updateProductV2(id, data)
           .then((res) => {
             commit("loadingModule/showLoading", false, { root: true });
             buildSuccess("Registro actualizado con éxito", commit);

@@ -979,9 +979,8 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+      const products = productsRes.data.payload.map(this.getFormatProduct);
+
       if (page === 1) {
         this.products = products;
       } else {
@@ -1025,9 +1024,7 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+      const products = productsRes.data.payload.map(this.getFormatProduct);
 
       this.productsSearch = products;
     },
@@ -1045,8 +1042,8 @@ export default {
     },
     getAvailableProducts(products) {
       return products.filter((product) => {
-        const headerImage = product.customImages[0];
-        const imageAvailable = headerImage && headerImage.trim().length > 0;
+        const headerImage = product.multimedia[0];
+        const imageAvailable = headerImage && headerImage.url.trim().length > 0;
 
         const tallas = this.getTallas(product);
 
@@ -1150,14 +1147,14 @@ export default {
 
       return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
     },
-    getProductImageUrl({ customImages }) {
+    getProductImageUrl({ multimedia }) {
       // search the the first image available
       let finalImage;
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
-      for (const image of customImages) {
-        const extension = image.split(".").pop();
+      for (const media of multimedia) {
+        const extension = media.url.split(".").pop();
         if (imageExtensions.includes(extension)) {
-          finalImage = image;
+          finalImage = media.url;
           break;
         }
       }

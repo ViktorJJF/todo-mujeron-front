@@ -101,59 +101,6 @@
                     }}</v-btn
                   >
                 </v-col>
-
-                <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="700px">
-                    <!-- <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">{{
-                        $t(entity + ".NEW_ITEM")
-                      }}</v-btn>
-                    </template> -->
-                    <v-card>
-                      <v-card-title>
-                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-                        <span class="headline">{{ formTitle }}</span>
-                      </v-card-title>
-                      <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Nombre del marca"
-                              />
-                            </v-col>
-                          </v-row>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombres</p>
-                              <v-textarea
-                                placeholder="descripcion"
-                                outlined
-                                v-model="editedItem.description"
-                              ></v-textarea>
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
-                </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
@@ -227,16 +174,6 @@
             </v-container>
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <!-- <v-btn
-              class="mr-1 mb-1"
-              color="primary"
-              fab
-              small
-              dark
-              @click="editItem(item)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn> -->
             <v-btn
               color="error"
               fab
@@ -276,7 +213,7 @@
           <template v-slot:[`item.date_modified`]="{ item }">{{
             item.date_modified | formatDate
           }}</template>
-          <template v-slot:[`item.permalink`]="{ item }">
+          <template v-slot:[`item.action`]="{ item }">
             <a :href="item.permalink" target="_blank"
               ><v-btn class="mt-3" color="primary" small>Visitar</v-btn>
             </a>
@@ -452,7 +389,7 @@
                   clearable
                 />
                 <div class="d-flex justify-space-between align-center w-100">
-                  <v-btn icon small @click="handleRemoveCustomImage(index)">
+                  <v-btn icon small @click="handleRemoveMultimedia(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                   <v-btn icon small @click="handleFeaturedImage(index)">
@@ -476,7 +413,7 @@
             </v-col>
           </v-row>
           <div class="mt-3 ml-4">
-            <v-btn color="primary" @click="handleAddCustomImage">
+            <v-btn color="primary" @click="handleAddMultimedia">
               <v-icon>mdi-plus</v-icon>
               Añadir
             </v-btn>
@@ -615,14 +552,11 @@
 </template>
 
 <script>
-//Nota: Modifica los campos de la tabla
-const ENTITY = "ecommerces"; // nombre de la entidad en minusculas (se repite en services y modules del store)
+const ENTITY = "ecommerces";
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
-// const ITEMS_SPANISH = 'marcas';
-// import { getProductRef } from "@/utils/utils";
+
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue"
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
@@ -641,7 +575,6 @@ import { getDatePartOnly } from '@/utils/dates-handle'
 export default {
   components: {
     MaterialCard,
-    VTextFieldWithValidation,
     CommentToMSNUpdate,
     MiltimediaCategorySelect
   },
@@ -678,7 +611,6 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
-    dialog: false,
     headers: [
       {
         text: "",
@@ -729,13 +661,7 @@ export default {
         sortable: false,
         value: "woocommerceId",
       },
-      {
-        text: "Link",
-        align: "left",
-        sortable: false,
-        value: "permalink",
-      },
-      { text: "Acciones", value: "action", sortable: false },
+      { text: "Acciones", align: "left", value: "action", sortable: false },
     ],
     [ENTITY]: [],
     advisors: [],
@@ -801,9 +727,6 @@ export default {
     },
   },
   watch: {
-    dialog(val) {
-      val || this.close();
-    },
     async search() {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
@@ -915,11 +838,6 @@ export default {
         }
       });
     },
-    editItem(item) {
-      this.editedIndex = this[ENTITY].indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
-    },
     async deleteItem(item) {
       const index = this[ENTITY].indexOf(item);
       let itemId = this[ENTITY][index]._id;
@@ -928,14 +846,7 @@ export default {
         this[ENTITY].splice(index, 1);
       }
     },
-    close() {
-      this.dialog = false;
-      setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      }, 300);
-    },
-    handleAddCustomImage() {
+    handleAddMultimedia() {
       if (!this.currentProduct.multimedia) {
         Vue.set(this.currentProduct, "multimedia", [])
       }
@@ -943,7 +854,7 @@ export default {
         url: ''
       })
     },
-    handleRemoveCustomImage(index) {
+    handleRemoveMultimedia(index) {
       this.currentProduct.multimedia.splice(index, 1);
       // remove index from featured_images
       this.currentProduct.featured_images.splice(
@@ -953,50 +864,17 @@ export default {
         1 // remove 1 element at index
       );
     },
-    async save() {
-      this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        console.log("actualizando: ", this.editedItem);
-        let itemId = this[ENTITY][this.editedIndex]._id;
-        try {
-          await this.$store.dispatch(ENTITY + "Module/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this[ENTITY][this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
-        //create item
-        console.log("creando...", this.editedItem);
-        try {
-          let newItem = await this.$store.dispatch(
-            ENTITY + "Module/create",
-            this.editedItem
-          );
-          this[ENTITY].push(newItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      }
-    },
     async saveCustomImage(id, item) {
       this.loadingButton = true;
       try {
         await this.$store.dispatch(ENTITY + "Module/update", {
           id,
-          data: item,
+          data: { customImage: item.customImage },
         });
       } finally {
         this.loadingButton = false;
       }
     },
-    // getProductReference(productName) {
-    //   return getProductRef(productName);
-    // },
     async updateRef(id, item) {
       //actualizando nombre corto en entidad dialogflow
       await dialogflow.updateEntityValue({
@@ -1004,12 +882,10 @@ export default {
         value: item.originalRef,
         newValue: item.ref,
       });
-      //actualizando originalRef
       item.originalRef = item.ref.trim();
-      // actualizando el nombre corto en bd
       await this.$store.dispatch(ENTITY + "Module/update", {
         id: id,
-        data: item,
+        data: { ref: item.ref, originalRef: item.originalRef },
       });
     },
     filterWithoutImageMethods() {
