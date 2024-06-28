@@ -139,7 +139,7 @@
                                 rules="required"
                                 :items="groups"
                                 v-model="editedItem.telegramGroup"
-                                itemText="phone"
+                                itemText="name"
                                 itemValue="_id"
                               />
                             </v-col>
