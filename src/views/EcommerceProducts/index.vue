@@ -869,7 +869,7 @@ export default {
       try {
         await this.$store.dispatch(ENTITY + "Module/update", {
           id,
-          data: { customImage: item.customImage },
+          data: { customImage: item.customImage, multimedia: item.multimedia },
         });
       } finally {
         this.loadingButton = false;
