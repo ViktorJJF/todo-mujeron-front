@@ -147,7 +147,7 @@ export async function downloadPdf(
 
   for (const [index, product] of products.entries()) {
     if (!hideDetails) {
-      addProductDetails(products, doc, {
+      addProductDetails(product, doc, {
         x,
         y,
         width,
