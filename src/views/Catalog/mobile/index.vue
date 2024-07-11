@@ -288,6 +288,9 @@
             <v-list-item @click="handleDownloadPdf()">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
+            <v-list-item @click="handleDownloadPdf({ hideDetails: true })">
+              <v-list-item-title>Descargar catalogo</v-list-item-title>
+            </v-list-item>
             <v-list-item @click="handleDownloadPdf({ maxSize: 13 })">
               <v-list-item-title>Descargar para whatsapp</v-list-item-title>
             </v-list-item>
@@ -506,33 +509,18 @@
 </template>
 
 <script>
-import Flipbook from "flipbook-vue";
-import EcommercesApi from "@/services/api/ecommerces";
-import TallasSelect from "@/components/catalog/TallasSelect";
-import BottomNavigation from "./BottomNavigation";
-import MarqueeText from "vue-marquee-text-component";
-import BuyForm from "../BuyForm";
-import PersonaR from "./persona.jpg";
-import { jsPDF } from "jspdf";
+import TallasSelect from "@/components/catalog/TallasSelect"
+import EcommercesApi from "@/services/api/ecommerces"
+import Flipbook from "flipbook-vue"
+import MarqueeText from "vue-marquee-text-component"
+import BuyForm from "../BuyForm"
+import { downloadPdf } from '../download-pdf'
+import BottomNavigation from "./BottomNavigation"
+import PersonaR from "./persona.jpg"
 
 const COUNTRIES = ["Chile", "Peru"];
 const DEFAULT_COUNTRY = "Chile";
 const ITEMS_PER_PAGE = 30;
-
-const MONTHS = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-];
 
 export default {
   components: {
@@ -742,113 +730,7 @@ export default {
     onScroll() {
       this.isAppBarHidden = window.scrollY >= 95;
     },
-    async downloadPdf(products, { maxSize, includePrice }) {
-      if (!products.length) return
-
-      let doc = new jsPDF();
-
-      const [x, y] = [30, 7];
-      let width = doc.internal.pageSize.getWidth() - x * 2;
-      let height = doc.internal.pageSize.getHeight() - y * 2;
-
-      for (const [index, product] of products.entries()) {
-        let leftText = `Rerefencia: ${
-          product.ref
-        } - Tallas disponibles: ${this.getTallas(product).join(", ")}`;
-        doc.text(leftText, x - 3, height + y, { angle: 90 });
-
-        let rightText = `Actualizado al ${this.getDate()} - Pais: ${
-          this.country
-        }`;
-        doc.text(rightText, width + x + 6, height + y, { angle: 90 });
-
-        let image = this.getProductImageUrl(product);
-        doc.addImage(image, "JPEG", x, y, width, height);
-
-        if (includePrice) {
-          const productPrice = product.regular_price || product.variations[0].regular_price
-          const salePrice = product.sale_price || product.variations[0].sale_price
-          
-          const priceText = `Precio: ${this.formatAmount(productPrice)}`
-
-          const priceTextPosition = {
-            x: width + x + 6,
-            y: height + y - rightText.length * 2.65
-          }
-
-          const hasDiscount = salePrice > 0
-          if (hasDiscount) {
-            const priceTextWidth = doc.getTextWidth(priceText)
-            const discountText = `Precio: ${this.formatAmount(salePrice)}`
-
-            const priceLinePosition = {
-              x: priceTextPosition.x,
-              y: priceTextPosition.y - priceTextWidth
-            }
-            
-            doc
-            .setTextColor(204, 204, 204)
-            .text(
-              priceText,
-              priceTextPosition.x,
-              priceTextPosition.y,
-              { angle: 90 }
-            )
-            .line(
-              priceTextPosition.x - 2,
-              priceTextPosition.y,
-              priceLinePosition.x - 2,
-              priceLinePosition.y
-            )
-            .setTextColor(0, 0, 0)
-            .setFontSize(doc.getFontSize() + 2)
-            .setFont(undefined, 'bold')
-            .text(
-              discountText,
-              priceLinePosition.x,
-              priceLinePosition.y - 4,
-              { angle: 90 }
-            )
-
-          } else {
-            doc
-              .setFontSize(doc.getFontSize() + 2)
-              .setFont(undefined, 'bold')
-              .text(
-                priceText,
-                priceTextPosition.x,
-                priceTextPosition.y,
-                { angle: 90 }
-              )
-          }
-
-          // return font to normal
-          doc.setFontSize(doc.getFontSize() - 2).setFont(undefined, 'normal')
-        }
-
-        const filename = `${Date.now()}.pdf`;
-
-        const isLast = index === products.length - 1
-        if (isLast) {
-          doc.output("save", filename);
-          return await this.delay(500);
-        }
-
-        if (maxSize) {
-          let size = doc.output().length;
-          let sizeMb = size / (1024 * 1024);
-          if (sizeMb >= maxSize) {
-            doc.output("save", filename);
-            await this.delay(500);
-            doc = new jsPDF(); // reset pdf
-            continue;
-          }
-        }
-
-        doc.addPage();
-      }
-    },
-    async handleDownloadPdf({ maxSize, includePrice, promotionsOnly } = {}) {
+    async handleDownloadPdf({ maxSize, includePrice, hideDetails, promotionsOnly } = {}) {
       this.downloadLoading = true
 
       while (this.productsDocsSource.nextPage) {
@@ -863,7 +745,7 @@ export default {
         alert('No hay promociones disponibles con el filtro seleccionado')
       }
 
-      await this.downloadPdf(products, { maxSize, includePrice })
+      await downloadPdf(products, { maxSize, includePrice, hideDetails, country: this.country })
 
       this.downloadLoading = false
     },
@@ -877,33 +759,12 @@ export default {
 
       this.loading = false;
     },
-    delay(time = 1000) {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, time);
-      });
-    },
     clearFilters() {
       this.filter.categories = [];
       this.productsSelected = [];
     },
     formatAmount(amount) {
       return new Intl.NumberFormat().format(amount)
-    },
-    getTallas(product) {
-      const tallas = [];
-      for (const variation of product.variations) {
-        if (variation.attributes.talla) {
-          const talla = variation.attributes.talla.option;
-          const isDuplicated = tallas.includes(talla);
-          if (!isDuplicated) {
-            tallas.push(talla);
-          }
-        }
-      }
-
-      return tallas;
     },
     getAvailableVariations(product) {
       const variations = [];
@@ -979,9 +840,8 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+      const products = productsRes.data.payload.map(this.getFormatProduct);
+
       if (page === 1) {
         this.products = products;
       } else {
@@ -1025,9 +885,7 @@ export default {
 
       const productsRes = await EcommercesApi.list(query);
 
-      const products = productsRes.data.payload
-        .filter((el) => el.customImages && el.customImages[0])
-        .map(this.getFormatProduct);
+      const products = productsRes.data.payload.map(this.getFormatProduct);
 
       this.productsSearch = products;
     },
@@ -1042,16 +900,6 @@ export default {
         return 1;
       }
       return 0;
-    },
-    getAvailableProducts(products) {
-      return products.filter((product) => {
-        const headerImage = product.customImages[0];
-        const imageAvailable = headerImage && headerImage.trim().length > 0;
-
-        const tallas = this.getTallas(product);
-
-        return imageAvailable && tallas.length;
-      });
     },
     handleSearchItemClick() {
       this.search = null;
@@ -1141,23 +989,14 @@ export default {
     onFlipRightEnd(page) {
       this.currentPageIndex = page;
     },
-    getDate() {
-      const now = new Date();
-
-      let day = now.getDate();
-      let month = now.getMonth();
-      let year = now.getFullYear();
-
-      return `${day} de ${MONTHS[month].toLowerCase()} del ${year}`;
-    },
-    getProductImageUrl({ customImages }) {
+    getProductImageUrl({ multimedia }) {
       // search the the first image available
       let finalImage;
       const imageExtensions = ["jpg", "jpeg", "png", "gif"];
-      for (const image of customImages) {
-        const extension = image.split(".").pop();
+      for (const media of multimedia) {
+        const extension = media.url.split(".").pop();
         if (imageExtensions.includes(extension)) {
-          finalImage = image;
+          finalImage = media.url;
           break;
         }
       }
