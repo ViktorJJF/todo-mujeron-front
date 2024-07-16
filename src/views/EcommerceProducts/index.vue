@@ -141,7 +141,7 @@
                     height="25"
                   >
                     <strong>
-                      {{ countProductSync }} de {{ items.length }} ({{
+                      {{ countProductSync }} de {{ totalItems }} ({{
                         Math.ceil(countProductSyncPercentage) || 0
                       }}%)</strong
                     >
@@ -720,7 +720,7 @@ export default {
       return ENTITY;
     },
     countProductSyncPercentage() {
-      return (this.countProductSync / this.items.length) * 100;
+      return (this.countProductSync / this.totalItems) * 100;
     },
     countProductSyncPercentageSelected() {
       return (this.countProductSyncSelected / this.selectedProductsSize) * 100;
@@ -908,7 +908,7 @@ export default {
               await ecommercesApi.syncAll()
             ).data.payload.countProductSync;
             // si se llega al límite, eliminar de localStorage
-            if (this.countProductSync >= this.items.length) {
+            if (this.countProductSync >= this.totalItems) {
               this.syncStarted = false;
               break;
             }
