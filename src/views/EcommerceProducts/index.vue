@@ -249,6 +249,19 @@
                 Editar
               </v-btn>
             </a>
+            <v-btn
+              style="display: block"
+              class="mt-1"
+              color="yellow darken-3"
+              dark
+              @click.stop="
+                dialogFullCopy = true;
+                currentProduct = item;
+              "
+              small
+            >
+              Full Copy
+            </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
             <ul
@@ -297,11 +310,10 @@
                 icon
                 @click="openDiscountDialog(item)"
               >
-                <v-icon>mdi-sale</v-icon
-                >
+                <v-icon>mdi-sale</v-icon>
               </v-btn>
               <span class="format-breaklines" v-if="!!item.sale_price">
-                {{ item.regular_price - item.sale_price | money }}
+                {{ (item.regular_price - item.sale_price) | money }}
               </span>
             </div>
           </template>
@@ -377,7 +389,11 @@
                   >
                   </iframe>
                 </template>
-                <MiltimediaCategorySelect class="mb-2" style="width:100%;" v-model="multimedia.categoryId"/>
+                <MiltimediaCategorySelect
+                  class="mb-2"
+                  style="width:100%;"
+                  v-model="multimedia.categoryId"
+                />
                 <v-textarea
                   style="width:100%;"
                   dense
@@ -445,10 +461,90 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="discountDialog"
-      width="500"
-    >
+    <v-dialog v-model="dialogFullCopy" width="1200">
+      <v-card>
+        <v-toolbar color="tertiary" dark>
+          <v-toolbar-title v-if="currentProduct"
+            >Tablas con IA para: {{ currentProduct.name }}</v-toolbar-title
+          >
+        </v-toolbar>
+        <v-container
+          ><v-btn
+            dark
+            color="green darken-1"
+            @click="generateMarketingTableAI(currentProduct)"
+          >
+            Generar
+          </v-btn>
+          <v-container v-if="generatingTables"
+            ><h3>Generando tablas...</h3></v-container
+          >
+          <v-container fluid v-else>
+            <div v-if="currentProduct && currentProduct.aiResponse">
+              <div v-if="currentProduct.objectTableResponses">
+                <v-row
+                  class="mb-3"
+                  v-for="(table,
+                  tableIndex) in currentProduct.objectTableResponses"
+                  :key="tableIndex"
+                >
+                  <template>
+                    <table>
+                      <thead>
+                        <tr v-if="table.title.toLowerCase().includes('tf-')">
+                          <td>Nombre del grupo de recursos</td>
+                          <td>{{ table.title }}</td>
+                        </tr>
+                        <tr v-else>
+                          <td>{{ table.title }}</td>
+                          <td v-if="table.maxCharacters">
+                            Contador de caracteres permitidos ({{
+                              table.maxCharacters
+                            }})
+                          </td>
+                          <td v-else>Cantidad de caracteres</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(value, rowIndex) in table.values"
+                          :key="rowIndex"
+                          :style="{
+                            backgroundColor:
+                              !table.maxCharacters ||
+                              value.length <= table.maxCharacters
+                                ? 'inherit'
+                                : '#ffcccc',
+                          }"
+                        >
+                          <td>
+                            <span
+                              class="copyable-value"
+                              @click="copyToClipboard(value)"
+                            >
+                              {{ value }}
+                            </span>
+                          </td>
+                          <td>{{ value.length }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </template>
+                </v-row>
+              </div>
+            </div>
+          </v-container>
+        </v-container>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="dialogFullCopy = false"
+            >De acuerdo</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="discountDialog" width="500">
       <v-card v-if="currentItem">
         <v-card-title class="text-h5 grey lighten-2">
           Descuento
@@ -459,7 +555,7 @@
             <v-col cols="4">
               <div class="pa-3 mb-2 rounded-lg elevation-1">
                 <div>Precio Regular</div>
-                <div>{{currentItem.regular_price}}</div>
+                <div>{{ currentItem.regular_price }}</div>
               </div>
               <div class="pa-3 mb-2 rounded-lg elevation-1">
                 <div>Precio de venta</div>
@@ -512,10 +608,7 @@
                 </div>
               </div>
               <div class="d-flex justify-center">
-                <v-date-picker
-                  v-model="discountDates"
-                  range
-                />
+                <v-date-picker v-model="discountDates" range />
               </div>
             </v-col>
           </v-row>
@@ -525,24 +618,13 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="red"
-            text
-            @click="clerDiscount"
-          >
+          <v-btn color="red" text @click="clerDiscount">
             Borrar
           </v-btn>
-          <v-btn
-            text
-            @click="discountDialog = false"
-          >
+          <v-btn text @click="discountDialog = false">
             Cancelar
           </v-btn>
-          <v-btn
-            color="secondary"
-            text
-            @click="handleSaveDiscount"
-          >
+          <v-btn color="secondary" text @click="handleSaveDiscount">
             Aceptar
           </v-btn>
         </v-card-actions>
@@ -558,7 +640,7 @@ const CLASS_ITEMS = () =>
 
 import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
-import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue"
+import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue";
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
@@ -570,13 +652,16 @@ import {
 } from "@/utils/utils";
 import auth from "@/services/api/auth";
 import Vue from "vue";
-import { getDatePartOnly } from '@/utils/dates-handle'
+import { getDatePartOnly } from "@/utils/dates-handle";
+import openaiService from "@/services/api/openai";
+import marketingTablePromptTemplate from "@/promptTemplates/marketingTables";
+import { buildSuccess } from "@/utils/utils.js";
 
 export default {
   components: {
     MaterialCard,
     CommentToMSNUpdate,
-    MiltimediaCategorySelect
+    MiltimediaCategorySelect,
   },
   filters: {
     formatDate: function(value) {
@@ -585,12 +670,14 @@ export default {
       });
     },
     money: function(value) {
-      return Intl.NumberFormat().format(value)
-    }
+      return Intl.NumberFormat().format(value);
+    },
   },
   data: () => ({
+    generatingTables: false,
     selectedWoocommerce: null,
     selectedProductIds: [],
+    dialogFullCopy: false,
     dialogImage: false,
     currentProduct: null,
     keyNumber: 0,
@@ -638,10 +725,10 @@ export default {
         value: "ref",
       },
       {
-        text: 'Descuento',
-        align: 'center',
+        text: "Descuento",
+        align: "center",
         sortable: false,
-        value: 'discount',
+        value: "discount",
       },
       {
         text: "Atributos",
@@ -687,20 +774,20 @@ export default {
   }),
   computed: {
     discountStartDate: {
-      get: function () {
-        return this.discountDates[0]
+      get: function() {
+        return this.discountDates[0];
       },
       set: function(value) {
-        this.discountDates.splice(0, 1, value)
-      }
+        this.discountDates.splice(0, 1, value);
+      },
     },
     discountEndDate: {
-      get: function () {
-        return this.discountDates[1]
+      get: function() {
+        return this.discountDates[1];
       },
       set: function(value) {
-        this.discountDates.splice(1, 1, value)
-      }
+        this.discountDates.splice(1, 1, value);
+      },
     },
     totalItems() {
       return this.$store.state["ecommercesModule"].total;
@@ -746,7 +833,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Woocommerces",
           model: "Productos",
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -815,10 +903,14 @@ export default {
       if (this.selectedWoocommerce && this.selectedWoocommerce._id) {
         payload["woocommerceId"] = this.selectedWoocommerce._id;
       }
-      payload.companies = [this.$store.getters["authModule/getCurrentCompany"].company._id];
+      payload.companies = [
+        this.$store.getters["authModule/getCurrentCompany"].company._id,
+      ];
       await Promise.all([
         this.$store.dispatch("woocommercesModule/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
         this.$store.dispatch(ENTITY + "Module/list", payload),
       ]);
@@ -826,16 +918,17 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       ).map((el) => {
-        const firstVariation = el.variations[0]
+        const firstVariation = el.variations[0];
 
         return {
           ...el,
           regular_price: el.regular_price ?? firstVariation?.regular_price,
           sale_price: el.sale_price ?? firstVariation?.sale_price,
-          dateOnSaleFrom: el.dateOnSaleFrom ?? firstVariation?.date_on_sale_from,
+          dateOnSaleFrom:
+            el.dateOnSaleFrom ?? firstVariation?.date_on_sale_from,
           dateOnSaleTo: el.dateOnSaleTo ?? firstVariation?.date_on_sale_to,
-          originalRef: el.ref
-        }
+          originalRef: el.ref,
+        };
       });
     },
     async deleteItem(item) {
@@ -848,11 +941,11 @@ export default {
     },
     handleAddMultimedia() {
       if (!this.currentProduct.multimedia) {
-        Vue.set(this.currentProduct, "multimedia", [])
+        Vue.set(this.currentProduct, "multimedia", []);
       }
       this.currentProduct.multimedia.push({
-        url: ''
-      })
+        url: "",
+      });
     },
     handleRemoveMultimedia(index) {
       this.currentProduct.multimedia.splice(index, 1);
@@ -958,48 +1051,182 @@ export default {
       }
     },
     reCalculateDiscountRate() {
-      const regularPrice = this.currentItem.regular_price
-      const salePrice = this.currentItemSalePrice
-      const rate = (regularPrice - salePrice) / regularPrice
-      this.currentItemDiscountRate = rate * 100
+      const regularPrice = this.currentItem.regular_price;
+      const salePrice = this.currentItemSalePrice;
+      const rate = (regularPrice - salePrice) / regularPrice;
+      this.currentItemDiscountRate = rate * 100;
     },
     reCalculateSalePrice() {
-      const regularPrice = this.currentItem.regular_price
-      const discountRate = this.currentItemDiscountRate / 100
-      this.currentItemSalePrice = regularPrice - (this.currentItem.regular_price * discountRate)
+      const regularPrice = this.currentItem.regular_price;
+      const discountRate = this.currentItemDiscountRate / 100;
+      this.currentItemSalePrice =
+        regularPrice - this.currentItem.regular_price * discountRate;
     },
     openDiscountDialog(item) {
-      this.currentItem = item
-      this.discountDialog = true
-      this.currentItemSalePrice = item.sale_price ?? item.regular_price
-      this.discountStartDate = item.dateOnSaleFrom ? getDatePartOnly(item.dateOnSaleFrom) : ''
-      this.discountEndDate = item.dateOnSaleTo ? getDatePartOnly(item.dateOnSaleTo) : ''
-      this.reCalculateDiscountRate()
+      this.currentItem = item;
+      this.discountDialog = true;
+      this.currentItemSalePrice = item.sale_price ?? item.regular_price;
+      this.discountStartDate = item.dateOnSaleFrom
+        ? getDatePartOnly(item.dateOnSaleFrom)
+        : "";
+      this.discountEndDate = item.dateOnSaleTo
+        ? getDatePartOnly(item.dateOnSaleTo)
+        : "";
+      this.reCalculateDiscountRate();
     },
     async handleSaveDiscount() {
-      const [dateOnSaleFrom, dateOnSaleTo] = this.discountDates
-      const dateOnSaleFromLocal = dateOnSaleFrom ? new Date(`${dateOnSaleFrom}T00:00:00`) : undefined
-      const dateOnSaleToLocal = dateOnSaleTo ? new Date(`${dateOnSaleTo}T00:00:00`): undefined
+      const [dateOnSaleFrom, dateOnSaleTo] = this.discountDates;
+      const dateOnSaleFromLocal = dateOnSaleFrom
+        ? new Date(`${dateOnSaleFrom}T00:00:00`)
+        : undefined;
+      const dateOnSaleToLocal = dateOnSaleTo
+        ? new Date(`${dateOnSaleTo}T00:00:00`)
+        : undefined;
 
       const changes = {
         sale_price: this.currentItemSalePrice,
         dateOnSaleFrom: dateOnSaleFrom ? dateOnSaleFromLocal : undefined,
-        dateOnSaleTo: dateOnSaleTo ? dateOnSaleToLocal : undefined
-      }
+        dateOnSaleTo: dateOnSaleTo ? dateOnSaleToLocal : undefined,
+      };
 
-      await ecommercesApi.updateProductV2(this.currentItem._id, changes)
+      await ecommercesApi.updateProductV2(this.currentItem._id, changes);
 
-      Object.assign(this.currentItem, changes)
+      Object.assign(this.currentItem, changes);
 
-      this.discountDialog = false
+      this.discountDialog = false;
     },
     clerDiscount() {
-      this.discountDates = []
-      this.currentItemSalePrice = this.currentItem.regular_price
-      this.currentItemDiscountRate = 0
-    }
+      this.discountDates = [];
+      this.currentItemSalePrice = this.currentItem.regular_price;
+      this.currentItemDiscountRate = 0;
+    },
+    async generateMarketingTableAI(product) {
+      try {
+        this.generatingTables = true;
+        const {
+          name,
+          ref,
+          description,
+          shortDescription,
+          categories,
+        } = product;
+        const attributesContext = product.attributes
+          .map((el) => `${el.name}: ${el.options.join(",")}`)
+          .join("\n");
+        const categoriesContext = categories.map((el) => el.name).join("\n");
+        const template = marketingTablePromptTemplate;
+        const inputVariables = {
+          product_name: name,
+          product_short_name: ref,
+          product_attributes: attributesContext,
+          product_categories: categoriesContext,
+          short_description: shortDescription,
+          long_description: description,
+        };
+        const prompt = template.replace(/{([^{}]*)}/g, (match, p1) => {
+          return inputVariables[p1.trim()] || match;
+        });
+        console.log("Service openai: ", openaiService);
+        const aiResponse = (
+          await openaiService.generateCompletionForConversation(prompt)
+        ).data.payload.choices[0].message.content;
+        this.$set(this.currentProduct, "aiResponse", aiResponse);
+        this.$set(
+          this.currentProduct,
+          "objectTableResponses",
+          this.parseAiTableResponse(aiResponse)
+        );
+      } catch (error) {
+        console.log("Some error genrating: ", error);
+      } finally {
+        this.generatingTables = false;
+      }
+    },
+    parseAiTableResponse(response) {
+      // Split the text by the pipe character and trim any whitespace from the resulting strings
+      const rows = response
+        .split("|")
+        .map((row) => row.trim())
+        .filter((row) => row !== "");
+
+      const objectTables = [];
+      let currentTable = null;
+      const maxCharacters = [null, 30, 90, 60, 90, null, 255, null, null];
+      let titleIndex = 0;
+      for (const row of rows) {
+        if (row.includes("----------------------")) continue;
+        if (
+          row.toLowerCase().includes("google") ||
+          row.toLowerCase().includes("meta") ||
+          row.toLowerCase().includes("tf-")
+        ) {
+          // If it's a title
+          console.log("Its title: ", row);
+          currentTable = {
+            title: row,
+            values: [],
+            maxCharacters: maxCharacters[titleIndex],
+          };
+          objectTables.push(currentTable);
+          titleIndex++;
+        } else if (currentTable) {
+          // If it's a value and there is a current table, remove leading numeration
+          const cleanedValue = row.replace(/^\d+\.\s*/, "");
+          console.log("Its value: ", cleanedValue);
+          currentTable.values.push(cleanedValue);
+        } else {
+          // If it's a value but no current table (handle potential malformed input)
+          console.warn("Value without a title: ", row);
+        }
+      }
+
+      return objectTables;
+    },
+    async copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        buildSuccess(`Copiado al portapapeles`, this.$store.commit);
+      } catch (err) {
+        console.error("Failed to copy: ", err);
+      }
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+table {
+  border-collapse: collapse;
+  font-family: Tahoma, Geneva, sans-serif;
+  margin-bottom: 15px;
+}
+table td {
+  padding: 10px;
+}
+table thead td {
+  background-color: #54585d !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+  border: 1px solid #54585d !important;
+}
+table tbody td {
+  color: #636363 !important;
+  border: 1px solid #dddfe1 !important;
+}
+table tbody tr {
+  background-color: #f9fafb;
+}
+table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.copyable-value {
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
+.copyable-value:hover {
+  color: darkblue;
+}
+</style>
