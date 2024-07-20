@@ -11,6 +11,7 @@ export default {
       {
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
+        timeout: 120000,
       }
     );
   },

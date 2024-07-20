@@ -473,19 +473,23 @@
             dark
             color="green darken-1"
             @click="generateMarketingTableAI(currentProduct)"
+            class="mb-3"
           >
-            Generar
+            {{
+              currentProduct && currentProduct.marketingTexts
+                ? "Regenerar textos con IA"
+                : "Generar"
+            }}
           </v-btn>
           <v-container v-if="generatingTables"
             ><h3>Generando tablas...</h3></v-container
           >
           <v-container fluid v-else>
-            <div v-if="currentProduct && currentProduct.aiResponse">
-              <div v-if="currentProduct.objectTableResponses">
+            <div v-if="currentProduct && currentProduct.marketingTexts">
+              <div>
                 <v-row
                   class="mb-3"
-                  v-for="(table,
-                  tableIndex) in currentProduct.objectTableResponses"
+                  v-for="(table, tableIndex) in currentProduct.marketingTexts"
                   :key="tableIndex"
                 >
                   <template>
@@ -518,14 +522,18 @@
                           }"
                         >
                           <td>
-                            <span
-                              class="copyable-value"
-                              @click="copyToClipboard(value)"
-                            >
-                              {{ value }}
-                            </span>
+                            <v-text-field
+                              v-model="table.values[rowIndex]"
+                              @click:append="
+                                copyToClipboard(table.values[rowIndex])
+                              "
+                              append-icon="mdi-content-copy"
+                              outlined
+                              dense
+                              hide-details
+                            ></v-text-field>
                           </td>
-                          <td>{{ value.length }}</td>
+                          <td>{{ table.values[rowIndex].length }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -538,8 +546,10 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="dialogFullCopy = false"
-            >De acuerdo</v-btn
+          <v-btn
+            color="green darken-1"
+            @click="saveMarketingTexts(currentProduct);dialogFullCopy = false"
+            >Guardar</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -1133,14 +1143,29 @@ export default {
         this.$set(this.currentProduct, "aiResponse", aiResponse);
         this.$set(
           this.currentProduct,
-          "objectTableResponses",
+          "marketingTexts",
           this.parseAiTableResponse(aiResponse)
         );
+        // save marketingTexts into marketingTexts in product
+        this.$store.dispatch(ENTITY + "Module/update", {
+          id: product._id,
+          data: {
+            marketingTexts: this.currentProduct.marketingTexts,
+          },
+        });
       } catch (error) {
         console.log("Some error genrating: ", error);
       } finally {
         this.generatingTables = false;
       }
+    },
+    saveMarketingTexts(product) {
+      this.$store.dispatch(ENTITY + "Module/update", {
+        id: product._id,
+        data: {
+          marketingTexts: product.marketingTexts,
+        },
+      });
     },
     parseAiTableResponse(response) {
       // Split the text by the pipe character and trim any whitespace from the resulting strings
@@ -1152,6 +1177,16 @@ export default {
       const objectTables = [];
       let currentTable = null;
       const maxCharacters = [null, 30, 90, 60, 90, null, 255, null, null];
+      const identifiers = [
+        "resource_group_name",
+        "google_headline",
+        "google_long_headline",
+        "google_short_description",
+        "google_long_description",
+        "meta_title",
+        "meta_main_text",
+        "meta_description_with_category_links",
+      ];
       let titleIndex = 0;
       for (const row of rows) {
         if (row.includes("----------------------")) continue;
@@ -1164,6 +1199,12 @@ export default {
           console.log("Its title: ", row);
           currentTable = {
             title: row,
+            identifier: identifiers[titleIndex],
+            provider: identifiers[titleIndex].includes("google")
+              ? "google"
+              : identifiers[titleIndex].includes("meta")
+              ? "meta"
+              : "tf",
             values: [],
             maxCharacters: maxCharacters[titleIndex],
           };
@@ -1177,6 +1218,10 @@ export default {
         } else {
           // If it's a value but no current table (handle potential malformed input)
           console.warn("Value without a title: ", row);
+        }
+        // leave empty resource_group_name values
+        if (currentTable?.identifier === "resource_group_name") {
+          currentTable.values = [];
         }
       }
 
@@ -1199,6 +1244,7 @@ table {
   border-collapse: collapse;
   font-family: Tahoma, Geneva, sans-serif;
   margin-bottom: 15px;
+  width: 100%;
 }
 table td {
   padding: 10px;
