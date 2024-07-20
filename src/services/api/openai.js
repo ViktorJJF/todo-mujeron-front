@@ -15,4 +15,18 @@ export default {
       }
     );
   },
+  generateMarketingTexts(template, input_variables) {
+    return axios.post(
+      "/api/openai/generate_marketing_texts",
+      {
+        template,
+        input_variables,
+      },
+      {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 120000,
+      }
+    );
+  },
 };

@@ -548,7 +548,10 @@
           <v-spacer></v-spacer>
           <v-btn
             color="green darken-1"
-            @click="saveMarketingTexts(currentProduct);dialogFullCopy = false"
+            @click="
+              saveMarketingTexts(currentProduct);
+              dialogFullCopy = false;
+            "
             >Guardar</v-btn
           >
         </v-card-actions>
@@ -1127,7 +1130,7 @@ export default {
         const template = marketingTablePromptTemplate;
         const inputVariables = {
           product_name: name,
-          product_short_name: ref,
+          product_short_name: this.convertToSentence(ref),
           product_attributes: attributesContext,
           product_categories: categoriesContext,
           short_description: shortDescription,
@@ -1137,15 +1140,10 @@ export default {
           return inputVariables[p1.trim()] || match;
         });
         console.log("Service openai: ", openaiService);
-        const aiResponse = (
-          await openaiService.generateCompletionForConversation(prompt)
-        ).data.payload.choices[0].message.content;
-        this.$set(this.currentProduct, "aiResponse", aiResponse);
-        this.$set(
-          this.currentProduct,
-          "marketingTexts",
-          this.parseAiTableResponse(aiResponse)
-        );
+        const marketingTexts = (
+          await openaiService.generateMarketingTexts(template, inputVariables)
+        ).data.payload;
+        this.$set(this.currentProduct, "marketingTexts", marketingTexts);
         // save marketingTexts into marketingTexts in product
         this.$store.dispatch(ENTITY + "Module/update", {
           id: product._id,
@@ -1167,66 +1165,6 @@ export default {
         },
       });
     },
-    parseAiTableResponse(response) {
-      // Split the text by the pipe character and trim any whitespace from the resulting strings
-      const rows = response
-        .split("|")
-        .map((row) => row.trim())
-        .filter((row) => row !== "");
-
-      const objectTables = [];
-      let currentTable = null;
-      const maxCharacters = [null, 30, 90, 60, 90, null, 255, null, null];
-      const identifiers = [
-        "resource_group_name",
-        "google_headline",
-        "google_long_headline",
-        "google_short_description",
-        "google_long_description",
-        "meta_title",
-        "meta_main_text",
-        "meta_description_with_category_links",
-      ];
-      let titleIndex = 0;
-      for (const row of rows) {
-        if (row.includes("----------------------")) continue;
-        if (
-          row.toLowerCase().includes("google") ||
-          row.toLowerCase().includes("meta") ||
-          row.toLowerCase().includes("tf-")
-        ) {
-          // If it's a title
-          console.log("Its title: ", row);
-          currentTable = {
-            title: row,
-            identifier: identifiers[titleIndex],
-            provider: identifiers[titleIndex].includes("google")
-              ? "google"
-              : identifiers[titleIndex].includes("meta")
-              ? "meta"
-              : "tf",
-            values: [],
-            maxCharacters: maxCharacters[titleIndex],
-          };
-          objectTables.push(currentTable);
-          titleIndex++;
-        } else if (currentTable) {
-          // If it's a value and there is a current table, remove leading numeration
-          const cleanedValue = row.replace(/^\d+\.\s*/, "");
-          console.log("Its value: ", cleanedValue);
-          currentTable.values.push(cleanedValue);
-        } else {
-          // If it's a value but no current table (handle potential malformed input)
-          console.warn("Value without a title: ", row);
-        }
-        // leave empty resource_group_name values
-        if (currentTable?.identifier === "resource_group_name") {
-          currentTable.values = [];
-        }
-      }
-
-      return objectTables;
-    },
     async copyToClipboard(text) {
       try {
         await navigator.clipboard.writeText(text);
@@ -1234,6 +1172,18 @@ export default {
       } catch (err) {
         console.error("Failed to copy: ", err);
       }
+    },
+    convertToSentence(text) {
+      // Split the text into words
+      let words = text.toLowerCase().split(" ");
+
+      // Capitalize the first letter of each word
+      for (let i = 0; i < words.length; i++) {
+        words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+      }
+
+      // Join the words back into a sentence
+      return words.join(" ");
     },
   },
 };

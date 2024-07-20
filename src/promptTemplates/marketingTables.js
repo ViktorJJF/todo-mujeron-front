@@ -4,7 +4,7 @@ Crea estos 8 tipos de contenido para los anuncios:
 
 1- Nombre del grupo de recursos compuesto por: las iniciales “TF-” seguido del “{{Nombre corto del producto}}”
 
-2- Encabezado (HEADLINE PARA GOOGLE): 15 encabezados de máximo 30 caracteres cada uno. crea el título usando siempre el nombre del producto y usa alguna de sus características o atributos.
+2- Encabezado (HEADLINE PARA GOOGLE): 15 encabezados de menos de 30 caracteres cada uno. Crea el título usando siempre el nombre corto del producto combinado con al menos uno de sus atributos. Usa el formato: {product_short_name} <cualquier atributo>. Evita los 2 puntos (:) y tanto para este como para los otros puntos no pases de los caracteres permitidos.
 
 3- Encabezado Largo (LONG_HEADLINE PARA GOOGLE): 5 encabezados largos, cada uno con un límite de 90 caracteres. Crealo a partir del nombre y resuelve una pregunta que se responda con alguno de sus atributos o características.
 
@@ -12,11 +12,11 @@ Crea estos 8 tipos de contenido para los anuncios:
 
 5- Descripción(DESCRIPCIÓN LARGA PARA GOOGLE): 4 descripciones cada una con un límite de 90 caracteres. usa un tono emocionante. No uses el nombre del producto. Desarrolla un testimonio en primera persona que abarque el problema y la solución.
 
-6- Título (TÍTULO PARA META): 1 título de 255 caracteres cada uno. crea el título usando siempre el nombre del producto y usa alguna de sus características o atributos.
+6- Título (TÍTULO PARA META): Un título de menos de 255 caracteres. Crea el título usando siempre el nombre del producto y usa alguna de sus características o atributos.
 
-7- Texto principal (TEXTO PRINCIPAL PARA META): 1 texto principal, con un límite de 255 caracteres. Crearlo a partir del nombre y resuelve una pregunta que se responda con alguno de sus atributos o características.
+7- Texto principal (TEXTO PRINCIPAL PARA META): Un texto principal, con un límite de 255 caracteres. Crearlo a partir del nombre y resuelve una pregunta que se responda con alguno de sus atributos o características.
  
-8- Descripción (DESCRIPCIÓN CON ENLACES A CATEGORÍA PARA META): una descripción, con un límite de 700 caracteres usa un tono emocionante. No uses el nombre del producto. Desarrolla un testimonio en primera persona que abarque el problema y la solución. Debes contemplar siempre los enlaces textuales a la categoría y el producto. Utiliza Hashtags relevantes para el producto y la marca.
+8- Descripción (DESCRIPCIÓN CON ENLACES A CATEGORÍA PARA META): Una descripción, con un límite de 700 caracteres usa un tono emocionante. No uses el nombre del producto. Desarrolla un testimonio en primera persona que abarque el problema y la solución. Debes contemplar siempre los enlaces textuales a la categoría y el producto. 
 
 
 
