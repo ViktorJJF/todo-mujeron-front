@@ -61,7 +61,7 @@
         <v-facebook-login
           :login-options="{
             scope:
-              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management,instagram_content_publish,catalog_management',
+              'ads_management,instagram_manage_messages,pages_messaging,pages_manage_metadata,instagram_manage_comments,instagram_manage_insights,pages_read_engagement,instagram_basic,pages_show_list,business_management,instagram_content_publish,catalog_management,business_creative_management,business_creative_insights',
           }"
           style="margin: auto"
           @login="facebookLogged"
