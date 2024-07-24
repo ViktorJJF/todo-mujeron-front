@@ -754,7 +754,7 @@ import Vue from "vue";
 import { getDatePartOnly } from "@/utils/dates-handle";
 import openaiService from "@/services/api/openai";
 import marketingTablePromptTemplate from "@/promptTemplates/marketingTables";
-import { buildSuccess } from "@/utils/utils.js";
+import { buildSuccess, handleError } from "@/utils/utils.js";
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 
 export default {
@@ -1098,8 +1098,22 @@ export default {
       }
     },
     async copyPropertiesToAnotherEcommerce() {
-      if (await this.$confirm("¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino?")) {
+      if (await this.$confirm("¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino seleccionado?")) {
         // Call service to copy those properties to another product
+        ecommercesApi.copyMultimediaRefCopysToAnotherProduct({
+          sourceId: this.currentProduct._id,
+          destinationId: this.productDestinationToCopy,
+        }).then(() => {
+          buildSuccess(
+            `Propiedades copiadas con éxito`,
+            this.$store.commit
+          );
+        })
+        .catch((error) => {
+          handleError(error, this.$store.commit);
+        }).finally(() => {
+          this.dialogCopyProperties = false;
+        })
       }
     },
     handleAddMultimedia() {

@@ -48,4 +48,7 @@ export default {
   syncVariation(productId, variationId) {
     return axios.post(`/api/ecommerces/${productId}/variations/${variationId}`);
   },
+  copyMultimediaRefCopysToAnotherProduct(payload) {
+    return axios.post(`/api/ecommerces/copy-multimedia-ref-copys`, payload);
+  },
 };
