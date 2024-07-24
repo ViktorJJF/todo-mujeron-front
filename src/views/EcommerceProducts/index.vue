@@ -262,6 +262,19 @@
             >
               Full Copy
             </v-btn>
+            <v-btn
+              style="display: block"
+              class="mt-1"
+              color="green darken-3"
+              dark
+              @click.stop="
+                dialogCopyProperties = true;
+                currentProduct = item;
+              "
+              small
+            >
+              Copiar Propiedades
+            </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
             <ul
@@ -557,6 +570,79 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="dialogCopyProperties" width="1200">
+      <v-card>
+        <v-card-title>
+          <v-icon color="primary" class="mr-1">mdi-update</v-icon>
+          <span class="headline">Copiar propiedades a otro producto</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <ValidationObserver ref="obs" v-slot="{ passes }">
+          <v-container class="pa-5">
+            <v-row dense>
+              <v-col cols="12" sm="6" md="6">
+                <p class="body-1 font-weight-bold mb-0">Nombre</p>
+                <p>{{ currentProduct.name }}</p>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <p class="body-1 font-weight-bold mb-0">Referencia</p>
+                <p>{{ currentProduct.ref }}</p>
+              </v-col>
+              <v-col cols="12">
+                <span class="body-1 font-weight-bold"
+                  >Compañia Destino</span>
+                <VSelectWithValidation
+                  v-model="companySelected"
+                  :items="companies"
+                  rules="required"
+                  item-text="alias"
+                  item-value="_id"
+                  placeholder="Seleccionar Compañia"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                  <span class="font-weight-bold">Filtrar por productos</span>
+                  <v-autocomplete
+                    item-text="name"
+                    item-value="_id"
+                    :search-input.sync="searchProduct"
+                    :items="products"
+                    dense
+                    clearable
+                    label="Busca el producto destino"
+                    no-data-text="No se encontraron productos"
+                    no-filter
+                    solo
+                    outlined
+                    hide-details
+                    @change="onSelectedProducts"
+                  >
+                  <template
+                      v-slot:selection="{
+                        item,
+                      }"
+                    >
+                      <strong>{{ item.name }}</strong>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
+            </v-row>
+          </v-container>
+          <v-card-actions rd-actions>
+            <div class="flex-grow-1"></div>
+              <v-btn outlined color="error" text @click="close"
+                >Cancelar</v-btn
+              >
+              <v-btn
+                :loading="loadingButton"
+                 color="success"
+                @click="passes(copyPropertiesToAnotherEcommerce)"
+                >Guardar</v-btn
+              >
+          </v-card-actions>
+        </ValidationObserver>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="discountDialog" width="500">
       <v-card v-if="currentItem">
         <v-card-title class="text-h5 grey lighten-2">
@@ -669,12 +755,14 @@ import { getDatePartOnly } from "@/utils/dates-handle";
 import openaiService from "@/services/api/openai";
 import marketingTablePromptTemplate from "@/promptTemplates/marketingTables";
 import { buildSuccess } from "@/utils/utils.js";
+import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 
 export default {
   components: {
     MaterialCard,
     CommentToMSNUpdate,
     MiltimediaCategorySelect,
+    VSelectWithValidation
   },
   filters: {
     formatDate: function(value) {
@@ -691,6 +779,7 @@ export default {
     selectedWoocommerce: null,
     selectedProductIds: [],
     dialogFullCopy: false,
+    dialogCopyProperties: false,
     dialogImage: false,
     currentProduct: null,
     keyNumber: 0,
@@ -711,6 +800,8 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
+    searchProduct: "",
+    products: [],
     headers: [
       {
         text: "",
@@ -765,6 +856,9 @@ export default {
     ],
     [ENTITY]: [],
     advisors: [],
+    companies: [],
+    companySelected: null,
+    productDestinationToCopy: null,
     editedIndex: -1,
     editedItem: CLASS_ITEMS(),
     defaultItem: CLASS_ITEMS(),
@@ -827,6 +921,12 @@ export default {
     },
   },
   watch: {
+    async searchProduct() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.getProducts(1);
+      }, 600);
+    },
     async search() {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
@@ -834,8 +934,9 @@ export default {
       }, 600);
     },
   },
-  mounted() {
+  async mounted() {
     this.$store.commit("loadingModule/showLoading");
+    await this.$store.dispatch("companiesModule/list"),
     this.initialize();
     this.rolAuth();
   },
@@ -894,6 +995,46 @@ export default {
         );
       }
     },
+    async getProducts(page = 1) {
+      if (!this.searchProduct) return;
+      //llamada asincrona de items
+      let payload = {
+        sort: "name",
+        page,
+        search: this.searchProduct,
+        fieldsToSearch: ["name", "ref"],
+        listType: "All",
+      };
+      if (this.editedIndex > -1) {
+        payload.country = this.selectedFanpage.country;
+      }
+      if (this.editedIndex === -1 && this.selectedCountry) {
+        payload.country = this.selectedCountry;
+      }
+      await Promise.all([
+        this.$store.dispatch("ecommercesModule/list", {
+          sort: "name",
+          page,
+          search: this.searchProduct,
+          fieldsToSearch: ["name", "ref"],
+          listType: "All",
+          companies: [
+            this.companySelected
+          ],
+        }),
+      ]);
+      //asignar al data del componente
+
+      // .filter((el) => el.status === "publish") // mostrar solo produtos con status publish
+      this.rawProducts = this.products = this.$deepCopy(
+        this.$store.state.ecommercesModule.ecommerces
+      );
+    },
+    onSelectedProducts(e) {
+      this.searchProduct = "";
+      this.productDestinationToCopy = e;
+      console.log("e", e);
+    },
     filterWithoutRefMethods() {
       this.initialize();
     },
@@ -943,6 +1084,10 @@ export default {
           originalRef: el.ref,
         };
       });
+      // load all companies
+      this.companies = this.$deepCopy(
+        this.$store.state.companiesModule.companies
+      );
     },
     async deleteItem(item) {
       const index = this[ENTITY].indexOf(item);
@@ -950,6 +1095,11 @@ export default {
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
         await this.$store.dispatch(this[ENTITY] + "Module/delete", itemId);
         this[ENTITY].splice(index, 1);
+      }
+    },
+    async copyPropertiesToAnotherEcommerce() {
+      if (await this.$confirm("¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino?")) {
+        // Call service to copy those properties to another product
       }
     },
     handleAddMultimedia() {
