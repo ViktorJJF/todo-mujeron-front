@@ -1136,10 +1136,6 @@ export default {
           short_description: shortDescription,
           long_description: description,
         };
-        const prompt = template.replace(/{([^{}]*)}/g, (match, p1) => {
-          return inputVariables[p1.trim()] || match;
-        });
-        console.log("Service openai: ", openaiService);
         const marketingTexts = (
           await openaiService.generateMarketingTexts(template, inputVariables)
         ).data.payload;
