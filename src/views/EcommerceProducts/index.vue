@@ -1033,7 +1033,6 @@ export default {
     onSelectedProducts(e) {
       this.searchProduct = "";
       this.productDestinationToCopy = e;
-      console.log("e", e);
     },
     filterWithoutRefMethods() {
       this.initialize();
@@ -1115,6 +1114,10 @@ export default {
           this.dialogCopyProperties = false;
         })
       }
+    },
+    close() {
+      this.dialogCopyProperties = false;
+      this.productDestinationToCopy = null;
     },
     handleAddMultimedia() {
       if (!this.currentProduct.multimedia) {
