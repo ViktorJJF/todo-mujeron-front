@@ -716,8 +716,8 @@ export default {
     async initialize(page = 1) {
       //llamada asincrona de items
       let payload = {
-        sort: "date_modified",
-        order: -1,
+        sort: "updatedAt",
+        order: 'desc',
         page,
         search: this.search,
         fieldsToSearch: this.fieldsToSearch,
