@@ -89,7 +89,13 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Red social
@@ -111,7 +117,7 @@
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
-                                Tipo de publicación
+                                Tipo de rutina
                               </div>
                               <v-select
                                 dense
@@ -126,7 +132,39 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Catálogos
+                              </div>
+                              <v-select
+                                clearable
+                                dense
+                                hide-details
+                                placeholder="Selecciona los catálogos de Meta"
+                                outlined
+                                :items="metaCatalogs"
+                                item-text="name"
+                                item-value="catalogId"
+                                v-model="editedItem.metaCatalogs"
+                                multiple
+                                return-object
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Grupo de telegram
@@ -223,7 +261,13 @@
                               </v-menu>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Cantidad de imagenes
@@ -328,6 +372,7 @@ import TelegramRoutines from "@/classes/TelegramRoutines";
 import auth from "@/services/api/auth";
 import telegramGroupsApi from "@/services/api/telegramGroups";
 import categoriesApi from "@/services/api/ecommercesCategories";
+import graphApiService from "@/services/api/graphApi";
 
 export default {
   components: {
@@ -388,7 +433,12 @@ export default {
     typeOfPosts: [
       { name: "Reels", value: "reels" },
       { name: "Historias", value: "stories" },
+      {
+        name: "Catálogos Meta - apagar productos",
+        value: "meta_catalog_shut_down_products",
+      },
     ],
+    metaCatalogs: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -459,6 +509,20 @@ export default {
           ],
         }),
       ]);
+      // get catalogs
+      graphApiService.getCatalogs().then((res) => {
+        for (let i = 0; i < res.data.payload.length; i++) {
+          const catalogs = res.data.payload[i].owned_product_catalogs.data;
+          for (let j = 0; j < catalogs.length; j++) {
+            this.metaCatalogs.push({
+              catalogId: catalogs[j].id,
+              name: catalogs[j].name,
+              businessId: res.data.payload[i].id,
+            });
+          }
+        }
+        console.log("Los catalogos: ", this.metaCatalogs);
+      });
       // in case a company is selected, get categories
       if (company) {
         this.getCategories(company.country);
@@ -523,6 +587,8 @@ export default {
             "telegramRoutinesModule/create",
             {
               ...this.editedItem,
+              country: this.$store.getters["authModule/getCurrentCompany"]
+                .company.country,
               companies: [
                 this.$store.getters["authModule/getCurrentCompany"].company._id,
               ],
