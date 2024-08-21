@@ -157,7 +157,7 @@
             </v-container>
           </template>
           <template v-slot:item.vendor="{ item }">
-            {{ item.vendor ? getVendor(item.vendor).name : '' }}
+            {{ (item.vendor)?.name }}
           </template>
           <template v-slot:item.action="{ item }">
             <v-btn
