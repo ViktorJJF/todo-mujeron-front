@@ -72,7 +72,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Categoria
@@ -93,7 +99,10 @@
                             v-if="
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
-                              )
+                              ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -136,7 +145,10 @@
                             v-if="
                               editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
-                              )
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -158,13 +170,7 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row
-                            v-if="
-                              !editedItem.typeOfPosts.includes(
-                                'meta_catalog_shut_down_products'
-                              )
-                            "
-                          >
+                          <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Grupo de telegram
@@ -182,7 +188,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Minimo de inventario
@@ -194,7 +206,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Minimo de tallas
@@ -204,6 +222,34 @@
                                 v-model="editedItem.minSize"
                                 label="Ingresa el minimo de tallas"
                               />
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                {{
+                                  editedItem.typeOfPosts.includes(
+                                    "meta_catalog_shut_down_products"
+                                  )
+                                    ? "¿Borrar tallas únicas?"
+                                    : "¿Prender tallas únicas?"
+                                }}
+                              </div>
+                              <v-checkbox
+                                dense
+                                hide-details
+                                v-model="editedItem.hasUniqueSize"
+                                :label="editedItem.hasUniqueSize ? 'Sí' : 'No'"
+                              ></v-checkbox>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -265,7 +311,10 @@
                             v-if="
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
-                              )
+                              ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -437,6 +486,10 @@ export default {
         name: "Catálogos Meta - apagar productos",
         value: "meta_catalog_shut_down_products",
       },
+      {
+        name: "Catálogos Meta - prender productos",
+        value: "meta_catalog_turn_on_products",
+      },
     ],
     metaCatalogs: [],
   }),
@@ -453,13 +506,19 @@ export default {
 
   watch: {
     dialog(val) {
-      val || this.close();
+      if (!val) {
+        this.close();
+      }
     },
     "editedItem.country": function(val) {
       if (val && val.length) {
         const query = { country: val };
         categoriesApi.list(query).then((res) => {
-          this.categories = res.data.payload;
+          const categories = res.data.payload;
+          // Sort categories in ascending order by name
+          this.categories = categories.sort((a, b) =>
+            a.name.localeCompare(b.name)
+          );
         });
       }
     },

@@ -10,4 +10,5 @@ export default () => ({
   imagesQuantity: 0,
   bots: [],
   typeOfPosts: [],
+  hasUniqueSizes: false,
 });
