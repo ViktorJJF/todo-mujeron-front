@@ -204,9 +204,7 @@
           >
             <span v-if="item.woocommerceId"
               >{{
-                $store.state.woocommercesModule.woocommerces.find(
-                  (el) => el._id === item.woocommerceId
-                ).domain
+                item.woocommerceId.domain
               }}
             </span></template
           >
