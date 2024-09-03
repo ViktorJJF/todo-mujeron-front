@@ -161,9 +161,7 @@
             <span v-if="item.url || item.woocommerceId">
               {{
                 item.url ||
-                  $store.state.woocommercesModule.woocommerces.find(
-                    (el) => el._id === item.woocommerceId
-                  ).domain
+                  item.woocommerceId.domain
               }}
             </span>
           </template>
