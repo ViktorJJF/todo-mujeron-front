@@ -928,6 +928,7 @@ export default {
     async search() {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
+        this.page = 1;
         this.initialize(this.page);
       }, 600);
     },
