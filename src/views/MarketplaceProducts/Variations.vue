@@ -338,7 +338,7 @@ export default {
     },
     handleSearchUpdate(value) {
       this.search = value
-
+      this.page = 1;
       this.debounce(() => this.initialize(this.page))
     },
     async handleStockSave(item) {
