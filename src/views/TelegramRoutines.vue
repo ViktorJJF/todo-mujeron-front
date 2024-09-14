@@ -88,7 +88,10 @@
                                 hide-details
                                 placeholder="Seleccione una categoria"
                                 outlined
-                                :items="categories"
+                                :items="[
+                                  { name: 'Todas las categorías', _id: null },
+                                  ...categories,
+                                ]"
                                 item-text="name"
                                 item-value="_id"
                                 v-model="editedItem.category"
@@ -589,6 +592,12 @@ export default {
       this.routines = this.$deepCopy(
         this.$store.state.telegramRoutinesModule.routines
       );
+      // add typeofposts to all routines
+      for (const routine of this.routines) {
+        if (!routine.typeOfPosts) {
+          routine.typeOfPosts = [];
+        }
+      }
       this.bots = this.$store.state.botsModule.bots;
       // filter bot only allow ig and facebook
       this.bots = this.bots.filter(

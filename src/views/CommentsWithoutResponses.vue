@@ -139,6 +139,15 @@
                 </template>
               </v-autocomplete>
             </v-col>
+            <v-col cols="12" sm="12">
+              <span class="font-weight-bold"
+                >Subir imagen/video de publicación a multimedia</span
+              >
+              <v-checkbox
+                v-model="editedItem.hasToUploadToMultimedia"
+                label="Subir a multimedia"
+              ></v-checkbox>
+            </v-col>
             <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
               <p class="body-1 font-weight-bold">Selección para respuesta</p>
               <v-simple-table>
@@ -437,6 +446,11 @@ export default {
       }
     },
     async assignCommentWithoutResponse(commentFacebook) {
+      // check if has to upload media to multimedia
+      if (this.editedItem.hasToUploadToMultimedia) {
+        // upload media to multimedia
+        console.log(this.selectedProductsSearch);
+      }
       if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
         return;
       }

@@ -441,23 +441,110 @@
               </div>
             </v-col>
           </v-row>
-          <div class="mt-3 ml-4">
+
+          <div class="mt-3 ml-4 mb-3">
             <v-btn color="primary" @click="handleAddMultimedia">
               <v-icon>mdi-plus</v-icon>
               Añadir
             </v-btn>
           </div>
-        </div>
+          <v-row class="mt-3" v-if="currentProduct.socialMediaMultimedia">
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  Consultar publicaciones en redes sociales
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <v-row>
+                    <v-col
+                      v-for="(multimedia,
+                      index) of currentProduct.socialMediaMultimedia"
+                      :key="index"
+                      cols="4"
+                      class="position-relative"
+                    >
+                      <div
+                        class="d-flex flex-column align-center"
+                        style="position: relative;"
+                      >
+                        <!-- Checkbox in the top-right corner -->
+                        <v-checkbox
+                          v-model="multimedia.hasToUploadToMetaCatalogs"
+                          class="top-right-checkbox"
+                          hide-details
+                          color="primary"
+                        />
 
-        <v-row class="mt-3 mb-3">
-          <v-img
-            v-if="currentProduct.customImage"
-            class="rounded-corners"
-            :src="currentProduct.customImage"
-            aspect-ratio="2"
-            contain
-          ></v-img>
-        </v-row>
+                        <template v-if="getTypeUrl(multimedia.url) === 'video'">
+                          <video
+                            :src="multimedia.url"
+                            controls
+                            style="width: 100%; height: 350px"
+                          ></video>
+                        </template>
+
+                        <template v-if="getTypeUrl(multimedia.url) === 'image'">
+                          <img
+                            :src="multimedia.url"
+                            class="mb-2"
+                            style="width: 100%; height: 350px"
+                          />
+                        </template>
+
+                        <template
+                          v-if="getTypeUrl(multimedia.url) === 'youtube'"
+                        >
+                          <iframe
+                            width="100%"
+                            height="350px"
+                            :src="getFormattedYoutube(multimedia.url)"
+                          ></iframe>
+                        </template>
+
+                        <MiltimediaCategorySelect
+                          class="mb-2"
+                          style="width: 100%;"
+                          v-model="multimedia.categoryId"
+                        />
+
+                        <v-textarea
+                          style="width: 100%;"
+                          dense
+                          hide-details
+                          v-model="multimedia.url"
+                          placeholder="Escribe la url de la imagen"
+                          single-line
+                          outlined
+                          clearable
+                        />
+
+                        <div
+                          class="d-flex justify-space-between align-center w-100"
+                        >
+                          <v-btn
+                            icon
+                            small
+                            @click="handleRemoveMultimedia(index)"
+                          >
+                            <v-icon>mdi-delete</v-icon>
+                          </v-btn>
+                        </div>
+                      </div>
+                    </v-col>
+                    <v-col cols="12" sm="12">
+        <!-- Button to check all checkboxes -->
+        <v-checkbox
+          v-model="checkAll"
+          label="Seleccionar todas las imágenes"
+          @change="toggleCheckAllSocialMediaMultimedia"
+        />
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-row>
+        </div>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -589,8 +676,7 @@
                 <p>{{ currentProduct.ref }}</p>
               </v-col>
               <v-col cols="12">
-                <span class="body-1 font-weight-bold"
-                  >Compañia Destino</span>
+                <span class="body-1 font-weight-bold">Compañia Destino</span>
                 <VSelectWithValidation
                   v-model="companySelected"
                   :items="companies"
@@ -601,44 +687,42 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                  <span class="font-weight-bold">Filtrar por productos</span>
-                  <v-autocomplete
-                    item-text="name"
-                    item-value="_id"
-                    :search-input.sync="searchProduct"
-                    :items="products"
-                    dense
-                    clearable
-                    label="Busca el producto destino"
-                    no-data-text="No se encontraron productos"
-                    no-filter
-                    solo
-                    outlined
-                    hide-details
-                    @change="onSelectedProducts"
-                  >
+                <span class="font-weight-bold">Filtrar por productos</span>
+                <v-autocomplete
+                  item-text="name"
+                  item-value="_id"
+                  :search-input.sync="searchProduct"
+                  :items="products"
+                  dense
+                  clearable
+                  label="Busca el producto destino"
+                  no-data-text="No se encontraron productos"
+                  no-filter
+                  solo
+                  outlined
+                  hide-details
+                  @change="onSelectedProducts"
+                >
                   <template
-                      v-slot:selection="{
-                        item,
-                      }"
-                    >
-                      <strong>{{ item.name }}</strong>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
+                    v-slot:selection="{
+                      item,
+                    }"
+                  >
+                    <strong>{{ item.name }}</strong>
+                  </template>
+                </v-autocomplete>
+              </v-col>
             </v-row>
           </v-container>
           <v-card-actions rd-actions>
             <div class="flex-grow-1"></div>
-              <v-btn outlined color="error" text @click="close"
-                >Cancelar</v-btn
-              >
-              <v-btn
-                :loading="loadingButton"
-                 color="success"
-                @click="passes(copyPropertiesToAnotherEcommerce)"
-                >Guardar</v-btn
-              >
+            <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+            <v-btn
+              :loading="loadingButton"
+              color="success"
+              @click="passes(copyPropertiesToAnotherEcommerce)"
+              >Guardar</v-btn
+            >
           </v-card-actions>
         </ValidationObserver>
       </v-card>
@@ -762,7 +846,7 @@ export default {
     MaterialCard,
     CommentToMSNUpdate,
     MiltimediaCategorySelect,
-    VSelectWithValidation
+    VSelectWithValidation,
   },
   filters: {
     formatDate: function(value) {
@@ -775,6 +859,7 @@ export default {
     },
   },
   data: () => ({
+    checkAll:false,
     generatingTables: false,
     selectedWoocommerce: null,
     selectedProductIds: [],
@@ -933,11 +1018,19 @@ export default {
         this.initialize(this.page);
       }, 600);
     },
+    currentProduct() {
+      // add field multimedia social media dynamically
+      if (this.currentProduct) {
+        Vue.set(
+          this.currentProduct,
+          "socialMediaMultimedia",[]
+        );
+      }
+    },
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("companiesModule/list"),
-    this.initialize();
+    await this.$store.dispatch("companiesModule/list"), this.initialize();
     this.rolAuth();
   },
   methods: {
@@ -1018,9 +1111,7 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name", "ref"],
           listType: "All",
-          companies: [
-            this.companySelected
-          ],
+          companies: [this.companySelected],
         }),
       ]);
       //asignar al data del componente
@@ -1097,22 +1188,26 @@ export default {
       }
     },
     async copyPropertiesToAnotherEcommerce() {
-      if (await this.$confirm("¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino seleccionado?")) {
+      if (
+        await this.$confirm(
+          "¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino seleccionado?"
+        )
+      ) {
         // Call service to copy those properties to another product
-        ecommercesApi.copyMultimediaRefCopysToAnotherProduct({
-          sourceId: this.currentProduct._id,
-          destinationId: this.productDestinationToCopy,
-        }).then(() => {
-          buildSuccess(
-            `Propiedades copiadas con éxito`,
-            this.$store.commit
-          );
-        })
-        .catch((error) => {
-          handleError(error, this.$store.commit);
-        }).finally(() => {
-          this.dialogCopyProperties = false;
-        })
+        ecommercesApi
+          .copyMultimediaRefCopysToAnotherProduct({
+            sourceId: this.currentProduct._id,
+            destinationId: this.productDestinationToCopy,
+          })
+          .then(() => {
+            buildSuccess(`Propiedades copiadas con éxito`, this.$store.commit);
+          })
+          .catch((error) => {
+            handleError(error, this.$store.commit);
+          })
+          .finally(() => {
+            this.dialogCopyProperties = false;
+          });
       }
     },
     close() {
@@ -1348,6 +1443,11 @@ export default {
       // Join the words back into a sentence
       return words.join(" ");
     },
+    toggleCheckAllSocialMediaMultimedia(val) {
+      this.currentProduct.multimedia.forEach((multimedia) => {
+        multimedia.hasToUploadToMetaCatalogs = val;
+      });
+    }
   },
 };
 </script>
@@ -1387,5 +1487,16 @@ table tbody tr:nth-child(odd) {
 }
 .copyable-value:hover {
   color: darkblue;
+}
+
+.top-right-checkbox {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white; /* Background for visibility */
+  border-radius: 4px; /* Rounded corners */
+  padding: 1px;
+  border: 2px solid #1976d2; /* Blue border */
+  z-index: 10; /* Ensure it's on top */
 }
 </style>
