@@ -72,7 +72,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Categoria
@@ -89,7 +95,16 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Red social
@@ -111,7 +126,7 @@
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
-                                Tipo de publicación
+                                Tipo de rutina
                               </div>
                               <v-select
                                 dense
@@ -123,6 +138,35 @@
                                 item-value="value"
                                 multiple
                                 v-model="editedItem.typeOfPosts"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Catálogos
+                              </div>
+                              <v-select
+                                clearable
+                                dense
+                                hide-details
+                                placeholder="Selecciona los catálogos de Meta"
+                                outlined
+                                :items="metaCatalogs"
+                                item-text="name"
+                                item-value="catalogId"
+                                v-model="editedItem.metaCatalogs"
+                                multiple
+                                return-object
                               ></v-select>
                             </v-col>
                           </v-row>
@@ -144,7 +188,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Minimo de inventario
@@ -156,7 +206,13 @@
                               />
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Minimo de tallas
@@ -166,6 +222,34 @@
                                 v-model="editedItem.minSize"
                                 label="Ingresa el minimo de tallas"
                               />
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                {{
+                                  editedItem.typeOfPosts.includes(
+                                    "meta_catalog_shut_down_products"
+                                  )
+                                    ? "¿Borrar tallas únicas?"
+                                    : "¿Prender tallas únicas?"
+                                }}
+                              </div>
+                              <v-checkbox
+                                dense
+                                hide-details
+                                v-model="editedItem.hasUniqueSize"
+                                :label="editedItem.hasUniqueSize ? 'Sí' : 'No'"
+                              ></v-checkbox>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -223,7 +307,16 @@
                               </v-menu>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row
+                            v-if="
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Cantidad de imagenes
@@ -328,6 +421,7 @@ import TelegramRoutines from "@/classes/TelegramRoutines";
 import auth from "@/services/api/auth";
 import telegramGroupsApi from "@/services/api/telegramGroups";
 import categoriesApi from "@/services/api/ecommercesCategories";
+import graphApiService from "@/services/api/graphApi";
 
 export default {
   components: {
@@ -388,7 +482,16 @@ export default {
     typeOfPosts: [
       { name: "Reels", value: "reels" },
       { name: "Historias", value: "stories" },
+      {
+        name: "Catálogos Meta - apagar productos",
+        value: "meta_catalog_shut_down_products",
+      },
+      {
+        name: "Catálogos Meta - prender productos",
+        value: "meta_catalog_turn_on_products",
+      },
     ],
+    metaCatalogs: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -403,13 +506,19 @@ export default {
 
   watch: {
     dialog(val) {
-      val || this.close();
+      if (!val) {
+        this.close();
+      }
     },
     "editedItem.country": function(val) {
       if (val && val.length) {
         const query = { country: val };
         categoriesApi.list(query).then((res) => {
-          this.categories = res.data.payload;
+          const categories = res.data.payload;
+          // Sort categories in ascending order by name
+          this.categories = categories.sort((a, b) =>
+            a.name.localeCompare(b.name)
+          );
         });
       }
     },
@@ -459,6 +568,20 @@ export default {
           ],
         }),
       ]);
+      // get catalogs
+      graphApiService.getCatalogs().then((res) => {
+        for (let i = 0; i < res.data.payload.length; i++) {
+          const catalogs = res.data.payload[i].owned_product_catalogs.data;
+          for (let j = 0; j < catalogs.length; j++) {
+            this.metaCatalogs.push({
+              catalogId: catalogs[j].id,
+              name: catalogs[j].name,
+              businessId: res.data.payload[i].id,
+            });
+          }
+        }
+        console.log("Los catalogos: ", this.metaCatalogs);
+      });
       // in case a company is selected, get categories
       if (company) {
         this.getCategories(company.country);
@@ -523,6 +646,8 @@ export default {
             "telegramRoutinesModule/create",
             {
               ...this.editedItem,
+              country: this.$store.getters["authModule/getCurrentCompany"]
+                .company.country,
               companies: [
                 this.$store.getters["authModule/getCurrentCompany"].company._id,
               ],

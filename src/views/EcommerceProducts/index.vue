@@ -198,14 +198,12 @@
           <template
             v-if="
               $store.state.woocommercesModule.woocommerces &&
-                $store.state.woocommercesModule.woocommerces.length
+              $store.state.woocommercesModule.woocommerces.length
             "
             v-slot:[`item.woocommerceId`]="{ item }"
           >
             <span v-if="item.woocommerceId"
-              >{{
-                item.woocommerceId.domain
-              }}
+              >{{ item.woocommerceId.domain }}
             </span></template
           >
           <template v-slot:[`item.date_modified`]="{ item }">{{
@@ -272,6 +270,17 @@
               small
             >
               Copiar Propiedades
+            </v-btn>
+            <v-btn
+              style="display: block"
+              class="mt-1"
+              color="accent"
+              dark
+              @click.stop="updateMarketingAds(item)"
+              :loading="loadingUpdateMarketingAds.includes(item._id)"
+              small
+            >
+              Modificar Recursos de Marketing
             </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
@@ -402,11 +411,11 @@
                 </template>
                 <MiltimediaCategorySelect
                   class="mb-2"
-                  style="width:100%;"
+                  style="width: 100%"
                   v-model="multimedia.categoryId"
                 />
                 <v-textarea
-                  style="width:100%;"
+                  style="width: 100%"
                   dense
                   hide-details
                   v-model="multimedia.url"
@@ -587,8 +596,7 @@
                 <p>{{ currentProduct.ref }}</p>
               </v-col>
               <v-col cols="12">
-                <span class="body-1 font-weight-bold"
-                  >Compañia Destino</span>
+                <span class="body-1 font-weight-bold">Compañia Destino</span>
                 <VSelectWithValidation
                   v-model="companySelected"
                   :items="companies"
@@ -599,53 +607,45 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                  <span class="font-weight-bold">Filtrar por productos</span>
-                  <v-autocomplete
-                    item-text="name"
-                    item-value="_id"
-                    :search-input.sync="searchProduct"
-                    :items="products"
-                    dense
-                    clearable
-                    label="Busca el producto destino"
-                    no-data-text="No se encontraron productos"
-                    no-filter
-                    solo
-                    outlined
-                    hide-details
-                    @change="onSelectedProducts"
-                  >
-                  <template
-                      v-slot:selection="{
-                        item,
-                      }"
-                    >
-                      <strong>{{ item.name }}</strong>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
+                <span class="font-weight-bold">Filtrar por productos</span>
+                <v-autocomplete
+                  item-text="name"
+                  item-value="_id"
+                  :search-input.sync="searchProduct"
+                  :items="products"
+                  dense
+                  clearable
+                  label="Busca el producto destino"
+                  no-data-text="No se encontraron productos"
+                  no-filter
+                  solo
+                  outlined
+                  hide-details
+                  @change="onSelectedProducts"
+                >
+                  <template v-slot:selection="{ item }">
+                    <strong>{{ item.name }}</strong>
+                  </template>
+                </v-autocomplete>
+              </v-col>
             </v-row>
           </v-container>
           <v-card-actions rd-actions>
             <div class="flex-grow-1"></div>
-              <v-btn outlined color="error" text @click="close"
-                >Cancelar</v-btn
-              >
-              <v-btn
-                :loading="loadingButton"
-                 color="success"
-                @click="passes(copyPropertiesToAnotherEcommerce)"
-                >Guardar</v-btn
-              >
+            <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+            <v-btn
+              :loading="loadingButton"
+              color="success"
+              @click="passes(copyPropertiesToAnotherEcommerce)"
+              >Guardar</v-btn
+            >
           </v-card-actions>
         </ValidationObserver>
       </v-card>
     </v-dialog>
     <v-dialog v-model="discountDialog" width="500">
       <v-card v-if="currentItem">
-        <v-card-title class="text-h5 grey lighten-2">
-          Descuento
-        </v-card-title>
+        <v-card-title class="text-h5 grey lighten-2"> Descuento </v-card-title>
 
         <v-card-text>
           <v-row class="pt-5">
@@ -682,7 +682,7 @@
               </div>
             </v-col>
             <v-col cols="8">
-              <div class="d-flex justify-space-around mb-5" style="gap: 10px;">
+              <div class="d-flex justify-space-around mb-5" style="gap: 10px">
                 <div>
                   Fecha de inicio
                   <v-text-field
@@ -715,12 +715,8 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" text @click="clerDiscount">
-            Borrar
-          </v-btn>
-          <v-btn text @click="discountDialog = false">
-            Cancelar
-          </v-btn>
+          <v-btn color="red" text @click="clerDiscount"> Borrar </v-btn>
+          <v-btn text @click="discountDialog = false"> Cancelar </v-btn>
           <v-btn color="secondary" text @click="handleSaveDiscount">
             Aceptar
           </v-btn>
@@ -754,21 +750,22 @@ import openaiService from "@/services/api/openai";
 import marketingTablePromptTemplate from "@/promptTemplates/marketingTables";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
+import ecommercesAdsApi from '@/services/api/ecommercesAds';
 
 export default {
   components: {
     MaterialCard,
     CommentToMSNUpdate,
     MiltimediaCategorySelect,
-    VSelectWithValidation
+    VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
     },
-    money: function(value) {
+    money: function (value) {
       return Intl.NumberFormat().format(value);
     },
   },
@@ -797,6 +794,7 @@ export default {
     ],
     pageCount: 0,
     loadingButton: false,
+    loadingUpdateMarketingAds: [],
     search: "",
     searchProduct: "",
     products: [],
@@ -879,18 +877,18 @@ export default {
   }),
   computed: {
     discountStartDate: {
-      get: function() {
+      get: function () {
         return this.discountDates[0];
       },
-      set: function(value) {
+      set: function (value) {
         this.discountDates.splice(0, 1, value);
       },
     },
     discountEndDate: {
-      get: function() {
+      get: function () {
         return this.discountDates[1];
       },
-      set: function(value) {
+      set: function (value) {
         this.discountDates.splice(1, 1, value);
       },
     },
@@ -935,8 +933,7 @@ export default {
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
-    await this.$store.dispatch("companiesModule/list"),
-    this.initialize();
+    await this.$store.dispatch("companiesModule/list"), this.initialize();
     this.rolAuth();
   },
   methods: {
@@ -946,8 +943,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Woocommerces",
           model: "Productos",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -1017,9 +1014,7 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name", "ref"],
           listType: "All",
-          companies: [
-            this.companySelected
-          ],
+          companies: [this.companySelected],
         }),
       ]);
       //asignar al data del componente
@@ -1096,22 +1091,26 @@ export default {
       }
     },
     async copyPropertiesToAnotherEcommerce() {
-      if (await this.$confirm("¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino seleccionado?")) {
+      if (
+        await this.$confirm(
+          "¿Realmente deseas copiar y sobreescribir las propiedades: 'ref', 'multimedia' y 'copys' al producto destino seleccionado?"
+        )
+      ) {
         // Call service to copy those properties to another product
-        ecommercesApi.copyMultimediaRefCopysToAnotherProduct({
-          sourceId: this.currentProduct._id,
-          destinationId: this.productDestinationToCopy,
-        }).then(() => {
-          buildSuccess(
-            `Propiedades copiadas con éxito`,
-            this.$store.commit
-          );
-        })
-        .catch((error) => {
-          handleError(error, this.$store.commit);
-        }).finally(() => {
-          this.dialogCopyProperties = false;
-        })
+        ecommercesApi
+          .copyMultimediaRefCopysToAnotherProduct({
+            sourceId: this.currentProduct._id,
+            destinationId: this.productDestinationToCopy,
+          })
+          .then(() => {
+            buildSuccess(`Propiedades copiadas con éxito`, this.$store.commit);
+          })
+          .catch((error) => {
+            handleError(error, this.$store.commit);
+          })
+          .finally(() => {
+            this.dialogCopyProperties = false;
+          });
       }
     },
     close() {
@@ -1282,13 +1281,8 @@ export default {
     async generateMarketingTableAI(product) {
       try {
         this.generatingTables = true;
-        const {
-          name,
-          ref,
-          description,
-          shortDescription,
-          categories,
-        } = product;
+        const { name, ref, description, shortDescription, categories } =
+          product;
         const attributesContext = product.attributes
           .map((el) => `${el.name}: ${el.options.join(",")}`)
           .join("\n");
@@ -1326,6 +1320,22 @@ export default {
           marketingTexts: product.marketingTexts,
         },
       });
+    },
+    async updateMarketingAds(product) {
+      const isLoading = this.loadingUpdateMarketingAds.includes(product._id);
+      if (isLoading) return
+
+      this.loadingUpdateMarketingAds.push(product._id);
+
+      ecommercesAdsApi
+        .updateResources(product._id,)
+        .then(() => {
+          this.loadingUpdateMarketingAds = this.loadingUpdateMarketingAds.filter((id) => id !== product._id);
+          buildSuccess(`Recursos de marketing actualizados para: ${product.name}`, this.$store.commit);
+        })
+        .catch((error) => {
+          handleError(error, this.$store.commit);
+        });
     },
     async copyToClipboard(text) {
       try {

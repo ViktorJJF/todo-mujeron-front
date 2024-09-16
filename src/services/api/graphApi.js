@@ -1,11 +1,11 @@
 import axios from "axios";
 export default {
   createLabel(payload) {
-    return axios.post("/api/graph-api/labels", {payload});
+    return axios.post("/api/graph-api/labels", { payload });
   },
   createMetaIntegration(fb_exchange_token) {
     return axios.post("/api/graph-api/create-meta-integration", {
-      fb_exchange_token
+      fb_exchange_token,
     });
   },
   getUserInformation(accessToken) {
@@ -62,5 +62,8 @@ export default {
     return axios.get(
       `/api/graph-api/get_business_pages?access_token=${access_token}`
     );
+  },
+  getCatalogs() {
+    return axios.get(`/api/graph-api/get_catalogs`);
   },
 };
