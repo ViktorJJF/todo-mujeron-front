@@ -161,9 +161,7 @@
             <span v-if="item.url || item.woocommerceId">
               {{
                 item.url ||
-                  $store.state.woocommercesModule.woocommerces.find(
-                    (el) => el._id === item.woocommerceId
-                  ).domain
+                  item.woocommerceId.domain
               }}
             </span>
           </template>
@@ -531,10 +529,12 @@ export default {
     async search() {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
+        this.page = 1;
         this.initialize(this.page);
       }, 600);
     },
     currentSourceUrl() {
+      this.page = 1;
       this.initialize(this.page);
     },
   },

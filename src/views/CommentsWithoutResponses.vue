@@ -201,6 +201,7 @@
 <script>
 //Nota: Modifica los campos de la tabla
 import Vue from "vue";
+import graphApiService from "@/services/api/graphApi";
 const ENTITY = "commentsWithoutResponses"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
@@ -446,13 +447,18 @@ export default {
       }
     },
     async assignCommentWithoutResponse(commentFacebook) {
+      if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
+        return;
+      }
       // check if has to upload media to multimedia
       if (this.editedItem.hasToUploadToMultimedia) {
         // upload media to multimedia
-        console.log(this.selectedProductsSearch);
-      }
-      if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
-        return;
+        graphApiService.downloadMediaPostUploadToProduct(
+          this.selectedCommentWithoutResponse.fanpageId,
+          this.selectedCommentWithoutResponse.postId,
+          this.selectedCommentWithoutResponse.url,
+          this.selectedProductsSearch
+        );
       }
 
       if (!commentFacebook) {

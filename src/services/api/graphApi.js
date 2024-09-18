@@ -66,4 +66,12 @@ export default {
   getCatalogs() {
     return axios.get(`/api/graph-api/get_catalogs`);
   },
+  downloadMediaPostUploadToProduct(fanpageId, postId, postUrl, productIds) {
+    return axios.post(`/api/graph-api/download_media_post_upload_to_product`, {
+      fanpageId,
+      postId,
+      productIds,
+      url: postUrl,
+    });
+  },
 };

@@ -198,16 +198,12 @@
           <template
             v-if="
               $store.state.woocommercesModule.woocommerces &&
-                $store.state.woocommercesModule.woocommerces.length
+              $store.state.woocommercesModule.woocommerces.length
             "
             v-slot:[`item.woocommerceId`]="{ item }"
           >
             <span v-if="item.woocommerceId"
-              >{{
-                $store.state.woocommercesModule.woocommerces.find(
-                  (el) => el._id === item.woocommerceId
-                ).domain
-              }}
+              >{{ item.woocommerceId.domain }}
             </span></template
           >
           <template v-slot:[`item.date_modified`]="{ item }">{{
@@ -274,6 +270,17 @@
               small
             >
               Copiar Propiedades
+            </v-btn>
+            <v-btn
+              style="display: block"
+              class="mt-1"
+              color="accent"
+              dark
+              @click.stop="updateMarketingAds(item)"
+              :loading="loadingUpdateMarketingAds.includes(item._id)"
+              small
+            >
+              Modificar Recursos de Marketing
             </v-btn>
           </template>
           <template v-slot:[`item.attributes`]="{ item }">
@@ -375,7 +382,7 @@
         <div class="px-5">
           <v-row>
             <v-col
-              v-for="(multimedia, index) of currentProduct.multimedia"
+              v-for="(multimedia, index) of currentProduct.multimedia.filter(el=>!el.post)"
               :key="index"
               cols="4"
             >
@@ -402,13 +409,13 @@
                   >
                   </iframe>
                 </template>
-                <MiltimediaCategorySelect
+                <MultimediaCategorySelect
                   class="mb-2"
-                  style="width:100%;"
+                  style="width: 100%"
                   v-model="multimedia.categoryId"
                 />
                 <v-textarea
-                  style="width:100%;"
+                  style="width: 100%"
                   dense
                   hide-details
                   v-model="multimedia.url"
@@ -448,7 +455,7 @@
               Añadir
             </v-btn>
           </div>
-          <v-row class="mt-3" v-if="currentProduct.socialMediaMultimedia">
+          <v-row class="mt-3">
             <v-expansion-panels>
               <v-expansion-panel>
                 <v-expansion-panel-header>
@@ -458,7 +465,7 @@
                   <v-row>
                     <v-col
                       v-for="(multimedia,
-                      index) of currentProduct.socialMediaMultimedia"
+                      index) of currentProduct.multimedia.filter(el=>el.post)"
                       :key="index"
                       cols="4"
                       class="position-relative"
@@ -501,7 +508,7 @@
                           ></iframe>
                         </template>
 
-                        <MiltimediaCategorySelect
+                        <MultimediaCategorySelect
                           class="mb-2"
                           style="width: 100%;"
                           v-model="multimedia.categoryId"
@@ -703,11 +710,7 @@
                   hide-details
                   @change="onSelectedProducts"
                 >
-                  <template
-                    v-slot:selection="{
-                      item,
-                    }"
-                  >
+                  <template v-slot:selection="{ item }">
                     <strong>{{ item.name }}</strong>
                   </template>
                 </v-autocomplete>
@@ -729,9 +732,7 @@
     </v-dialog>
     <v-dialog v-model="discountDialog" width="500">
       <v-card v-if="currentItem">
-        <v-card-title class="text-h5 grey lighten-2">
-          Descuento
-        </v-card-title>
+        <v-card-title class="text-h5 grey lighten-2"> Descuento </v-card-title>
 
         <v-card-text>
           <v-row class="pt-5">
@@ -768,7 +769,7 @@
               </div>
             </v-col>
             <v-col cols="8">
-              <div class="d-flex justify-space-around mb-5" style="gap: 10px;">
+              <div class="d-flex justify-space-around mb-5" style="gap: 10px">
                 <div>
                   Fecha de inicio
                   <v-text-field
@@ -801,12 +802,8 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" text @click="clerDiscount">
-            Borrar
-          </v-btn>
-          <v-btn text @click="discountDialog = false">
-            Cancelar
-          </v-btn>
+          <v-btn color="red" text @click="clerDiscount"> Borrar </v-btn>
+          <v-btn text @click="discountDialog = false"> Cancelar </v-btn>
           <v-btn color="secondary" text @click="handleSaveDiscount">
             Aceptar
           </v-btn>
@@ -823,7 +820,7 @@ const CLASS_ITEMS = () =>
 
 import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
-import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue";
+import MultimediaCategorySelect from "@/components/MultimediaCategorySelect.vue";
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
@@ -840,21 +837,22 @@ import openaiService from "@/services/api/openai";
 import marketingTablePromptTemplate from "@/promptTemplates/marketingTables";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
+import ecommercesAdsApi from '@/services/api/ecommercesAds';
 
 export default {
   components: {
     MaterialCard,
     CommentToMSNUpdate,
-    MiltimediaCategorySelect,
+    MultimediaCategorySelect,
     VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
     },
-    money: function(value) {
+    money: function (value) {
       return Intl.NumberFormat().format(value);
     },
   },
@@ -884,6 +882,7 @@ export default {
     ],
     pageCount: 0,
     loadingButton: false,
+    loadingUpdateMarketingAds: [],
     search: "",
     searchProduct: "",
     products: [],
@@ -966,18 +965,18 @@ export default {
   }),
   computed: {
     discountStartDate: {
-      get: function() {
+      get: function () {
         return this.discountDates[0];
       },
-      set: function(value) {
+      set: function (value) {
         this.discountDates.splice(0, 1, value);
       },
     },
     discountEndDate: {
-      get: function() {
+      get: function () {
         return this.discountDates[1];
       },
-      set: function(value) {
+      set: function (value) {
         this.discountDates.splice(1, 1, value);
       },
     },
@@ -1015,15 +1014,17 @@ export default {
     async search() {
       clearTimeout(this.delayTimer);
       this.delayTimer = setTimeout(() => {
+        this.page = 1;
         this.initialize(this.page);
       }, 600);
     },
     currentProduct() {
       // add field multimedia social media dynamically
       if (this.currentProduct) {
+        const multimedia = JSON.parse(JSON.stringify(this.currentProduct.multimedia))
         Vue.set(
           this.currentProduct,
-          "socialMediaMultimedia",[]
+          "socialMediaMultimedia",multimedia.filter(el=>el.post)
         );
       }
     },
@@ -1040,8 +1041,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Woocommerces",
           model: "Productos",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -1378,13 +1379,8 @@ export default {
     async generateMarketingTableAI(product) {
       try {
         this.generatingTables = true;
-        const {
-          name,
-          ref,
-          description,
-          shortDescription,
-          categories,
-        } = product;
+        const { name, ref, description, shortDescription, categories } =
+          product;
         const attributesContext = product.attributes
           .map((el) => `${el.name}: ${el.options.join(",")}`)
           .join("\n");
@@ -1422,6 +1418,22 @@ export default {
           marketingTexts: product.marketingTexts,
         },
       });
+    },
+    async updateMarketingAds(product) {
+      const isLoading = this.loadingUpdateMarketingAds.includes(product._id);
+      if (isLoading) return
+
+      this.loadingUpdateMarketingAds.push(product._id);
+
+      ecommercesAdsApi
+        .updateResources(product._id,)
+        .then(() => {
+          this.loadingUpdateMarketingAds = this.loadingUpdateMarketingAds.filter((id) => id !== product._id);
+          buildSuccess(`Recursos de marketing actualizados para: ${product.name}`, this.$store.commit);
+        })
+        .catch((error) => {
+          handleError(error, this.$store.commit);
+        });
     },
     async copyToClipboard(text) {
       try {
