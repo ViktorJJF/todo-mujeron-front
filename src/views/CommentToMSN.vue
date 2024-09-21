@@ -350,6 +350,14 @@
                                       value: 'PUBLICACIONES_COMUNIDAD',
                                     },
                                     {
+                                      name: 'Publicaciones de categoría',
+                                      value: 'PUBLICACIONES_CATEGORIA',
+                                    },
+                                    {
+                                      name: 'Publicaciones de marca',
+                                      value: 'PUBLICACIONES_MARCA',
+                                    },
+                                    {
                                       name: 'No responder',
                                       value: 'NO_RESPONDER',
                                     },

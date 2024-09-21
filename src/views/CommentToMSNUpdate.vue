@@ -2,7 +2,10 @@
   <div>
     <v-divider></v-divider>
     <ValidationObserver ref="obs" v-slot="{ passes }">
-      <v-container class="pa-1 ma-2" v-if="commentFacebook || isTemplate">
+      <v-container
+        class="pa-1 ma-2"
+        v-if="(commentFacebook || isTemplate) && isVariousProductsOrCommentPost"
+      >
         <v-row dense v-if="!isTemplate">
           <v-col cols="12" sm="12" md="12" class="mb-2">
             <p class="body-1 font-weight-bold">URL de publicación</p>
@@ -183,55 +186,23 @@
               outlined
             ></v-text-field>
           </v-col>
-          <!-- <v-col cols="12" sm="12" md="12">
-              <p class="body-1 font-weight-bold">
-                Mensaje para acompañar a Respuestas Rápidas (El chatbot mostrará
-                una aleatoriamente)
-              </p>
-              <v-card>
-                <v-tabs v-model="tab" centered icons-and-text>
-                  <v-tab v-for="item in items" :key="item">
-                    {{ item }}
-                  </v-tab>
-                </v-tabs>
-
-                <v-tabs-items disabled v-model="tab">
-                  <v-tab-item v-for="item in items" :key="item">
-                    <div class="mt-3">
-                      <v-textarea
-                        v-show="tab == 0"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 1"
-                        v-model="commentFacebook.responses[0]"
-                        class="mb-2"
-                      ></v-textarea>
-                      <v-textarea
-                        v-show="tab == 1"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 2"
-                        v-model="commentFacebook.responses[1]"
-                        class="mb-2"
-                      ></v-textarea>
-                      <v-textarea
-                        v-show="tab == 2"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 3"
-                        v-model="commentFacebook.responses[2]"
-                        class="mb-2"
-                      ></v-textarea>
-                    </div>
-                  </v-tab-item>
-                </v-tabs-items>
-              </v-card>
-            </v-col> -->
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+            v-if="!isVariousProductsOrCommentPost"
+          >
+            <p class="body-1 font-weight-bold">
+              Mensaje para acompañar a Respuestas Rápidas (El chatbot mostrará
+              una aleatoriamente)
+            </p>
+            <v-card></v-card>
+          </v-col>
         </v-row>
-        <v-row align="center" v-if="!isTemplate">
+        <v-row
+          align="center"
+          v-if="!isTemplate && isVariousProductsOrCommentPost"
+        >
           <v-col cols="12" sm="4" class="text-center">
             <h3 class="mb-3">Vista previa</h3>
             <v-row justify="center">
@@ -253,9 +224,7 @@
                     color="primary"
                     @click="openLink"
                     >Ver en
-                    {{
-                      getDomain()
-                    }}
+                    {{ getDomain() }}
                   </v-btn>
                   <v-btn
                     small
@@ -278,6 +247,58 @@
             <v-btn block color="primary" @click="copyToClipboard"
               >Copiar código</v-btn
             >
+          </v-col>
+        </v-row>
+      </v-container>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="12" sm="7">
+            <v-row>
+              <v-col cols="12" sm="12" md="12" class="mb-2">
+                <p class="body-1 font-weight-bold">URL de publicación</p>
+                <VTextFieldWithValidation
+                  rules="required"
+                  v-model="commentFacebook.postUrl"
+                  label="Ingresa la URL"
+                />
+              </v-col>
+              <v-col cols="12" sm="12" class="mb-2">
+                <p class="body-1 font-weight-bold">Respuesta inbox</p>
+                <div v-for="(item, idx) in inboxResponses" :key="idx">
+                  <p>Respuesta {{ idx + 1 }}</p>
+                  <v-textarea
+                    rules="required"
+                    v-model="inboxResponses[idx]"
+                    placeholder="Esta respuesta es una variante para el inbox"
+                    outlined
+                  />
+                </div>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="12" sm="5" class="text-center">
+            <h3 class="mb-3">Vista previa</h3>
+            <v-row justify="center">
+              <div>
+                <v-img
+                  class="rounded-corners"
+                  :src="dynamicPostUrl || 'https://via.placeholder.com/150'"
+                  aspect-ratio="1"
+                  contain
+                ></v-img>
+                <v-card outlined class="pa-3">
+                  <strong>Respuesta Post</strong>
+                  <div v-for="(item, idy) in postResponses" :key="idy">
+                    <v-textarea
+                      rules="required"
+                      v-model="inboxResponses[idy]"
+                      placeholder="Esta respuesta es una variante para el post"
+                      outlined
+                    />
+                  </div>
+                </v-card>
+              </div>
+            </v-row>
           </v-col>
         </v-row>
       </v-container>
@@ -340,7 +361,8 @@ export default {
     commentsFacebook: [],
     commentFacebook: null,
     chips: [],
-    items: ["Respuesta 1", "Respuesta 2", "Respuesta 3"],
+    inboxResponses: ["", "", ""],
+    postResponses: ["", "", ""],
     tab: null,
     postPicture: "",
     searchProduct: "",
@@ -384,6 +406,12 @@ export default {
     },
     isInstagramPost() {
       return this.commentFacebook.platform === "instagram";
+    },
+    isVariousProductsOrCommentPost() {
+      return (
+        this.commentFacebook?.type === "comment" ||
+        this.commentFacebook?.type === "VARIOS_PRODUCTOS"
+      );
     },
   },
   created() {
@@ -442,7 +470,10 @@ export default {
             await Promise.all([
               this.$store.dispatch("ecommercesCategoriesModule/list", {
                 limit: 9999,
-                companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+                companies: [
+                  this.$store.getters["authModule/getCurrentCompany"].company
+                    ._id,
+                ],
               }),
             ]);
 
@@ -480,11 +511,6 @@ export default {
     async initialize() {
       if (!this.isTemplate) {
         await Promise.all([
-          this.$store.dispatch("commentsFacebookModule/list", {
-            limit: 9999,
-            _id: this.$route.params.id,
-            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-          }),
           this.$store.dispatch("todofullLabelsModule/list", {
             webtagsDetails: true,
             limit: 9999,
@@ -599,12 +625,12 @@ export default {
       }
     },
     getDomain(fullDomain = this.getCurrentUrl()) {
-      let cleanedDomain = fullDomain.replace(/^https?:\/\//, '');
+      let cleanedDomain = fullDomain.replace(/^https?:\/\//, "");
 
-      const domainParts = cleanedDomain.split('/')[0];
+      const domainParts = cleanedDomain.split("/")[0];
 
-      const parts = domainParts.split('.');
-      const domain = parts.length > 2 ? parts.slice(-2).join('.') : domainParts;
+      const parts = domainParts.split(".");
+      const domain = parts.length > 2 ? parts.slice(-2).join(".") : domainParts;
 
       return domain;
     },
@@ -625,7 +651,9 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name"],
           listType: "All",
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       //asignar al data del componente
