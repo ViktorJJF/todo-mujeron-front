@@ -15,4 +15,7 @@ export default {
   delete(id) {
     return axios.delete(`/api/telegram-routines/${id}`);
   },
+  executeRoutine(id) {
+    return axios.post(`/api/telegram-routines/${id}/execute`);
+  },
 };

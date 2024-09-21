@@ -72,6 +72,20 @@ const module = {
           });
       });
     },
+    executeRoutine({ commit }, id) {
+      return new Promise((resolve, reject) => {
+        api
+          .executeRoutine(id)
+          .then((res) => {
+            commit("loadingModule/showLoading", true, { root: true });
+            buildSuccess("Rutina ejecutada con éxito", commit);
+            resolve(res.data.payload);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
   },
   mutations: {
     list(state, data) {
@@ -87,13 +101,17 @@ const module = {
       state.routines.push(data);
     },
     update(state, { id, data }) {
-      let indexToUpdate = state.routines.findIndex((member) => member._id == id);
+      let indexToUpdate = state.routines.findIndex(
+        (member) => member._id == id
+      );
       state.routines.splice(indexToUpdate, 1, {
         ...data,
       });
     },
     delete(state, id) {
-      let indexToDelete = state.routines.findIndex((member) => member._id == id);
+      let indexToDelete = state.routines.findIndex(
+        (member) => member._id == id
+      );
       state.routines.splice(indexToDelete, 1);
       state.total -= 1;
     },
