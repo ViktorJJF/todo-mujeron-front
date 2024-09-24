@@ -888,6 +888,7 @@ export default {
           ],
         }),
       ]);
+
       this.commentsFacebook = this.$deepCopy(
         this.$store.state.commentsFacebookModule.commentsFacebook
       );

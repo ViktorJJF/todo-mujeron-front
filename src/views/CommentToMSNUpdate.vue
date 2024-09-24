@@ -9,11 +9,6 @@
         <v-row dense v-if="!isTemplate">
           <v-col cols="12" sm="12" md="12" class="mb-2">
             <p class="body-1 font-weight-bold">URL de publicación</p>
-            <!-- <VTextFieldWithValidation
-                rules=""
-                v-model="commentFacebook.botId"
-                label="Ingresa el botId"
-              /> -->
             <VTextFieldWithValidation
               rules="required"
               v-model="commentFacebook.postUrl"
@@ -250,7 +245,7 @@
           </v-col>
         </v-row>
       </v-container>
-      <v-container fluid>
+      <v-container fluid v-else>
         <v-row>
           <v-col cols="12" sm="7">
             <v-row>
@@ -262,13 +257,50 @@
                   label="Ingresa la URL"
                 />
               </v-col>
+              <v-col
+                cols="12"
+                sm="12"
+                md="12"
+                class="mb-2"
+                v-if="commentFacebook.type === 'PUBLICACIONES_MARCA'"
+              >
+                <p class="body-1 font-weight-bold">Marca</p>
+                <v-combobox
+                  v-model="commentFacebook.brand"
+                  :items="brands"
+                  label="Selecciona la marca"
+                  outlined
+                  dense
+                ></v-combobox>
+              </v-col>
+              <v-col
+                cols="12"
+                sm="12"
+                md="12"
+                class="mb-2"
+                v-if="commentFacebook.type === 'PUBLICACIONES_CATEGORIA'"
+              >
+                <p class="body-1 font-weight-bold">Categoría</p>
+                <v-combobox
+                  v-model="commentFacebook.categoryId"
+                  :items="categories"
+                  label="Selecciona la categoría"
+                  outlined
+                  dense
+                  item-text="name"
+                  item-value="_id"
+                ></v-combobox>
+              </v-col>
               <v-col cols="12" sm="12" class="mb-2">
                 <p class="body-1 font-weight-bold">Respuesta inbox</p>
-                <div v-for="(item, idx) in inboxResponses" :key="idx">
+                <div
+                  v-for="(item, idx) in commentFacebook.inboxResponses"
+                  :key="idx"
+                >
                   <p>Respuesta {{ idx + 1 }}</p>
                   <v-textarea
                     rules="required"
-                    v-model="inboxResponses[idx]"
+                    v-model="commentFacebook.inboxResponses[idx]"
                     placeholder="Esta respuesta es una variante para el inbox"
                     outlined
                   />
@@ -286,12 +318,19 @@
                   aspect-ratio="1"
                   contain
                 ></v-img>
-                <v-card outlined class="pa-3">
+                <v-card
+                  outlined
+                  class="pa-3"
+                  v-if="commentFacebook.postResponses"
+                >
                   <strong>Respuesta Post</strong>
-                  <div v-for="(item, idy) in postResponses" :key="idy">
+                  <div
+                    v-for="(item, idy) in commentFacebook.postResponses"
+                    :key="idy"
+                  >
                     <v-textarea
                       rules="required"
-                      v-model="inboxResponses[idy]"
+                      v-model="commentFacebook.postResponses[idy]"
                       placeholder="Esta respuesta es una variante para el post"
                       outlined
                     />
@@ -326,6 +365,8 @@ import axios from "axios";
 import { es } from "date-fns/locale";
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
+import ecommercesService from "@/services/api/ecommerces";
+
 export default {
   props: {
     isTemplate: {
@@ -368,12 +409,13 @@ export default {
     searchProduct: "",
     products: [],
     facebookLabels: [],
-    originalCommentFacebook: [],
     urls: [],
     selectedLabel: null,
     filteredLabels: [],
     customUrl: "",
     isReady: false,
+    brands: [],
+    categories: [],
   }),
 
   computed: {
@@ -509,6 +551,12 @@ export default {
 
   methods: {
     async initialize() {
+      let commentFacebook;
+      const query = {
+        country: this.$store.getters["authModule/getCurrentCompany"].company
+          .country,
+        products_available: true,
+      };
       if (!this.isTemplate) {
         await Promise.all([
           this.$store.dispatch("todofullLabelsModule/list", {
@@ -516,7 +564,7 @@ export default {
             limit: 9999,
           }),
         ]);
-        this.commentFacebook = await this.$store.dispatch(
+        commentFacebook = await this.$store.dispatch(
           "commentsFacebookModule/listOne",
           this.$route.params.id
         );
@@ -529,24 +577,49 @@ export default {
           },
         ]);
         // buscando si existe plantilla asociada a producto
-        this.commentFacebook = await this.$store.dispatch(
+        commentFacebook = await this.$store.dispatch(
           "commentsFacebookModule/listOne",
           this.productId
         );
       }
-      this.originalCommentFacebook = JSON.parse(
-        JSON.stringify(this.commentFacebook.responses)
-      );
+      if (commentFacebook.type === "PUBLICACIONES_CATEGORIA") {
+        this.categories = (
+          await ecommercesService.listCategories(query)
+        ).data.payload;
+      }
+      if (commentFacebook.type === "PUBLICACIONES_MARCA") {
+        this.brands = (
+          await ecommercesService.listAttributes({
+            ...query,
+            name: "marca",
+          })
+        ).data.payload.map((el) => el.options);
+      }
       this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
       //inicializando URL seleccionados
       if (
-        !this.commentFacebook.selectedUrlIndex &&
-        this.commentFacebook.selectedUrlIndex != 0
+        !commentFacebook.selectedUrlIndex &&
+        commentFacebook.selectedUrlIndex != 0
       )
-        this.customUrl = this.commentFacebook.selectedUrl;
+        this.customUrl = commentFacebook.selectedUrl;
       //inicializando categorias seleccionadas
-      this.selectedCategories = this.commentFacebook.selectedCategories;
+      this.selectedCategories = commentFacebook.selectedCategories;
       this.isReady = true;
+      // initializing postResponses and inboxResponses
+      if (
+        !commentFacebook.postResponses ||
+        (commentFacebook.postResponses && !commentFacebook.postResponses.length)
+      ) {
+        commentFacebook.postResponses = ["", "", ""];
+      }
+      if (
+        !commentFacebook.inboxResponses ||
+        (commentFacebook.inboxResponses &&
+          !commentFacebook.inboxResponses.length)
+      ) {
+        commentFacebook.inboxResponses = ["", "", ""];
+      }
+      this.commentFacebook = commentFacebook;
     },
     async getPostImage() {
       let postId = this.commentFacebook.postUrl.includes("/photos")
@@ -571,32 +644,39 @@ export default {
     },
     async save() {
       try {
-        this.loadingButton = true;
-        //agregando categorias seleccionadas
-        this.commentFacebook.selectedCategories = this.selectedCategories;
-        //aca se sobreescribe la url seleccionada por la custom (si hubiera)
-        this.commentFacebook.selectedUrl = this.getCurrentUrl();
-        this.commentFacebook.selectedLabel = this.filteredLabels[
-          parseInt(this.commentFacebook.selectedLabelIndex)
-        ]._id;
-        if (
-          this.isTemplate &&
-          this.commentFacebook.postImgUrl.trim().length == 0
-        )
-          throw new Error("Falta imagen personalizada");
-        if (!this.isTemplate || this.commentFacebook._id) {
+        if (this.isVariousProductsOrCommentPost) {
+          this.loadingButton = true;
+          //agregando categorias seleccionadas
+          this.commentFacebook.selectedCategories = this.selectedCategories;
+          //aca se sobreescribe la url seleccionada por la custom (si hubiera)
+          this.commentFacebook.selectedUrl = this.getCurrentUrl();
+          this.commentFacebook.selectedLabel = this.filteredLabels[
+            parseInt(this.commentFacebook.selectedLabelIndex)
+          ]._id;
+          if (
+            this.isTemplate &&
+            this.commentFacebook.postImgUrl.trim().length == 0
+          )
+            throw new Error("Falta imagen personalizada");
+          if (!this.isTemplate || this.commentFacebook._id) {
+            await this.$store.dispatch("commentsFacebookModule/update", {
+              id: this.commentFacebook._id,
+              data: this.commentFacebook,
+            });
+          } else {
+            //agregando tipo template
+            this.commentFacebook.type = "template";
+            this.commentFacebook.ecommerceId = this.productId;
+            await this.$store.dispatch(
+              "commentsFacebookModule/create",
+              this.commentFacebook
+            );
+          }
+        } else {
           await this.$store.dispatch("commentsFacebookModule/update", {
             id: this.commentFacebook._id,
             data: this.commentFacebook,
           });
-        } else {
-          //agregando tipo template
-          this.commentFacebook.type = "template";
-          this.commentFacebook.ecommerceId = this.productId;
-          await this.$store.dispatch(
-            "commentsFacebookModule/create",
-            this.commentFacebook
-          );
         }
       } catch (error) {
         console.log(error);
