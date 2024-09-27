@@ -247,7 +247,7 @@
       </v-container>
       <v-container fluid v-else>
         <v-row>
-          <v-col cols="12" sm="7">
+          <v-col cols="12" sm="6">
             <v-row>
               <v-col cols="12" sm="12" md="12" class="mb-2">
                 <p class="body-1 font-weight-bold">URL de publicación</p>
@@ -308,7 +308,7 @@
               </v-col>
             </v-row>
           </v-col>
-          <v-col cols="12" sm="5" class="text-center">
+          <v-col cols="12" sm="6" class="text-center">
             <h3 class="mb-3">Vista previa</h3>
             <v-row justify="center">
               <div>
@@ -323,17 +323,37 @@
                   class="pa-3"
                   v-if="commentFacebook.postResponses"
                 >
-                  <strong>Respuesta Post</strong>
-                  <div
-                    v-for="(item, idy) in commentFacebook.postResponses"
-                    :key="idy"
-                  >
-                    <v-textarea
-                      rules="required"
-                      v-model="commentFacebook.postResponses[idy]"
-                      placeholder="Esta respuesta es una variante para el post"
-                      outlined
-                    />
+                  <strong style="display:block">Respuesta Post</strong>
+                  {{ commentFacebook.hasToAnswerIA }}
+                  <v-checkbox
+                    class="ma-3"
+                    style="display:block"
+                    label="Responder con IA"
+                    v-model="commentFacebook.hasToAnswerIA"
+                    @change="toggleHasToAnswerIa"
+                  />
+                  <div>
+                    <v-btn
+                      color="primary"
+                      @click="generatePostResponsesIA"
+                      class="mb-2"
+                      :disabled="commentFacebook.hasToAnswerIA"
+                      :loading="isLoading"
+                      >Generar Respuestas estáticas con IA</v-btn
+                    >
+                    <div class="flex-grow-1"></div>
+                    <div
+                      v-for="(item, idy) in commentFacebook.postResponses"
+                      :key="idy"
+                    >
+                      <v-textarea
+                        :disabled="commentFacebook.hasToAnswerIA"
+                        rules="required"
+                        v-model="commentFacebook.postResponses[idy]"
+                        placeholder="Esta respuesta es una variante para el post"
+                        outlined
+                      />
+                    </div>
                   </div>
                 </v-card>
               </div>
@@ -366,6 +386,9 @@ import { es } from "date-fns/locale";
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
 import ecommercesService from "@/services/api/ecommerces";
+import openaiService from "@/services/api/openai";
+import brandPrompt from "@/promptTemplates/postCommentBrandResponses";
+import categoryPrompt from "@/promptTemplates/postCommentCategoryResponses";
 
 export default {
   props: {
@@ -416,6 +439,9 @@ export default {
     isReady: false,
     brands: [],
     categories: [],
+    metaPost: null,
+    instagramPost: null,
+    isLoading: false,
   }),
 
   computed: {
@@ -619,7 +645,19 @@ export default {
       ) {
         commentFacebook.inboxResponses = ["", "", ""];
       }
+      if (!("hasToAnswerIA" in commentFacebook)) {
+        commentFacebook.hasToAnswerIA = false; // not answer with ia by default
+      }
       this.commentFacebook = commentFacebook;
+      // get ig or meta post information from graph api
+      if (
+        this.commentFacebook.platform === "instagram" &&
+        this.commentFacebook.external_id
+      ) {
+        this.getInstagramPost();
+      } else {
+        this.getMetaPost();
+      }
     },
     async getPostImage() {
       let postId = this.commentFacebook.postUrl.includes("/photos")
@@ -637,6 +675,32 @@ export default {
         .then((res) => {
           console.log(res.data);
           this.postPicture = res.data.payload.full_picture;
+        })
+        .catch((err) => {
+          console.error("err trayendo imagen: ", err);
+        });
+    },
+    async getInstagramPost() {
+      let postId = this.commentFacebook.external_id;
+      axios
+        .get(
+          `/api/graph-api/get-instagram-post/${postId}?fanpageId=${this.commentFacebook.botId.fanpageId}`
+        )
+        .then((res) => {
+          this.instagramPost = res.data.payload;
+        })
+        .catch((err) => {
+          console.error("err trayendo imagen: ", err);
+        });
+    },
+    async getMetaPost() {
+      let postId = this.commentFacebook.external_id;
+      axios
+        .get(
+          `/api/graph-api/get-facebook-post/${postId}?fanpageId=${this.commentFacebook.botId.fanpageId}`
+        )
+        .then((res) => {
+          this.metaPost = res.data.payload;
         })
         .catch((err) => {
           console.error("err trayendo imagen: ", err);
@@ -860,6 +924,54 @@ export default {
     },
     openLink() {
       window.open(this.getCurrentUrl(), "_blank");
+    },
+    async generatePostResponsesIA() {
+      try {
+        this.isLoading = true;
+        let template;
+        let post;
+        if (this.commentFacebook.platform === "instagram") {
+          post = this.instagramPost;
+        } else {
+          post = this.metaPost;
+        }
+        if (this.commentFacebook.type === "PUBLICACIONES_MARCA") {
+          template = brandPrompt;
+        } else if (this.commentFacebook.type === "PUBLICACIONES_CATEGORIA") {
+          template = categoryPrompt;
+        }
+        const inputVariables = {
+          post_url: this.commentFacebook.postUrl,
+          platform: this.commentFacebook.platform,
+          country: this.$store.getters["authModule/getCurrentCompany"].company
+            .country,
+          post_content: post?.message || post?.caption || "",
+          brand: this.commentFacebook.brand,
+          category: this.commentFacebook?.categoryId?.name,
+        };
+        let prompt = template.replace(/{([^{}]*)}/g, (match, p1) => {
+          return inputVariables[p1.trim()] || match;
+        });
+
+        const response = await openaiService.generateCompletion([
+          {
+            role: "system",
+            content: prompt,
+          },
+        ]);
+
+        const postResponses = response.data.payload.choices[0].message.content
+          .split("[COMMENT]")
+          .map((el) => el.trim());
+        this.commentFacebook.postResponses = postResponses;
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    toggleHasToAnswerIa($event) {
+      this.commentFacebook.hasToAnswerIA = $event;
     },
   },
 };
