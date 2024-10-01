@@ -2,15 +2,13 @@
   <div>
     <v-divider></v-divider>
     <ValidationObserver ref="obs" v-slot="{ passes }">
-      <v-container class="pa-1 ma-2" v-if="commentFacebook || isTemplate">
+      <v-container
+        class="pa-1 ma-2"
+        v-if="(commentFacebook || isTemplate) && isVariousProductsOrCommentPost"
+      >
         <v-row dense v-if="!isTemplate">
           <v-col cols="12" sm="12" md="12" class="mb-2">
             <p class="body-1 font-weight-bold">URL de publicación</p>
-            <!-- <VTextFieldWithValidation
-                rules=""
-                v-model="commentFacebook.botId"
-                label="Ingresa el botId"
-              /> -->
             <VTextFieldWithValidation
               rules="required"
               v-model="commentFacebook.postUrl"
@@ -183,55 +181,23 @@
               outlined
             ></v-text-field>
           </v-col>
-          <!-- <v-col cols="12" sm="12" md="12">
-              <p class="body-1 font-weight-bold">
-                Mensaje para acompañar a Respuestas Rápidas (El chatbot mostrará
-                una aleatoriamente)
-              </p>
-              <v-card>
-                <v-tabs v-model="tab" centered icons-and-text>
-                  <v-tab v-for="item in items" :key="item">
-                    {{ item }}
-                  </v-tab>
-                </v-tabs>
-
-                <v-tabs-items disabled v-model="tab">
-                  <v-tab-item v-for="item in items" :key="item">
-                    <div class="mt-3">
-                      <v-textarea
-                        v-show="tab == 0"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 1"
-                        v-model="commentFacebook.responses[0]"
-                        class="mb-2"
-                      ></v-textarea>
-                      <v-textarea
-                        v-show="tab == 1"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 2"
-                        v-model="commentFacebook.responses[1]"
-                        class="mb-2"
-                      ></v-textarea>
-                      <v-textarea
-                        v-show="tab == 2"
-                        dense
-                        outlined
-                        hide-details="auto"
-                        placeholder="Respuesta 3"
-                        v-model="commentFacebook.responses[2]"
-                        class="mb-2"
-                      ></v-textarea>
-                    </div>
-                  </v-tab-item>
-                </v-tabs-items>
-              </v-card>
-            </v-col> -->
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+            v-if="!isVariousProductsOrCommentPost"
+          >
+            <p class="body-1 font-weight-bold">
+              Mensaje para acompañar a Respuestas Rápidas (El chatbot mostrará
+              una aleatoriamente)
+            </p>
+            <v-card></v-card>
+          </v-col>
         </v-row>
-        <v-row align="center" v-if="!isTemplate">
+        <v-row
+          align="center"
+          v-if="!isTemplate && isVariousProductsOrCommentPost"
+        >
           <v-col cols="12" sm="4" class="text-center">
             <h3 class="mb-3">Vista previa</h3>
             <v-row justify="center">
@@ -253,9 +219,7 @@
                     color="primary"
                     @click="openLink"
                     >Ver en
-                    {{
-                      getDomain()
-                    }}
+                    {{ getDomain() }}
                   </v-btn>
                   <v-btn
                     small
@@ -278,6 +242,122 @@
             <v-btn block color="primary" @click="copyToClipboard"
               >Copiar código</v-btn
             >
+          </v-col>
+        </v-row>
+      </v-container>
+      <v-container fluid v-else>
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-row>
+              <v-col cols="12" sm="12" md="12" class="mb-2">
+                <p class="body-1 font-weight-bold">URL de publicación</p>
+                <VTextFieldWithValidation
+                  rules="required"
+                  v-model="commentFacebook.postUrl"
+                  label="Ingresa la URL"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="12"
+                md="12"
+                class="mb-2"
+                v-if="commentFacebook.type === 'PUBLICACIONES_MARCA'"
+              >
+                <p class="body-1 font-weight-bold">Marca</p>
+                <v-combobox
+                  v-model="commentFacebook.brand"
+                  :items="brands"
+                  label="Selecciona la marca"
+                  outlined
+                  dense
+                ></v-combobox>
+              </v-col>
+              <v-col
+                cols="12"
+                sm="12"
+                md="12"
+                class="mb-2"
+                v-if="commentFacebook.type === 'PUBLICACIONES_CATEGORIA'"
+              >
+                <p class="body-1 font-weight-bold">Categoría</p>
+                <v-combobox
+                  v-model="commentFacebook.categoryId"
+                  :items="categories"
+                  label="Selecciona la categoría"
+                  outlined
+                  dense
+                  item-text="name"
+                  item-value="_id"
+                ></v-combobox>
+              </v-col>
+              <v-col cols="12" sm="12" class="mb-2">
+                <p class="body-1 font-weight-bold">Respuesta inbox</p>
+                <div
+                  v-for="(item, idx) in commentFacebook.inboxResponses"
+                  :key="idx"
+                >
+                  <p>Respuesta {{ idx + 1 }}</p>
+                  <v-textarea
+                    rules="required"
+                    v-model="commentFacebook.inboxResponses[idx]"
+                    placeholder="Esta respuesta es una variante para el inbox"
+                    outlined
+                  />
+                </div>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="12" sm="6" class="text-center">
+            <h3 class="mb-3">Vista previa</h3>
+            <v-row justify="center">
+              <div>
+                <v-img
+                  class="rounded-corners"
+                  :src="dynamicPostUrl || 'https://via.placeholder.com/150'"
+                  aspect-ratio="1"
+                  contain
+                ></v-img>
+                <v-card
+                  outlined
+                  class="pa-3"
+                  v-if="commentFacebook.postResponses"
+                >
+                  <strong style="display:block">Respuesta Post</strong>
+                  {{ commentFacebook.hasToAnswerIA }}
+                  <v-checkbox
+                    class="ma-3"
+                    style="display:block"
+                    label="Responder con IA"
+                    v-model="commentFacebook.hasToAnswerIA"
+                    @change="toggleHasToAnswerIa"
+                  />
+                  <div>
+                    <v-btn
+                      color="primary"
+                      @click="generatePostResponsesIA"
+                      class="mb-2"
+                      :disabled="commentFacebook.hasToAnswerIA"
+                      :loading="isLoading"
+                      >Generar Respuestas estáticas con IA</v-btn
+                    >
+                    <div class="flex-grow-1"></div>
+                    <div
+                      v-for="(item, idy) in commentFacebook.postResponses"
+                      :key="idy"
+                    >
+                      <v-textarea
+                        :disabled="commentFacebook.hasToAnswerIA"
+                        rules="required"
+                        v-model="commentFacebook.postResponses[idy]"
+                        placeholder="Esta respuesta es una variante para el post"
+                        outlined
+                      />
+                    </div>
+                  </div>
+                </v-card>
+              </div>
+            </v-row>
           </v-col>
         </v-row>
       </v-container>
@@ -305,6 +385,11 @@ import axios from "axios";
 import { es } from "date-fns/locale";
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
+import ecommercesService from "@/services/api/ecommerces";
+import openaiService from "@/services/api/openai";
+import brandPrompt from "@/promptTemplates/postCommentBrandResponses";
+import categoryPrompt from "@/promptTemplates/postCommentCategoryResponses";
+
 export default {
   props: {
     isTemplate: {
@@ -340,18 +425,23 @@ export default {
     commentsFacebook: [],
     commentFacebook: null,
     chips: [],
-    items: ["Respuesta 1", "Respuesta 2", "Respuesta 3"],
+    inboxResponses: ["", "", ""],
+    postResponses: ["", "", ""],
     tab: null,
     postPicture: "",
     searchProduct: "",
     products: [],
     facebookLabels: [],
-    originalCommentFacebook: [],
     urls: [],
     selectedLabel: null,
     filteredLabels: [],
     customUrl: "",
     isReady: false,
+    brands: [],
+    categories: [],
+    metaPost: null,
+    instagramPost: null,
+    isLoading: false,
   }),
 
   computed: {
@@ -384,6 +474,12 @@ export default {
     },
     isInstagramPost() {
       return this.commentFacebook.platform === "instagram";
+    },
+    isVariousProductsOrCommentPost() {
+      return (
+        this.commentFacebook?.type === "comment" ||
+        this.commentFacebook?.type === "VARIOS_PRODUCTOS"
+      );
     },
   },
   created() {
@@ -442,7 +538,10 @@ export default {
             await Promise.all([
               this.$store.dispatch("ecommercesCategoriesModule/list", {
                 limit: 9999,
-                companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+                companies: [
+                  this.$store.getters["authModule/getCurrentCompany"].company
+                    ._id,
+                ],
               }),
             ]);
 
@@ -478,19 +577,20 @@ export default {
 
   methods: {
     async initialize() {
+      let commentFacebook;
+      const query = {
+        country: this.$store.getters["authModule/getCurrentCompany"].company
+          .country,
+        products_available: true,
+      };
       if (!this.isTemplate) {
         await Promise.all([
-          this.$store.dispatch("commentsFacebookModule/list", {
-            limit: 9999,
-            _id: this.$route.params.id,
-            companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-          }),
           this.$store.dispatch("todofullLabelsModule/list", {
             webtagsDetails: true,
             limit: 9999,
           }),
         ]);
-        this.commentFacebook = await this.$store.dispatch(
+        commentFacebook = await this.$store.dispatch(
           "commentsFacebookModule/listOne",
           this.$route.params.id
         );
@@ -503,24 +603,61 @@ export default {
           },
         ]);
         // buscando si existe plantilla asociada a producto
-        this.commentFacebook = await this.$store.dispatch(
+        commentFacebook = await this.$store.dispatch(
           "commentsFacebookModule/listOne",
           this.productId
         );
       }
-      this.originalCommentFacebook = JSON.parse(
-        JSON.stringify(this.commentFacebook.responses)
-      );
+      if (commentFacebook.type === "PUBLICACIONES_CATEGORIA") {
+        this.categories = (
+          await ecommercesService.listCategories(query)
+        ).data.payload;
+      }
+      if (commentFacebook.type === "PUBLICACIONES_MARCA") {
+        this.brands = (
+          await ecommercesService.listAttributes({
+            ...query,
+            name: "marca",
+          })
+        ).data.payload.map((el) => el.options);
+      }
       this.todofullLabels = this.$store.state.todofullLabelsModule.todofullLabels;
       //inicializando URL seleccionados
       if (
-        !this.commentFacebook.selectedUrlIndex &&
-        this.commentFacebook.selectedUrlIndex != 0
+        !commentFacebook.selectedUrlIndex &&
+        commentFacebook.selectedUrlIndex != 0
       )
-        this.customUrl = this.commentFacebook.selectedUrl;
+        this.customUrl = commentFacebook.selectedUrl;
       //inicializando categorias seleccionadas
-      this.selectedCategories = this.commentFacebook.selectedCategories;
+      this.selectedCategories = commentFacebook.selectedCategories;
       this.isReady = true;
+      // initializing postResponses and inboxResponses
+      if (
+        !commentFacebook.postResponses ||
+        (commentFacebook.postResponses && !commentFacebook.postResponses.length)
+      ) {
+        commentFacebook.postResponses = ["", "", ""];
+      }
+      if (
+        !commentFacebook.inboxResponses ||
+        (commentFacebook.inboxResponses &&
+          !commentFacebook.inboxResponses.length)
+      ) {
+        commentFacebook.inboxResponses = ["", "", ""];
+      }
+      if (!("hasToAnswerIA" in commentFacebook)) {
+        commentFacebook.hasToAnswerIA = false; // not answer with ia by default
+      }
+      this.commentFacebook = commentFacebook;
+      // get ig or meta post information from graph api
+      if (
+        this.commentFacebook.platform === "instagram" &&
+        this.commentFacebook.external_id
+      ) {
+        this.getInstagramPost();
+      } else {
+        this.getMetaPost();
+      }
     },
     async getPostImage() {
       let postId = this.commentFacebook.postUrl.includes("/photos")
@@ -543,34 +680,67 @@ export default {
           console.error("err trayendo imagen: ", err);
         });
     },
+    async getInstagramPost() {
+      let postId = this.commentFacebook.external_id;
+      axios
+        .get(
+          `/api/graph-api/get-instagram-post/${postId}?fanpageId=${this.commentFacebook.botId.fanpageId}`
+        )
+        .then((res) => {
+          this.instagramPost = res.data.payload;
+        })
+        .catch((err) => {
+          console.error("err trayendo imagen: ", err);
+        });
+    },
+    async getMetaPost() {
+      let postId = this.commentFacebook.external_id;
+      axios
+        .get(
+          `/api/graph-api/get-facebook-post/${postId}?fanpageId=${this.commentFacebook.botId.fanpageId}`
+        )
+        .then((res) => {
+          this.metaPost = res.data.payload;
+        })
+        .catch((err) => {
+          console.error("err trayendo imagen: ", err);
+        });
+    },
     async save() {
       try {
-        this.loadingButton = true;
-        //agregando categorias seleccionadas
-        this.commentFacebook.selectedCategories = this.selectedCategories;
-        //aca se sobreescribe la url seleccionada por la custom (si hubiera)
-        this.commentFacebook.selectedUrl = this.getCurrentUrl();
-        this.commentFacebook.selectedLabel = this.filteredLabels[
-          parseInt(this.commentFacebook.selectedLabelIndex)
-        ]._id;
-        if (
-          this.isTemplate &&
-          this.commentFacebook.postImgUrl.trim().length == 0
-        )
-          throw new Error("Falta imagen personalizada");
-        if (!this.isTemplate || this.commentFacebook._id) {
+        if (this.isVariousProductsOrCommentPost) {
+          this.loadingButton = true;
+          //agregando categorias seleccionadas
+          this.commentFacebook.selectedCategories = this.selectedCategories;
+          //aca se sobreescribe la url seleccionada por la custom (si hubiera)
+          this.commentFacebook.selectedUrl = this.getCurrentUrl();
+          this.commentFacebook.selectedLabel = this.filteredLabels[
+            parseInt(this.commentFacebook.selectedLabelIndex)
+          ]._id;
+          if (
+            this.isTemplate &&
+            this.commentFacebook.postImgUrl.trim().length == 0
+          )
+            throw new Error("Falta imagen personalizada");
+          if (!this.isTemplate || this.commentFacebook._id) {
+            await this.$store.dispatch("commentsFacebookModule/update", {
+              id: this.commentFacebook._id,
+              data: this.commentFacebook,
+            });
+          } else {
+            //agregando tipo template
+            this.commentFacebook.type = "template";
+            this.commentFacebook.ecommerceId = this.productId;
+            await this.$store.dispatch(
+              "commentsFacebookModule/create",
+              this.commentFacebook
+            );
+          }
+        } else {
           await this.$store.dispatch("commentsFacebookModule/update", {
             id: this.commentFacebook._id,
             data: this.commentFacebook,
           });
-        } else {
-          //agregando tipo template
-          this.commentFacebook.type = "template";
-          this.commentFacebook.ecommerceId = this.productId;
-          await this.$store.dispatch(
-            "commentsFacebookModule/create",
-            this.commentFacebook
-          );
         }
       } catch (error) {
         console.log(error);
@@ -599,12 +769,12 @@ export default {
       }
     },
     getDomain(fullDomain = this.getCurrentUrl()) {
-      let cleanedDomain = fullDomain.replace(/^https?:\/\//, '');
+      let cleanedDomain = fullDomain.replace(/^https?:\/\//, "");
 
-      const domainParts = cleanedDomain.split('/')[0];
+      const domainParts = cleanedDomain.split("/")[0];
 
-      const parts = domainParts.split('.');
-      const domain = parts.length > 2 ? parts.slice(-2).join('.') : domainParts;
+      const parts = domainParts.split(".");
+      const domain = parts.length > 2 ? parts.slice(-2).join(".") : domainParts;
 
       return domain;
     },
@@ -625,7 +795,9 @@ export default {
           search: this.searchProduct,
           fieldsToSearch: ["name"],
           listType: "All",
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       //asignar al data del componente
@@ -752,6 +924,54 @@ export default {
     },
     openLink() {
       window.open(this.getCurrentUrl(), "_blank");
+    },
+    async generatePostResponsesIA() {
+      try {
+        this.isLoading = true;
+        let template;
+        let post;
+        if (this.commentFacebook.platform === "instagram") {
+          post = this.instagramPost;
+        } else {
+          post = this.metaPost;
+        }
+        if (this.commentFacebook.type === "PUBLICACIONES_MARCA") {
+          template = brandPrompt;
+        } else if (this.commentFacebook.type === "PUBLICACIONES_CATEGORIA") {
+          template = categoryPrompt;
+        }
+        const inputVariables = {
+          post_url: this.commentFacebook.postUrl,
+          platform: this.commentFacebook.platform,
+          country: this.$store.getters["authModule/getCurrentCompany"].company
+            .country,
+          post_content: post?.message || post?.caption || "",
+          brand: this.commentFacebook.brand,
+          category: this.commentFacebook?.categoryId?.name,
+        };
+        let prompt = template.replace(/{([^{}]*)}/g, (match, p1) => {
+          return inputVariables[p1.trim()] || match;
+        });
+
+        const response = await openaiService.generateCompletion([
+          {
+            role: "system",
+            content: prompt,
+          },
+        ]);
+
+        const postResponses = response.data.payload.choices[0].message.content
+          .split("[COMMENT]")
+          .map((el) => el.trim());
+        this.commentFacebook.postResponses = postResponses;
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    toggleHasToAnswerIa($event) {
+      this.commentFacebook.hasToAnswerIA = $event;
     },
   },
 };

@@ -139,6 +139,15 @@
                 </template>
               </v-autocomplete>
             </v-col>
+            <v-col cols="12" sm="12">
+              <span class="font-weight-bold"
+                >Subir imagen/video de publicación a multimedia</span
+              >
+              <v-checkbox
+                v-model="editedItem.hasToUploadToMultimedia"
+                label="Subir a multimedia"
+              ></v-checkbox>
+            </v-col>
             <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
               <p class="body-1 font-weight-bold">Selección para respuesta</p>
               <v-simple-table>
@@ -192,6 +201,7 @@
 <script>
 //Nota: Modifica los campos de la tabla
 import Vue from "vue";
+import graphApiService from "@/services/api/graphApi";
 const ENTITY = "commentsWithoutResponses"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
@@ -439,6 +449,16 @@ export default {
     async assignCommentWithoutResponse(commentFacebook) {
       if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
         return;
+      }
+      // check if has to upload media to multimedia
+      if (this.editedItem.hasToUploadToMultimedia) {
+        // upload media to multimedia
+        graphApiService.downloadMediaPostUploadToProduct(
+          this.selectedCommentWithoutResponse.fanpageId,
+          this.selectedCommentWithoutResponse.postId,
+          this.selectedCommentWithoutResponse.url,
+          this.selectedProductsSearch
+        );
       }
 
       if (!commentFacebook) {

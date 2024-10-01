@@ -1,6 +1,19 @@
 import axios from "axios";
 
 export default {
+  generateCompletion(messages) {
+    return axios.post(
+      "/api/openai/completion",
+      {
+        messages,
+      },
+      {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 120000,
+      }
+    );
+  },
   generateCompletionForConversation(prompt, commentToTest) {
     return axios.post(
       "/api/openai/generate_chat_completion",
