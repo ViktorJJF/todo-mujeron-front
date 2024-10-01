@@ -88,7 +88,10 @@
                                 hide-details
                                 placeholder="Seleccione una categoria"
                                 outlined
-                                :items="categories"
+                                :items="[
+                                  { name: 'Todas las categorías', _id: null },
+                                  ...categories,
+                                ]"
                                 item-text="name"
                                 item-value="_id"
                                 v-model="editedItem.category"
@@ -370,6 +373,25 @@
               v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  class="mr-3"
+                  small
+                  :style="{ backgroundColor: '#9F7FB1', color: 'white' }"
+                  @click="executeRoutine(item)"
+                  :loading="loadingRoutine[item._id]"
+                  :disabled="loadingRoutine[item._id]"
+                  icon
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-icon>mdi-play-circle</v-icon>
+                </v-btn>
+              </template>
+              <span>Ejecutar ahora</span>
+            </v-tooltip>
+
             <v-btn
               small
               color="error"
@@ -438,6 +460,7 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    loadingRoutine: {},
     search: "",
     dialog: false,
     headers: [
@@ -589,6 +612,12 @@ export default {
       this.routines = this.$deepCopy(
         this.$store.state.telegramRoutinesModule.routines
       );
+      // add typeofposts to all routines
+      for (const routine of this.routines) {
+        if (!routine.typeOfPosts) {
+          routine.typeOfPosts = [];
+        }
+      }
       this.bots = this.$store.state.botsModule.bots;
       // filter bot only allow ig and facebook
       this.bots = this.bots.filter(
@@ -658,6 +687,23 @@ export default {
         } finally {
           this.loadingButton = false;
         }
+      }
+    },
+    async executeRoutine(item) {
+      // Set the loading state to true for this item
+      this.$set(this.loadingRoutine, item._id, true);
+
+      try {
+        // Your logic for executing the routine
+        await this.$store.dispatch(
+          "telegramRoutinesModule/executeRoutine",
+          item._id
+        );
+      } catch (error) {
+        console.error("Error executing routine:", error);
+      } finally {
+        // Set the loading state back to false once execution is complete
+        this.$set(this.loadingRoutine, item._id, false);
       }
     },
   },

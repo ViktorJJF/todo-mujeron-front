@@ -382,7 +382,7 @@
         <div class="px-5">
           <v-row>
             <v-col
-              v-for="(multimedia, index) of currentProduct.multimedia"
+              v-for="(multimedia, index) of currentProduct.multimedia.filter(el=>!el.post)"
               :key="index"
               cols="4"
             >
@@ -409,7 +409,7 @@
                   >
                   </iframe>
                 </template>
-                <MiltimediaCategorySelect
+                <MultimediaCategorySelect
                   class="mb-2"
                   style="width: 100%"
                   v-model="multimedia.categoryId"
@@ -448,23 +448,110 @@
               </div>
             </v-col>
           </v-row>
-          <div class="mt-3 ml-4">
+
+          <div class="mt-3 ml-4 mb-3">
             <v-btn color="primary" @click="handleAddMultimedia">
               <v-icon>mdi-plus</v-icon>
               Añadir
             </v-btn>
           </div>
-        </div>
+          <v-row class="mt-3">
+            <v-expansion-panels>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  Consultar publicaciones en redes sociales
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <v-row>
+                    <v-col
+                      v-for="(multimedia,
+                      index) of currentProduct.multimedia.filter(el=>el.post)"
+                      :key="index"
+                      cols="4"
+                      class="position-relative"
+                    >
+                      <div
+                        class="d-flex flex-column align-center"
+                        style="position: relative;"
+                      >
+                        <!-- Checkbox in the top-right corner -->
+                        <v-checkbox
+                          v-model="multimedia.hasToUploadToMetaCatalogs"
+                          class="top-right-checkbox"
+                          hide-details
+                          color="primary"
+                        />
 
-        <v-row class="mt-3 mb-3">
-          <v-img
-            v-if="currentProduct.customImage"
-            class="rounded-corners"
-            :src="currentProduct.customImage"
-            aspect-ratio="2"
-            contain
-          ></v-img>
-        </v-row>
+                        <template v-if="getTypeUrl(multimedia.url) === 'video'">
+                          <video
+                            :src="multimedia.url"
+                            controls
+                            style="width: 100%; height: 350px"
+                          ></video>
+                        </template>
+
+                        <template v-if="getTypeUrl(multimedia.url) === 'image'">
+                          <img
+                            :src="multimedia.url"
+                            class="mb-2"
+                            style="width: 100%; height: 350px"
+                          />
+                        </template>
+
+                        <template
+                          v-if="getTypeUrl(multimedia.url) === 'youtube'"
+                        >
+                          <iframe
+                            width="100%"
+                            height="350px"
+                            :src="getFormattedYoutube(multimedia.url)"
+                          ></iframe>
+                        </template>
+
+                        <MultimediaCategorySelect
+                          class="mb-2"
+                          style="width: 100%;"
+                          v-model="multimedia.categoryId"
+                        />
+
+                        <v-textarea
+                          style="width: 100%;"
+                          dense
+                          hide-details
+                          v-model="multimedia.url"
+                          placeholder="Escribe la url de la imagen"
+                          single-line
+                          outlined
+                          clearable
+                        />
+
+                        <div
+                          class="d-flex justify-space-between align-center w-100"
+                        >
+                          <v-btn
+                            icon
+                            small
+                            @click="handleRemoveMultimedia(index)"
+                          >
+                            <v-icon>mdi-delete</v-icon>
+                          </v-btn>
+                        </div>
+                      </div>
+                    </v-col>
+                    <v-col cols="12" sm="12">
+        <!-- Button to check all checkboxes -->
+        <v-checkbox
+          v-model="checkAll"
+          label="Seleccionar todas las imágenes"
+          @change="toggleCheckAllSocialMediaMultimedia"
+        />
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-row>
+        </div>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -733,7 +820,7 @@ const CLASS_ITEMS = () =>
 
 import { format } from "date-fns";
 import MaterialCard from "@/components/material/Card";
-import MiltimediaCategorySelect from "@/components/MultimediaCategorySelect.vue";
+import MultimediaCategorySelect from "@/components/MultimediaCategorySelect.vue";
 import CommentToMSNUpdate from "@/views/CommentToMSNUpdate";
 import { es } from "date-fns/locale";
 import dialogflow from "@/services/api/dialogflow";
@@ -756,7 +843,7 @@ export default {
   components: {
     MaterialCard,
     CommentToMSNUpdate,
-    MiltimediaCategorySelect,
+    MultimediaCategorySelect,
     VSelectWithValidation,
   },
   filters: {
@@ -770,6 +857,7 @@ export default {
     },
   },
   data: () => ({
+    checkAll:false,
     generatingTables: false,
     selectedWoocommerce: null,
     selectedProductIds: [],
@@ -929,6 +1017,16 @@ export default {
         this.page = 1;
         this.initialize(this.page);
       }, 600);
+    },
+    currentProduct() {
+      // add field multimedia social media dynamically
+      if (this.currentProduct) {
+        const multimedia = JSON.parse(JSON.stringify(this.currentProduct.multimedia))
+        Vue.set(
+          this.currentProduct,
+          "socialMediaMultimedia",multimedia.filter(el=>el.post)
+        );
+      }
     },
   },
   async mounted() {
@@ -1357,6 +1455,11 @@ export default {
       // Join the words back into a sentence
       return words.join(" ");
     },
+    toggleCheckAllSocialMediaMultimedia(val) {
+      this.currentProduct.multimedia.forEach((multimedia) => {
+        multimedia.hasToUploadToMetaCatalogs = val;
+      });
+    }
   },
 };
 </script>
@@ -1396,5 +1499,16 @@ table tbody tr:nth-child(odd) {
 }
 .copyable-value:hover {
   color: darkblue;
+}
+
+.top-right-checkbox {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white; /* Background for visibility */
+  border-radius: 4px; /* Rounded corners */
+  padding: 1px;
+  border: 2px solid #1976d2; /* Blue border */
+  z-index: 10; /* Ensure it's on top */
 }
 </style>
