@@ -96,101 +96,225 @@
       <v-card>
         <v-card-title>
           <v-icon color="primary" class="mr-1">mdi-update</v-icon>
-          <span class="headline">Asignar a publicación existente</span>
+          <span class="headline">Asignar a publicación existente o crear</span>
           <v-container fluid>
             <v-col cols="12" sm="12">
-              <span class="font-weight-bold">Filtrar por productos</span>
-              <v-autocomplete
-                item-text="name"
-                item-value="_id"
-                :search-input.sync="searchProduct"
-                :items="products"
-                chips
-                dense
-                clearable
-                label="Busca los productos"
-                no-data-text="No se encontraron productos"
-                no-filter
-                solo
-                outlined
-                hide-details
-                @change="onSelectedProducts"
-                :multiple="editedIndex > -1 ? false : true"
+              ¿Deseas asignar o crear publicación nueva?
+              <v-radio-group v-model="hasToAssign">
+                <v-radio label="Asignar" :value="true"></v-radio>
+                <v-radio label="Crear" :value="false"></v-radio>
+              </v-radio-group>
+            </v-col>
+            <template v-if="hasToAssign">
+              <v-col cols="12" sm="8">
+                <p class="body-1 font-weight-bold">
+                  Tipo de publicación
+                </p>
+                <v-select
+                  dense
+                  hide-details
+                  placeholder="Selecciona un tipo de publicacion"
+                  item-value="value"
+                  outlined
+                  :items="[
+                    {
+                      name: 'Varios productos',
+                      value: 'VARIOS_PRODUCTOS',
+                    },
+                    {
+                      name: 'Mayoristas Default',
+                      value: 'MAYORISTAS_DEFAULT',
+                    },
+                    {
+                      name: 'Mayoristas personalizadas',
+                      value: 'MAYORISTAS_PERSONALIZADAS',
+                    },
+                    {
+                      name: 'Publicaciones de comunidad',
+                      value: 'PUBLICACIONES_COMUNIDAD',
+                    },
+                    {
+                      name: 'Publicaciones de categoría',
+                      value: 'PUBLICACIONES_CATEGORIA',
+                    },
+                    {
+                      name: 'Publicaciones de marca',
+                      value: 'PUBLICACIONES_MARCA',
+                    },
+                    {
+                      name: 'No responder',
+                      value: 'NO_RESPONDER',
+                    },
+                  ]"
+                  v-model="commentToMsnType"
+                  item-text="name"
+                ></v-select>
+              </v-col>
+              <v-col
+                cols="12"
+                sm="12"
+                v-if="commentToMsnType && commentToMsnType === 'VARIOS_PRODUCTOS'"
               >
-                <template
-                  v-slot:selection="{
-                    attrs,
-                    item,
-                    select,
-                    selected,
-                  }"
+                <span class="font-weight-bold">Filtrar por productos</span>
+                <v-autocomplete
+                  item-text="name"
+                  item-value="_id"
+                  :search-input.sync="searchProduct"
+                  :items="products"
+                  chips
+                  dense
+                  clearable
+                  label="Busca los productos"
+                  no-data-text="No se encontraron productos"
+                  no-filter
+                  solo
+                  outlined
+                  hide-details
+                  @change="onSelectedProducts"
+                  :multiple="editedIndex > -1 ? false : true"
                 >
-                  <v-chip
-                    v-bind="attrs"
-                    :input-value="selected"
-                    close
-                    @click="select"
-                    @click:close="remove(item)"
-                    color="deep-purple accent-4"
-                    outlined
+                  <template
+                    v-slot:selection="{
+                      attrs,
+                      item,
+                      select,
+                      selected,
+                    }"
                   >
-                    <strong>{{ item.name }}</strong>
-                  </v-chip>
-                </template>
-              </v-autocomplete>
-            </v-col>
-            <v-col cols="12" sm="12">
-              <span class="font-weight-bold"
-                >Subir imagen/video de publicación a multimedia</span
-              >
-              <v-checkbox
-                v-model="editedItem.hasToUploadToMultimedia"
-                label="Subir a multimedia"
-              ></v-checkbox>
-            </v-col>
-            <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
-              <p class="body-1 font-weight-bold">Selección para respuesta</p>
-              <v-simple-table>
-                <template v-slot:default>
-                  <thead>
-                    <tr>
-                      <th class="text-left">Fecha</th>
-                      <th class="text-left">Url</th>
-                      <th class="text-left">Acciones</th>
-                      <!-- <th class="text-left">Url</th> -->
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(commentFacebook, idx) in commentsFacebook"
-                      :key="idx"
+                    <v-chip
+                      v-bind="attrs"
+                      :input-value="selected"
+                      @click="select"
+                      color="deep-purple accent-4"
+                      outlined
                     >
-                      <td>{{ commentFacebook.updatedAt | formatDate }}</td>
-                      <td>
-                        <a :href="commentFacebook.postUrl" target="_blank">{{
-                          commentFacebook.postUrl
-                        }}</a>
-                      </td>
-                      <td>
-                        <v-btn
-                          outlined
-                          color="secondary"
-                          text
-                          @click="assignCommentWithoutResponse(commentFacebook)"
-                          >Asignar</v-btn
-                        >
-                      </td>
-                    </tr>
-                  </tbody>
-                </template>
-              </v-simple-table>
-            </v-col>
+                      <strong>{{ item.name }}</strong>
+                    </v-chip>
+                  </template>
+                </v-autocomplete>
+              </v-col>
+              <v-col cols="12" sm="12" v-if="commentToMsnType && commentToMsnType!=='VARIOS_PRODUCTOS'">
+                <span class="font-weight-bold"
+                  >Filtrar por URL publicación</span
+                >
+                <v-text-field
+                  dense
+                  hide-details
+                  v-model="searchPost"
+                  append-icon="search"
+                  placeholder="Escribe la url"
+                  single-line
+                  outlined
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" v-if="commentToMsnType">
+                <span class="font-weight-bold"
+                  >Subir imagen/video de publicación a multimedia</span
+                >
+                <v-checkbox
+                  v-model="editedItem.hasToUploadToMultimedia"
+                  label="Subir a multimedia"
+                ></v-checkbox>
+              </v-col>
+              <v-col class="mt-3 mb-3" cols="12" sm="12" md="12">
+                <p class="body-1 font-weight-bold">Selección para respuesta</p>
+                <v-simple-table>
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">Fecha</th>
+                        <th class="text-left">Url</th>
+                        <th class="text-left">Acciones</th>
+                        <!-- <th class="text-left">Url</th> -->
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(commentFacebook, idx) in commentsFacebook"
+                        :key="idx"
+                      >
+                        <td>{{ commentFacebook.updatedAt | formatDate }}</td>
+                        <td>
+                          <a :href="commentFacebook.postUrl" target="_blank">{{
+                            commentFacebook.postUrl
+                          }}</a>
+                        </td>
+                        <td>
+                          <v-btn
+                            outlined
+                            color="secondary"
+                            text
+                            @click="
+                              assignCommentWithoutResponse(commentFacebook)
+                            "
+                            >Asignar</v-btn
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </v-col>
+            </template>
+            <template v-else>
+              <v-col cols="12" sm="8">
+                <p class="body-1 font-weight-bold">
+                  Tipo de publicación
+                </p>
+                <v-select
+                  dense
+                  hide-details
+                  placeholder="Selecciona un tipo de publicacion"
+                  item-value="value"
+                  outlined
+                  :items="[
+                    {
+                      name: 'Varios productos',
+                      value: 'VARIOS_PRODUCTOS',
+                    },
+                    {
+                      name: 'Mayoristas Default',
+                      value: 'MAYORISTAS_DEFAULT',
+                    },
+                    {
+                      name: 'Mayoristas personalizadas',
+                      value: 'MAYORISTAS_PERSONALIZADAS',
+                    },
+                    {
+                      name: 'Publicaciones de comunidad',
+                      value: 'PUBLICACIONES_COMUNIDAD',
+                    },
+                    {
+                      name: 'Publicaciones de categoría',
+                      value: 'PUBLICACIONES_CATEGORIA',
+                    },
+                    {
+                      name: 'Publicaciones de marca',
+                      value: 'PUBLICACIONES_MARCA',
+                    },
+                    {
+                      name: 'No responder',
+                      value: 'NO_RESPONDER',
+                    },
+                  ]"
+                  v-model="commentToMsnType"
+                  item-text="name"
+                ></v-select>
+              </v-col>
+            </template>
           </v-container>
         </v-card-title>
         <v-divider></v-divider>
         <v-container class="pa-5"></v-container>
         <v-card-actions rd-actions>
           <div class="flex-grow-1"></div>
+          <v-btn
+            v-if="!hasToAssign"
+            :loading="loadingButton"
+            color="success"
+            @click="save"
+            >Crear</v-btn
+          >
           <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
@@ -222,6 +346,7 @@ export default {
     },
   },
   data: () => ({
+    hasToAssign: true,
     searchProduct: null,
     selectedCommentWithoutResponse: null,
     selectedCommentFacebook: null,
@@ -265,6 +390,7 @@ export default {
     updateSearch: 0,
     delayTimer: null,
     products: [],
+    commentToMsnType: null,
   }),
   computed: {
     formTitle() {
@@ -344,10 +470,13 @@ export default {
         ],
         ...payload,
       };
-      if (this.selectedProductsSearch.length > 0) {
+      if (
+        this.selectedProductsSearch.length > 0 &&
+        this.commentToMsnType === "VARIOS_PRODUCTOS"
+      ) {
         payload.products = this.selectedProductsSearch;
       }
-      if (this.searchPost) {
+      if (this.searchPost && this.commentToMsnType !== "VARIOS_PRODUCTOS") {
         payload.filter = this.searchPost.trim();
       }
 
@@ -418,34 +547,6 @@ export default {
         this.editedIndex = -1;
       }, 300);
     },
-    async save() {
-      this.loadingButton = true;
-      if (this.editedIndex > -1) {
-        let itemId = this[ENTITY][this.editedIndex]._id;
-        try {
-          await this.$store.dispatch(ENTITY + "Module/update", {
-            id: itemId,
-            data: this.editedItem,
-          });
-          Object.assign(this[ENTITY][this.editedIndex], this.editedItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      } else {
-        //create item
-        try {
-          let newItem = await this.$store.dispatch(
-            ENTITY + "Module/create",
-            this.editedItem
-          );
-          this[ENTITY].push(newItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      }
-    },
     async assignCommentWithoutResponse(commentFacebook) {
       if (!(await this.$confirm("¿Deseas continuar con esta acción?"))) {
         return;
@@ -485,10 +586,10 @@ export default {
       this.$store.commit("loadingModule/showLoading", false, { root: true });
       this.selectedProductsSearch = [];
       // remove current post without response
-      // this.$store.dispatch(
-      //   "commentsWithoutResponsesModule/delete",
-      //   this.selectedCommentWithoutResponse._id
-      // );
+      this.$store.dispatch(
+        "commentsWithoutResponsesModule/delete",
+        this.selectedCommentWithoutResponse._id
+      );
       this.dialog = false;
     },
     onSelectedProducts(e) {
@@ -497,6 +598,37 @@ export default {
       if (this.editedIndex === -1) {
         this.selectedProductsSearch = e; // ids products
         this.getCommentsFacebook();
+      }
+    },
+    async save() {
+      try {
+        this.loadingButton = true;
+        // get botId
+        const bots = await this.$store.dispatch("botsModule/list", {
+          fanpageId: this.selectedCommentWithoutResponse.fanpageId,
+        });
+        if (bots.length > 0) {
+          const bot = bots[0];
+          const payload = {
+            postUrl: this.selectedCommentWithoutResponse.url,
+            external_id:
+              bot.platform === "facebook"
+                ? `${this.selectedCommentWithoutResponse.fanpageId}_${this.selectedCommentWithoutResponse.postId}`
+                : this.selectedCommentWithoutResponse.postId,
+            botId: bot._id,
+            type: this.commentToMsnType,
+            platform: bot.platform,
+          };
+          await this.$store.dispatch("commentsFacebookModule/create", payload);
+          // remove current post without response
+          this.$store.dispatch(
+            "commentsWithoutResponsesModule/delete",
+            this.selectedCommentWithoutResponse._id
+          );
+          this.close();
+        }
+      } finally {
+        this.loadingButton = false;
       }
     },
   },
