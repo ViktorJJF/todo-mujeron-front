@@ -590,6 +590,7 @@ export default {
         "commentsWithoutResponsesModule/delete",
         this.selectedCommentWithoutResponse._id
       );
+      this.initialize();
       this.dialog = false;
     },
     onSelectedProducts(e) {
@@ -625,6 +626,8 @@ export default {
             "commentsWithoutResponsesModule/delete",
             this.selectedCommentWithoutResponse._id
           );
+          // call initialize
+          this.initialize();
           this.close();
         }
       } finally {
