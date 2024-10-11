@@ -154,6 +154,45 @@
                                 )
                             "
                           >
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Fuentes de datos
+                              </div>
+                              <v-select
+                                clearable
+                                dense
+                                hide-details
+                                placeholder="Selecciona los ecommerce"
+                                outlined
+                                :items="woocommerces"
+                                item-text="domain"
+                                item-value="_id"
+                                v-model="editedItem.woocommerces"
+                                multiple
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
                                 Catálogos
@@ -515,6 +554,7 @@ export default {
       },
     ],
     metaCatalogs: [],
+    woocommerces: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -580,6 +620,11 @@ export default {
       const company = this.$store.getters["authModule/getCurrentCompany"]
         .company;
       await Promise.all([
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
         this.$store.dispatch("telegramRoutinesModule/list", {
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
@@ -612,6 +657,7 @@ export default {
       this.routines = this.$deepCopy(
         this.$store.state.telegramRoutinesModule.routines
       );
+      this.woocommerces = this.$store.state.woocommercesModule.woocommerces;
       // add typeofposts to all routines
       for (const routine of this.routines) {
         if (!routine.typeOfPosts) {
