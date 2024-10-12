@@ -196,6 +196,10 @@
                                 editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
                                 )
+                                ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
