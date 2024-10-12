@@ -106,6 +106,9 @@
                                 !editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
                                 )
+                                && !editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -144,16 +147,18 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row
-                            v-if="
-                              editedItem.typeOfPosts.includes(
-                                'meta_catalog_shut_down_products'
-                              ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                )
-                            "
-                          >
+                            
+                          <v-row>
+                            <v-col cols="12" sm="12" md="12" v-if="editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              )">
+                              <div class="body-1 font-weight-bold">Etiqueta personalizada</div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.customLabel"
+                                label="Ingresa la etiqueta personalizada"
+                              />
+                            </v-col>
                           </v-row>
                           <v-row
                             v-if="
@@ -274,6 +279,9 @@
                                 editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
                                 )
+                                || editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
+                                )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -283,15 +291,15 @@
                                     "meta_catalog_shut_down_products"
                                   )
                                     ? "¿Borrar tallas únicas?"
-                                    : "¿Prender tallas únicas?"
+                                    : "¿Considerar tallas únicas?"
                                 }}
                               </div>
-                              <v-checkbox
+                                <v-switch
                                 dense
                                 hide-details
                                 v-model="editedItem.hasUniqueSize"
                                 :label="editedItem.hasUniqueSize ? 'Sí' : 'No'"
-                              ></v-checkbox>
+                                ></v-switch>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -356,6 +364,9 @@
                               ) &&
                                 !editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
+                                )
+                                && !editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
                                 )
                             "
                           >
@@ -551,7 +562,10 @@ export default {
       {
         name: "Catálogos Meta - prender productos",
         value: "meta_catalog_turn_on_products",
-      },
+      },{
+        name: "Catálogos Meta - etiquetar productos",
+        value: "meta_label_products",
+      }
     ],
     metaCatalogs: [],
     woocommerces: [],
