@@ -11,4 +11,5 @@ export default () => ({
   bots: [],
   typeOfPosts: [],
   hasUniqueSizes: false,
+  action: "create",
 });
