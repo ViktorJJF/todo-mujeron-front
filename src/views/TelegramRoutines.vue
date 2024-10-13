@@ -156,7 +156,7 @@
                           >
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">
-                                Acción
+                                Acción (afecta solo Etiqueta personalizada 4)
                               </div>
                               <v-select
                                 dense
