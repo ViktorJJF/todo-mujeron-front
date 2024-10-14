@@ -105,6 +105,9 @@
                               ) &&
                                 !editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
+                                ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
                                 )
                             "
                           >
@@ -147,10 +150,93 @@
                           <v-row
                             v-if="
                               editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Acción (afecta solo Etiqueta personalizada 4)
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione una acción"
+                                outlined
+                                :items="[
+                                  {
+                                    text: 'Colocar etiquetas',
+                                    value: 'create',
+                                  },
+                                  {
+                                    text: 'Remover etiquetas',
+                                    value: 'delete',
+                                  },
+                                ]"
+                                v-model="editedItem.action"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+
+                          <v-row>
+                            <v-col
+                              cols="12"
+                              sm="12"
+                              md="12"
+                              v-if="
+                                editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
+                                )
+                              "
+                            >
+                              <div class="body-1 font-weight-bold">
+                                Etiqueta personalizada
+                              </div>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.customLabel"
+                                label="Ingresa la etiqueta personalizada"
+                              />
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) ||
                                 editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
+                                )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Fuentes de datos
+                              </div>
+                              <v-select
+                                clearable
+                                dense
+                                hide-details
+                                placeholder="Selecciona los ecommerce"
+                                outlined
+                                :items="woocommerces"
+                                item-text="domain"
+                                item-value="_id"
+                                v-model="editedItem.woocommerces"
+                                multiple
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_shut_down_products'
+                              ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_catalog_turn_on_products'
+                                ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
                                 )
                             "
                           >
@@ -234,6 +320,9 @@
                               ) ||
                                 editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
+                                ) ||
+                                editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
                                 )
                             "
                           >
@@ -244,15 +333,15 @@
                                     "meta_catalog_shut_down_products"
                                   )
                                     ? "¿Borrar tallas únicas?"
-                                    : "¿Prender tallas únicas?"
+                                    : "¿Considerar tallas únicas?"
                                 }}
                               </div>
-                              <v-checkbox
+                              <v-switch
                                 dense
                                 hide-details
                                 v-model="editedItem.hasUniqueSize"
                                 :label="editedItem.hasUniqueSize ? 'Sí' : 'No'"
-                              ></v-checkbox>
+                              ></v-switch>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -317,6 +406,9 @@
                               ) &&
                                 !editedItem.typeOfPosts.includes(
                                   'meta_catalog_turn_on_products'
+                                ) &&
+                                !editedItem.typeOfPosts.includes(
+                                  'meta_label_products'
                                 )
                             "
                           >
@@ -513,8 +605,13 @@ export default {
         name: "Catálogos Meta - prender productos",
         value: "meta_catalog_turn_on_products",
       },
+      {
+        name: "Catálogos Meta - etiquetar productos",
+        value: "meta_label_products",
+      },
     ],
     metaCatalogs: [],
+    woocommerces: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -580,6 +677,11 @@ export default {
       const company = this.$store.getters["authModule/getCurrentCompany"]
         .company;
       await Promise.all([
+        this.$store.dispatch("woocommercesModule/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
         this.$store.dispatch("telegramRoutinesModule/list", {
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
@@ -612,6 +714,7 @@ export default {
       this.routines = this.$deepCopy(
         this.$store.state.telegramRoutinesModule.routines
       );
+      this.woocommerces = this.$store.state.woocommercesModule.woocommerces;
       // add typeofposts to all routines
       for (const routine of this.routines) {
         if (!routine.typeOfPosts) {
