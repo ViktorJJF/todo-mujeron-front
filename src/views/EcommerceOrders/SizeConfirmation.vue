@@ -80,7 +80,7 @@ export default {
               this.order.idOrder,
             ],
           },
-          "639df6124427e2337b8112e7", // TODO change this to select bot dynamically
+          null,
           this.order.ecommercesContactId.cleanLeadId._id,
           this.order._id
         );
