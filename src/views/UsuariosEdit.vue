@@ -219,6 +219,7 @@ export default {
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
         { text: "Whatsapp", value: "whatsapp" },
+        { text: "WhatsApp Many To One ", value: "whatsapp_automated" },
       ],
       assigned: [
         { text: "Todos", value: "all" },
