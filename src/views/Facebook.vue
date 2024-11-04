@@ -286,6 +286,7 @@ export default {
       { text: "Telegram", value: "telegram" },
       { text: "Instagram", value: "instagram" },
       { text: "WhatsApp", value: "whatsapp" },
+      { text: "WhatsApp Many To One ", value: "whatsapp_automated" },
     ],
     headers: [
       {
