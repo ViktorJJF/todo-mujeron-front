@@ -183,5 +183,13 @@
         "EDIT_ITEM": "Editar Item",
         "NO_DATA": "Aún no hay interacciones",
         "NO_RESULTS": "No hay resultados"
+    },
+    "imaginaTemplateMessages": {
+        "TITLE": "Mensajes de Plantilla Imagina",
+        "SUBTITLE": "Listado",
+        "NEW_ITEM": "Nuevo Item",
+        "EDIT_ITEM": "Editar Item",
+        "NO_DATA": "Aún no cuentas con Mensajes de Plantilla Imagina",
+        "NO_RESULTS": "No hay resultados"
     }
 }

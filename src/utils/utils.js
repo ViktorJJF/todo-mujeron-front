@@ -484,3 +484,73 @@ export const convertArrayToCSV = (array) => {
   );
   return [header, ...rows].join("\n");
 };
+
+export const checkIsImage = (url) => {
+  if (typeof url !== "string") return false;
+
+  try {
+    const pathname = new URL(url).pathname;
+    const extensions = ["jpg", "jpeg", "png", "gif", "svg", "webp"];
+    const extension = pathname
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+    return extensions.includes(extension);
+  } catch (error) {
+    return false; // Return false if URL parsing fails
+  }
+};
+
+export const checkIsAudio = (url) => {
+  if (typeof url !== "string") return false;
+
+  try {
+    const pathname = new URL(url).pathname;
+    const extension = pathname
+      .split(".")
+      .pop()
+      .toLowerCase();
+    const extensions = [
+      "mp3",
+      "wav",
+      "ogg",
+      "flac",
+      "aac",
+      "m4a",
+      "aiff",
+      "wma",
+    ];
+
+    return extensions.includes(extension);
+  } catch (error) {
+    return false; // Return false if URL parsing fails
+  }
+};
+
+export const checkIsVideo = (url) => {
+  if (typeof url !== "string") return false;
+
+  try {
+    const pathname = new URL(url).pathname;
+    const extension = pathname
+      .split(".")
+      .pop()
+      .toLowerCase();
+    const extensions = [
+      "mp4",
+      "webm",
+      "ogg",
+      "avi",
+      "mov",
+      "mkv",
+      "flv",
+      "wmv",
+      "m4v",
+    ];
+
+    return extensions.includes(extension);
+  } catch (error) {
+    return false; // Return false if URL parsing fails
+  }
+};
