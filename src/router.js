@@ -384,6 +384,11 @@ let routes = [
         component: () => import("@/views/TemplateMessages"),
       },
       {
+        path: "/imagina_mensajes_de_plantilla",
+        name: "ImaginaTemplateMessages",
+        component: () => import("@/views/ImaginaTemplateMessages"),
+      },
+      {
         path: "/marketing/segmentos",
         name: "MarketingSegments",
         component: () => import("@/views/MarketingSegments"),

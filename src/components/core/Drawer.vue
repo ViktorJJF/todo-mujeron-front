@@ -244,31 +244,31 @@
           <v-list-item-content> Bots </v-list-item-content>
         </v-list-item>
         <v-list-group
-            color="white"
-            :value="false"
-            no-action
-            sub-group
+          color="white"
+          :value="false"
+          no-action
+          sub-group
+          active-class="primary custom2"
+          v-if="checkAuth('ChatBot/Bots', 'Bots')"
+        >
+          <template v-slot:activator>
+            <v-list-item-content>
+              <v-list-item-title>Telegram</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <v-list-item
             active-class="primary custom2"
-            v-if="checkAuth('ChatBot/Bots', 'Bots')"
+            :to="{ name: 'TelegramGroups' }"
           >
-            <template v-slot:activator>
-              <v-list-item-content>
-                <v-list-item-title>Telegram</v-list-item-title>
-              </v-list-item-content>
-            </template>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'TelegramGroups' }"
-            >
-              <v-list-item-content> Grupos </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-              active-class="primary custom2"
-              :to="{ name: 'TelegramRoutines' }"
-            >
-              <v-list-item-content> Rutinas </v-list-item-content>
-            </v-list-item>
-          </v-list-group>
+            <v-list-item-content> Grupos </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'TelegramRoutines' }"
+          >
+            <v-list-item-content> Rutinas </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
         <v-list-group
           color="white"
           :value="false"
@@ -430,6 +430,17 @@
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Mensajes de Plantilla </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'ImaginaTemplateMessages' }"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Mensajes de Plantilla Imagina
+          </v-list-item-content>
         </v-list-item>
       </v-list-group>
 
@@ -607,7 +618,10 @@
         </v-list-item-icon>
         <v-list-item-content> Chat en vivo </v-list-item-content>
       </v-list-item>
-      <v-list-item active-class="primary custom2" :to="{ name: 'SettingsView' }">
+      <v-list-item
+        active-class="primary custom2"
+        :to="{ name: 'SettingsView' }"
+      >
         <v-list-item-icon>
           <v-icon>mdi-check</v-icon>
         </v-list-item-icon>
@@ -730,7 +744,11 @@ export default {
   methods: {
     rolAuth() {
       auth
-        .roleAuthorization({ id: this.$store.state.authModule.user._id, company: this.$store.getters["authModule/getCurrentCompany"].company._id })
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
+        })
         .then((res) => {
           this.rolPermisos = res.data;
         });
