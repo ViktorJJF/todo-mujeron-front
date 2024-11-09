@@ -160,7 +160,8 @@
             }}
           </template>
           <template v-slot:[`item.cost`]="{ item }">
-            $ {{ (item.segmentCount * 0.0757).toFixed(2) }}
+            <span v-show="item.bot.platform !== 'whatsapp_automated'">$ {{ (item.segmentCount * 0.0757).toFixed(2) }}</span>
+            <span v-show="item.bot.platform === 'whatsapp_automated'"> Gratis </span>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
