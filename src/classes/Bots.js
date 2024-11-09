@@ -14,4 +14,6 @@ export default () => ({
   googleClientEmail: "",
   googlePrivateKey: "",
   autoActivateAfter: 0,
+  imaginaWhatsappId: "",
+  imaginaApiKey: "",
 });

@@ -74,7 +74,7 @@
                             </v-row>
                           </template>
                           <template>
-                            <v-row dense>
+                            <v-row dense v-if="editedItem.platform !== 'whatsapp_automated'">
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   Nombre Fanpage
@@ -83,7 +83,7 @@
                                   label="Ingresa el nombre de la Fanpage" />
                               </v-col>
                             </v-row>
-                            <v-row v-if="editedItem.platform !== 'whatsapp'" dense>
+                            <v-row v-if="editedItem.platform !== 'whatsapp' && editedItem.platform !== 'whatsapp_automated'" dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   URL Fanpage
@@ -101,7 +101,7 @@
                                   label="Ingresa el ID de la plataforma" />
                               </v-col>
                             </v-row>
-                            <v-row dense>
+                            <v-row dense v-if="editedItem.platform !== 'whatsapp_automated'">
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   {{ editedItem.platform !== 'whatsapp' ? 'Fanpage Token' : 'Token de usuario Meta' }}
@@ -110,7 +110,7 @@
                                   label="Ingresa el token de acceso" />
                               </v-col>
                             </v-row>
-                            <v-row v-if="editedItem.platform !== 'whatsapp'" dense>
+                            <v-row v-if="editedItem.platform !== 'whatsapp' && editedItem.platform !== 'whatsapp_automated'" dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   Facebook App Secret
@@ -119,7 +119,7 @@
                                   label="Ingresa el FB App Secret" />
                               </v-col>
                             </v-row>
-                            <v-row v-if="editedItem.platform === 'whatsapp'" dense>
+                            <v-row v-if="editedItem.platform === 'whatsapp' || editedItem.platform === 'whatsapp_automated'" dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   Número WhatsApp
@@ -128,7 +128,25 @@
                                   label="Ingresa el número de WhatsApp registrado" />
                               </v-col>
                             </v-row>
-                            <v-row v-if="editedItem.platform === 'whatsapp'" dense>
+                            <v-row v-if="editedItem.platform === 'whatsapp' || editedItem.platform === 'whatsapp_automated'" dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Imagina WhatsApp ID
+                                </p>
+                                <VTextFieldWithValidation rules="" v-model="editedItem.imaginaWhatsappId"
+                                  label="Ingresa el número de WhatsApp registrado" />
+                              </v-col>
+                            </v-row>
+                            <v-row v-if="editedItem.platform === 'whatsapp' || editedItem.platform === 'whatsapp_automated'" dense>
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Imagina WhatsApp Api Key
+                                </p>
+                                <VTextFieldWithValidation rules="" v-model="editedItem.imaginaApiKey"
+                                  label="Ingresa el número de WhatsApp registrado" />
+                              </v-col>
+                            </v-row>
+                            <v-row v-if="editedItem.platform === 'whatsapp' " dense>
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">
                                   Id de Número WhatsApp
@@ -286,7 +304,7 @@ export default {
       { text: "Telegram", value: "telegram" },
       { text: "Instagram", value: "instagram" },
       { text: "WhatsApp", value: "whatsapp" },
-      { text: "WhatsApp Many To One ", value: "whatsapp_automated" },
+      { text: "WhatsApp Imagina ", value: "whatsapp_automated" },
     ],
     headers: [
       {

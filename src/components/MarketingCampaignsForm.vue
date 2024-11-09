@@ -14,7 +14,7 @@
               rules="required"
               :items="bots"
               v-model="editedItem.from"
-              itemText="phone"
+              itemText="textToShow"
               itemValue="_id"
             />
           </v-col>
@@ -226,11 +226,13 @@ export default {
       // getting segments
       await Promise.all([
         this.$store.dispatch("marketingSegmentsModule/list"),
-        this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
+        this.$store.dispatch("botsModule/list", { platform: ["whatsapp","whatsapp_automated"] }),
       ]);
       this.segments = this.$store.state.marketingSegmentsModule.marketingSegments;
       this.bots = this.$store.state.botsModule.bots;
-      console.log("🚀 Aqui *** -> this.bots", this.bots);
+      for (const bot of this.bots) {
+        bot["textToShow"] = `${bot.phone} (${bot.platform==="whatsapp_automated" ? "WhatsApp Imagina" : "WhatsApp Cloud"})`;
+      }
     },
     formatDate(date) {
       try {
