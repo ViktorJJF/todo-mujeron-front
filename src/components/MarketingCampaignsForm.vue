@@ -14,7 +14,7 @@
               rules="required"
               :items="bots"
               v-model="editedItem.from"
-              itemText="phone"
+              itemText="textToShow"
               itemValue="_id"
             />
           </v-col>
@@ -118,8 +118,29 @@
           step += 1;
         "
         :showButtonSelect="true"
-        v-show="step == 2"
+        v-show="step == 2 && selectedBot.platform === 'whatsapp'"
       ></TemplateMessagesList>
+      <div v-show="step == 2 && selectedBot.platform === 'whatsapp_automated'">
+        <v-data-table
+          :headers="[
+            { text: 'Nombre', value: 'name' },
+            { text: 'Acciones', value: 'actions', sortable: false }
+          ]"
+          :items="imaginaTemplateMessages"
+          dense
+          hide-default-footer
+        >
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              small
+              color="primary"
+              @click="editedItem.templateMessage = item.name; step += 1;"
+            >
+              Seleccionar
+            </v-btn>
+          </template>
+        </v-data-table>
+      </div>
       <v-container class="pa-5" v-if="step == 3">
         <div><b>Nombre de campaña: </b>{{ editedItem.name }}</div>
         <div>
@@ -147,7 +168,8 @@
           color="secondary"
           @click="
             passes();
-            step += 1;
+          step += 1;
+          handleNextStep();
           "
           >Continuar</v-btn
         >
@@ -172,6 +194,8 @@ import MarketingCampaigns from "@/classes/MarketingCampaigns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import VSelectWithValidation from "@/components/inputs/VSelectWithValidation.vue";
 import TemplateMessagesList from "@/components/TemplateMessagesList";
+import imaginaTemplateMessagesService from "@/services/api/imaginaTemplateMessages";
+
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -197,6 +221,7 @@ export default {
       editedItem: MarketingCampaigns(),
       bots: [],
       segments: [],
+      imaginaTemplateMessages: [],
     };
   },
 
@@ -217,6 +242,9 @@ export default {
     scheduleDateTime() {
       return new Date(this.date + " " + this.editedItem.scheduleTime);
     },
+    selectedBot() {
+      return this.bots.find((el) => el._id == this.editedItem.from);
+    },
   },
   mounted() {
     this.initialize();
@@ -226,11 +254,13 @@ export default {
       // getting segments
       await Promise.all([
         this.$store.dispatch("marketingSegmentsModule/list"),
-        this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
+        this.$store.dispatch("botsModule/list", { platform: ["whatsapp","whatsapp_automated"] }),
       ]);
       this.segments = this.$store.state.marketingSegmentsModule.marketingSegments;
       this.bots = this.$store.state.botsModule.bots;
-      console.log("🚀 Aqui *** -> this.bots", this.bots);
+      for (const bot of this.bots) {
+        bot["textToShow"] = `${bot.phone} (${bot.platform==="whatsapp_automated" ? "WhatsApp Imagina" : "WhatsApp Cloud"})`;
+      }
     },
     formatDate(date) {
       try {
@@ -275,6 +305,16 @@ export default {
       const searchText = queryText.toLowerCase();
 
       return textOne.indexOf(searchText) > -1;
+    },
+    async getImaginaTemplateMessages() {
+      const response = await imaginaTemplateMessagesService.list();
+      console.log("🐞 LOG HERE response:", response.data)
+      this.imaginaTemplateMessages = response.data.payload;
+    },
+    handleNextStep() {
+      if (this.selectedBot.platform === "whatsapp_automated") {
+        this.getImaginaTemplateMessages();
+      }
     },
   },
 };
