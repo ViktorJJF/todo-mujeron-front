@@ -48,6 +48,7 @@
                       :editedIndex="editedIndex"
                       :editedItem="editedItem"
                       :odooValues="odooValues"
+                      :marketingCampaigns="marketingCampaigns"
                       @onClose="dialog = false"
                       @onSave="onSave"
                     ></MarketingSegmentsForm>
@@ -242,6 +243,7 @@ export default {
       rfmValues: [],
       teamValues: [],
     },
+    marketingCampaigns: [],
   }),
   computed: {
     items() {
@@ -316,8 +318,10 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
+        this.$store.dispatch("marketingCampaignsModule/list", {sort: "name", order: "asc"}),
       ]);
       this.odooValues = response[0].value;
+      this.marketingCampaigns = response[2].value;
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]

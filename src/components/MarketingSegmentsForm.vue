@@ -124,6 +124,40 @@
               v-model="editedItem.filters.rfmScores"
               multiple
             ></v-select>
+            <span>Interacción con la campaña</span>
+            <v-select
+              dense
+              hide-details
+              placeholder="Selecciona campañas"
+              outlined
+              :items="marketingCampaigns" 
+              v-model="editedItem.filters.selectedCampaigns"
+              item-value="_id"
+              item-text="name"
+              multiple
+            ></v-select>
+            <template v-if="editedItem.filters.selectedCampaigns && editedItem.filters.selectedCampaigns.length > 0">
+              <span class="mt-3">Selecciona interacción</span>
+              <v-select
+                dense
+                hide-details
+                placeholder="Selecciona interacción"
+                outlined
+                :items="[
+                  {text: 'Todos', value: 'all'},
+                  {text: 'Se envió', value: 'sent'},
+                  {text: 'No se envió', value: 'not_sent'},
+                  {text: 'Se ha abierto', value: 'opened'},
+                  {text: 'No se ha abierto', value: 'not_opened'},
+                  {text: 'Se ha contestado', value: 'replied'},
+                  {text: 'No se ha contestado', value: 'not_replied'},
+                  {text: 'Se ha hecho clic', value: 'clicked'},
+                  {text: 'No se ha hecho clic', value: 'not_clicked'}
+                ]"
+                v-model="editedItem.filters.campaignInteractions"
+                multiple
+              ></v-select>
+            </template>
           </v-col>
           <!-- <v-col cols="12" sm="12" md="12">
             <span class="font-weight-bold">Bots WhatsApp</span>
@@ -271,6 +305,10 @@ export default {
         rfmScores: [],
         salesTeams: [],
       }),
+    },
+    marketingCampaigns: {
+      type: Array,
+      default: () => [],
     },
   },
   components: {
