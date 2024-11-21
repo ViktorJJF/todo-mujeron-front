@@ -32,7 +32,7 @@
                     class="mb-2"
                     >Ver todos los segmentos</v-btn
                   >
-                  <v-dialog v-model="dialog" max-width="700px">
+                  <v-dialog v-model="dialog" max-width="900px">
                     <template v-slot:activator="{ on }">
                       <v-btn
                         v-if="!isSelectorMode"
@@ -235,6 +235,11 @@ export default {
         minSalePosOrderCount: 0,
         salesTeams: [],
         rfmScores: [],
+        campaignFilter: {
+          type: null,
+          campaigns: [],
+          timeInterval: "any_time",
+        },
       },
       botIds: [],
       type: "static",
@@ -303,7 +308,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -316,9 +322,14 @@ export default {
       const response = await Promise.allSettled([
         this.$store.dispatch("cleanLeadsModule/getLeadOdooValues"),
         this.$store.dispatch(ENTITY + "Module/list", {
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
-        this.$store.dispatch("marketingCampaignsModule/list", {sort: "name", order: "asc"}),
+        this.$store.dispatch("marketingCampaignsModule/list", {
+          sort: "name",
+          order: "asc",
+        }),
       ]);
       this.odooValues = response[0].value;
       this.marketingCampaigns = response[2].value;
@@ -370,7 +381,9 @@ export default {
               sort: "updatedAt",
               order: "desc",
               fields_to_show: ["details", "telefono"],
-              companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+              companies: [
+                this.$store.getters["authModule/getCurrentCompany"].company._id,
+              ],
             }
           );
           console.log("🐞 LOG HERE response:", response);
