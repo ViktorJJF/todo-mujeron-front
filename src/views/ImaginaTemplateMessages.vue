@@ -97,6 +97,7 @@
                                 :rules="[
                                   (v) => !!v || 'Este campo es requerido',
                                 ]"
+                                @input="detectPlaceholders"
                               ></v-textarea>
                             </v-col>
 
@@ -369,7 +370,9 @@
               </v-col>
 
               <v-col cols="12">
-                <p class="body-1 font-weight-bold">Vista previa del mensaje (no editable)</p>
+                <p class="body-1 font-weight-bold">
+                  Vista previa del mensaje (no editable)
+                </p>
                 <v-textarea
                   v-model="selectedTemplate.message"
                   label="Mensaje de plantilla"
@@ -406,6 +409,39 @@
                   Documento adjunto:
                   {{ selectedTemplate.documentUrl.split("/").pop() }}
                 </v-alert>
+              </v-col>
+              <!-- Template placeholders -->
+              <v-col
+                cols="12"
+                v-if="
+                  selectedTemplate.placeholders &&
+                    selectedTemplate.placeholders.length > 0
+                "
+              >
+                <v-alert dense text type="info" class="mb-2">
+                  Se detectaron
+                  {{ selectedTemplate.placeholders.length }} variables en el
+                  mensaje
+                </v-alert>
+                <p class="body-1 font-weight-bold">Variables del mensaje</p>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                    v-for="(placeholder,
+                    index) in selectedTemplate.placeholders"
+                    :key="index"
+                  >
+                    <v-text-field
+                      v-model="testPlaceholderValues[index]"
+                      :label="`Variable {{${index + 1}}}`"
+                      outlined
+                      dense
+                      required
+                      hide-details
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-container>
@@ -491,6 +527,7 @@ export default {
     selectedBot: null,
     bots: [],
     campaignName: "",
+    testPlaceholderValues: [],
   }),
   computed: {
     formTitle() {
@@ -509,6 +546,11 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    selectedTemplate(newVal) {
+      if (newVal) {
+        this.detectPlaceholders(newVal.message);
+      }
+    },
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -521,6 +563,23 @@ export default {
     this.rolAuth();
   },
   methods: {
+    detectPlaceholders(message) {
+      // Regular expression to match {{number}} pattern
+      const regex = /{{(\d+)}}/g;
+      let match;
+      let placeholders = [];
+
+      // Find all matches
+      while ((match = regex.exec(message)) !== null) {
+        if (!placeholders.includes(match[0])) {
+          placeholders.push(match[0]);
+        }
+      }
+
+      // Store placeholders in editedItem
+      this.editedItem.placeholders = placeholders;
+      this.selectedTemplate.placeholders = placeholders;
+    },
     rolAuth() {
       auth
         .roleAuthorization({
@@ -655,6 +714,9 @@ export default {
     },
     testWhatsappMessage(item) {
       this.selectedTemplate = item;
+      this.testPlaceholderValues = new Array(
+        item.placeholders?.length || 0
+      ).fill("");
       this.testDialog = true;
     },
     closeTest() {
@@ -665,6 +727,7 @@ export default {
         this.selectedTemplate = null;
         this.testMode = "single";
         this.selectedBot = null;
+        this.testPlaceholderValues = [];
       });
     },
     async sendTestMessage() {
@@ -682,8 +745,19 @@ export default {
         // Get array of phone numbers
         const recipients =
           this.testMode === "single"
-            ? [this.testPhone]
-            : this.bulkPhones.split("\n").filter((phone) => phone.trim());
+            ? [
+                {
+                  phone: this.testPhone,
+                  dynamic_parameters: this.testPlaceholderValues,
+                },
+              ]
+            : this.bulkPhones
+                .split("\n")
+                .filter((phone) => phone.trim())
+                .map((phone) => ({
+                  phone: phone.trim(),
+                  dynamic_parameters: this.testPlaceholderValues,
+                }));
 
         // Validate phone numbers
         if (this.testMode === "bulk" && recipients.length === 0) {
@@ -698,6 +772,7 @@ export default {
           campaignName: this.campaignName,
           recipients,
           userId: this.$store.state.authModule.user._id,
+          name: this.selectedTemplate.name,
         };
 
         if (this.selectedTemplate.type === "media") {
@@ -710,10 +785,17 @@ export default {
           payload.document_type = this.selectedTemplate.documentType;
           payload.document_name = this.selectedTemplate.documentName;
         }
-        await this.$store.dispatch(
-          "imaginaTemplateMessagesModule/sendBulkMessages",
-          payload
-        );
+        if (this.testPlaceholderValues && this.testPlaceholderValues.length > 0) {
+          await this.$store.dispatch(
+            "imaginaTemplateMessagesModule/sendMassiveMessages",
+            payload
+          );
+        } else {
+          await this.$store.dispatch(
+            "imaginaTemplateMessagesModule/sendBulkMessages",
+            payload
+          );
+        }
 
         this.closeTest();
       } catch (error) {
