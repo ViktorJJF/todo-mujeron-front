@@ -18,4 +18,7 @@ export default {
   sendBulkMessages(payload) {
     return axios.post("/api/imagina_template_messages/send_bulk_messages", payload);
   },
+  sendMassiveMessages(payload) {
+    return axios.post("/api/imagina_template_messages/send_massive_messages", payload);
+  }
 };

@@ -125,41 +125,84 @@
               multiple
             ></v-select>
           </v-col>
-          <!-- <v-col cols="12" sm="12" md="12">
-            <span class="font-weight-bold">Bots WhatsApp</span>
-            <v-sheet max-width="700">
-              <v-slide-group v-model="botIds" :multiple="true" show-arrows>
-                <v-slide-item v-for="bot in botIds" :key="bot._id" v-slot="{ active, toggle }">
-                  <v-btn :disabled="disabled" class="mx-2" :input-value="active" active-class="purple white--text"
-                    depressed rounded @click="toggle">
-                    {{ bot.name }}
-                  </v-btn>
-                </v-slide-item>
-              </v-slide-group>
-            </v-sheet>
-          </v-col> -->
-          <!-- <v-col cols="12" sm="6" md="6">
-            <span class="font-weight-bold">Desde</span>
-            <v-menu v-model="menuFrom" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-              offset-y min-width="auto">
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field v-model="editedItem.dateFrom" append-icon="mdi-calendar" readonly v-bind="attrs" v-on="on"
-                  outlined dense></v-text-field>
+          <div class="campaign-filter-container">
+            <div class="campaign-filter-group">
+              <span class="font-weight-bold">Interacción con la campaña</span>
+              <v-select
+                dense
+                hide-details
+                placeholder="Selecciona interacción"
+                outlined
+                :items="[
+                  {text: 'Se envió', value: 'sent'},
+                  {text: 'No se envió', value: 'not_sent'},
+                  {text: 'Se ha abierto', value: 'opened'},
+                  {text: 'No se ha abierto', value: 'not_opened'},
+                  {text: 'Se ha contestado', value: 'replied'},
+                  {text: 'No se ha contestado', value: 'not_replied'},
+                  {text: 'Se ha hecho clic', value: 'clicked'},
+                  {text: 'No se ha hecho clic', value: 'not_clicked'}
+                ]"
+                v-model="editedItem.filters.campaignInteraction"
+                @change="onInteractionChange"
+                class="campaign-select"
+              ></v-select>
+
+              <template v-if="editedItem.filters.campaignInteraction">
+                <div class="nested-filter">
+                  <div class="nested-item">
+                    <span class="font-weight-bold mt-3">Campaña</span>
+                    <v-select
+                      dense
+                      hide-details
+                      placeholder="Cualquier campaña"
+                      outlined
+                      :items="campaignOptions"
+                      v-model="editedItem.filters.campaignFilter.type"
+                      @change="onCampaignSelectionChange"
+                      class="campaign-select"
+                    ></v-select>
+                  </div>
+
+                  <div v-if="editedItem.filters.campaignFilter.type === 'is'" class="nested-item deeper">
+                    <span class="font-weight-bold mt-3">Seleccionar campañas</span>
+                    <v-select
+                      dense
+                      hide-details
+                      placeholder="Selecciona campañas"
+                      outlined
+                      :items="marketingCampaigns"
+                      v-model="editedItem.filters.campaignFilter.campaigns"
+                      item-value="_id"
+                      item-text="name"
+                      multiple
+                      chips
+                      class="campaign-select"
+                    ></v-select>
+                  </div>
+
+                  <div v-if="isTimeIntervalEnabled" class="nested-item">
+                    <span class="font-weight-bold mt-3">Intervalo de tiempo</span>
+                    <v-select
+                      dense
+                      hide-details
+                      placeholder="Selecciona intervalo"
+                      outlined
+                      :items="[
+                        {text: 'Cualquier momento', value: 'any_time'},
+                        {text: 'Último mes', value: 'last_month'},
+                        {text: 'Últimos 3 meses', value: 'last_3_months'},
+                        {text: 'Últimos 6 meses', value: 'last_6_months'},
+                        {text: 'Último año', value: 'last_year'}
+                      ]"
+                      v-model="editedItem.filters.campaignFilter.timeInterval"
+                      class="campaign-select"
+                    ></v-select>
+                  </div>
+                </div>
               </template>
-              <v-date-picker v-model="editedItem.dateFrom" @input="menuFrom = false"></v-date-picker>
-            </v-menu>
-          </v-col>
-          <v-col cols="12" sm="6" md="6">
-            <span class="font-weight-bold">Hasta</span>
-            <v-menu v-model="menuTo" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-              offset-y min-width="auto">
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field v-model="editedItem.dateTo" append-icon="mdi-calendar" readonly v-bind="attrs" v-on="on"
-                  outlined dense></v-text-field>
-              </template>
-              <v-date-picker v-model="editedItem.dateTo" @input="menuTo = false"></v-date-picker>
-            </v-menu>
-          </v-col> -->
+            </div>
+          </div>
           <v-col v-if="!activatePreview" cols="12" sm="12">
             <span class="font-weight-bold">Descripción</span>
             <v-textarea
@@ -250,9 +293,13 @@ export default {
           minSalePosOrderCount: 0,
           salesTeams: [],
           rfmScores: [],
+          campaignInteraction: null,
+          campaignFilter: {
+            type: null,
+            campaigns: [],
+            timeInterval: 'any_time'
+          }
         },
-        // dateFrom: new Date().toISOString().substr(0, 10),
-        // dateTo: new Date().toISOString().substr(0, 10),
         botIds: [],
         type: "static",
       }),
@@ -272,6 +319,10 @@ export default {
         salesTeams: [],
       }),
     },
+    marketingCampaigns: {
+      type: Array,
+      default: () => [],
+    },
   },
   components: {
     VTextFieldWithValidation,
@@ -281,11 +332,27 @@ export default {
     return {
       menuFrom: false,
       menuTo: false,
+      menuStartDate: false,
+      menuEndDate: false,
       dialog: false,
       loadingButton: false,
       defaultItem: CLASS_ITEMS(),
       botIds: [1],
       disabled: false,
+      campaignOptions: [
+        {text: 'Cualquier campaña', value: 'any'},
+        {text: 'Cualquiera de las cinco últimas campañas', value: 'last_5'},
+        {text: 'Cualquiera de las 10 últimas campañas', value: 'last_10'},
+        {text: 'Cualquiera de las 20 últimas campañas', value: 'last_20'},
+        {text: 'Cualquiera de las 50 últimas campañas', value: 'last_50'},
+        {text: 'Todas las cinco últimas campañas', value: 'all_last_5'},
+        {text: 'Todas las 10 últimas campañas', value: 'all_last_10'},
+        {text: 'Todas las 20 últimas campañas', value: 'all_last_20'},
+        {text: 'Todas las 50 últimas campañas', value: 'all_last_50'},
+        {text: 'Es', value: 'is'},
+        {text: 'No es', value: 'is_not'}
+      ],
+      isTimeIntervalEnabled: true
     };
   },
   async mounted() {
@@ -333,7 +400,6 @@ export default {
           this.loadingButton = false;
         }
       } else {
-        //create item
         this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           await this.$store.dispatch(ENTITY + "Module/create", this.editedItem);
@@ -343,8 +409,85 @@ export default {
       }
       this.$emit("onSave");
     },
+    onInteractionChange(value) {
+      this.$set(this.editedItem.filters, 'campaignInteraction', value);
+      
+      if (!value) {
+        this.$set(this.editedItem.filters.campaignFilter, 'type', null);
+        this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
+        this.$set(this.editedItem.filters.campaignFilter, 'timeInterval', 'any_time');
+      }
+    },
+    onCampaignSelectionChange(value) {
+      if (value !== 'is') {
+        this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
+      }
+    }
   },
+  watch: {
+    'editedItem.filters.campaignFilter': {
+      deep: true,
+      handler() {
+        // This watcher will trigger whenever any nested property of campaignFilter changes
+        console.log('Campaign filter updated:', this.editedItem.filters.campaignFilter);
+      }
+    }
+  }
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.campaign-filter-container {
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin: 3px 0;
+  width: 50%;
+}
+
+.campaign-filter-group {
+  .campaign-select {
+    margin-top: 4px;
+  }
+}
+
+.nested-filter {
+  margin-left: 24px;
+  position: relative;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e0e0e0;
+  }
+}
+
+.nested-item {
+  position: relative;
+  padding: 8px 0 8px 16px;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    width: 24px;
+    height: 2px;
+    background-color: #e0e0e0;
+  }
+
+  &.deeper {
+    margin-left: 16px;
+  }
+}
+
+.font-weight-bold {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(0, 0, 0, 0.87);
+}
+</style>

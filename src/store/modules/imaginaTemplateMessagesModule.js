@@ -85,6 +85,16 @@ const module = {
           });
       });
     },
+    sendMassiveMessages({ commit }, data) {
+      return new Promise((resolve, reject) => {
+        api.sendMassiveMessages(data).then((res) => {
+          buildSuccess("Mensajes enviados con éxito", commit);
+          resolve(res.data.payload);
+        }).catch((error) => {
+          handleError(error, commit, reject);
+        });
+      });
+    },
   },
   mutations: {
     list(state, data) {
