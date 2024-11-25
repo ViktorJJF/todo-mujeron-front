@@ -14,6 +14,11 @@ export default () => ({
     minSalePosOrderCount: 0,
     salesTeams: [],
     rfmScores: [],
+    campaignFilter: {
+      type: null,
+      campaigns: [],
+      timeInterval: "any_time", 
+    },
   },
   botIds: [],
   type: "static",
