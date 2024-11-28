@@ -10,7 +10,16 @@
         <v-row>
           <v-col cols="12" sm="12" md="12">
             <div class="body-1 font-weight-bold">Desde</div>
+            <v-radio-group v-model="editedItem.fromType" row>
+              <v-radio label="Número" value="static_number"></v-radio>
+              <v-radio
+                label="Enviar desde teléfono de Agente (Se busca en Google Contact)"
+                value="dynamic_number"
+              ></v-radio>
+            </v-radio-group>
+
             <VSelectWithValidation
+              v-if="editedItem.fromType === 'static_number'"
               rules="required"
               :items="bots"
               v-model="editedItem.from"
@@ -118,13 +127,18 @@
           step += 1;
         "
         :showButtonSelect="true"
-        v-show="step == 2 && selectedBot.platform === 'whatsapp'"
+        v-show="step == 2 && selectedBot && selectedBot.platform === 'whatsapp'"
       ></TemplateMessagesList>
-      <div v-show="step == 2 && selectedBot.platform === 'whatsapp_automated'">
+      <div
+        v-show="
+          step == 2 &&
+            (!selectedBot || selectedBot.platform === 'whatsapp_automated')
+        "
+      >
         <v-data-table
           :headers="[
             { text: 'Nombre', value: 'name' },
-            { text: 'Acciones', value: 'actions', sortable: false }
+            { text: 'Acciones', value: 'actions', sortable: false },
           ]"
           :items="imaginaTemplateMessages"
           dense
@@ -134,7 +148,10 @@
             <v-btn
               small
               color="primary"
-              @click="editedItem.templateMessage = item.name; step += 1;"
+              @click="
+                editedItem.templateMessage = item.name;
+                step += 1;
+              "
             >
               Seleccionar
             </v-btn>
@@ -143,6 +160,14 @@
       </div>
       <v-container class="pa-5" v-if="step == 3">
         <div><b>Nombre de campaña: </b>{{ editedItem.name }}</div>
+        <div>
+          <b>Desde: </b
+          >{{
+            editedItem.fromType === "static_number"
+              ? editedItem.from
+              : "Enviar desde teléfono de Agente (Se busca en Google Contact)"
+          }}
+        </div>
         <div>
           <b>Segmento: </b
           >{{
@@ -168,8 +193,8 @@
           color="secondary"
           @click="
             passes();
-          step += 1;
-          handleNextStep();
+            step += 1;
+            handleNextStep();
           "
           >Continuar</v-btn
         >
@@ -254,12 +279,18 @@ export default {
       // getting segments
       await Promise.all([
         this.$store.dispatch("marketingSegmentsModule/list"),
-        this.$store.dispatch("botsModule/list", { platform: ["whatsapp","whatsapp_automated"] }),
+        this.$store.dispatch("botsModule/list", {
+          platform: ["whatsapp", "whatsapp_automated"],
+        }),
       ]);
       this.segments = this.$store.state.marketingSegmentsModule.marketingSegments;
       this.bots = this.$store.state.botsModule.bots;
       for (const bot of this.bots) {
-        bot["textToShow"] = `${bot.phone} (${bot.platform==="whatsapp_automated" ? "WhatsApp Imagina" : "WhatsApp Cloud"})`;
+        bot["textToShow"] = `${bot.phone} (${
+          bot.platform === "whatsapp_automated"
+            ? "WhatsApp Imagina"
+            : "WhatsApp Cloud"
+        })`;
       }
     },
     formatDate(date) {
@@ -276,6 +307,10 @@ export default {
       this.editedItem.todofullLabels = selectedLabels;
     },
     async save() {
+      // add company
+      this.editedItem.company = this.$store.getters[
+        "authModule/getCurrentCompany"
+      ].company._id;
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         try {
@@ -308,11 +343,14 @@ export default {
     },
     async getImaginaTemplateMessages() {
       const response = await imaginaTemplateMessagesService.list();
-      console.log("🐞 LOG HERE response:", response.data)
+      console.log("🐞 LOG HERE response:", response.data);
       this.imaginaTemplateMessages = response.data.payload;
     },
     handleNextStep() {
-      if (this.selectedBot.platform === "whatsapp_automated") {
+      if (
+        !this.selectedBot ||
+        this.selectedBot.platform === "whatsapp_automated"
+      ) {
         this.getImaginaTemplateMessages();
       }
     },

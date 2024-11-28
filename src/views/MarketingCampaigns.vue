@@ -74,6 +74,7 @@
                             color="info"
                             small
                             v-on="on"
+                            :disabled="item.chunksPagesSent && item.chunksPagesSent.includes(chunkIndex+1)"
                           >
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
@@ -160,8 +161,8 @@
             }}
           </template>
           <template v-slot:[`item.cost`]="{ item }">
-            <span v-show="item.bot.platform !== 'whatsapp_automated'">$ {{ (item.segmentCount * 0.0757).toFixed(2) }}</span>
-            <span v-show="item.bot.platform === 'whatsapp_automated'"> Gratis </span>
+            <span v-show="item.bot && item.bot.platform !== 'whatsapp_automated'">$ {{ (item.segmentCount * 0.0757).toFixed(2) }}</span>
+            <span v-show="item.bot && item.bot.platform === 'whatsapp_automated'"> Gratis </span>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -380,6 +381,9 @@ export default {
     },
     async save() {
       this.loadingButton = true;
+      // add company
+      this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
+      console.log("🐞 LOG HERE this.editedItem.company:", this.editedItem.company)
       if (this.editedIndex > -1) {
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
@@ -423,6 +427,7 @@ export default {
       console.log("🚀 Aqui *** -> item", item);
       chunk.isClicked = true;
       item.chunks[chunkIndex].isClicked = true;
+      item.chunksPagesSent.push(chunkIndex + 1);
       marketingCampaignsService.sendChunk(
         chunkIndex + 1,
         item.chunkSize,

@@ -1,5 +1,6 @@
 export default () => ({
-  from: "",
+  fromType: "static_number",
+  from: null,
   name: "",
   description: "",
   segment: "",
