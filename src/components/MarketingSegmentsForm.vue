@@ -144,6 +144,7 @@
                 v-model="editedItem.filters.campaignInteraction"
                 @change="onInteractionChange"
                 class="campaign-select"
+                clearable
               ></v-select>
 
               <template v-if="editedItem.filters.campaignInteraction">
@@ -410,6 +411,10 @@ export default {
         this.$set(this.editedItem.filters.campaignFilter, 'type', null);
         this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
         this.$set(this.editedItem.filters.campaignFilter, 'timeInterval', 'any_time');
+      }
+      // if campaignInteraction is null, remove all campaignFilter properties
+      if (!value) {
+        this.$set(this.editedItem.filters, 'campaignFilter', {});
       }
     },
     onCampaignSelectionChange(value) {
