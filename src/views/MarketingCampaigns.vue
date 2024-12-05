@@ -74,7 +74,10 @@
                             color="info"
                             small
                             v-on="on"
-                            :disabled="item.chunksPagesSent && item.chunksPagesSent.includes(chunkIndex+1)"
+                            :disabled="
+                              item.chunksPagesSent &&
+                                item.chunksPagesSent.includes(chunkIndex + 1)
+                            "
                           >
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
@@ -152,7 +155,11 @@
             <v-chip v-else color="warning">Pendiente</v-chip>
           </template>
           <template v-slot:[`item.scheduleDateTime`]="{ item }">
-            {{ formatDate(item.scheduleDateTime) }}
+            {{
+              item.scheduleDateTime
+                ? formatDate(item.scheduleDateTime)
+                : "Sin fecha programada"
+            }}
           </template>
           <template v-slot:[`item.range`]="{ item }">
             {{ item.segmentCount }}
@@ -161,8 +168,18 @@
             }}
           </template>
           <template v-slot:[`item.cost`]="{ item }">
-            <span v-show="item.bot && item.bot.platform !== 'whatsapp_automated'">$ {{ (item.segmentCount * 0.0757).toFixed(2) }}</span>
-            <span v-show="item.bot && item.bot.platform === 'whatsapp_automated'"> Gratis </span>
+            <span
+              v-show="item.bot && item.bot.platform !== 'whatsapp_automated'"
+              >$ {{ (item.segmentCount * 0.0757).toFixed(2) }}</span
+            >
+            <span
+              v-show="
+                (item.bot && item.bot.platform === 'whatsapp_automated') ||
+                  !item.bot
+              "
+            >
+              Gratis
+            </span>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -328,7 +345,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          company: this.$store.getters["authModule/getCurrentCompany"].company
+            ._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -338,9 +356,13 @@ export default {
 
     async initialize() {
       //llamada asincrona de items
-      await Promise.all([this.$store.dispatch(ENTITY + "Module/list", {
-        companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-      })]);
+      await Promise.all([
+        this.$store.dispatch(ENTITY + "Module/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+        }),
+      ]);
       // console.log(
       //   "el resultado: ",
       //   await Promise.all([this.$store.dispatch(ENTITY + "Module/list")])
@@ -382,8 +404,13 @@ export default {
     async save() {
       this.loadingButton = true;
       // add company
-      this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
-      console.log("🐞 LOG HERE this.editedItem.company:", this.editedItem.company)
+      this.editedItem.company = this.$store.getters[
+        "authModule/getCurrentCompany"
+      ].company._id;
+      console.log(
+        "🐞 LOG HERE this.editedItem.company:",
+        this.editedItem.company
+      );
       if (this.editedIndex > -1) {
         let itemId = this[ENTITY][this.editedIndex]._id;
         try {
