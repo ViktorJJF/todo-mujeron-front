@@ -41,6 +41,7 @@
                         class="mb-2"
                         v-show="rolPermisos['Write']"
                         v-on="on"
+                        @click="editedItem = { ...defaultItem }"
                         >{{ $t(entity + ".NEW_ITEM") }}</v-btn
                       >
                     </template>
@@ -184,6 +185,7 @@ import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import { convertArrayToCSV } from "@/utils/utils";
+import MarketingSegments from "@/classes/MarketingSegments";
 
 export default {
   props: {
@@ -208,6 +210,7 @@ export default {
     },
   },
   data: () => ({
+    defaultItem: MarketingSegments(),
     page: 1,
     pageCount: 0,
     search: "",
@@ -349,6 +352,18 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // add filters min max in case doesnt exist
+      for (const segment of this[ENTITY]) {
+        if (!segment.filters.saleOrderCountRange) {
+          segment.filters.saleOrderCountRange = { min: null, max: null };
+        }
+        if (!segment.filters.posOrderCountRange) {
+          segment.filters.posOrderCountRange = { min: null, max: null }; 
+        }
+        if (!segment.filters.salePosOrderCountRange) {
+          segment.filters.salePosOrderCountRange = { min: null, max: null };
+        }
+      }
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);

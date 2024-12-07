@@ -74,6 +74,17 @@
               v-model="editedItem.filters.includeWithSales"
               label="Incluir leads con ventas"
             ></v-checkbox>
+            <span v-if="editedItem.filters.minSaleOrderCount">Min Ventas</span>
+            <v-text-field
+              v-if="editedItem.filters.minSaleOrderCount"
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minSaleOrderCount"
+            ></v-text-field>
             <span>Rango de Ventas</span>
             <v-row dense>
               <v-col cols="6">
@@ -101,6 +112,17 @@
                 ></v-text-field>
               </v-col>
             </v-row>
+            <span v-if="editedItem.filters.minPosOrderCount">Min TPV</span>
+            <v-text-field
+            v-if="editedItem.filters.minPosOrderCount"
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minPosOrderCount"
+            ></v-text-field>
 
             <span>Rango de TPV</span>
             <v-row dense>
@@ -129,6 +151,17 @@
                 ></v-text-field>
               </v-col>
             </v-row>
+            <span v-if="editedItem.filters.minSalePosOrderCount">Min Ventas + TPV</span>
+            <v-text-field
+            v-if="editedItem.filters.minSalePosOrderCount"
+              clearable
+              dense
+              single-line
+              outlined
+              hide-details="auto"
+              type="number"
+              v-model="editedItem.filters.minSalePosOrderCount"
+            ></v-text-field>
             <span>Rango de Ventas + TPV</span>
             <v-row dense>
               <v-col cols="6">
