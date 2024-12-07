@@ -197,7 +197,7 @@ export default {
     MarketingSegmentsForm,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -233,6 +233,18 @@ export default {
         minSaleOrderCount: 0,
         minPosOrderCount: 0,
         minSalePosOrderCount: 0,
+        saleOrderCountRange: {
+          min: null,
+          max: null,
+        },
+        posOrderCountRange: {
+          min: null,
+          max: null,
+        },
+        salePosOrderCountRange: {
+          min: null,
+          max: null,
+        },
         salesTeams: [],
         rfmScores: [],
         campaignFilter: {
@@ -308,8 +320,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
