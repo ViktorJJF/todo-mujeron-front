@@ -140,12 +140,11 @@
                   {text: 'No se ha abierto', value: 'not_opened'},
                   {text: 'Se ha contestado', value: 'replied'},
                   {text: 'No se ha contestado', value: 'not_replied'},
-                  {text: 'Se ha hecho clic', value: 'clicked'},
-                  {text: 'No se ha hecho clic', value: 'not_clicked'}
                 ]"
                 v-model="editedItem.filters.campaignInteraction"
                 @change="onInteractionChange"
                 class="campaign-select"
+                clearable
               ></v-select>
 
               <template v-if="editedItem.filters.campaignInteraction">
@@ -345,10 +344,6 @@ export default {
         {text: 'Cualquiera de las 10 últimas campañas', value: 'last_10'},
         {text: 'Cualquiera de las 20 últimas campañas', value: 'last_20'},
         {text: 'Cualquiera de las 50 últimas campañas', value: 'last_50'},
-        {text: 'Todas las cinco últimas campañas', value: 'all_last_5'},
-        {text: 'Todas las 10 últimas campañas', value: 'all_last_10'},
-        {text: 'Todas las 20 últimas campañas', value: 'all_last_20'},
-        {text: 'Todas las 50 últimas campañas', value: 'all_last_50'},
         {text: 'Es', value: 'is'},
         {text: 'No es', value: 'is_not'}
       ],
@@ -416,6 +411,10 @@ export default {
         this.$set(this.editedItem.filters.campaignFilter, 'type', null);
         this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
         this.$set(this.editedItem.filters.campaignFilter, 'timeInterval', 'any_time');
+      }
+      // if campaignInteraction is null, remove all campaignFilter properties
+      if (!value) {
+        this.$set(this.editedItem.filters, 'campaignFilter', {});
       }
     },
     onCampaignSelectionChange(value) {

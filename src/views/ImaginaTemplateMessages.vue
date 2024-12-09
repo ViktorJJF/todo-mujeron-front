@@ -181,6 +181,9 @@
                                   ><span v-pre>{{ contact.name }}</span></v-chip
                                 >
                                 <v-chip class="mr-2 mb-2" small
+                                  ><span v-pre>{{ contact.fullname }}</span></v-chip
+                                >
+                                <v-chip class="mr-2 mb-2" small
                                   ><span v-pre>{{
                                     contact.number
                                   }}</span></v-chip
@@ -700,7 +703,7 @@ export default {
             ENTITY + "Module/create",
             this.editedItem
           );
-          this[ENTITY].push(newItem);
+          this[ENTITY].unshift(newItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -773,6 +776,7 @@ export default {
           recipients,
           userId: this.$store.state.authModule.user._id,
           name: this.selectedTemplate.name,
+          templateName: this.selectedTemplate.name,
         };
 
         if (this.selectedTemplate.type === "media") {
@@ -785,17 +789,10 @@ export default {
           payload.document_type = this.selectedTemplate.documentType;
           payload.document_name = this.selectedTemplate.documentName;
         }
-        if (this.testPlaceholderValues && this.testPlaceholderValues.length > 0) {
-          await this.$store.dispatch(
-            "imaginaTemplateMessagesModule/sendMassiveMessages",
-            payload
-          );
-        } else {
-          await this.$store.dispatch(
-            "imaginaTemplateMessagesModule/sendBulkMessages",
-            payload
-          );
-        }
+        await this.$store.dispatch(
+          "imaginaTemplateMessagesModule/sendMassiveMessages",
+          payload
+        );
 
         this.closeTest();
       } catch (error) {
