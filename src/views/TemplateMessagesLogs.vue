@@ -177,6 +177,9 @@
               <li>{{ category.name }}</li>
             </ul>
           </template>
+          <template v-slot:[`item.botId`]="{ item }">
+            <v-chip>{{ getBotOrigin(item.botId) }}</v-chip>
+          </template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip>{{ item.status }}</v-chip>
           </template>
@@ -244,6 +247,12 @@ export default {
         value: "createdAt",
       },
       {
+        text: "Origen",
+        align: "left",
+        sortable: false,
+        value: "botId",
+      },
+      {
         text: "Plantilla",
         align: "left",
         sortable: false,
@@ -271,6 +280,7 @@ export default {
     menu2: false,
     templateMessagesLogs: [],
     rolPermisos: {},
+    bots: [],
   }),
   computed: {
     formTitle() {
@@ -317,9 +327,26 @@ export default {
           order: -1,
           companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
         }),
+        this.$store.dispatch("botsModule/list",{
+          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        }),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
+      this.bots = this.$store.state.botsModule.bots;
+    },
+    getBot(botId) {
+      return this.bots.find((bot) => bot._id === botId);
+    },
+    getBotOrigin(botId) {
+      const bot = this.getBot(botId);
+      let message = "";
+      if (bot) {
+        message = `${bot.phone} (${bot.platform==='whatsapp_automated'?'WhatsApp Imagina':'Whatsapp Cloud'})`;
+      } else {
+        message = "Sin origen";
+      }
+      return message;
     },
   },
 };
