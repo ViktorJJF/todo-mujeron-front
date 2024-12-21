@@ -28,19 +28,87 @@
               <v-radio label="Dinámico" value="dynamic"></v-radio>
             </v-radio-group>
           </v-col>
-          <v-col cols="12" sm="12" md="12">
-            <span class="font-weight-bold">Etiquetas</span>
+          <v-col cols="12" sm="12" md="12" v-if="initialTodofullLabels && initialTodofullLabels.length > 0">
+            <span class="font-weight-bold">Etiquetas (Antiguo)</span>
             <TodofullLabelsSelector
               :initialData="initialTodofullLabels"
               @onSelectTodofullLabels="onSelectTodofullLabels"
             ></TodofullLabelsSelector>
           </v-col>
-          <v-col cols="12" sm="12" md="12">
-            <span class="font-weight-bold">Excluir etiquetas</span>
+          <v-col cols="12" sm="12" md="12" v-if="initialExcludeTodofullLabels && initialExcludeTodofullLabels.length > 0">
+            <span class="font-weight-bold">Excluir etiquetas (Antiguo)</span>
             <TodofullLabelsSelector
               :initialData="initialExcludeTodofullLabels"
               @onSelectTodofullLabels="onSelectEcludeTodofullLabels"
             ></TodofullLabelsSelector>
+          </v-col>
+          <v-col cols="12" sm="12" md="12">
+            <span class="font-weight-bold">Filtros de etiquetas</span>
+
+            <div
+              v-for="(group, groupIndex) in editedItem.todofullLabelsFilter
+                .groups"
+              :key="groupIndex"
+              class="label-group mb-4"
+            >
+              <div
+                v-for="(condition, condIndex) in group.conditions"
+                :key="condIndex"
+                class="condition-row mb-2"
+              >
+                <div class="d-flex align-center">
+                  <v-select
+                    dense
+                    hide-details
+                    class="mr-2"
+                    style="width: 150px"
+                    placeholder="Tipo"
+                    outlined
+                    :items="[
+                      { text: 'Tiene', value: 'include' },
+                      { text: 'No tiene', value: 'exclude' },
+                    ]"
+                    v-model="condition.type"
+                  ></v-select>
+                  <TodofullLabelsSelector
+                    :initialData="condition.labels"
+                    @onSelectTodofullLabels="
+                      (labels) =>
+                        onSelectConditionLabels(groupIndex, condIndex, labels)
+                    "
+                    class="flex-grow-1"
+                    :maxElements="1"
+                  ></TodofullLabelsSelector>
+                  <v-btn
+                    icon
+                    color="error"
+                    @click="removeCondition(groupIndex, condIndex)"
+                    class="ml-2"
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <div class="group-actions mt-2">
+                <v-btn
+                  text
+                  color="primary"
+                  @click="addCondition(groupIndex)"
+                  class="mr-2"
+                >
+                  <v-icon left>mdi-plus</v-icon>
+                  Añadir "Y"
+                </v-btn>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <v-btn outlined color="primary" @click="addOrGroup" class="mr-2">
+                <v-icon left>mdi-plus</v-icon>
+                Añadir "O"
+              </v-btn>
+            </div>
           </v-col>
           <v-col cols="12" sm="6" md="6">
             <span class="font-weight-bold">Sobre ID Genial</span>
@@ -114,7 +182,7 @@
             </v-row>
             <span v-if="editedItem.filters.minPosOrderCount">Min TPV</span>
             <v-text-field
-            v-if="editedItem.filters.minPosOrderCount"
+              v-if="editedItem.filters.minPosOrderCount"
               clearable
               dense
               single-line
@@ -151,9 +219,11 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-            <span v-if="editedItem.filters.minSalePosOrderCount">Min Ventas + TPV</span>
+            <span v-if="editedItem.filters.minSalePosOrderCount"
+              >Min Ventas + TPV</span
+            >
             <v-text-field
-            v-if="editedItem.filters.minSalePosOrderCount"
+              v-if="editedItem.filters.minSalePosOrderCount"
               clearable
               dense
               single-line
@@ -531,6 +601,50 @@ export default {
         this.$set(this.editedItem.filters.campaignFilter, "campaigns", []);
       }
     },
+    addCondition(groupIndex) {
+      this.editedItem.todofullLabelsFilter.groups[groupIndex].conditions.push({
+        type: "include",
+        labels: [],
+      });
+    },
+
+    removeCondition(groupIndex, condIndex) {
+      this.editedItem.todofullLabelsFilter.groups[groupIndex].conditions.splice(
+        condIndex,
+        1
+      );
+
+      // Remove group if it's empty and not the last one
+      if (
+        this.editedItem.todofullLabelsFilter.groups[groupIndex].conditions
+          .length === 0 &&
+        this.editedItem.todofullLabelsFilter.groups.length > 1
+      ) {
+        this.editedItem.todofullLabelsFilter.groups.splice(groupIndex, 1);
+      }
+    },
+
+    addOrGroup() {
+      this.editedItem.todofullLabelsFilter.groups.push({
+        operator: "and",
+        conditions: [
+          {
+            type: "include",
+            labels: [],
+          },
+        ],
+      });
+    },
+
+    onSelectConditionLabels(groupIndex, condIndex, selectedLabels) {
+      this.$set(
+        this.editedItem.todofullLabelsFilter.groups[groupIndex].conditions[
+          condIndex
+        ],
+        "labels",
+        selectedLabels
+      );
+    },
   },
   watch: {
     "editedItem.filters.campaignFilter": {
@@ -543,6 +657,23 @@ export default {
         );
       },
     },
+  },
+  created() {
+    // Initialize todofullLabelsFilter if it doesn't exist or is empty
+    if (
+      !this.editedItem.todofullLabelsFilter ||
+      !this.editedItem.todofullLabelsFilter.groups
+    ) {
+      this.$set(this.editedItem, "todofullLabelsFilter", {
+        operator: "or",
+        groups: [
+          {
+            operator: "and",
+            conditions: [],
+          },
+        ],
+      });
+    }
   },
 };
 </script>
@@ -600,5 +731,30 @@ export default {
   display: block;
   margin-bottom: 4px;
   color: rgba(0, 0, 0, 0.87);
+}
+
+.label-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+  background-color: #f5f5f5;
+
+  .group-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+
+  .condition-row {
+    background-color: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .group-actions {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+  }
 }
 </style>

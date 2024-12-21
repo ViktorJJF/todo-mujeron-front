@@ -2,6 +2,15 @@ export default () => ({
   name: "",
   description: "",
   todofullLabels: [],
+  todofullLabelsFilter: {
+    operator: "or",
+    groups: [
+      {
+        operator: "and",
+        conditions: [],
+      },
+    ],
+  },
   filters: {
     includeWithEmail: true,
     includeWithoutEmail: true,
