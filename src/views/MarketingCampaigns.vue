@@ -361,7 +361,11 @@ export default {
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
+<<<<<<< HEAD
           includeCount:true
+=======
+          includeCount: true,
+>>>>>>> 31114540fb7d8bf34f446afb3fbe6fa22f544698
         }),
       ]);
       // console.log(
