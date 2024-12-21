@@ -85,7 +85,7 @@
               type="number"
               v-model="editedItem.filters.minSaleOrderCount"
             ></v-text-field>
-            <span>Rango de Ventas</span>
+            <span>Rango de ventas</span>
             <v-row dense>
               <v-col cols="6">
                 <v-text-field
