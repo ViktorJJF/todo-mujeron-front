@@ -17,11 +17,11 @@
             />
           </v-col>
           <v-col cols="12" sm="6" md="6">
-            <span class="font-weight-bold" style="display:block;"
+            <span class="font-weight-bold" style="display: block"
               >Tipo de segmento:</span
             >
             <v-radio-group
-              style="display:inline-block;"
+              style="display: inline-block"
               v-model="editedItem.type"
             >
               <v-radio label="Estático" value="static"></v-radio>
@@ -74,8 +74,9 @@
               v-model="editedItem.filters.includeWithSales"
               label="Incluir leads con ventas"
             ></v-checkbox>
-            <span>Min Ventas</span>
+            <span v-if="editedItem.filters.minSaleOrderCount">Min Ventas</span>
             <v-text-field
+              v-if="editedItem.filters.minSaleOrderCount"
               clearable
               dense
               single-line
@@ -84,8 +85,36 @@
               type="number"
               v-model="editedItem.filters.minSaleOrderCount"
             ></v-text-field>
-            <span>Min TPV</span>
+            <span>Rango de ventas</span>
+            <v-row dense>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Min"
+                  v-model="editedItem.filters.saleOrderCountRange.min"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Max"
+                  v-model="editedItem.filters.saleOrderCountRange.max"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <span v-if="editedItem.filters.minPosOrderCount">Min TPV</span>
             <v-text-field
+            v-if="editedItem.filters.minPosOrderCount"
               clearable
               dense
               single-line
@@ -94,8 +123,37 @@
               type="number"
               v-model="editedItem.filters.minPosOrderCount"
             ></v-text-field>
-            <span>Min Ventas + TPV</span>
+
+            <span>Rango de TPV</span>
+            <v-row dense>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Min"
+                  v-model="editedItem.filters.posOrderCountRange.min"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Max"
+                  v-model="editedItem.filters.posOrderCountRange.max"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <span v-if="editedItem.filters.minSalePosOrderCount">Min Ventas + TPV</span>
             <v-text-field
+            v-if="editedItem.filters.minSalePosOrderCount"
               clearable
               dense
               single-line
@@ -104,6 +162,33 @@
               type="number"
               v-model="editedItem.filters.minSalePosOrderCount"
             ></v-text-field>
+            <span>Rango de Ventas + TPV</span>
+            <v-row dense>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Min"
+                  v-model="editedItem.filters.salePosOrderCountRange.min"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  clearable
+                  dense
+                  single-line
+                  outlined
+                  hide-details="auto"
+                  type="number"
+                  placeholder="Max"
+                  v-model="editedItem.filters.salePosOrderCountRange.max"
+                ></v-text-field>
+              </v-col>
+            </v-row>
             <span>Equipos de ventas</span>
             <v-select
               dense
@@ -134,12 +219,12 @@
                 placeholder="Selecciona interacción"
                 outlined
                 :items="[
-                  {text: 'Se envió', value: 'sent'},
-                  {text: 'No se envió', value: 'not_sent'},
-                  {text: 'Se ha abierto', value: 'opened'},
-                  {text: 'No se ha abierto', value: 'not_opened'},
-                  {text: 'Se ha contestado', value: 'replied'},
-                  {text: 'No se ha contestado', value: 'not_replied'},
+                  { text: 'Se envió', value: 'sent' },
+                  { text: 'No se envió', value: 'not_sent' },
+                  { text: 'Se ha abierto', value: 'opened' },
+                  { text: 'No se ha abierto', value: 'not_opened' },
+                  { text: 'Se ha contestado', value: 'replied' },
+                  { text: 'No se ha contestado', value: 'not_replied' },
                 ]"
                 v-model="editedItem.filters.campaignInteraction"
                 @change="onInteractionChange"
@@ -163,8 +248,13 @@
                     ></v-select>
                   </div>
 
-                  <div v-if="editedItem.filters.campaignFilter.type === 'is'" class="nested-item deeper">
-                    <span class="font-weight-bold mt-3">Seleccionar campañas</span>
+                  <div
+                    v-if="editedItem.filters.campaignFilter.type === 'is'"
+                    class="nested-item deeper"
+                  >
+                    <span class="font-weight-bold mt-3"
+                      >Seleccionar campañas</span
+                    >
                     <v-select
                       dense
                       hide-details
@@ -181,18 +271,20 @@
                   </div>
 
                   <div v-if="isTimeIntervalEnabled" class="nested-item">
-                    <span class="font-weight-bold mt-3">Intervalo de tiempo</span>
+                    <span class="font-weight-bold mt-3"
+                      >Intervalo de tiempo</span
+                    >
                     <v-select
                       dense
                       hide-details
                       placeholder="Selecciona intervalo"
                       outlined
                       :items="[
-                        {text: 'Cualquier momento', value: 'any_time'},
-                        {text: 'Último mes', value: 'last_month'},
-                        {text: 'Últimos 3 meses', value: 'last_3_months'},
-                        {text: 'Últimos 6 meses', value: 'last_6_months'},
-                        {text: 'Último año', value: 'last_year'}
+                        { text: 'Cualquier momento', value: 'any_time' },
+                        { text: 'Último mes', value: 'last_month' },
+                        { text: 'Últimos 3 meses', value: 'last_3_months' },
+                        { text: 'Últimos 6 meses', value: 'last_6_months' },
+                        { text: 'Último año', value: 'last_year' },
                       ]"
                       v-model="editedItem.filters.campaignFilter.timeInterval"
                       class="campaign-select"
@@ -290,14 +382,26 @@ export default {
           minSaleOrderCount: 0,
           minPosOrderCount: 0,
           minSalePosOrderCount: 0,
+          saleOrderCountRange: {
+            min: null,
+            max: null,
+          },
+          posOrderCountRange: {
+            min: null,
+            max: null,
+          },
+          salePosOrderCountRange: {
+            min: null,
+            max: null,
+          },
           salesTeams: [],
           rfmScores: [],
           campaignInteraction: null,
           campaignFilter: {
             type: null,
             campaigns: [],
-            timeInterval: 'any_time'
-          }
+            timeInterval: "any_time",
+          },
         },
         botIds: [],
         type: "static",
@@ -339,15 +443,15 @@ export default {
       botIds: [1],
       disabled: false,
       campaignOptions: [
-        {text: 'Cualquier campaña', value: 'any'},
-        {text: 'Cualquiera de las cinco últimas campañas', value: 'last_5'},
-        {text: 'Cualquiera de las 10 últimas campañas', value: 'last_10'},
-        {text: 'Cualquiera de las 20 últimas campañas', value: 'last_20'},
-        {text: 'Cualquiera de las 50 últimas campañas', value: 'last_50'},
-        {text: 'Es', value: 'is'},
-        {text: 'No es', value: 'is_not'}
+        { text: "Cualquier campaña", value: "any" },
+        { text: "Cualquiera de las cinco últimas campañas", value: "last_5" },
+        { text: "Cualquiera de las 10 últimas campañas", value: "last_10" },
+        { text: "Cualquiera de las 20 últimas campañas", value: "last_20" },
+        { text: "Cualquiera de las 50 últimas campañas", value: "last_50" },
+        { text: "Es", value: "is" },
+        { text: "No es", value: "is_not" },
       ],
-      isTimeIntervalEnabled: true
+      isTimeIntervalEnabled: true,
     };
   },
   async mounted() {
@@ -395,7 +499,8 @@ export default {
           this.loadingButton = false;
         }
       } else {
-        this.editedItem.company = this.$store.getters["authModule/getCurrentCompany"].company._id;
+        this.editedItem.company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
           await this.$store.dispatch(ENTITY + "Module/create", this.editedItem);
         } finally {
@@ -405,33 +510,40 @@ export default {
       this.$emit("onSave");
     },
     onInteractionChange(value) {
-      this.$set(this.editedItem.filters, 'campaignInteraction', value);
-      
+      this.$set(this.editedItem.filters, "campaignInteraction", value);
+
       if (!value) {
-        this.$set(this.editedItem.filters.campaignFilter, 'type', null);
-        this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
-        this.$set(this.editedItem.filters.campaignFilter, 'timeInterval', 'any_time');
+        this.$set(this.editedItem.filters.campaignFilter, "type", null);
+        this.$set(this.editedItem.filters.campaignFilter, "campaigns", []);
+        this.$set(
+          this.editedItem.filters.campaignFilter,
+          "timeInterval",
+          "any_time"
+        );
       }
       // if campaignInteraction is null, remove all campaignFilter properties
       if (!value) {
-        this.$set(this.editedItem.filters, 'campaignFilter', {});
+        this.$set(this.editedItem.filters, "campaignFilter", {});
       }
     },
     onCampaignSelectionChange(value) {
-      if (value !== 'is') {
-        this.$set(this.editedItem.filters.campaignFilter, 'campaigns', []);
+      if (value !== "is") {
+        this.$set(this.editedItem.filters.campaignFilter, "campaigns", []);
       }
-    }
+    },
   },
   watch: {
-    'editedItem.filters.campaignFilter': {
+    "editedItem.filters.campaignFilter": {
       deep: true,
       handler() {
         // This watcher will trigger whenever any nested property of campaignFilter changes
-        console.log('Campaign filter updated:', this.editedItem.filters.campaignFilter);
-      }
-    }
-  }
+        console.log(
+          "Campaign filter updated:",
+          this.editedItem.filters.campaignFilter
+        );
+      },
+    },
+  },
 };
 </script>
 
@@ -453,9 +565,9 @@ export default {
 .nested-filter {
   margin-left: 24px;
   position: relative;
-  
+
   &:before {
-    content: '';
+    content: "";
     position: absolute;
     left: -16px;
     top: 0;
@@ -468,9 +580,9 @@ export default {
 .nested-item {
   position: relative;
   padding: 8px 0 8px 16px;
-  
+
   &:before {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     top: 20px;
