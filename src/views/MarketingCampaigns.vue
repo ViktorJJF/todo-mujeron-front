@@ -76,7 +76,7 @@
                             v-on="on"
                             :disabled="
                               item.chunksPagesSent &&
-                                item.chunksPagesSent.includes(chunkIndex + 1)
+                              item.chunksPagesSent.includes(chunkIndex + 1)
                             "
                           >
                             <v-icon>mdi-send</v-icon>
@@ -175,7 +175,7 @@
             <span
               v-show="
                 (item.bot && item.bot.platform === 'whatsapp_automated') ||
-                  !item.bot
+                !item.bot
               "
             >
               Gratis
@@ -247,7 +247,7 @@ export default {
     MarketingCampaignsForm,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -345,8 +345,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -361,6 +361,7 @@ export default {
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
+          includeCount: true,
         }),
       ]);
       // console.log(
@@ -404,9 +405,8 @@ export default {
     async save() {
       this.loadingButton = true;
       // add company
-      this.editedItem.company = this.$store.getters[
-        "authModule/getCurrentCompany"
-      ].company._id;
+      this.editedItem.company =
+        this.$store.getters["authModule/getCurrentCompany"].company._id;
       console.log(
         "🐞 LOG HERE this.editedItem.company:",
         this.editedItem.company

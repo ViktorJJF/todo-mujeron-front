@@ -49,6 +49,16 @@
               placeholder="Selecciona un segmento"
             ></v-autocomplete>
           </v-col>
+          <v-col cols="12" sm="12" md="12">
+            <div class="body-1 font-weight-bold">
+              Marcar mensajes como leídos
+            </div>
+            <v-checkbox
+              v-model="editedItem.markMessagesAsRead"
+              label="Marcar mensajes como leídos al enviar"
+              hide-details
+            ></v-checkbox>
+          </v-col>
           <v-col cols="12" sm="4" md="4">
             <span class="font-weight-bold">Fecha de envío</span>
             <v-menu
@@ -132,7 +142,7 @@
       <div
         v-show="
           step == 2 &&
-            (!selectedBot || selectedBot.platform === 'whatsapp_automated')
+          (!selectedBot || selectedBot.platform === 'whatsapp_automated')
         "
       >
         <v-data-table
@@ -171,8 +181,8 @@
         <div>
           <b>Segmento: </b
           >{{
-            segments.find((el) => el._id == "editedItem.segment ")
-              ? segments.find((el) => el._id == "editedItem.segment ").name
+            segments.find((el) => el._id == editedItem.segment)
+              ? segments.find((el) => el._id == editedItem.segment).name
               : "Sin segmento"
           }}
         </div>
@@ -283,7 +293,8 @@ export default {
           platform: ["whatsapp", "whatsapp_automated"],
         }),
       ]);
-      this.segments = this.$store.state.marketingSegmentsModule.marketingSegments;
+      this.segments =
+        this.$store.state.marketingSegmentsModule.marketingSegments;
       this.bots = this.$store.state.botsModule.bots;
       for (const bot of this.bots) {
         bot["textToShow"] = `${bot.phone} (${
@@ -308,9 +319,8 @@ export default {
     },
     async save() {
       // add company
-      this.editedItem.company = this.$store.getters[
-        "authModule/getCurrentCompany"
-      ].company._id;
+      this.editedItem.company =
+        this.$store.getters["authModule/getCurrentCompany"].company._id;
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         try {

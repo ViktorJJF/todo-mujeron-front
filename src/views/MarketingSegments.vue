@@ -41,6 +41,7 @@
                         class="mb-2"
                         v-show="rolPermisos['Write']"
                         v-on="on"
+                        @click="editedItem = { ...defaultItem }"
                         >{{ $t(entity + ".NEW_ITEM") }}</v-btn
                       >
                     </template>
@@ -184,6 +185,7 @@ import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
 import { convertArrayToCSV } from "@/utils/utils";
+import MarketingSegments from "@/classes/MarketingSegments";
 
 export default {
   props: {
@@ -197,7 +199,7 @@ export default {
     MarketingSegmentsForm,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(
         new Date(value),
         "d 'de' MMMM 'del' yyyy 'a las' hh:mm:ss aaa",
@@ -208,6 +210,7 @@ export default {
     },
   },
   data: () => ({
+    defaultItem: MarketingSegments(),
     page: 1,
     pageCount: 0,
     search: "",
@@ -233,6 +236,18 @@ export default {
         minSaleOrderCount: 0,
         minPosOrderCount: 0,
         minSalePosOrderCount: 0,
+        saleOrderCountRange: {
+          min: null,
+          max: null,
+        },
+        posOrderCountRange: {
+          min: null,
+          max: null,
+        },
+        salePosOrderCountRange: {
+          min: null,
+          max: null,
+        },
         salesTeams: [],
         rfmScores: [],
         campaignFilter: {
@@ -308,8 +323,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades/Mailchimp",
           model: "Credenciales",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -337,6 +352,18 @@ export default {
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
       );
+      // add filters min max in case doesnt exist
+      for (const segment of this[ENTITY]) {
+        if (!segment.filters.saleOrderCountRange) {
+          segment.filters.saleOrderCountRange = { min: null, max: null };
+        }
+        if (!segment.filters.posOrderCountRange) {
+          segment.filters.posOrderCountRange = { min: null, max: null }; 
+        }
+        if (!segment.filters.salePosOrderCountRange) {
+          segment.filters.salePosOrderCountRange = { min: null, max: null };
+        }
+      }
     },
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
