@@ -28,14 +28,27 @@
               <v-radio label="Dinámico" value="dynamic"></v-radio>
             </v-radio-group>
           </v-col>
-          <v-col cols="12" sm="12" md="12" v-if="initialTodofullLabels && initialTodofullLabels.length > 0">
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+            v-if="initialTodofullLabels && initialTodofullLabels.length > 0"
+          >
             <span class="font-weight-bold">Etiquetas (Antiguo)</span>
             <TodofullLabelsSelector
               :initialData="initialTodofullLabels"
               @onSelectTodofullLabels="onSelectTodofullLabels"
             ></TodofullLabelsSelector>
           </v-col>
-          <v-col cols="12" sm="12" md="12" v-if="initialExcludeTodofullLabels && initialExcludeTodofullLabels.length > 0">
+          <v-col
+            cols="12"
+            sm="12"
+            md="12"
+            v-if="
+              initialExcludeTodofullLabels &&
+              initialExcludeTodofullLabels.length > 0
+            "
+          >
             <span class="font-weight-bold">Excluir etiquetas (Antiguo)</span>
             <TodofullLabelsSelector
               :initialData="initialExcludeTodofullLabels"
@@ -136,12 +149,33 @@
             <span class="font-weight-bold">Otros filtros</span>
             <v-checkbox
               v-model="editedItem.filters.includeWithChats"
+              :disabled="editedItem.filters.hasChatInteractionLast24h"
               label="Incluir leads con chats"
             ></v-checkbox>
             <v-checkbox
-              v-model="editedItem.filters.includeWithSales"
-              label="Incluir leads con ventas"
+              v-model="editedItem.filters.hasChatInteractionLast24h"
+              label="Solo leads con interacción en chat en las últimas 24h"
+              @change="onChatInteractionLast24hChange"
+              hide-details
             ></v-checkbox>
+            <ValidationProvider
+              v-if="editedItem.filters.hasChatInteractionLast24h"
+              v-slot="{ errors }"
+              :rules="{ required: hasChatInteractionLast24h }"
+            >
+              <v-select
+                dense
+                hide-details
+                placeholder="Selecciona plataformas"
+                outlined
+                :items="availablePlatforms"
+                v-model="editedItem.filters.platforms"
+                multiple
+                chips
+                :error-messages="errors"
+                class="mb-3"
+              ></v-select>
+            </ValidationProvider>
             <span v-if="editedItem.filters.minSaleOrderCount">Min Ventas</span>
             <v-text-field
               v-if="editedItem.filters.minSaleOrderCount"
@@ -425,6 +459,7 @@
 </template>
 
 <script>
+import { ValidationObserver, ValidationProvider } from "vee-validate";
 const ENTITY = "marketingSegments"; // nombre de la entidad en minusculas (se repite en services y modules del store)
 const CLASS_ITEMS = () =>
   import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
@@ -472,6 +507,7 @@ export default {
             campaigns: [],
             timeInterval: "any_time",
           },
+          hasChatInteractionLast24h: false,
         },
         botIds: [],
         type: "static",
@@ -500,6 +536,8 @@ export default {
   components: {
     VTextFieldWithValidation,
     TodofullLabelsSelector,
+    ValidationObserver,
+    ValidationProvider,
   },
   data() {
     return {
@@ -522,6 +560,17 @@ export default {
         { text: "No es", value: "is_not" },
       ],
       isTimeIntervalEnabled: true,
+      availablePlatforms: [
+        { text: "Facebook", value: "facebook" },
+        { text: "Telegram", value: "telegram" },
+        { text: "Instagram", value: "instagram" },
+        { text: "WhatsApp", value: "whatsapp" },
+        { text: "WhatsApp Imagina", value: "whatsapp_automated" },
+      ],
+      platformsRules: [
+        (v) =>
+          (v && v.length > 0) || "Debe seleccionar al menos una plataforma",
+      ],
     };
   },
   async mounted() {
@@ -548,6 +597,9 @@ export default {
       return this.editedIndex === -1
         ? []
         : this.editedItem.excludeTodofullLabels;
+    },
+    hasChatInteractionLast24h() {
+      return this.editedItem.filters.hasChatInteractionLast24h;
     },
   },
   methods: {
@@ -645,6 +697,16 @@ export default {
         selectedLabels
       );
     },
+    onChatInteractionLast24hChange(value) {
+      if (value) {
+        // If 24h interaction is enabled, disable and uncheck includeWithChats
+        this.$set(this.editedItem.filters, "includeWithChats", false);
+      }
+      // Reset platforms if 24h interaction is disabled
+      if (!value) {
+        this.$set(this.editedItem.filters, "platforms", []);
+      }
+    },
   },
   watch: {
     "editedItem.filters.campaignFilter": {
@@ -656,6 +718,11 @@ export default {
           this.editedItem.filters.campaignFilter
         );
       },
+    },
+    "editedItem.filters.hasChatInteractionLast24h"(newValue) {
+      if (newValue) {
+        this.$set(this.editedItem.filters, "includeWithChats", false);
+      }
     },
   },
   created() {
@@ -756,5 +823,9 @@ export default {
     border-top: 1px solid #e0e0e0;
     padding-top: 8px;
   }
+}
+
+.mt-3 {
+  margin-top: 12px;
 }
 </style>

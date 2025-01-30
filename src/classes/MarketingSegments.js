@@ -43,6 +43,8 @@ export default () => ({
       timeInterval: "any_time",
     },
     markMessagesAsRead: false,
+    hasChatInteractionLast24h: false,
+    platforms: [],
   },
   botIds: [],
   type: "static",
