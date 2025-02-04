@@ -2,6 +2,15 @@ export default () => ({
   name: "",
   description: "",
   todofullLabels: [],
+  todofullLabelsFilter: {
+    operator: "or",
+    groups: [
+      {
+        operator: "and",
+        conditions: [],
+      },
+    ],
+  },
   filters: {
     includeWithEmail: true,
     includeWithoutEmail: true,
@@ -34,6 +43,8 @@ export default () => ({
       timeInterval: "any_time",
     },
     markMessagesAsRead: false,
+    hasChatInteractionLast24h: false,
+    platforms: [],
   },
   botIds: [],
   type: "static",
