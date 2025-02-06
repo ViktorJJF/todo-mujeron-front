@@ -389,6 +389,12 @@ let routes = [
         component: () => import("@/views/ImaginaTemplateMessages"),
       },
       {
+        path: "/marketing/massive-messages",
+        name: "MassiveMessages",
+        component: () => import("@/views/MassiveMessages"),
+
+      },
+      {
         path: "/marketing/segmentos",
         name: "MarketingSegments",
         component: () => import("@/views/MarketingSegments"),
@@ -413,8 +419,14 @@ let routes = [
         name: "LlmTracker",
         component: () => import("@/views/LlmTracker"),
       },
+      {
+        path: "/marketing/historial_mensajes_masivos",
+        name: "MassiveMessagesLogs",
+        component: () => import("@/views/MassiveMessagesLogs"),
+      },
     ],
   },
+
   {
     path: "/test",
     component: () => import("@/views/test"),
