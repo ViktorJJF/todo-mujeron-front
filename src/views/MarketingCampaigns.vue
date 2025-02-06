@@ -74,10 +74,6 @@
                             color="info"
                             small
                             v-on="on"
-                            :disabled="
-                              item.chunksPagesSent &&
-                              item.chunksPagesSent.includes(chunkIndex + 1)
-                            "
                           >
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
