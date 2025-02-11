@@ -583,6 +583,29 @@
         </template>
         <v-list-item
           active-class="primary custom2"
+          :to="{ name: 'MassiveMessages' }"
+        >
+
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Mensajes masivos</v-list-item-content>
+        </v-list-item>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'MassiveMessagesLogs' }"
+        >
+
+          <v-list-item-icon>
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>Historial Mensajes masivos</v-list-item-content>
+        </v-list-item>
+        <v-list-item
+
+          active-class="primary custom2"
           :to="{ name: 'MarketingSegments' }"
         >
           <v-list-item-icon>
