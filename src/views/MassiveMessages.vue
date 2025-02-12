@@ -236,6 +236,12 @@
                   </span>
                 </template>
 
+                <template #[`item.phone`]="{ item }">
+                  <span class="text-caption">
+                    {{ item.leadId?.contactId }}
+                  </span>
+                </template>
+
                 <template #[`item.last_message`]="{ item }">
                   <span
                     class="text-truncate d-inline-block"
@@ -320,6 +326,7 @@ export default {
     headers: [
       { text: "Plataforma", value: "platform", width: "150px" },
       { text: "Contacto", value: "contact_name" },
+      { text: "Teléfono", value: "phone" },
       { text: "Último Mensaje", value: "last_message" },
       { text: "Última Actividad", value: "last_activity", width: "150px" },
     ],

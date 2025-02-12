@@ -204,7 +204,7 @@
           <template v-slot:[`item.recipients`]="{ item }">
             <div>
               <small>
-                {{ item.recipients.map(r => r.chatId).join(', ') }}
+                {{ item.recipients.map(r => r.chatId?.leadId?.contactId || r.chatId?._id).join(', ') }}
               </small>
             </div>
           </template>
