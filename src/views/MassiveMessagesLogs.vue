@@ -204,7 +204,29 @@
           <template v-slot:[`item.recipients`]="{ item }">
             <div>
               <small>
-                {{ item.recipients.map(r => r.chatId?.leadId?.contactId || r.chatId?._id).join(', ') }}
+                <div
+                  v-for="(recipient, index) in item.recipients"
+                  :key="index"
+                  class="mb-1"
+                >
+                  Chat:
+                  {{
+                    recipient.chatId?.leadId?.contactId || recipient.chatId?._id
+                  }}, Status:
+                  <v-chip
+                    x-small
+                    :color="{
+                      sent: 'primary',
+                      delivered: 'success',
+                      read: 'info',
+                      with_response: 'secondary',
+                      error: 'error',
+                    }[recipient.status]"
+                    label
+                  >
+                    {{ recipient.status }}
+                  </v-chip>
+                </div>
               </small>
             </div>
           </template>

@@ -83,12 +83,30 @@
                     v-model="message"
                     label="Mensaje"
                     :rules="[(v) => !!v || 'El mensaje es requerido']"
-                    counter
+                    :counter="messageCharLimit"
                     rows="4"
                     outlined
                     hide-details="auto"
-                    class="mb-4"
+                    class="mb-2"
                   ></v-textarea>
+                  <div
+                    v-if="selectedPlatforms.length > 0"
+                    class="text-caption text-right mb-4"
+                  >
+                    <span
+                      :class="{
+                        'error--text': message.length > messageCharLimit,
+                      }"
+                    >
+                      {{ message.length }} / {{ messageCharLimit }} caracteres
+                      <v-icon
+                        v-if="message.length > messageCharLimit"
+                        x-small
+                        color="error"
+                        >mdi-alert-circle</v-icon
+                      >
+                    </span>
+                  </div>
                 </v-col>
 
                 <v-col cols="12">
@@ -107,6 +125,44 @@
                       <v-icon color="primary">mdi-link</v-icon>
                     </template>
                   </v-text-field>
+
+                  <!-- Platform File Limits Info -->
+                  <v-alert
+                    v-if="selectedPlatforms.length > 0"
+                    dense
+                    text
+                    color="info"
+                    class="mt-1 mb-2 file-limits-alert"
+                  >
+                    <div class="d-flex align-center">
+                      <v-icon left color="info">mdi-information-outline</v-icon>
+                      <span class="font-weight-medium"
+                        >Límites de archivos:</span
+                      >
+                    </div>
+                    <div class="mt-1">
+                      <div
+                        v-for="(info, index) in platformFileInfo"
+                        :key="index"
+                        class="ml-4 mt-1"
+                      >
+                        <v-chip
+                          x-small
+                          :color="getPlatformColor(info.platform)"
+                          text-color="white"
+                          class="mr-1"
+                        >
+                          <v-icon left x-small>{{
+                            getPlatformIcon(info.platform)
+                          }}</v-icon>
+                          {{ getPlatformText(info.platform) }}
+                        </v-chip>
+                        <span class="text-caption">
+                          {{ info.description }}
+                        </span>
+                      </div>
+                    </div>
+                  </v-alert>
 
                   <!-- URL Preview -->
                   <div v-if="url" class="url-preview mb-4">
@@ -345,6 +401,32 @@ export default {
     imaginaTemplates: [],
     confirmDialog: false,
     urlType: null,
+    platformFileLimits: {
+      facebook: {
+        image: "Imágenes: JPG, PNG, GIF (hasta 25MB)",
+        video: "Videos: MP4, MOV, AVI (hasta 25MB)",
+        audio: "Audio: AAC, M4A, WAV, MP4 (hasta 25MB)",
+        file: "Documentos: PDF y otros (hasta 25MB)",
+      },
+      instagram: {
+        image: "Imágenes: JPG, PNG, GIF (hasta 8MB)",
+        video: "Videos: MP4, OGG, AVI, MOV, WEBM (hasta 25MB)",
+        audio: "Audio: AAC, M4A, WAV, MP4 (hasta 25MB)",
+        file: "No soportado",
+      },
+      whatsapp: {
+        image: "Imágenes: JPEG, PNG (hasta 5MB)",
+        video: "Videos: MP4, 3GPP (hasta 16MB)",
+        audio: "Audio: MP3, OGG, AAC (hasta 16MB)",
+        file: "Documentos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX (hasta 100MB)",
+      },
+      whatsapp_automated: {
+        image: "Imágenes: JPEG, PNG (hasta 5MB)",
+        video: "Videos: MP4, 3GPP (hasta 100MB  )",
+        audio: "Audio: MP3, OGG, AAC (hasta 16MB)",
+        file: "Documentos: PDF, DOC, DOCX, XLS, XLSX (hasta 100MB)",
+      },
+    },
   }),
 
   watch: {
@@ -381,6 +463,54 @@ export default {
       return `Se enviará a ${this.selectedChats.length} chat${
         this.selectedChats.length !== 1 ? "s" : ""
       } seleccionado${this.selectedChats.length !== 1 ? "s" : ""}`;
+    },
+
+    messageCharLimit() {
+      if (!this.selectedPlatforms.length) return 2000;
+
+      // Get the minimum character limit from all selected platforms
+      const limits = {
+        facebook: 2000,
+        instagram: 1000,
+        whatsapp: 4096,
+        whatsapp_automated: 4096,
+      };
+
+      return Math.min(
+        ...this.selectedPlatforms.map((platform) => limits[platform])
+      );
+    },
+
+    platformFileInfo() {
+      if (!this.selectedPlatforms.length) return [];
+
+      // Get file info for each selected platform
+      const selectedPlatformsInfo = this.selectedPlatforms.map((platform) => {
+        const limits = this.platformFileLimits[platform];
+        let description = "";
+
+        if (this.url && this.urlType) {
+          // If URL is present, show specific info for the detected file type
+          const fileTypeInfo = limits[this.urlType];
+
+          // Check if this file type is supported on this platform
+          if (fileTypeInfo.includes("No soportado")) {
+            description = `⚠️ ${fileTypeInfo} - Este tipo de archivo no es compatible con esta plataforma`;
+          } else {
+            description = fileTypeInfo;
+          }
+        } else {
+          // Otherwise show general info
+          description = `${limits.image} • ${limits.video} • ${limits.audio} • ${limits.file}`;
+        }
+
+        return {
+          platform,
+          description,
+        };
+      });
+
+      return selectedPlatformsInfo;
     },
   },
 
@@ -505,8 +635,17 @@ export default {
       }
 
       const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
-      const videoExtensions = ["mp4", "webm", "ogg"];
-      const audioExtensions = ["mp3", "wav", "ogg"];
+      const videoExtensions = ["mp4", "webm", "ogg", "avi", "mov", "3gpp"];
+      const audioExtensions = ["mp3", "wav", "ogg", "aac", "m4a"];
+      const documentExtensions = [
+        "pdf",
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "ppt",
+        "pptx",
+      ];
 
       try {
         const extension = url.split(".").pop().toLowerCase();
@@ -517,6 +656,8 @@ export default {
           this.urlType = "video";
         } else if (audioExtensions.includes(extension)) {
           this.urlType = "audio";
+        } else if (documentExtensions.includes(extension)) {
+          this.urlType = "file";
         } else {
           this.urlType = "file";
         }
@@ -588,10 +729,10 @@ export default {
           chatIds: this.selectedChats.length
             ? this.selectedChats.map((chat) => chat._id)
             : null,
-          companyId: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          companyId:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
           userId: JSON.parse(localStorage.getItem("user"))._id,
         };
-
 
         chatsApi.sendMassiveMessage(payload);
         this.success = true;
@@ -641,6 +782,15 @@ export default {
       &:hover {
         border-color: var(--v-primary-base);
       }
+    }
+  }
+
+  .file-limits-alert {
+    font-size: 0.85rem;
+
+    .v-chip--x-small {
+      height: 18px;
+      font-size: 0.65rem;
     }
   }
 }
