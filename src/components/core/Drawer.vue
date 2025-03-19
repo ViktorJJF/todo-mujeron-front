@@ -33,7 +33,7 @@
         color="white"
         v-if="
           checkAuth('Configuracion/TodoFull') ||
-            checkAuth('Configuracion/Propiedades')
+          checkAuth('Configuracion/Propiedades')
         "
       >
         <template v-slot:activator>
@@ -108,9 +108,9 @@
           sub-group
           v-if="
             checkAuth('Configuracion/Propiedades') ||
-              checkAuth('Configuracion/Propiedades/Mailchimp') ||
-              checkAuth('Configuracion/Propiedades/Woocommerces') ||
-              checkAuth('Configuracion/Propiedades/Genial')
+            checkAuth('Configuracion/Propiedades/Mailchimp') ||
+            checkAuth('Configuracion/Propiedades/Woocommerces') ||
+            checkAuth('Configuracion/Propiedades/Genial')
           "
         >
           <template v-slot:activator>
@@ -125,7 +125,7 @@
             :to="{ name: propiedad.to }"
             v-show="
               propiedad.to === 'MarketplaceFuentes' ||
-                checkAuth('Configuracion/Propiedades', propiedad.to)
+              checkAuth('Configuracion/Propiedades', propiedad.to)
             "
           >
             <v-list-item-content>
@@ -223,8 +223,8 @@
         color="white"
         v-if="
           checkAuth('ChatBot/Bots') ||
-            checkAuth('ChatBot/Leads') ||
-            checkAuth('ChatBot/MSN-Facebook')
+          checkAuth('ChatBot/Leads') ||
+          checkAuth('ChatBot/MSN-Facebook')
         "
       >
         <template v-slot:activator>
@@ -585,7 +585,6 @@
           active-class="primary custom2"
           :to="{ name: 'MassiveMessages' }"
         >
-
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
@@ -596,7 +595,6 @@
           active-class="primary custom2"
           :to="{ name: 'MassiveMessagesLogs' }"
         >
-
           <v-list-item-icon>
             <v-icon>mdi-check</v-icon>
           </v-list-item-icon>
@@ -604,7 +602,6 @@
           <v-list-item-content>Historial Mensajes masivos</v-list-item-content>
         </v-list-item>
         <v-list-item
-
           active-class="primary custom2"
           :to="{ name: 'MarketingSegments' }"
         >
@@ -635,6 +632,12 @@
           <v-list-item-content>Historial Plantillas</v-list-item-content>
         </v-list-item>
       </v-list-group>
+      <v-list-item active-class="primary custom2" :to="{ name: 'Metrics' }">
+        <v-list-item-icon>
+          <v-icon>mdi-chart-bar</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content> Métricas </v-list-item-content>
+      </v-list-item>
       <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
         <v-list-item-icon>
           <v-icon>mdi-check</v-icon>
@@ -769,8 +772,8 @@ export default {
       auth
         .roleAuthorization({
           id: this.$store.state.authModule.user._id,
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
