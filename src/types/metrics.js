@@ -102,6 +102,23 @@
  */
 
 /**
+ * @typedef {Object} MonthlyMetricItem
+ * @property {number} month - The month number (1-12)
+ * @property {number} year - The year
+ * @property {string} monthName - The name of the month (e.g., "enero")
+ * @property {number} totalChats - Total number of chats
+ * @property {number} totalChatsWithSentiment - Total chats with sentiment analysis
+ * @property {Array<EnumMetricItem>} enumMetrics - Array of enum metric items
+ * @property {Array<BooleanMetricItem>} booleanMetrics - Array of boolean metric items
+ * @property {Object} reflections - Information about reflection texts
+ */
+
+/**
+ * @typedef {Object} SentimentAnalysisByMonthResponse
+ * @property {Array<MonthlyMetricItem>} monthlyData - Array of monthly sentiment metrics
+ */
+
+/**
  * @typedef {Object} ResolutionCategoryItem
  * @property {string} category - Category name
  * @property {number} count - Count of occurrences

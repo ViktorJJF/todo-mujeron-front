@@ -12,7 +12,32 @@
       :quick-filters-label="$t('metrics.SENTIMENT_ANALYSIS.QUICK_FILTERS')"
       :default-selected-filter="selectedQuickFilter"
       @filter-applied="handleFilterApplied"
-    />
+    >
+      <template v-slot:after-title>
+        <div class="view-mode-container">
+          <span class="view-mode-label mr-2"
+            >{{ $t("metrics.SENTIMENT_ANALYSIS.VIEW_TYPE") }}:</span
+          >
+          <v-btn-toggle
+            v-model="viewMode"
+            mandatory
+            dense
+            class="view-mode-toggle"
+            @change="handleViewModeChange"
+            color="primary"
+          >
+            <v-btn small :value="VIEW_MODES.COUNTS" class="view-mode-btn">
+              <v-icon small left>mdi-chart-bar</v-icon>
+              {{ $t("metrics.SENTIMENT_ANALYSIS.COUNTS_VIEW") }}
+            </v-btn>
+            <v-btn small :value="VIEW_MODES.MONTHLY" class="view-mode-btn">
+              <v-icon small left>mdi-chart-line</v-icon>
+              {{ $t("metrics.SENTIMENT_ANALYSIS.MONTHLY_VIEW") }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+      </template>
+    </unified-date-filter>
 
     <v-row v-if="loading">
       <v-col cols="12" class="text-center">
@@ -24,7 +49,7 @@
       </v-col>
     </v-row>
 
-    <template v-else-if="dashboardData">
+    <template v-else-if="viewMode === VIEW_MODES.COUNTS && dashboardData">
       <!-- Total Chats with Sentiment Summary Card -->
       <unified-summary-card
         :title="$t('metrics.SENTIMENT_ANALYSIS.OVERVIEW_TITLE')"
@@ -52,13 +77,14 @@
       />
 
       <!-- Sentiment Analysis Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="findEnumMetricData('calificacion_del_sentimiento')"
         :total="dashboardData.totalChatsWithSentiment"
         :title="$t('metrics.SENTIMENT_ANALYSIS.DISTRIBUTION_TITLE')"
         :subtitle="$t('metrics.SENTIMENT_ANALYSIS.DISTRIBUTION_TEXT')"
         icon="mdi-emoticon-outline"
         :colors="getSentimentColors()"
+        :horizontal="true"
       />
 
       <!-- Dissatisfaction Origin Chart -->
@@ -88,21 +114,72 @@
           />
         </v-col>
       </v-row>
+    </template>
 
-      <!-- Date Range Info -->
-      <v-row>
-        <v-col cols="12">
-          <v-card class="pa-3 text-center date-info-card">
-            <span class="text-subtitle-1 grey--text">
-              {{ $t("metrics.SENTIMENT_ANALYSIS.DATA_PERIOD") }}:
-              {{ formatDateRange }}
-              <span v-if="activeQuickFilterLabel" class="ml-2"
-                >({{ activeQuickFilterLabel }})</span
-              >
-            </span>
-          </v-card>
-        </v-col>
-      </v-row>
+    <template v-else-if="viewMode === VIEW_MODES.MONTHLY && monthlyData">
+      <!-- Monthly sentiment trends summary card -->
+      <unified-summary-card
+        :title="$t('metrics.SENTIMENT_ANALYSIS.MONTHLY_OVERVIEW_TITLE')"
+        icon="mdi-chart-timeline-variant"
+        color="primary"
+        :stats="[
+          {
+            value: totalMonthlyChats,
+            label: $t('metrics.SENTIMENT_ANALYSIS.TOTAL_CHATS'),
+            color: 'primary',
+          },
+          {
+            value: monthsCount,
+            label: $t('metrics.SENTIMENT_ANALYSIS.MONTHS_ANALYZED'),
+            color: 'info',
+          },
+          {
+            value: monthlySentimentStats
+              ? monthlySentimentStats.avgPositive
+              : 0,
+            label: $t('metrics.SENTIMENT_ANALYSIS.AVG_POSITIVE_SENTIMENT'),
+            color: 'success',
+            suffix: '%',
+          },
+        ]"
+      />
+
+      <!-- Monthly Trend Chart for Sentiment -->
+      <unified-line-chart
+        :chart-data="monthlyData.monthlyData"
+        :labels="monthlyLabels"
+        :datasets="sentimentDatasets"
+        :title="$t('metrics.SENTIMENT_ANALYSIS.MONTHLY_TREND_TITLE')"
+        :subtitle="$t('metrics.SENTIMENT_ANALYSIS.MONTHLY_TREND_TEXT')"
+        icon="mdi-chart-line"
+        :loading="loading"
+      />
+
+      <!-- Monthly Trend Chart for Dissatisfaction Origin -->
+      <unified-line-chart
+        :chart-data="monthlyData.monthlyData"
+        :labels="monthlyLabels"
+        :datasets="dissatisfactionDatasets"
+        :title="$t('metrics.SENTIMENT_ANALYSIS.MONTHLY_DISSATISFACTION_TITLE')"
+        :subtitle="
+          $t('metrics.SENTIMENT_ANALYSIS.MONTHLY_DISSATISFACTION_TEXT')
+        "
+        icon="mdi-chart-areaspline"
+        :loading="loading"
+      />
+
+      <!-- Monthly Boolean Metrics Chart (Cross-selling and Personalized Promos) -->
+      <unified-line-chart
+        :chart-data="monthlyData.monthlyData"
+        :labels="monthlyLabels"
+        :datasets="booleanMetricsDatasets"
+        :title="$t('metrics.SENTIMENT_ANALYSIS.MONTHLY_BOOLEAN_METRICS_TITLE')"
+        :subtitle="
+          $t('metrics.SENTIMENT_ANALYSIS.MONTHLY_BOOLEAN_METRICS_TEXT')
+        "
+        icon="mdi-chart-box-outline"
+        :loading="loading"
+      />
     </template>
 
     <v-row v-else>
@@ -112,6 +189,21 @@
           <div class="text-h6 grey--text text--darken-1 mt-3">
             {{ $t("metrics.SENTIMENT_ANALYSIS.SELECT_DATE_RANGE") }}
           </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Date Range Info -->
+    <v-row v-if="dashboardData || monthlyData">
+      <v-col cols="12">
+        <v-card class="pa-3 text-center date-info-card">
+          <span class="text-subtitle-1 grey--text">
+            {{ $t("metrics.SENTIMENT_ANALYSIS.DATA_PERIOD") }}:
+            {{ formatDateRange }}
+            <span v-if="activeQuickFilterLabel" class="ml-2"
+              >({{ activeQuickFilterLabel }})</span
+            >
+          </span>
         </v-card>
       </v-col>
     </v-row>
@@ -131,9 +223,15 @@ import {
 import metricsApi from "@/services/api/metrics";
 import UnifiedDateFilter from "@/components/metrics/UnifiedDateFilter";
 import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
-import UnifiedPieChart from "@/components/metrics/UnifiedPieChart";
 import UnifiedBarChart from "@/components/metrics/UnifiedBarChart";
 import UnifiedBooleanMetric from "@/components/metrics/UnifiedBooleanMetric";
+import UnifiedLineChart from "@/components/metrics/UnifiedLineChart";
+
+// Constants for view modes
+const VIEW_MODES = {
+  COUNTS: "counts",
+  MONTHLY: "monthly",
+};
 
 export default {
   name: "SentimentAnalysisDashboard",
@@ -141,17 +239,20 @@ export default {
   components: {
     UnifiedDateFilter,
     UnifiedSummaryCard,
-    UnifiedPieChart,
     UnifiedBarChart,
     UnifiedBooleanMetric,
+    UnifiedLineChart,
   },
 
   data() {
     return {
+      VIEW_MODES,
+      viewMode: VIEW_MODES.COUNTS,
       loading: false,
       startDate: null,
       endDate: null,
       dashboardData: null,
+      monthlyData: null,
       selectedQuickFilter: 9,
       activeQuickFilterLabel: "Todo el tiempo",
       quickFilters: [
@@ -256,14 +357,24 @@ export default {
 
   computed: {
     formatDateRange() {
-      if (!this.dashboardData) return "";
-
-      const { startDate, endDate } = this.dashboardData.dateRange;
-      if (startDate === "all time" && endDate === "all time") {
-        return this.$t("metrics.SENTIMENT_ANALYSIS.ALL_TIME");
+      if (this.viewMode === VIEW_MODES.COUNTS && this.dashboardData) {
+        const { startDate, endDate } = this.dashboardData.dateRange;
+        if (startDate === "all time" && endDate === "all time") {
+          return this.$t("metrics.SENTIMENT_ANALYSIS.ALL_TIME");
+        }
+        return `${startDate} to ${endDate}`;
+      } else if (
+        this.viewMode === VIEW_MODES.MONTHLY &&
+        this.monthlyData &&
+        this.monthlyData.monthlyData.length > 0
+      ) {
+        const firstMonth = this.monthlyData.monthlyData[0];
+        const lastMonth =
+          this.monthlyData.monthlyData[this.monthlyData.monthlyData.length - 1];
+        return `${firstMonth.monthName} ${firstMonth.year} - ${lastMonth.monthName} ${lastMonth.year}`;
       }
 
-      return `${startDate} to ${endDate}`;
+      return "";
     },
 
     sentimentStats() {
@@ -301,6 +412,285 @@ export default {
         negative: parseFloat(((negativeCount / total) * 100).toFixed(2)),
       };
     },
+
+    // Monthly data computations
+    monthlyLabels() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
+
+      return this.monthlyData.monthlyData.map(
+        (month) => `${month.monthName} ${month.year}`
+      );
+    },
+
+    sentimentDatasets() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
+
+      // Create datasets for each sentiment type
+      const sentimentTypes = [
+        { label: "Satisfecho", color: "#4CAF50" },
+        { label: "Emoción/Entusiasmo", color: "#8BC34A" },
+        { label: "Neutro", color: "#9E9E9E" },
+        { label: "Insatisfecho", color: "#F44336" },
+        { label: "Confusión", color: "#FF9800" },
+        { label: "Fustracion", color: "#E91E63" },
+        { label: "Tóxico", color: "#7B1FA2" },
+        { label: "Evasivo/Desconfiado", color: "#607D8B" },
+      ];
+
+      return sentimentTypes.map((sentimentType) => {
+        const data = this.monthlyData.monthlyData.map((month) => {
+          const sentimentMetric = month.enumMetrics.find(
+            (m) => m.field === "calificacion_del_sentimiento"
+          );
+
+          if (!sentimentMetric) return 0;
+
+          const sentimentValue = sentimentMetric.data.find(
+            (d) => d.value === sentimentType.label
+          );
+
+          return sentimentValue ? sentimentValue.count : 0;
+        });
+
+        // Calculate percentages for each month
+        const percentageData = this.monthlyData.monthlyData.map(
+          (month, index) => {
+            const totalWithSentiment = month.totalChatsWithSentiment || 1; // Avoid division by zero
+            const count = data[index];
+            return parseFloat(((count / totalWithSentiment) * 100).toFixed(1));
+          }
+        );
+
+        return {
+          label: sentimentType.label,
+          data: data,
+          percentage: percentageData, // Add percentage data
+          borderColor: sentimentType.color,
+          backgroundColor: sentimentType.color + "33", // Add transparency
+          tension: 0.4,
+          fill: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        };
+      });
+    },
+
+    dissatisfactionDatasets() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
+
+      // Create datasets for dissatisfaction origins
+      const dissatisfactionTypes = [
+        { label: "Error de la compañía", color: "#FF9800" },
+        { label: "Error que no controlamos", color: "#FF5722" },
+        {
+          label: "Su error al seleccionar el producto comprado",
+          color: "#F44336",
+        },
+        { label: "Sin insatisfacción", color: "#4CAF50" },
+      ];
+
+      return dissatisfactionTypes.map((dissType) => {
+        const data = this.monthlyData.monthlyData.map((month) => {
+          const dissMetric = month.enumMetrics.find(
+            (m) => m.field === "origen_de_la_insatisfaccion"
+          );
+
+          if (!dissMetric) return 0;
+
+          const dissValue = dissMetric.data.find(
+            (d) => d.value === dissType.label
+          );
+
+          return dissValue ? dissValue.count : 0;
+        });
+
+        // Calculate percentages for each month
+        const percentageData = this.monthlyData.monthlyData.map(
+          (month, index) => {
+            const totalWithSentiment = month.totalChatsWithSentiment || 1; // Avoid division by zero
+            const count = data[index];
+            return parseFloat(((count / totalWithSentiment) * 100).toFixed(1));
+          }
+        );
+
+        return {
+          label: dissType.label,
+          data: data,
+          percentage: percentageData, // Add percentage data
+          borderColor: dissType.color,
+          backgroundColor: dissType.color + "33", // Add transparency
+          tension: 0.4,
+          fill: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        };
+      });
+    },
+
+    booleanMetricsDatasets() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
+
+      // Create datasets for boolean metrics
+      const booleanMetrics = [
+        {
+          field: "venta_cruzada_efectiva",
+          label: this.$t("metrics.SENTIMENT_ANALYSIS.CROSS_SELLING"),
+          color: "#4CAF50",
+        },
+        {
+          field: "promociones_personalizadas",
+          label: this.$t("metrics.SENTIMENT_ANALYSIS.PERSONALIZED_PROMOS"),
+          color: "#8BC34A",
+        },
+      ];
+
+      return booleanMetrics.map((metric) => {
+        const data = this.monthlyData.monthlyData.map((month) => {
+          // Look for the boolean metrics in each month's data
+          const booleanMetric = month.booleanMetrics
+            ? month.booleanMetrics.find((m) => m.field === metric.field)
+            : null;
+
+          if (!booleanMetric) return 0;
+
+          // Get the count of true values (representing positive cross-selling or personalized promos)
+          const trueCount = booleanMetric.data.filter(
+            (item) => item.value === true
+          ).length;
+          return trueCount;
+        });
+
+        // Calculate percentages for each month
+        const percentageData = this.monthlyData.monthlyData.map(
+          (month, index) => {
+            const totalChats = month.totalChatsWithSentiment || 1; // Avoid division by zero
+            const count = data[index];
+            return parseFloat(((count / totalChats) * 100).toFixed(1));
+          }
+        );
+
+        return {
+          label: metric.label,
+          data: data,
+          percentage: percentageData,
+          borderColor: metric.color,
+          backgroundColor: metric.color + "33", // Add transparency
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        };
+      });
+    },
+
+    totalChatsDataset() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
+
+      const totalChatsData = this.monthlyData.monthlyData.map(
+        (month) => month.totalChats
+      );
+      const totalChatsWithSentimentData = this.monthlyData.monthlyData.map(
+        (month) => month.totalChatsWithSentiment
+      );
+
+      // Calculate percentages of chats with sentiment
+      const sentimentPercentageData = this.monthlyData.monthlyData.map(
+        (month) => {
+          const totalChats = month.totalChats || 1; // Avoid division by zero
+          return parseFloat(
+            ((month.totalChatsWithSentiment / totalChats) * 100).toFixed(1)
+          );
+        }
+      );
+
+      return [
+        {
+          label: this.$t("metrics.SENTIMENT_ANALYSIS.TOTAL_CHATS"),
+          data: totalChatsData,
+          borderColor: "#1976D2",
+          backgroundColor: "#1976D233",
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+        {
+          label: this.$t(
+            "metrics.SENTIMENT_ANALYSIS.TOTAL_CHATS_WITH_SENTIMENT"
+          ),
+          data: totalChatsWithSentimentData,
+          percentage: sentimentPercentageData,
+          borderColor: "#9C27B0",
+          backgroundColor: "#9C27B033",
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+      ];
+    },
+
+    totalMonthlyChats() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return 0;
+      return this.monthlyData.monthlyData.reduce(
+        (total, month) => total + month.totalChats,
+        0
+      );
+    },
+
+    monthsCount() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData) return 0;
+      return this.monthlyData.monthlyData.length;
+    },
+
+    monthlySentimentStats() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData.length === 0)
+        return null;
+
+      // Calculate average positive sentiment across all months
+      let totalPositive = 0;
+      let totalNegative = 0;
+
+      this.monthlyData.monthlyData.forEach((month) => {
+        const sentimentMetric = month.enumMetrics.find(
+          (m) => m.field === "calificacion_del_sentimiento"
+        );
+
+        if (sentimentMetric) {
+          const total = month.totalChatsWithSentiment;
+
+          // Positive sentiments
+          const positiveCount = sentimentMetric.data
+            .filter((item) =>
+              ["Satisfecho", "Emoción/Entusiasmo"].includes(item.value)
+            )
+            .reduce((sum, item) => sum + item.count, 0);
+
+          // Negative sentiments
+          const negativeCount = sentimentMetric.data
+            .filter((item) =>
+              [
+                "Insatisfecho",
+                "Confusión",
+                "Fustracion",
+                "Tóxico",
+                "Evasivo/Desconfiado",
+              ].includes(item.value)
+            )
+            .reduce((sum, item) => sum + item.count, 0);
+
+          totalPositive += (positiveCount / total) * 100;
+          totalNegative += (negativeCount / total) * 100;
+        }
+      });
+
+      const monthCount = this.monthlyData.monthlyData.length;
+
+      return {
+        avgPositive: parseFloat((totalPositive / monthCount).toFixed(2)),
+        avgNegative: parseFloat((totalNegative / monthCount).toFixed(2)),
+      };
+    },
   },
 
   methods: {
@@ -311,7 +701,26 @@ export default {
       this.fetchData();
     },
 
+    handleViewModeChange() {
+      // Clear both data sets when changing views to ensure fresh data is loaded
+      this.loading = true;
+
+      if (this.viewMode === VIEW_MODES.COUNTS) {
+        this.fetchCountsData();
+      } else if (this.viewMode === VIEW_MODES.MONTHLY) {
+        this.fetchMonthlyData();
+      }
+    },
+
     async fetchData() {
+      if (this.viewMode === VIEW_MODES.COUNTS) {
+        await this.fetchCountsData();
+      } else {
+        await this.fetchMonthlyData();
+      }
+    },
+
+    async fetchCountsData() {
       this.loading = true;
       try {
         let payload = {};
@@ -330,6 +739,36 @@ export default {
         }
       } catch (error) {
         console.error("Failed to fetch sentiment analysis data:", error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchMonthlyData() {
+      this.loading = true;
+      try {
+        let payload = {};
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+        const response = await metricsApi.getSentimentAnalysisByMonth(payload);
+
+        if (response.data && response.data.ok) {
+          this.monthlyData = response.data.payload;
+        } else {
+          console.error(
+            "Error in monthly sentiment analysis data response:",
+            response
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to fetch monthly sentiment analysis data:",
+          error
+        );
       } finally {
         this.loading = false;
       }
@@ -392,7 +831,19 @@ export default {
   },
 
   mounted() {
+    // Initially, fetch data based on the current view mode
     this.fetchData();
+
+    // For better user experience, also prefetch the other view's data
+    if (this.viewMode === VIEW_MODES.COUNTS) {
+      setTimeout(() => {
+        this.fetchMonthlyData();
+      }, 1000); // Delay to ensure main view loads first
+    } else {
+      setTimeout(() => {
+        this.fetchCountsData();
+      }, 1000);
+    }
   },
 };
 </script>
@@ -423,5 +874,24 @@ export default {
 .empty-state-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.view-mode-container {
+  display: flex;
+  align-items: center;
+}
+
+.view-mode-label {
+  font-weight: 500;
+}
+
+.view-mode-toggle {
+  margin-left: auto !important;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.view-mode-btn {
+  margin: 0 4px;
 }
 </style>

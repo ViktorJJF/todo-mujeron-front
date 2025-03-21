@@ -4,6 +4,7 @@
       <v-card-title class="d-flex align-center">
         <v-icon v-if="titleIcon" left>{{ titleIcon }}</v-icon>
         {{ title }}
+        <slot name="after-title"></slot>
       </v-card-title>
 
       <v-card-text>

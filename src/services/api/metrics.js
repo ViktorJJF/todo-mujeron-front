@@ -114,6 +114,22 @@ export default {
   },
 
   /**
+   * Get sentiment analysis metrics by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SentimentAnalysisByMonthResponse}>} API response
+   */
+  getSentimentAnalysisByMonth(params) {
+    return axios
+      .post(`/api/metrics/sentiment_analysis_by_month`, params)
+      .catch((error) => {
+        console.error(
+          "Error fetching sentiment analysis by month metrics:",
+          error
+        );
+        throw error;
+      });
+  },
+  /**
    * Get conversation quality metrics
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').ConversationQualityResponse}>} API response

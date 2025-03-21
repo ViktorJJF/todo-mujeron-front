@@ -45,61 +45,67 @@
       />
 
       <!-- Product and Stock Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_productos_y_stock')"
         :total="getTotalForCategory('consultas_sobre_productos_y_stock')"
         title="Consultas sobre Productos y Stock"
         icon="mdi-package-variant-closed"
         :colors="chartColors.products"
+        :horizontal="true"
       />
 
       <!-- Size Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_tallas')"
         :total="getTotalForCategory('consultas_sobre_tallas')"
         title="Consultas sobre Tallas"
         icon="mdi-tshirt-crew-outline"
         :colors="chartColors.sizes"
+        :horizontal="true"
       />
 
       <!-- Location Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_ubicacion')"
         :total="getTotalForCategory('consultas_sobre_ubicacion')"
         title="Consultas sobre Ubicación"
         icon="mdi-map-marker-outline"
         :colors="chartColors.location"
+        :horizontal="true"
       />
 
       <!-- Shipping Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_despachos')"
         :total="getTotalForCategory('consultas_sobre_despachos')"
         title="Consultas sobre Despachos"
         icon="mdi-truck-delivery-outline"
         :colors="chartColors.shipping"
+        :horizontal="true"
       />
 
       <!-- Money Return Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_devolucion_de_dinero')"
         :total="getTotalForCategory('consultas_sobre_devolucion_de_dinero')"
         title="Consultas sobre Devolución de Dinero"
         icon="mdi-cash-refund"
         :colors="chartColors.returns"
+        :horizontal="true"
       />
 
       <!-- Exchanges and Warranties Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_cambios_y_garantias')"
         :total="getTotalForCategory('consultas_sobre_cambios_y_garantias')"
         title="Consultas sobre Cambios y Garantías"
         icon="mdi-swap-horizontal"
         :colors="chartColors.warranties"
+        :horizontal="true"
       />
 
       <!-- Supplier Queries Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('consultas_sobre_como_convertirse_en_proveedor')"
         :total="
           getTotalForCategory('consultas_sobre_como_convertirse_en_proveedor')
@@ -107,6 +113,7 @@
         title="Consultas sobre cómo Convertirse en Proveedor"
         icon="mdi-account-hard-hat"
         :colors="chartColors.supplier"
+        :horizontal="true"
       />
 
       <!-- Boolean Categories -->
@@ -159,7 +166,7 @@
 import metricsApi from "@/services/api/metrics";
 import UnifiedDateFilter from "@/components/metrics/UnifiedDateFilter";
 import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
-import UnifiedPieChart from "@/components/metrics/UnifiedPieChart";
+import UnifiedBarChart from "@/components/metrics/UnifiedBarChart";
 import UnifiedBooleanMetric from "@/components/metrics/UnifiedBooleanMetric";
 
 export default {
@@ -168,7 +175,7 @@ export default {
   components: {
     UnifiedDateFilter,
     UnifiedSummaryCard,
-    UnifiedPieChart,
+    UnifiedBarChart,
     UnifiedBooleanMetric,
   },
 

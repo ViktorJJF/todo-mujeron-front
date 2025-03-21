@@ -52,57 +52,63 @@
       />
 
       <!-- Origin and Destination Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('origen_y_destino_de_la_compra')"
         :total="getTotalForCategory('origen_y_destino_de_la_compra')"
         title="Origen y Destino de la Compra"
         icon="mdi-map-marker-path"
         :colors="chartColors.origin"
+        :horizontal="true"
       />
 
       <!-- Payment Methods Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('metodo_de_pago')"
         :total="getTotalForCategory('metodo_de_pago')"
         title="Métodos de Pago"
         icon="mdi-credit-card-outline"
         :colors="chartColors.payment"
+        :horizontal="true"
       />
 
       <!-- Reasons for Not Buying Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('motivos_de_no_compra')"
         :total="getTotalForCategory('motivos_de_no_compra')"
         title="Motivos de No Compra"
         icon="mdi-cart-remove"
         :colors="chartColors.noSale"
+        :horizontal="true"
       />
 
       <!-- Loyalty and Repurchase Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('fidelizacion_y_recompra')"
         :total="getTotalForCategory('fidelizacion_y_recompra')"
         title="Fidelización y Recompra"
         icon="mdi-refresh"
         :colors="chartColors.loyalty"
+        :horizontal="true"
       />
 
       <!-- Final Result Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('resultado_final_y_seguimiento')"
         :total="getTotalForCategory('resultado_final_y_seguimiento')"
         title="Resultado Final y Seguimiento"
         icon="mdi-flag-checkered"
         :colors="chartColors.result"
+        :horizontal="true"
       />
 
       <!-- Lost Sales Opportunity Chart -->
-      <unified-pie-chart
+      <unified-bar-chart
         :data="getCategoryData('perdida_de_oportunidad_de_venta')"
         :total="getTotalForCategory('perdida_de_oportunidad_de_venta')"
         title="Pérdida de Oportunidad de Venta"
         icon="mdi-alert-circle-outline"
         :colors="chartColors.lostOpp"
+        :horizontal="true"
       />
 
       <!-- Time to Conversion Chart -->
@@ -158,7 +164,6 @@
 import metricsApi from "@/services/api/metrics";
 import UnifiedDateFilter from "@/components/metrics/UnifiedDateFilter";
 import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
-import UnifiedPieChart from "@/components/metrics/UnifiedPieChart";
 import UnifiedBarChart from "@/components/metrics/UnifiedBarChart";
 
 export default {
@@ -167,7 +172,6 @@ export default {
   components: {
     UnifiedDateFilter,
     UnifiedSummaryCard,
-    UnifiedPieChart,
     UnifiedBarChart,
   },
 
