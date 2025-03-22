@@ -418,7 +418,8 @@ export default {
       if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
 
       return this.monthlyData.monthlyData.map(
-        (month) => `${month.monthName} ${month.year}`
+        (month) =>
+          `${month.monthName} ${month.year} (${month.totalChatsWithSentiment} chats)`
       );
     },
 
@@ -452,6 +453,11 @@ export default {
           return sentimentValue ? sentimentValue.count : 0;
         });
 
+        // Get total chats with sentiment for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSentiment || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -465,12 +471,14 @@ export default {
           label: sentimentType.label,
           data: data,
           percentage: percentageData, // Add percentage data
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: sentimentType.color,
           backgroundColor: sentimentType.color + "33", // Add transparency
           tension: 0.4,
           fill: false,
           pointRadius: 4,
           pointHoverRadius: 6,
+          borderWidth: 2,
         };
       });
     },
@@ -504,6 +512,11 @@ export default {
           return dissValue ? dissValue.count : 0;
         });
 
+        // Get total chats with sentiment for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSentiment || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -517,12 +530,14 @@ export default {
           label: dissType.label,
           data: data,
           percentage: percentageData, // Add percentage data
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: dissType.color,
           backgroundColor: dissType.color + "33", // Add transparency
           tension: 0.4,
           fill: false,
           pointRadius: 4,
           pointHoverRadius: 6,
+          borderWidth: 2,
         };
       });
     },
@@ -560,6 +575,11 @@ export default {
           return trueCount;
         });
 
+        // Get total chats with sentiment for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSentiment || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -573,12 +593,14 @@ export default {
           label: metric.label,
           data: data,
           percentage: percentageData,
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: metric.color,
           backgroundColor: metric.color + "33", // Add transparency
           tension: 0.4,
           fill: true,
           pointRadius: 4,
           pointHoverRadius: 6,
+          borderWidth: 2,
         };
       });
     },
@@ -607,12 +629,14 @@ export default {
         {
           label: this.$t("metrics.SENTIMENT_ANALYSIS.TOTAL_CHATS"),
           data: totalChatsData,
+          totalChats: totalChatsData, // Self reference for consistency
           borderColor: "#1976D2",
           backgroundColor: "#1976D233",
           tension: 0.4,
           fill: true,
           pointRadius: 4,
           pointHoverRadius: 6,
+          borderWidth: 2,
         },
         {
           label: this.$t(
@@ -620,12 +644,14 @@ export default {
           ),
           data: totalChatsWithSentimentData,
           percentage: sentimentPercentageData,
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: "#9C27B0",
           backgroundColor: "#9C27B033",
           tension: 0.4,
           fill: true,
           pointRadius: 4,
           pointHoverRadius: 6,
+          borderWidth: 2,
         },
       ];
     },

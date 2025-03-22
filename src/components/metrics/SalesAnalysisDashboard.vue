@@ -355,7 +355,8 @@ export default {
       if (!this.monthlyData || !this.monthlyData.monthlyData) return [];
 
       return this.monthlyData.monthlyData.map(
-        (month) => `${month.monthName} ${month.year}`
+        (month) =>
+          `${month.monthName} ${month.year} (${month.totalChatsWithSalesAnalysis} chats)`
       );
     },
 
@@ -416,6 +417,11 @@ export default {
           return resultValue ? resultValue.count : 0;
         });
 
+        // Get total chats with sales analysis for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSalesAnalysis || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -429,6 +435,7 @@ export default {
           label: resultType.label,
           data: data,
           percentage: percentageData,
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: resultType.color,
           backgroundColor: resultType.color + "33", // Add transparency
           tension: 0.4,
@@ -482,6 +489,11 @@ export default {
           return originValue ? originValue.count : 0;
         });
 
+        // Get total chats with sales analysis for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSalesAnalysis || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -495,6 +507,7 @@ export default {
           label: originType.label,
           data: data,
           percentage: percentageData,
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: originType.color,
           backgroundColor: originType.color + "33", // Add transparency
           tension: 0.4,
@@ -540,6 +553,11 @@ export default {
           return lostOppValue ? lostOppValue.count : 0;
         });
 
+        // Get total chats with sales analysis for each month for reference
+        const totalChatsData = this.monthlyData.monthlyData.map(
+          (month) => month.totalChatsWithSalesAnalysis || 0
+        );
+
         // Calculate percentages for each month
         const percentageData = this.monthlyData.monthlyData.map(
           (month, index) => {
@@ -553,6 +571,7 @@ export default {
           label: lostOppType.label,
           data: data,
           percentage: percentageData,
+          totalChats: totalChatsData, // Add total chats for reference
           borderColor: lostOppType.color,
           backgroundColor: lostOppType.color + "33", // Add transparency
           tension: 0.4,
