@@ -197,6 +197,23 @@ export default {
   },
 
   /**
+   * Get sales analysis metrics by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SalesAnalysisByMonthResponse}>} API response
+   */
+  getSalesAnalysisByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sales_analysis_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sales analysis by month metrics:", error);
+        throw error;
+      });
+  },
+
+  /**
    * Get AI categories and topics metrics
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').AICategoriesResponse}>} API response
