@@ -27,6 +27,9 @@
 
       <v-tabs-items v-model="activeTab">
         <v-tab-item>
+          <messages-by-channel-dashboard @component-ready="onComponentReady" />
+        </v-tab-item>
+        <v-tab-item>
           <sentiment-analysis-dashboard />
         </v-tab-item>
         <v-tab-item>
@@ -44,6 +47,7 @@
 import SentimentAnalysisDashboard from "@/components/metrics/SentimentAnalysisDashboard";
 import SalesAnalysisDashboard from "@/components/metrics/SalesAnalysisDashboard";
 import ConsultationMotivesDashboard from "@/components/metrics/ConsultationMotivesDashboard";
+import MessagesByChannelDashboard from "@/components/metrics/MessagesByChannelDashboard";
 
 export default {
   name: "MetricsView",
@@ -52,12 +56,17 @@ export default {
     SentimentAnalysisDashboard,
     SalesAnalysisDashboard,
     ConsultationMotivesDashboard,
+    MessagesByChannelDashboard,
   },
 
   data() {
     return {
       activeTab: 0,
       tabs: [
+        {
+          icon: "mdi-message-text-outline",
+          text: "Mensajes por Canal",
+        },
         {
           icon: "mdi-emoticon-outline",
           text: this.$t("metrics.SENTIMENT_ANALYSIS.TITLE"),
@@ -72,6 +81,15 @@ export default {
         },
       ],
     };
+  },
+
+  methods: {
+    onComponentReady() {
+      // Component is loaded and ready
+      console.log("MessagesByChannelDashboard ready and loading data");
+      // Make sure we're on the first tab
+      this.activeTab = 0;
+    },
   },
 };
 </script>

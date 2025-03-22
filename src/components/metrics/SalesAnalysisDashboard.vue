@@ -245,17 +245,44 @@ export default {
   },
 
   methods: {
-    handleFilterApplied({ startDate, endDate, activeFilterLabel }) {
+    handleFilterApplied({
+      startDate,
+      endDate,
+      activeFilterLabel,
+      forceRefresh,
+    }) {
+      // Store the previous date range to check if it changed
+      const dateRangeChanged =
+        this.startDate !== startDate || this.endDate !== endDate;
+
+      // Update the date range
       this.startDate = startDate;
       this.endDate = endDate;
       this.activeQuickFilterLabel = activeFilterLabel;
-      this.fetchData();
+
+      // If date range changed or forceRefresh is true, clear cached data to force refresh
+      if (dateRangeChanged || forceRefresh) {
+        this.dashboardData = null;
+      }
+
+      // Only fetch if we don't have data or if date range changed or forceRefresh is true
+      if (!this.dashboardData || dateRangeChanged || forceRefresh) {
+        this.fetchData();
+      }
     },
 
     async fetchData() {
+      // If we already have data, no need to fetch again
+      if (this.dashboardData) {
+        return;
+      }
+
       this.loading = true;
       try {
-        let payload = {};
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
         if (this.startDate) {
           payload.startDate = this.startDate;
         }

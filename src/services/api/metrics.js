@@ -10,8 +10,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<import('../../types/metrics').MetricsApiResponse>>} API response
    */
   getMessagesByChannelByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/messages_by_channel_by_month`, params)
+      .post(`/api/metrics/messages_by_channel_by_month`, requestParams)
       .catch((error) => {
         console.error("Error fetching messages by channel metrics:", error);
         throw error;
@@ -24,8 +27,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').CleanLeadsByChannelItem[]}>} API response
    */
   getCleanLeadsByChannelByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/cleanleads_by_channel_by_month`, params)
+      .post(`/api/metrics/cleanleads_by_channel_by_month`, requestParams)
       .catch((error) => {
         console.error("Error fetching cleanLeads by channel metrics:", error);
         throw error;
@@ -38,8 +44,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').ChatsCoverageItem[]}>} API response
    */
   getChatsCoverageByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/chats_coverage_by_month`, params)
+      .post(`/api/metrics/chats_coverage_by_month`, requestParams)
       .catch((error) => {
         console.error("Error fetching chats coverage metrics:", error);
         throw error;
@@ -52,10 +61,15 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').TotalMessagesResponse}>} API response
    */
   getTotalMessagesByDateRange(params) {
-    return axios.post(`/api/metrics/total_messages`, params).catch((error) => {
-      console.error("Error fetching total messages metrics:", error);
-      throw error;
-    });
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/total_messages`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching total messages metrics:", error);
+        throw error;
+      });
   },
 
   /**
@@ -64,10 +78,15 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').NewChatsResponse}>} API response
    */
   getNewChatsByDateRange(params) {
-    return axios.post(`/api/metrics/new_chats`, params).catch((error) => {
-      console.error("Error fetching new chats metrics:", error);
-      throw error;
-    });
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/new_chats`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching new chats metrics:", error);
+        throw error;
+      });
   },
 
   /**
@@ -76,10 +95,15 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').NewUsersResponse}>} API response
    */
   getNewUsersByDateRange(params) {
-    return axios.post(`/api/metrics/new_users`, params).catch((error) => {
-      console.error("Error fetching new users metrics:", error);
-      throw error;
-    });
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/new_users`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching new users metrics:", error);
+        throw error;
+      });
   },
 
   /**
@@ -88,8 +112,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').ConsultationMotivesCountsResponse}>} API response
    */
   getConsultationMotivesCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/consultation_motives_counts`, params)
+      .post(`/api/metrics/consultation_motives_counts`, requestParams)
       .catch((error) => {
         console.error("Error fetching consultation motives counts:", error);
         throw error;
@@ -102,8 +129,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SentimentAnalysisResponse}>} API response
    */
   getSentimentAnalysisCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/sentiment_analysis_counts`, params)
+      .post(`/api/metrics/sentiment_analysis_counts`, requestParams)
       .catch((error) => {
         console.error(
           "Error fetching sentiment analysis counts metrics:",
@@ -119,8 +149,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SentimentAnalysisByMonthResponse}>} API response
    */
   getSentimentAnalysisByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/sentiment_analysis_by_month`, params)
+      .post(`/api/metrics/sentiment_analysis_by_month`, requestParams)
       .catch((error) => {
         console.error(
           "Error fetching sentiment analysis by month metrics:",
@@ -135,8 +168,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').ConversationQualityResponse}>} API response
    */
   getConversationQualityMetrics(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/conversation_quality`, params)
+      .post(`/api/metrics/conversation_quality`, requestParams)
       .catch((error) => {
         console.error("Error fetching conversation quality metrics:", error);
         throw error;
@@ -149,8 +185,11 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SalesAnalysisResponse}>} API response
    */
   getSalesAnalysisCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
     return axios
-      .post(`/api/metrics/sales_analysis_counts`, params)
+      .post(`/api/metrics/sales_analysis_counts`, requestParams)
       .catch((error) => {
         console.error("Error fetching sales analysis metrics:", error);
         throw error;
@@ -163,10 +202,15 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').AICategoriesResponse}>} API response
    */
   getAICategoriesMetrics(params) {
-    return axios.post(`/api/metrics/ai_categories`, params).catch((error) => {
-      console.error("Error fetching AI categories metrics:", error);
-      throw error;
-    });
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/ai_categories`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching AI categories metrics:", error);
+        throw error;
+      });
   },
 
   /**
@@ -175,9 +219,48 @@ export default {
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').CEODashboardResponse}>} API response
    */
   getCEODashboardMetrics(params) {
-    return axios.post(`/api/metrics/ceo_dashboard`, params).catch((error) => {
-      console.error("Error fetching CEO dashboard metrics:", error);
-      throw error;
-    });
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/ceo_dashboard`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching CEO dashboard metrics:", error);
+        throw error;
+      });
+  },
+
+  /** Another metrics */
+  /**
+   * Get leads by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').LeadsByMonthResponse}>>} API response
+   */
+  getLeadsByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/leads_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching leads by month metrics:", error);
+        throw error;
+      });
+  },
+  /**
+   * Get Sentiment Analysis metrics
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SentimentAnalysisResponse}>>} API response
+   */
+  getSentimentAnalysis(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sentiment_analysis`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sentiment analysis metrics:", error);
+        throw error;
+      });
   },
 };

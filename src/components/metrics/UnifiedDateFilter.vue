@@ -147,7 +147,7 @@ export default {
     },
     defaultSelectedFilter: {
       type: Number,
-      default: 3, // Default to 'Last 30 days'
+      default: 9, // Default to 'Todo el tiempo' (was 3 - 'Last 30 days')
     },
     startLabel: {
       type: String,
@@ -172,8 +172,7 @@ export default {
       localStartDate: this.startDate,
       localEndDate: this.endDate,
       startMenu: false,
-      startDateMenu: false,
-      endDateMenu: false,
+      endMenu: false,
       selectedQuickFilter: this.defaultSelectedFilter,
       filters: [
         {
@@ -281,6 +280,7 @@ export default {
         startDate: this.localStartDate,
         endDate: this.localEndDate,
         activeFilterLabel: null,
+        forceRefresh: true,
       });
     },
 

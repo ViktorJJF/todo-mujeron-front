@@ -694,15 +694,45 @@ export default {
   },
 
   methods: {
-    handleFilterApplied({ startDate, endDate, activeFilterLabel }) {
+    handleFilterApplied({
+      startDate,
+      endDate,
+      activeFilterLabel,
+      forceRefresh,
+    }) {
+      // Store the previous date range to check if it changed
+      const dateRangeChanged =
+        this.startDate !== startDate || this.endDate !== endDate;
+
+      // Update the date range
       this.startDate = startDate;
       this.endDate = endDate;
       this.activeQuickFilterLabel = activeFilterLabel;
+
+      // If date range changed or forceRefresh is true, clear cached data to force refresh
+      if (dateRangeChanged || forceRefresh) {
+        if (this.viewMode === VIEW_MODES.COUNTS) {
+          this.dashboardData = null;
+        } else if (this.viewMode === VIEW_MODES.MONTHLY) {
+          this.monthlyData = null;
+        }
+      }
+
+      // Fetch data based on current view mode
       this.fetchData();
     },
 
     handleViewModeChange() {
-      // Clear both data sets when changing views to ensure fresh data is loaded
+      // If data for the selected view mode is already available, don't fetch again
+      if (this.viewMode === VIEW_MODES.COUNTS && this.dashboardData) {
+        this.loading = false; // Ensure loading is off since we're using cached data
+        return;
+      } else if (this.viewMode === VIEW_MODES.MONTHLY && this.monthlyData) {
+        this.loading = false; // Ensure loading is off since we're using cached data
+        return;
+      }
+
+      // If we don't have the data already, fetch it
       this.loading = true;
 
       if (this.viewMode === VIEW_MODES.COUNTS) {
@@ -713,9 +743,10 @@ export default {
     },
 
     async fetchData() {
-      if (this.viewMode === VIEW_MODES.COUNTS) {
+      // For initial data load, we'll fetch based on the current view mode
+      if (this.viewMode === VIEW_MODES.COUNTS && !this.dashboardData) {
         await this.fetchCountsData();
-      } else {
+      } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.monthlyData) {
         await this.fetchMonthlyData();
       }
     },
@@ -723,7 +754,10 @@ export default {
     async fetchCountsData() {
       this.loading = true;
       try {
-        let payload = {};
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
         if (this.startDate) {
           payload.startDate = this.startDate;
         }
@@ -747,7 +781,10 @@ export default {
     async fetchMonthlyData() {
       this.loading = true;
       try {
-        let payload = {};
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
         if (this.startDate) {
           payload.startDate = this.startDate;
         }
@@ -835,15 +872,14 @@ export default {
     this.fetchData();
 
     // For better user experience, also prefetch the other view's data
-    if (this.viewMode === VIEW_MODES.COUNTS) {
-      setTimeout(() => {
+    // with lower priority (after a delay)
+    setTimeout(() => {
+      if (this.viewMode === VIEW_MODES.COUNTS && !this.monthlyData) {
         this.fetchMonthlyData();
-      }, 1000); // Delay to ensure main view loads first
-    } else {
-      setTimeout(() => {
+      } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.dashboardData) {
         this.fetchCountsData();
-      }, 1000);
-    }
+      }
+    }, 1000); // Delay to ensure main view loads first
   },
 };
 </script>
