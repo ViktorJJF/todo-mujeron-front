@@ -152,6 +152,25 @@
     </v-card>
 
     <!-- Leads by Month Section -->
+        <!-- Leads Statistics -->
+    <v-card class="px-4 py-3 mb-4" v-if="leadsData && leadsData.length > 0">
+      <v-card-title>{{
+        $t("metrics.LEADS_BY_MONTH.OVERVIEW_TITLE")
+      }}</v-card-title>
+
+      <v-skeleton-loader
+        v-if="loadingLeads"
+        type="card"
+        class="mb-4"
+      ></v-skeleton-loader>
+
+      <template v-else>
+        <unified-summary-card
+          :stats="leadsSummaryStats"
+          :title="$t('metrics.LEADS_BY_MONTH.SUMMARY_TITLE')"
+        />
+      </template>
+    </v-card>
     <v-card class="px-4 py-3 mb-4">
       <v-card-title>{{ $t("metrics.LEADS_BY_MONTH.TITLE") }}</v-card-title>
       <v-card-subtitle>{{
@@ -179,27 +198,29 @@
       </v-alert>
     </v-card>
 
-    <!-- Leads Statistics -->
-    <v-card class="px-4 py-3 mb-4" v-if="leadsData && leadsData.length > 0">
+    <!-- CleanLeads Section -->
+        <!-- CleanLeads Statistics -->
+    <v-card
+      class="px-4 py-3 mb-4"
+      v-if="cleanLeadsData && cleanLeadsData.length > 0"
+    >
       <v-card-title>{{
-        $t("metrics.LEADS_BY_MONTH.OVERVIEW_TITLE")
+        $t("metrics.CLEAN_LEADS.OVERVIEW_TITLE")
       }}</v-card-title>
 
       <v-skeleton-loader
-        v-if="loadingLeads"
+        v-if="loadingCleanLeads"
         type="card"
         class="mb-4"
       ></v-skeleton-loader>
 
       <template v-else>
         <unified-summary-card
-          :stats="leadsSummaryStats"
-          :title="$t('metrics.LEADS_BY_MONTH.SUMMARY_TITLE')"
+          :stats="cleanLeadsSummaryStats"
+          :title="$t('metrics.CLEAN_LEADS.SUMMARY_TITLE')"
         />
       </template>
     </v-card>
-
-    <!-- CleanLeads Section -->
     <v-card class="px-4 py-3 mb-4">
       <v-card-title>{{ $t("metrics.CLEAN_LEADS.TITLE") }}</v-card-title>
       <v-card-subtitle>{{
@@ -225,29 +246,6 @@
       <v-alert v-else type="info" class="text-center">
         {{ $t("metrics.NO_DATA_AVAILABLE") }}
       </v-alert>
-    </v-card>
-
-    <!-- CleanLeads Statistics -->
-    <v-card
-      class="px-4 py-3 mb-4"
-      v-if="cleanLeadsData && cleanLeadsData.length > 0"
-    >
-      <v-card-title>{{
-        $t("metrics.CLEAN_LEADS.OVERVIEW_TITLE")
-      }}</v-card-title>
-
-      <v-skeleton-loader
-        v-if="loadingCleanLeads"
-        type="card"
-        class="mb-4"
-      ></v-skeleton-loader>
-
-      <template v-else>
-        <unified-summary-card
-          :stats="cleanLeadsSummaryStats"
-          :title="$t('metrics.CLEAN_LEADS.SUMMARY_TITLE')"
-        />
-      </template>
     </v-card>
   </div>
 </template>
