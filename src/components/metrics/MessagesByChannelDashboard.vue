@@ -38,11 +38,11 @@
                   <v-icon small color="primary" class="mr-1"
                     >mdi-loading</v-icon
                   >
-                  <span class="mr-3">Mensajes por Canal</span>
+                  <span class="mr-3">Métricas generales</span>
                 </template>
                 <template v-else-if="messagesLoaded">
                   <v-icon small color="success" class="mr-1">mdi-check</v-icon>
-                  <span class="mr-3">Mensajes por Canal</span>
+                  <span class="mr-3">Métricas generales</span>
                 </template>
 
                 <template v-if="loadingLeads">
@@ -152,7 +152,7 @@
     </v-card>
 
     <!-- Leads by Month Section -->
-        <!-- Leads Statistics -->
+    <!-- Leads Statistics -->
     <v-card class="px-4 py-3 mb-4" v-if="leadsData && leadsData.length > 0">
       <v-card-title>{{
         $t("metrics.LEADS_BY_MONTH.OVERVIEW_TITLE")
@@ -199,7 +199,7 @@
     </v-card>
 
     <!-- CleanLeads Section -->
-        <!-- CleanLeads Statistics -->
+    <!-- CleanLeads Statistics -->
     <v-card
       class="px-4 py-3 mb-4"
       v-if="cleanLeadsData && cleanLeadsData.length > 0"

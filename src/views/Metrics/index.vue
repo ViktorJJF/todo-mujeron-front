@@ -65,7 +65,7 @@ export default {
       tabs: [
         {
           icon: "mdi-message-text-outline",
-          text: "Mensajes por Canal",
+          text: "Métricas generales",
         },
         {
           icon: "mdi-emoticon-outline",
