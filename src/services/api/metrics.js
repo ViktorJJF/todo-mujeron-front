@@ -124,6 +124,26 @@ export default {
   },
 
   /**
+   * Get consultation motives by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').ConsultationMotivesByMonthResponse}>} API response
+   */
+  getConsultationMotivesByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/consultation_motives_by_month`, requestParams)
+      .catch((error) => {
+        console.error(
+          "Error fetching consultation motives by month metrics:",
+          error
+        );
+        throw error;
+      });
+  },
+
+  /**
    * Get sentiment analysis metrics
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SentimentAnalysisResponse}>} API response

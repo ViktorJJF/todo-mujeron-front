@@ -88,6 +88,7 @@ export default {
         name: dataset.label,
         data: dataset.data,
         percentage: dataset.percentage,
+        totalChats: dataset.totalChats,
       }));
     },
 
@@ -134,7 +135,10 @@ export default {
               const percentage = series.percentage
                 ? series.percentage[dataPointIndex]
                 : 0;
-              return `${val} (${percentage}%)`;
+              const totalChats = series.totalChats
+                ? series.totalChats[dataPointIndex]
+                : 0;
+              return `${val} (${percentage}% de ${totalChats} chats)`;
             },
           },
         },
