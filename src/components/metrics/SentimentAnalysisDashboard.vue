@@ -253,6 +253,7 @@ export default {
       endDate: null,
       dashboardData: null,
       monthlyData: null,
+      salesData: null,
       selectedQuickFilter: 9,
       activeQuickFilterLabel: "Todo el tiempo",
       quickFilters: [
@@ -434,11 +435,11 @@ export default {
         { label: "Insatisfecho", color: "#F44336" },
         { label: "Confusión", color: "#FF9800" },
         { label: "Fustracion", color: "#E91E63" },
-        { label: "Tóxico", color: "#7B1FA2" },
+        { label: "Tóxico", color: "#512DA8" },
         { label: "Evasivo/Desconfiado", color: "#607D8B" },
       ];
 
-      return sentimentTypes.map((sentimentType) => {
+      const datasets = sentimentTypes.map((sentimentType) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           const sentimentMetric = month.enumMetrics.find(
             (m) => m.field === "calificacion_del_sentimiento"
@@ -481,6 +482,13 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add sales dataset if available
+      if (this.salesData) {
+        datasets.push(this.createSalesDataset());
+      }
+
+      return datasets;
     },
 
     dissatisfactionDatasets() {
@@ -497,7 +505,7 @@ export default {
         { label: "Sin insatisfacción", color: "#4CAF50" },
       ];
 
-      return dissatisfactionTypes.map((dissType) => {
+      const datasets = dissatisfactionTypes.map((dissType) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           const dissMetric = month.enumMetrics.find(
             (m) => m.field === "origen_de_la_insatisfaccion"
@@ -540,6 +548,13 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add sales dataset if available
+      if (this.salesData) {
+        datasets.push(this.createSalesDataset());
+      }
+
+      return datasets;
     },
 
     booleanMetricsDatasets() {
@@ -559,7 +574,7 @@ export default {
         },
       ];
 
-      return booleanMetrics.map((metric) => {
+      const datasets = booleanMetrics.map((metric) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           // Look for the boolean metrics in each month's data
           const booleanMetric = month.booleanMetrics
@@ -603,6 +618,13 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add sales dataset if available
+      if (this.salesData) {
+        datasets.push(this.createSalesDataset());
+      }
+
+      return datasets;
     },
 
     totalChatsDataset() {
@@ -817,10 +839,15 @@ export default {
         if (this.endDate) {
           payload.endDate = this.endDate;
         }
+
+        // Get sentiment analysis monthly data
         const response = await metricsApi.getSentimentAnalysisByMonth(payload);
 
         if (response.data && response.data.ok) {
           this.monthlyData = response.data.payload;
+
+          // Fetch sales data after getting monthly data
+          await this.fetchSalesData();
         } else {
           console.error(
             "Error in monthly sentiment analysis data response:",
@@ -835,6 +862,70 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+
+    async fetchSalesData() {
+      try {
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+
+        const response = await metricsApi.getSheetSalesByMonth(payload);
+
+        if (response.data && response.data.ok) {
+          this.salesData = response.data.payload;
+        } else {
+          console.error("Error in sales data response:", response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch sales data:", error);
+      }
+    },
+
+    createSalesDataset() {
+      if (!this.monthlyData || !this.monthlyData.monthlyData || !this.salesData)
+        return null;
+
+      // Create a map of year-month combinations from the monthly data
+      const monthKeys = this.monthlyData.monthlyData.map(
+        (month) => `${month.year}-${month.month}`
+      );
+
+      // Filter sales data to match the months we have in monthly data
+      const matchedSalesData = [];
+
+      monthKeys.forEach((key) => {
+        const [year, month] = key.split("-").map(Number);
+        const salesItem = this.salesData.find(
+          (item) => item.year === year && item.month === month
+        );
+
+        if (salesItem) {
+          matchedSalesData.push(salesItem.total);
+        } else {
+          // If no matching sales data for this month, use 0
+          matchedSalesData.push(0);
+        }
+      });
+
+      return {
+        label: "Ventas",
+        data: matchedSalesData,
+        borderColor: "#9C27B0", // Purple color for sales
+        backgroundColor: "#9C27B033", // Transparent version for area
+        borderWidth: 3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.4,
+        yAxisIndex: 1, // Use the secondary y-axis
+      };
     },
 
     findEnumMetricData(fieldName) {

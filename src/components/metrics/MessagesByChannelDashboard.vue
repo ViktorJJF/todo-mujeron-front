@@ -1,23 +1,21 @@
 <template>
   <div class="messages-by-channel-dashboard">
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title class="headline">
-        {{ $t("metrics.MESSAGES_BY_CHANNEL.TITLE") }}
-      </v-card-title>
+      <v-card-title class="headline"> Mensajes por Canal </v-card-title>
       <v-card-subtitle>
-        {{ $t("metrics.MESSAGES_BY_CHANNEL.DATA_PERIOD") }}:
+        Período de datos:
         {{ formatDateRange }}
       </v-card-subtitle>
 
       <unified-date-filter
         @filter-applied="handleFilterApplied"
         :selected-quick-filter="selectedQuickFilter"
-        :title="$t('metrics.MESSAGES_BY_CHANNEL.FILTER_TITLE')"
-        :description="$t('metrics.MESSAGES_BY_CHANNEL.SELECT_DATE_RANGE')"
-        :start-label="$t('metrics.MESSAGES_BY_CHANNEL.START_DATE')"
-        :end-label="$t('metrics.MESSAGES_BY_CHANNEL.END_DATE')"
-        :button-label="$t('metrics.MESSAGES_BY_CHANNEL.APPLY_FILTER')"
-        :quick-filter-label="$t('metrics.MESSAGES_BY_CHANNEL.QUICK_FILTERS')"
+        :title="'Filtro de fecha de mensajes'"
+        :description="'Seleccione rango de fechas'"
+        :start-label="'Fecha de inicio'"
+        :end-label="'Fecha de fin'"
+        :button-label="'Aplicar filtro'"
+        :quick-filter-label="'Filtros rápidos'"
       />
 
       <!-- Loading Status Bar -->
@@ -66,6 +64,13 @@
                   <v-icon small color="success" class="mr-1">mdi-check</v-icon>
                   <span>Clean Leads</span>
                 </template>
+
+                <template v-if="loadingSales">
+                  <v-icon small color="primary" class="mr-1"
+                    >mdi-loading</v-icon
+                  >
+                  <span>Ventas</span>
+                </template>
               </div>
             </div>
           </div>
@@ -75,9 +80,7 @@
 
     <!-- Messages by Channel Section -->
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title>{{
-        $t("metrics.MESSAGES_BY_CHANNEL.OVERVIEW_TITLE")
-      }}</v-card-title>
+      <v-card-title>Resumen General</v-card-title>
 
       <v-skeleton-loader
         v-if="loadingMessages"
@@ -88,23 +91,21 @@
       <template v-else-if="monthlyData && monthlyData.length > 0">
         <unified-summary-card
           :stats="summaryStats"
-          :title="$t('metrics.MESSAGES_BY_CHANNEL.SUMMARY_TITLE')"
+          :title="'Resumen de Mensajes'"
         />
       </template>
 
       <v-alert v-else type="info" class="text-center">
-        {{ $t("metrics.NO_DATA_AVAILABLE") }}
+        No hay datos disponibles para el período seleccionado
       </v-alert>
     </v-card>
 
     <!-- Messages by Channel Monthly Trend -->
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title>{{
-        $t("metrics.MESSAGES_BY_CHANNEL.MONTHLY_TREND_TITLE")
-      }}</v-card-title>
-      <v-card-subtitle>{{
-        $t("metrics.MESSAGES_BY_CHANNEL.MONTHLY_TREND_TEXT")
-      }}</v-card-subtitle>
+      <v-card-title>Tendencia Mensual</v-card-title>
+      <v-card-subtitle
+        >Evolución de mensajes por canal a lo largo del tiempo</v-card-subtitle
+      >
 
       <v-skeleton-loader
         v-if="loadingMessages"
@@ -117,24 +118,22 @@
           :labels="monthlyLabels"
           :datasets="channelDatasets"
           :chartData="monthlyData"
-          :title="$t('metrics.MESSAGES_BY_CHANNEL.CHART_TITLE')"
-          style="height: 400px"
+          :title="'Mensajes por Canal'"
+          style="height: auto; margin-bottom: 20px"
         />
       </template>
 
       <v-alert v-else type="info" class="text-center">
-        {{ $t("metrics.NO_DATA_AVAILABLE") }}
+        No hay datos disponibles para el período seleccionado
       </v-alert>
     </v-card>
 
     <!-- Messages by Channel Distribution -->
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title>{{
-        $t("metrics.MESSAGES_BY_CHANNEL.DISTRIBUTION_TITLE")
-      }}</v-card-title>
-      <v-card-subtitle>{{
-        $t("metrics.MESSAGES_BY_CHANNEL.DISTRIBUTION_TEXT")
-      }}</v-card-subtitle>
+      <v-card-title>Distribución por Canal</v-card-title>
+      <v-card-subtitle
+        >Porcentaje de mensajes por cada canal de comunicación</v-card-subtitle
+      >
 
       <v-skeleton-loader
         v-if="loadingMessages"
@@ -147,16 +146,17 @@
       </template>
 
       <v-alert v-else type="info" class="text-center">
-        {{ $t("metrics.NO_DATA_AVAILABLE") }}
+        No hay datos disponibles para el período seleccionado
       </v-alert>
     </v-card>
 
     <!-- Leads by Month Section -->
     <!-- Leads Statistics -->
-    <v-card class="px-4 py-3 mb-4" v-if="leadsData && leadsData.length > 0">
-      <v-card-title>{{
-        $t("metrics.LEADS_BY_MONTH.OVERVIEW_TITLE")
-      }}</v-card-title>
+    <v-card
+      class="px-4 py-3 mb-4"
+      v-if="(leadsData && leadsData.length > 0) || loadingLeads"
+    >
+      <v-card-title>Resumen de Leads</v-card-title>
 
       <v-skeleton-loader
         v-if="loadingLeads"
@@ -167,15 +167,15 @@
       <template v-else>
         <unified-summary-card
           :stats="leadsSummaryStats"
-          :title="$t('metrics.LEADS_BY_MONTH.SUMMARY_TITLE')"
+          :title="'Resumen de Leads'"
         />
       </template>
     </v-card>
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title>{{ $t("metrics.LEADS_BY_MONTH.TITLE") }}</v-card-title>
-      <v-card-subtitle>{{
-        $t("metrics.LEADS_BY_MONTH.SUBTITLE")
-      }}</v-card-subtitle>
+      <v-card-title>Leads por Mes</v-card-title>
+      <v-card-subtitle
+        >Evolución de leads generados mensualmente</v-card-subtitle
+      >
 
       <v-skeleton-loader
         v-if="loadingLeads"
@@ -188,13 +188,13 @@
           :labels="leadsLabels"
           :datasets="leadsDatasets"
           :chartData="leadsData"
-          :title="$t('metrics.LEADS_BY_MONTH.CHART_TITLE')"
-          style="height: 400px"
+          :title="'Leads por Mes'"
+          style="height: auto; margin-bottom: 20px"
         />
       </template>
 
       <v-alert v-else type="info" class="text-center">
-        {{ $t("metrics.NO_DATA_AVAILABLE") }}
+        No hay datos disponibles para el período seleccionado
       </v-alert>
     </v-card>
 
@@ -202,11 +202,9 @@
     <!-- CleanLeads Statistics -->
     <v-card
       class="px-4 py-3 mb-4"
-      v-if="cleanLeadsData && cleanLeadsData.length > 0"
+      v-if="(cleanLeadsData && cleanLeadsData.length > 0) || loadingCleanLeads"
     >
-      <v-card-title>{{
-        $t("metrics.CLEAN_LEADS.OVERVIEW_TITLE")
-      }}</v-card-title>
+      <v-card-title>Resumen de Clean Leads</v-card-title>
 
       <v-skeleton-loader
         v-if="loadingCleanLeads"
@@ -217,15 +215,15 @@
       <template v-else>
         <unified-summary-card
           :stats="cleanLeadsSummaryStats"
-          :title="$t('metrics.CLEAN_LEADS.SUMMARY_TITLE')"
+          :title="'Resumen de Clean Leads'"
         />
       </template>
     </v-card>
     <v-card class="px-4 py-3 mb-4">
-      <v-card-title>{{ $t("metrics.CLEAN_LEADS.TITLE") }}</v-card-title>
-      <v-card-subtitle>{{
-        $t("metrics.CLEAN_LEADS.SUBTITLE")
-      }}</v-card-subtitle>
+      <v-card-title>Clean Leads</v-card-title>
+      <v-card-subtitle
+        >Evolución de clean leads generados mensualmente</v-card-subtitle
+      >
 
       <v-skeleton-loader
         v-if="loadingCleanLeads"
@@ -238,13 +236,13 @@
           :labels="cleanLeadsLabels"
           :datasets="cleanLeadsDatasets"
           :chartData="cleanLeadsData"
-          :title="$t('metrics.CLEAN_LEADS.CHART_TITLE')"
-          style="height: 400px"
+          :title="'Clean Leads'"
+          style="height: auto; margin-bottom: 20px"
         />
       </template>
 
       <v-alert v-else type="info" class="text-center">
-        {{ $t("metrics.NO_DATA_AVAILABLE") }}
+        No hay datos disponibles para el período seleccionado
       </v-alert>
     </v-card>
   </div>
@@ -256,6 +254,7 @@ import metricsApi from "@/services/api/metrics";
 import UnifiedDateFilter from "@/components/metrics/UnifiedDateFilter";
 import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
 import UnifiedLineChart from "@/components/metrics/UnifiedLineChart";
+import axios from "axios";
 
 export default {
   name: "MessagesByChannelDashboard",
@@ -271,8 +270,8 @@ export default {
       // Shared data
       startDate: null,
       endDate: null,
-      selectedQuickFilter: 9,
-      activeQuickFilterLabel: "Todo el tiempo",
+      selectedQuickFilter: 8, // Default to "Año 2024"
+      activeQuickFilterLabel: "Año 2024",
 
       // Messages by channel data
       loadingMessages: false,
@@ -287,6 +286,16 @@ export default {
       // CleanLeads data
       loadingCleanLeads: false,
       cleanLeadsData: null,
+
+      // Sales data
+      loadingSales: false,
+      salesData: null,
+
+      // Request cancellation tokens
+      messagesAxiosCancelToken: null,
+      leadsAxiosCancelToken: null,
+      cleanLeadsAxiosCancelToken: null,
+      salesAxiosCancelToken: null,
 
       // Colors for charts
       channelColors: {
@@ -331,6 +340,7 @@ export default {
       messagesLoaded: false,
       leadsLoaded: false,
       cleanLeadsLoaded: false,
+      salesLoaded: false,
     };
   },
 
@@ -403,7 +413,8 @@ export default {
       // Get sorted unique month-year combinations
       const uniqueMonthYears = this.monthlyLabels;
 
-      return allPlatforms.map((platform) => {
+      // Create datasets for each platform
+      const platformDatasets = allPlatforms.map((platform) => {
         // For each month-year, find the corresponding count for this platform
         const data = uniqueMonthYears.map((monthYear) => {
           const [monthName, year] = monthYear.split(" ");
@@ -420,18 +431,99 @@ export default {
         const channelName =
           platform.charAt(0).toUpperCase() + platform.slice(1);
 
+        const channelColor = this.getChannelColor(channelName);
+
+        // Calculate percentage for each data point (for tooltip only)
+        const totalByMonth = {};
+        this.monthlyData.forEach((item) => {
+          const key = `${item.monthName} ${item.year}`;
+          if (!totalByMonth[key]) totalByMonth[key] = 0;
+          totalByMonth[key] += item.count;
+        });
+
+        const percentage = uniqueMonthYears.map((monthYear, idx) => {
+          const total = totalByMonth[monthYear] || 0;
+          return total > 0 ? ((data[idx] / total) * 100).toFixed(1) : "0.0";
+        });
+
         return {
           label: channelName,
           data: data,
-          borderColor: this.getChannelColor(channelName),
-          backgroundColor: this.getChannelColor(channelName) + "33", // Add transparency
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          borderWidth: 2,
+          percentage: percentage, // Keep percentage for tooltips
+          borderColor: channelColor,
+          backgroundColor: channelColor,
+          // ECharts-specific properties - Clean line only
+          lineStyle: {
+            width: 3,
+            color: channelColor,
+            type: "solid",
+          },
+          itemStyle: {
+            color: channelColor,
+          },
+          symbol: "circle",
+          symbolSize: 6,
         };
       });
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Prepare sales data for each month in the messages chart
+        const salesData = uniqueMonthYears.map((monthYear) => {
+          const [monthName, yearStr] = monthYear.split(" ");
+          const year = parseInt(yearStr);
+          const month = monthNameToNumber[monthName.toLowerCase()];
+
+          const saleEntry = this.salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        // Calculate percentage (not really meaningful for sales vs messages, but kept for tooltip consistency)
+        const totalSales = salesData.reduce((sum, value) => sum + value, 0);
+        const salesPercentage = salesData.map((value) =>
+          totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add the sales dataset
+        platformDatasets.push({
+          label: "Ventas",
+          data: salesData,
+          percentage: salesPercentage,
+          borderColor: "#9C27B0", // Purple
+          backgroundColor: "#9C27B0",
+          lineStyle: {
+            width: 3,
+            color: "#9C27B0",
+            type: "solid",
+          },
+          itemStyle: {
+            color: "#9C27B0",
+          },
+          symbol: "diamond",
+          symbolSize: 7,
+        });
+      }
+
+      return platformDatasets;
     },
 
     totalMessages() {
@@ -458,22 +550,22 @@ export default {
       return [
         {
           value: this.totalMessages,
-          label: this.$t("metrics.MESSAGES_BY_CHANNEL.TOTAL_MESSAGES"),
+          label: "Total de mensajes",
           color: "primary",
         },
         {
           value: this.monthlyData.length,
-          label: this.$t("metrics.MESSAGES_BY_CHANNEL.MONTHS_ANALYZED"),
+          label: "Meses analizados",
           color: "info",
         },
         {
           value: topChannel.channel,
-          label: this.$t("metrics.MESSAGES_BY_CHANNEL.MAIN_CHANNEL"),
+          label: "Canal principal",
           color: "success",
         },
         {
           value: topChannel.total,
-          label: this.$t("metrics.MESSAGES_BY_CHANNEL.MESSAGES_IN_CHANNEL"),
+          label: "Mensajes en canal principal",
           color: "success",
         },
       ];
@@ -488,26 +580,100 @@ export default {
     leadsDatasets() {
       if (!this.leadsData) return [];
 
-      // Calculate total leads for percentage calculation
+      const datasets = [];
+
+      // Calculate total leads for percentage calculation (for tooltip only)
       const totalLeads = this.totalLeads;
       const percentage = this.leadsData.map((item) =>
         totalLeads > 0 ? ((item.count / totalLeads) * 100).toFixed(1) : "0.0"
       );
 
-      return [
-        {
-          label: "Leads",
-          data: this.leadsData.map((item) => item.count),
-          percentage: percentage, // Add percentage data for tooltip
-          borderColor: "#4CAF50",
-          backgroundColor: "#4CAF5033",
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          borderWidth: 2,
+      // Add leads dataset
+      datasets.push({
+        label: "Leads",
+        data: this.leadsData.map((item) => item.count),
+        percentage: percentage, // Keep percentage for tooltips
+        borderColor: "#4CAF50",
+        backgroundColor: "#4CAF50",
+        // ECharts-specific properties - Clean line only
+        lineStyle: {
+          width: 3,
+          color: "#4CAF50",
+          type: "solid",
         },
-      ];
+        itemStyle: {
+          color: "#4CAF50",
+        },
+        symbol: "circle",
+        symbolSize: 6,
+      });
+
+      // Add sales dataset if available
+      if (
+        this.salesData &&
+        this.salesData.length > 0 &&
+        this.leadsData.length > 0
+      ) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Get months from leads data
+        const leadsMonths = this.leadsLabels.map((label) => {
+          const [monthName, yearStr] = label.split(" ");
+          return {
+            month: monthNameToNumber[monthName.toLowerCase()],
+            year: parseInt(yearStr),
+          };
+        });
+
+        // Match sales data to leads months
+        const salesData = leadsMonths.map(({ month, year }) => {
+          const saleEntry = this.salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        // Calculate percentage
+        const totalSales = salesData.reduce((sum, value) => sum + value, 0);
+        const salesPercentage = salesData.map((value) =>
+          totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add to datasets
+        datasets.push({
+          label: "Ventas",
+          data: salesData,
+          percentage: salesPercentage,
+          borderColor: "#9C27B0", // Purple
+          backgroundColor: "#9C27B0",
+          lineStyle: {
+            width: 3,
+            color: "#9C27B0",
+            type: "solid",
+          },
+          itemStyle: {
+            color: "#9C27B0",
+          },
+          symbol: "diamond",
+          symbolSize: 7,
+        });
+      }
+
+      return datasets;
     },
 
     totalLeads() {
@@ -531,22 +697,22 @@ export default {
       return [
         {
           value: this.totalLeads,
-          label: this.$t("metrics.LEADS_BY_MONTH.TOTAL_LEADS"),
+          label: "Total de leads",
           color: "primary",
         },
         {
           value: this.leadsData.length,
-          label: this.$t("metrics.LEADS_BY_MONTH.MONTHS_ANALYZED"),
+          label: "Meses analizados",
           color: "info",
         },
         {
           value: avgLeadsPerMonth,
-          label: this.$t("metrics.LEADS_BY_MONTH.AVERAGE_MONTHLY"),
+          label: "Promedio mensual",
           color: "warning",
         },
         {
           value: `${highestLeadMonth.monthName} ${highestLeadMonth.year} (${highestLeadMonth.count})`,
-          label: this.$t("metrics.LEADS_BY_MONTH.BEST_MONTH"),
+          label: "Mejor mes",
           color: "success",
         },
       ];
@@ -563,7 +729,9 @@ export default {
     cleanLeadsDatasets() {
       if (!this.cleanLeadsData) return [];
 
-      // Calculate total clean leads for percentage calculation
+      const datasets = [];
+
+      // Calculate total clean leads for percentage calculation (for tooltip only)
       const totalCleanLeads = this.totalCleanLeads;
       const percentage = this.cleanLeadsData.map((item) =>
         totalCleanLeads > 0
@@ -571,20 +739,92 @@ export default {
           : "0.0"
       );
 
-      return [
-        {
-          label: "Clean Leads",
-          data: this.cleanLeadsData.map((item) => item.count),
-          percentage: percentage, // Add percentage data for tooltip
-          borderColor: "#FF5722", // Deep Orange
-          backgroundColor: "#FF572233", // With transparency
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          borderWidth: 2,
+      // Add clean leads dataset
+      datasets.push({
+        label: "Clean Leads",
+        data: this.cleanLeadsData.map((item) => item.count),
+        percentage: percentage, // Keep percentage for tooltips
+        borderColor: "#FF5722", // Deep Orange
+        backgroundColor: "#FF5722",
+        // ECharts-specific properties - Clean line only
+        lineStyle: {
+          width: 3,
+          color: "#FF5722",
+          type: "solid",
         },
-      ];
+        itemStyle: {
+          color: "#FF5722",
+        },
+        symbol: "circle",
+        symbolSize: 6,
+      });
+
+      // Add sales dataset if available
+      if (
+        this.salesData &&
+        this.salesData.length > 0 &&
+        this.cleanLeadsData.length > 0
+      ) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Get months from clean leads data
+        const cleanLeadsMonths = this.cleanLeadsLabels.map((label) => {
+          const [monthName, yearStr] = label.split(" ");
+          return {
+            month: monthNameToNumber[monthName.toLowerCase()],
+            year: parseInt(yearStr),
+          };
+        });
+
+        // Match sales data to clean leads months
+        const salesData = cleanLeadsMonths.map(({ month, year }) => {
+          const saleEntry = this.salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        // Calculate percentage
+        const totalSales = salesData.reduce((sum, value) => sum + value, 0);
+        const salesPercentage = salesData.map((value) =>
+          totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add to datasets
+        datasets.push({
+          label: "Ventas",
+          data: salesData,
+          percentage: salesPercentage,
+          borderColor: "#9C27B0", // Purple
+          backgroundColor: "#9C27B0",
+          lineStyle: {
+            width: 3,
+            color: "#9C27B0",
+            type: "solid",
+          },
+          itemStyle: {
+            color: "#9C27B0",
+          },
+          symbol: "diamond",
+          symbolSize: 7,
+        });
+      }
+
+      return datasets;
     },
 
     totalCleanLeads() {
@@ -608,31 +848,58 @@ export default {
       return [
         {
           value: this.totalCleanLeads,
-          label: this.$t("metrics.CLEAN_LEADS.TOTAL_CLEAN_LEADS"),
+          label: "Total de clean leads",
           color: "primary",
         },
         {
           value: this.cleanLeadsData.length,
-          label: this.$t("metrics.CLEAN_LEADS.MONTHS_ANALYZED"),
+          label: "Meses analizados",
           color: "info",
         },
         {
           value: avgCleanLeadsPerMonth,
-          label: this.$t("metrics.CLEAN_LEADS.AVERAGE_MONTHLY"),
+          label: "Promedio mensual",
           color: "warning",
         },
         {
           value: `${highestCleanLeadsMonth.monthName} ${highestCleanLeadsMonth.year} (${highestCleanLeadsMonth.count})`,
-          label: this.$t("metrics.CLEAN_LEADS.BEST_MONTH"),
+          label: "Mejor mes",
           color: "deep-orange",
         },
       ];
     },
 
+    // Sales computed properties
+    salesLabels() {
+      if (!this.salesData) return [];
+
+      const monthNames = {
+        1: "enero",
+        2: "febrero",
+        3: "marzo",
+        4: "abril",
+        5: "mayo",
+        6: "junio",
+        7: "julio",
+        8: "agosto",
+        9: "septiembre",
+        10: "octubre",
+        11: "noviembre",
+        12: "diciembre",
+      };
+
+      return this.salesData.map(
+        (item) => `${monthNames[item.month]} ${item.year}`
+      );
+    },
+
     // Common loading states
     isLoading() {
       return (
-        this.loadingMessages || this.loadingLeads || this.loadingCleanLeads
+        this.loadingMessages ||
+        this.loadingLeads ||
+        this.loadingCleanLeads ||
+        this.loadingSales
       );
     },
 
@@ -641,6 +908,7 @@ export default {
       if (this.loadingMessages) loadingItems.push("mensajes");
       if (this.loadingLeads) loadingItems.push("leads");
       if (this.loadingCleanLeads) loadingItems.push("clean leads");
+      if (this.loadingSales) loadingItems.push("ventas");
 
       if (loadingItems.length > 0) {
         return `Cargando datos de ${loadingItems.join(" y ")}...`;
@@ -691,6 +959,11 @@ export default {
       return ((value / this.totalMessages) * 100).toFixed(1);
     },
 
+    formatNumber(value) {
+      // Return the full number without K suffix
+      return value.toString();
+    },
+
     handleFilterApplied({
       startDate,
       endDate,
@@ -702,148 +975,279 @@ export default {
       const dateRangeChanged =
         this.startDate !== startDate || this.endDate !== endDate;
 
-      // Update the date range and filter properties
-      this.startDate = startDate;
-      this.endDate = endDate;
-      this.activeQuickFilterLabel = activeFilterLabel;
-      this.selectedQuickFilter = quickFilterIndex;
+      // Handle "Todo el tiempo" filter (index 12) explicitly
+      if (quickFilterIndex === 12) {
+        this.startDate = null;
+        this.endDate = null;
+      } else {
+        // Update the date range for other filters
+        this.startDate = startDate;
+        this.endDate = endDate;
+      }
+
+      this.activeQuickFilterLabel = activeFilterLabel || "Todo el tiempo";
+
+      if (quickFilterIndex !== undefined) {
+        this.selectedQuickFilter = quickFilterIndex;
+      }
 
       // If date range changed or forceRefresh is true, clear cached data to force refresh
       if (dateRangeChanged || forceRefresh) {
+        // Reset data
         this.monthlyData = null;
         this.leadsData = null;
         this.cleanLeadsData = null;
+        this.salesData = null;
+
+        // Reset loaded flags
+        this.messagesLoaded = false;
+        this.leadsLoaded = false;
+        this.cleanLeadsLoaded = false;
+        this.salesLoaded = false;
+
+        // Set loading flags
+        this.loadingMessages = true;
+        this.loadingLeads = true;
+        this.loadingCleanLeads = true;
+        this.loadingSales = true;
       }
+
+      // Log current state for debugging
+      console.log("Filter applied:", {
+        startDate: this.startDate,
+        endDate: this.endDate,
+        quickFilterIndex,
+        activeFilterLabel: this.activeQuickFilterLabel,
+      });
+
+      // Cancel any existing requests
+      this.cancelPendingRequests();
 
       // Fetch data independently
       this.fetchMessagesData();
       this.fetchLeadsData();
       this.fetchCleanLeadsData();
+      this.fetchSalesData();
+    },
+
+    cancelPendingRequests() {
+      // Cancel any pending requests
+      if (this.messagesAxiosCancelToken) {
+        this.messagesAxiosCancelToken.cancel(
+          "Operation canceled due to new request"
+        );
+      }
+      if (this.leadsAxiosCancelToken) {
+        this.leadsAxiosCancelToken.cancel(
+          "Operation canceled due to new request"
+        );
+      }
+      if (this.cleanLeadsAxiosCancelToken) {
+        this.cleanLeadsAxiosCancelToken.cancel(
+          "Operation canceled due to new request"
+        );
+      }
+      if (this.salesAxiosCancelToken) {
+        this.salesAxiosCancelToken.cancel(
+          "Operation canceled due to new request"
+        );
+      }
+
+      // Create new cancel tokens
+      this.messagesAxiosCancelToken = axios.CancelToken.source();
+      this.leadsAxiosCancelToken = axios.CancelToken.source();
+      this.cleanLeadsAxiosCancelToken = axios.CancelToken.source();
+      this.salesAxiosCancelToken = axios.CancelToken.source();
     },
 
     async fetchMessagesData() {
-      // Check if we should fetch data (either no data or forced refresh)
-      if (this.startDate && this.endDate) {
-        this.loadingMessages = true;
-        this.messagesLoaded = false;
-        try {
-          const company =
-            this.$store.getters["authModule/getCurrentCompany"].company._id;
+      this.loadingMessages = true;
+      this.messagesLoaded = false;
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
 
-          const response = await metricsApi.getMessagesByChannelByMonth({
-            startDate: this.startDate,
-            endDate: this.endDate,
-            company: company,
-          });
+        // Build request params - only company ID by default
+        const params = { company };
 
-          if (response.data && response.data.ok) {
-            this.monthlyData = response.data.payload || [];
-
-            // Calculate totals by platform for summary stats
-            const platformMap = new Map();
-
-            if (this.monthlyData && this.monthlyData.length > 0) {
-              this.monthlyData.forEach((item) => {
-                const platform = item.platform;
-                const count = item.count;
-
-                if (platformMap.has(platform)) {
-                  platformMap.set(platform, platformMap.get(platform) + count);
-                } else {
-                  platformMap.set(platform, count);
-                }
-              });
-
-              this.channelTotals = Array.from(platformMap.entries())
-                .map(([platform, total]) => ({
-                  channel: platform.charAt(0).toUpperCase() + platform.slice(1), // Capitalize first letter
-                  total,
-                }))
-                .sort((a, b) => b.total - a.total);
-
-              this.$nextTick(() => {
-                this.renderPieChart();
-              });
-            } else {
-              this.channelTotals = [];
-            }
-
-            this.messagesLoaded = true;
-          } else {
-            console.error("Error in messages by channel response:", response);
-          }
-        } catch (error) {
-          console.error("Error fetching message channel data:", error);
-        } finally {
-          this.loadingMessages = false;
+        // Only add date parameters if they're not null or undefined
+        if (this.startDate !== null && this.startDate !== undefined) {
+          params.startDate = this.startDate;
         }
-      } else if (this.monthlyData) {
-        // Data already loaded
-        this.messagesLoaded = true;
+
+        if (this.endDate !== null && this.endDate !== undefined) {
+          params.endDate = this.endDate;
+        }
+
+        console.log("Messages API request params:", params);
+
+        const response = await metricsApi.getMessagesByChannelByMonth(params, {
+          cancelToken: this.messagesAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.monthlyData = response.data.payload || [];
+
+          // Calculate totals by platform for summary stats
+          const platformMap = new Map();
+
+          if (this.monthlyData && this.monthlyData.length > 0) {
+            this.monthlyData.forEach((item) => {
+              const platform = item.platform;
+              const count = item.count;
+
+              if (platformMap.has(platform)) {
+                platformMap.set(platform, platformMap.get(platform) + count);
+              } else {
+                platformMap.set(platform, count);
+              }
+            });
+
+            this.channelTotals = Array.from(platformMap.entries())
+              .map(([platform, total]) => ({
+                channel: platform.charAt(0).toUpperCase() + platform.slice(1), // Capitalize first letter
+                total,
+              }))
+              .sort((a, b) => b.total - a.total);
+
+            this.$nextTick(() => {
+              this.renderPieChart();
+            });
+          } else {
+            this.channelTotals = [];
+          }
+
+          this.messagesLoaded = true;
+        } else {
+          console.error("Error in messages by channel response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Error fetching message channel data:", error);
+        }
+      } finally {
+        this.loadingMessages = false;
       }
     },
 
     async fetchLeadsData() {
-      // Check if we should fetch data
-      if (this.startDate && this.endDate) {
-        this.loadingLeads = true;
-        this.leadsLoaded = false;
-        try {
-          const company =
-            this.$store.getters["authModule/getCurrentCompany"].company._id;
+      this.loadingLeads = true;
+      this.leadsLoaded = false;
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
 
-          const response = await metricsApi.getLeadsByMonth({
-            startDate: this.startDate,
-            endDate: this.endDate,
-            company: company,
-          });
+        // Build request params - only company ID by default
+        const params = { company };
 
-          if (response.data && response.data.ok) {
-            this.leadsData = response.data.payload || [];
-            this.leadsLoaded = true;
-          } else {
-            console.error("Error in leads response:", response);
-          }
-        } catch (error) {
-          console.error("Error fetching leads data:", error);
-        } finally {
-          this.loadingLeads = false;
+        // Only add date parameters if they're not null or undefined
+        if (this.startDate !== null && this.startDate !== undefined) {
+          params.startDate = this.startDate;
         }
-      } else if (this.leadsData) {
-        // Data already loaded
-        this.leadsLoaded = true;
+
+        if (this.endDate !== null && this.endDate !== undefined) {
+          params.endDate = this.endDate;
+        }
+
+        console.log("Leads API request params:", params);
+
+        const response = await metricsApi.getLeadsByMonth(params, {
+          cancelToken: this.leadsAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.leadsData = response.data.payload || [];
+          this.leadsLoaded = true;
+        } else {
+          console.error("Error in leads response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Error fetching leads data:", error);
+        }
+      } finally {
+        this.loadingLeads = false;
       }
     },
 
     async fetchCleanLeadsData() {
-      // Check if we should fetch data
-      if (this.startDate && this.endDate) {
-        this.loadingCleanLeads = true;
-        this.cleanLeadsLoaded = false;
-        try {
-          const company =
-            this.$store.getters["authModule/getCurrentCompany"].company._id;
+      this.loadingCleanLeads = true;
+      this.cleanLeadsLoaded = false;
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
 
-          const response = await metricsApi.getCleanLeadsByChannelByMonth({
-            startDate: this.startDate,
-            endDate: this.endDate,
-            company: company,
-          });
+        // Build request params - only company ID by default
+        const params = { company };
 
-          if (response.data && response.data.ok) {
-            this.cleanLeadsData = response.data.payload || [];
-            this.cleanLeadsLoaded = true;
-          } else {
-            console.error("Error in clean leads response:", response);
-          }
-        } catch (error) {
-          console.error("Error fetching clean leads data:", error);
-        } finally {
-          this.loadingCleanLeads = false;
+        // Only add date parameters if they're not null or undefined
+        if (this.startDate !== null && this.startDate !== undefined) {
+          params.startDate = this.startDate;
         }
-      } else if (this.cleanLeadsData) {
-        // Data already loaded
-        this.cleanLeadsLoaded = true;
+
+        if (this.endDate !== null && this.endDate !== undefined) {
+          params.endDate = this.endDate;
+        }
+
+        console.log("CleanLeads API request params:", params);
+
+        const response = await metricsApi.getCleanLeadsByChannelByMonth(
+          params,
+          { cancelToken: this.cleanLeadsAxiosCancelToken.token }
+        );
+
+        if (response.data && response.data.ok) {
+          this.cleanLeadsData = response.data.payload || [];
+          this.cleanLeadsLoaded = true;
+        } else {
+          console.error("Error in clean leads response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Error fetching clean leads data:", error);
+        }
+      } finally {
+        this.loadingCleanLeads = false;
+      }
+    },
+
+    async fetchSalesData() {
+      this.loadingSales = true;
+      this.salesLoaded = false;
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
+
+        // Build request params - only company ID by default
+        const params = { company };
+
+        // Only add date parameters if they're not null or undefined
+        if (this.startDate !== null && this.startDate !== undefined) {
+          params.startDate = this.startDate;
+        }
+
+        if (this.endDate !== null && this.endDate !== undefined) {
+          params.endDate = this.endDate;
+        }
+
+        console.log("Sales API request params:", params);
+
+        const response = await metricsApi.getSheetSalesByMonth(params, {
+          cancelToken: this.salesAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.salesData = response.data.payload || [];
+          this.salesLoaded = true;
+        } else {
+          console.error("Error in sales response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Error fetching sales data:", error);
+        }
+      } finally {
+        this.loadingSales = false;
       }
     },
 
@@ -892,7 +1296,7 @@ export default {
           },
           series: [
             {
-              name: this.$t("metrics.MESSAGES_BY_CHANNEL.DISTRIBUTION_TITLE"),
+              name: "Distribución por Canal",
               type: "pie",
               radius: ["40%", "70%"],
               avoidLabelOverlap: true,
@@ -939,7 +1343,10 @@ export default {
 
     handleResize() {
       if (this.pieChart) {
-        this.pieChart.resize();
+        // Delay resize slightly to ensure DOM is ready
+        setTimeout(() => {
+          this.pieChart.resize();
+        }, 100);
       }
     },
 
@@ -949,71 +1356,71 @@ export default {
       this.monthlyData = null;
       this.leadsData = null;
       this.cleanLeadsData = null;
+      this.salesData = null;
 
       this.fetchMessagesData();
       this.fetchLeadsData();
       this.fetchCleanLeadsData();
+      this.fetchSalesData();
     },
-  },
 
-  mounted() {
-    // Set initial dates if not already set
-    if (!this.startDate || !this.endDate) {
-      // Default to last 90 days
-      const end = new Date();
-      const start = new Date();
-      start.setDate(start.getDate() - 90);
+    mounted() {
+      // Initialize with 2024 date range
+      this.startDate = "2024-01-01";
+      this.endDate = "2024-12-31";
+      this.activeQuickFilterLabel = "Año 2024";
 
-      this.startDate = start.toISOString().split("T")[0];
-      this.endDate = end.toISOString().split("T")[0];
-    }
+      this.initializeChartComponents();
+      this.initializeData();
 
-    // Set loading states to true before fetching data
-    this.loadingMessages = true;
-    this.loadingLeads = true;
-    this.loadingCleanLeads = true;
+      // Listen for resizing events to redraw charts
+      window.addEventListener("resize", this.handleWindowResize);
 
-    // Initial data fetch - fetch each endpoint independently
-    this.fetchAllData();
-
-    // Add window resize event listener
-    window.addEventListener("resize", this.handleResize);
-  },
-
-  beforeDestroy() {
-    // Cleanup chart instance
-    if (this.pieChart) {
-      this.pieChart.dispose();
-      this.pieChart = null;
-    }
-
-    // Remove event listener
-    window.removeEventListener("resize", this.handleResize);
-  },
-
-  created() {
-    // Notify parent that component is ready to be displayed
-    this.$nextTick(() => {
+      // Emit component ready event so parent can know this component is loaded
       this.$emit("component-ready");
-    });
 
-    // Add fallback translations if they don't exist
-    const fallbackTranslations = {
-      "metrics.MESSAGES_BY_CHANNEL.FILTER_TITLE": "Message Date Filter",
-      "metrics.MESSAGES_BY_CHANNEL.SUMMARY_TITLE": "Messages Summary",
-      "metrics.MESSAGES_BY_CHANNEL.CHART_TITLE": "Messages by Channel",
-      "metrics.LEADS_BY_MONTH.CHART_TITLE": "Leads by Month",
-      "metrics.LEADS_BY_MONTH.SUMMARY_TITLE": "Leads Summary",
-      "metrics.CLEAN_LEADS.CHART_TITLE": "Clean Leads",
-      "metrics.CLEAN_LEADS.SUMMARY_TITLE": "Clean Leads Summary",
-      "metrics.NO_DATA_AVAILABLE": "No data available for the selected period",
-    };
+      // If we should load with a specific filter
+      if (this.selectedQuickFilter === 12) {
+        // No specific filter - load data with 2024 filter instead
+        this.selectedQuickFilter = 8;
+      }
 
-    // Check if i18n exists and add fallbacks if needed
-    if (this.$i18n && this.$i18n.mergeLocaleMessage) {
-      this.$i18n.mergeLocaleMessage("es", fallbackTranslations);
-      this.$i18n.mergeLocaleMessage("en", fallbackTranslations);
-    }
+      // Initialize cancel tokens
+      this.messagesAxiosCancelToken = axios.CancelToken.source();
+      this.leadsAxiosCancelToken = axios.CancelToken.source();
+      this.cleanLeadsAxiosCancelToken = axios.CancelToken.source();
+      this.salesAxiosCancelToken = axios.CancelToken.source();
+
+      // Set loading states to true before fetching data
+      this.loadingMessages = true;
+      this.loadingLeads = true;
+      this.loadingCleanLeads = true;
+      this.loadingSales = true;
+
+      // Initial data fetch - fetch each endpoint independently
+      this.fetchAllData();
+    },
+
+    beforeDestroy() {
+      // Cleanup chart instance
+      if (this.pieChart) {
+        this.pieChart.dispose();
+        this.pieChart = null;
+      }
+
+      // Cancel any pending requests
+      this.cancelPendingRequests();
+
+      // Remove event listener
+      window.removeEventListener("resize", this.handleResize);
+    },
+
+    created() {
+      // Notify parent that component is ready to be displayed
+      this.$nextTick(() => {
+        this.$emit("component-ready");
+      });
+    },
   },
 };
 </script>

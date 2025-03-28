@@ -7,15 +7,20 @@ export default {
   /**
    * Get messages count by channel by month
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @param {Object} [options] - Request options including cancelToken
    * @returns {Promise<import('axios').AxiosResponse<import('../../types/metrics').MetricsApiResponse>>} API response
    */
-  getMessagesByChannelByMonth(params) {
+  getMessagesByChannelByMonth(params, options = {}) {
     // Ensure params is an object
     const requestParams = params || {};
 
     return axios
-      .post(`/api/metrics/messages_by_channel_by_month`, requestParams)
+      .post(`/api/metrics/messages_by_channel_by_month`, requestParams, options)
       .catch((error) => {
+        if (axios.isCancel(error)) {
+          // Request was cancelled, this is normal
+          return Promise.reject(error);
+        }
         console.error("Error fetching messages by channel metrics:", error);
         throw error;
       });
@@ -24,15 +29,24 @@ export default {
   /**
    * Get cleanLeads count by channel by month
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @param {Object} [options] - Request options including cancelToken
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').CleanLeadsByChannelItem[]}>} API response
    */
-  getCleanLeadsByChannelByMonth(params) {
+  getCleanLeadsByChannelByMonth(params, options = {}) {
     // Ensure params is an object
     const requestParams = params || {};
 
     return axios
-      .post(`/api/metrics/cleanleads_by_channel_by_month`, requestParams)
+      .post(
+        `/api/metrics/cleanleads_by_channel_by_month`,
+        requestParams,
+        options
+      )
       .catch((error) => {
+        if (axios.isCancel(error)) {
+          // Request was cancelled, this is normal
+          return Promise.reject(error);
+        }
         console.error("Error fetching cleanLeads by channel metrics:", error);
         throw error;
       });
@@ -271,15 +285,20 @@ export default {
   /**
    * Get leads by month
    * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @param {Object} [options] - Request options including cancelToken
    * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').LeadsByMonthResponse}>>} API response
    */
-  getLeadsByMonth(params) {
+  getLeadsByMonth(params, options = {}) {
     // Ensure params is an object
     const requestParams = params || {};
 
     return axios
-      .post(`/api/metrics/leads_by_month`, requestParams)
+      .post(`/api/metrics/leads_by_month`, requestParams, options)
       .catch((error) => {
+        if (axios.isCancel(error)) {
+          // Request was cancelled, this is normal
+          return Promise.reject(error);
+        }
         console.error("Error fetching leads by month metrics:", error);
         throw error;
       });
@@ -297,6 +316,22 @@ export default {
       .post(`/api/metrics/sentiment_analysis`, requestParams)
       .catch((error) => {
         console.error("Error fetching sentiment analysis metrics:", error);
+        throw error;
+      });
+  },
+  /**
+   * Get Sheet Sales by Month metrics
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').SheetSalesByMonthResponse}>>} API response
+   */
+  getSheetSalesByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sheet_sales_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sheet sales by month metrics:", error);
         throw error;
       });
   },

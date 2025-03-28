@@ -275,18 +275,19 @@ export default {
       endDate: null,
       dashboardData: null,
       monthlyData: null,
-      selectedQuickFilter: 9,
+      salesData: null,
+      selectedQuickFilter: 8,
       activeQuickFilterLabel: "Todo el tiempo",
       chartColors: {
-        origin: ["#4CAF50", "#2196F3", "#9C27B0", "#FF9800", "#607D8B"],
+        origin: ["#4CAF50", "#2196F3", "#FF5722", "#FF9800", "#607D8B"],
         payment: ["#F44336", "#3F51B5", "#009688", "#FFC107"],
         noSale: ["#E91E63", "#673AB7", "#00BCD4", "#FF5722", "#795548"],
-        loyalty: ["#9C27B0", "#3F51B5", "#8BC34A", "#FF9800", "#607D8B"],
+        loyalty: ["#8BC34A", "#3F51B5", "#4CAF50", "#FF9800", "#607D8B"],
         result: ["#4CAF50", "#FF5722", "#F44336", "#FFC107", "#2196F3"],
         lostOpp: ["#F44336", "#FF9800", "#E91E63"],
         time: ["#4CAF50", "#8BC34A", "#FFC107", "#FF9800"],
         assistance: ["#607D8B", "#9E9E9E", "#2196F3", "#3F51B5"],
-        monthlySales: ["#4CAF50", "#2196F3", "#9C27B0", "#FF9800", "#607D8B"],
+        monthlySales: ["#4CAF50", "#2196F3", "#FF5722", "#FF9800", "#607D8B"],
         monthlyConversionRate: ["#F44336", "#3F51B5", "#009688", "#FFC107"],
         monthlyLostOpportunities: ["#E91E63", "#673AB7", "#00BCD4", "#FF5722"],
       },
@@ -398,11 +399,12 @@ export default {
         },
         {
           label: "Consulta de Estado Postventa",
-          color: "#9C27B0",
+          color: "#00BCD4",
         },
       ];
 
-      return resultTypes.map((resultType) => {
+      // Prepare the regular datasets (non-sales)
+      const datasets = resultTypes.map((resultType) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           const categoryData = month.arrayCategories.find(
             (c) => c.category === "resultado_final_y_seguimiento"
@@ -445,6 +447,87 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add a sales dataset if sheet sales data is available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesData = this.salesData;
+
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Extract month/year from our chart labels to match with sales data
+        const monthsFromLabels = this.monthlyLabels
+          .map((label) => {
+            // Extract month name and year from the label (format: "Month Year (X chats)")
+            const match = label.match(/(\w+)\s+(\d{4})/);
+            if (match) {
+              return {
+                month: monthNameToNumber[match[1].toLowerCase()],
+                year: parseInt(match[2]),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        // Match sales data to the months in our chart
+        const matchedSalesData = monthsFromLabels.map(({ month, year }) => {
+          const saleEntry = salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        if (matchedSalesData.length > 0) {
+          // Calculate percentage (relative to the total sales)
+          const totalSales = matchedSalesData.reduce(
+            (sum, value) => sum + value,
+            0
+          );
+          const salesPercentage = matchedSalesData.map((value) =>
+            totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+          );
+
+          // Add sales dataset
+          datasets.push({
+            label: "Ventas",
+            data: matchedSalesData,
+            percentage: salesPercentage,
+            borderColor: "#9C27B0", // Purple
+            backgroundColor: "#9C27B0" + "33",
+            lineStyle: {
+              width: 3,
+              color: "#9C27B0",
+              type: "solid",
+            },
+            itemStyle: {
+              color: "#9C27B0",
+            },
+            symbol: "diamond",
+            symbolSize: 7,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          });
+        }
+      }
+
+      return datasets;
     },
 
     originDatasets() {
@@ -462,7 +545,7 @@ export default {
         },
         {
           label: "Compra Finalizada Directamente desde el Chat",
-          color: "#9C27B0",
+          color: "#FF5722",
         },
         {
           label: "Consulta en Chat, Compra en Tienda Física",
@@ -474,7 +557,8 @@ export default {
         },
       ];
 
-      return originTypes.map((originType) => {
+      // Prepare regular datasets (non-sales)
+      const datasets = originTypes.map((originType) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           const categoryData = month.arrayCategories.find(
             (c) => c.category === "origen_y_destino_de_la_compra"
@@ -517,6 +601,87 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add a sales dataset if sheet sales data is available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesData = this.salesData;
+
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Extract month/year from our chart labels to match with sales data
+        const monthsFromLabels = this.monthlyLabels
+          .map((label) => {
+            // Extract month name and year from the label (format: "Month Year (X chats)")
+            const match = label.match(/(\w+)\s+(\d{4})/);
+            if (match) {
+              return {
+                month: monthNameToNumber[match[1].toLowerCase()],
+                year: parseInt(match[2]),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        // Match sales data to the months in our chart
+        const matchedSalesData = monthsFromLabels.map(({ month, year }) => {
+          const saleEntry = salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        if (matchedSalesData.length > 0) {
+          // Calculate percentage (relative to the total sales)
+          const totalSales = matchedSalesData.reduce(
+            (sum, value) => sum + value,
+            0
+          );
+          const salesPercentage = matchedSalesData.map((value) =>
+            totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+          );
+
+          // Add sales dataset
+          datasets.push({
+            label: "Ventas",
+            data: matchedSalesData,
+            percentage: salesPercentage,
+            borderColor: "#9C27B0", // Purple
+            backgroundColor: "#9C27B0" + "33",
+            lineStyle: {
+              width: 3,
+              color: "#9C27B0",
+              type: "solid",
+            },
+            itemStyle: {
+              color: "#9C27B0",
+            },
+            symbol: "diamond",
+            symbolSize: 7,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          });
+        }
+      }
+
+      return datasets;
     },
 
     lostOpportunityDatasets() {
@@ -538,7 +703,8 @@ export default {
         },
       ];
 
-      return lostOppTypes.map((lostOppType) => {
+      // Prepare regular datasets (non-sales)
+      const datasets = lostOppTypes.map((lostOppType) => {
         const data = this.monthlyData.monthlyData.map((month) => {
           const categoryData = month.arrayCategories.find(
             (c) => c.category === "perdida_de_oportunidad_de_venta"
@@ -581,6 +747,87 @@ export default {
           borderWidth: 2,
         };
       });
+
+      // Add a sales dataset if sheet sales data is available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesData = this.salesData;
+
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Extract month/year from our chart labels to match with sales data
+        const monthsFromLabels = this.monthlyLabels
+          .map((label) => {
+            // Extract month name and year from the label (format: "Month Year (X chats)")
+            const match = label.match(/(\w+)\s+(\d{4})/);
+            if (match) {
+              return {
+                month: monthNameToNumber[match[1].toLowerCase()],
+                year: parseInt(match[2]),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        // Match sales data to the months in our chart
+        const matchedSalesData = monthsFromLabels.map(({ month, year }) => {
+          const saleEntry = salesData.find(
+            (item) => item.month === month && item.year === year
+          );
+          return saleEntry ? saleEntry.total : 0;
+        });
+
+        if (matchedSalesData.length > 0) {
+          // Calculate percentage (relative to the total sales)
+          const totalSales = matchedSalesData.reduce(
+            (sum, value) => sum + value,
+            0
+          );
+          const salesPercentage = matchedSalesData.map((value) =>
+            totalSales > 0 ? ((value / totalSales) * 100).toFixed(1) : "0.0"
+          );
+
+          // Add sales dataset
+          datasets.push({
+            label: "Ventas",
+            data: matchedSalesData,
+            percentage: salesPercentage,
+            borderColor: "#9C27B0", // Purple
+            backgroundColor: "#9C27B0" + "33",
+            lineStyle: {
+              width: 3,
+              color: "#9C27B0",
+              type: "solid",
+            },
+            itemStyle: {
+              color: "#9C27B0",
+            },
+            symbol: "diamond",
+            symbolSize: 7,
+            tension: 0.4,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          });
+        }
+      }
+
+      return datasets;
     },
 
     monthlySalesStats() {
@@ -661,6 +908,9 @@ export default {
         } else if (this.viewMode === VIEW_MODES.MONTHLY) {
           this.monthlyData = null;
         }
+
+        // Reset sales data to fetch with new date range
+        this.salesData = null;
       }
 
       // Fetch data based on current view mode
@@ -687,6 +937,11 @@ export default {
         await this.fetchCountsData();
       } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.monthlyData) {
         await this.fetchMonthlyData();
+      }
+
+      // Fetch sales data if not already loaded
+      if (!this.salesData) {
+        await this.fetchSalesData();
       }
     },
 
@@ -744,6 +999,30 @@ export default {
         console.error("Failed to fetch monthly sales analysis data:", error);
       } finally {
         this.loading = false;
+      }
+    },
+
+    async fetchSalesData() {
+      try {
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+        const response = await metricsApi.getSheetSalesByMonth(payload);
+
+        if (response.data && response.data.ok) {
+          this.salesData = response.data.payload || [];
+        } else {
+          console.error("Error in sales data response:", response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch sales data:", error);
       }
     },
 
@@ -807,6 +1086,11 @@ export default {
   },
 
   mounted() {
+    // Initialize with 2024 date range
+    this.startDate = "2024-01-01";
+    this.endDate = "2024-12-31";
+    this.activeQuickFilterLabel = "Año 2024";
+
     this.fetchData();
 
     // For better user experience, also prefetch the other view's data

@@ -147,7 +147,7 @@ export default {
     },
     defaultSelectedFilter: {
       type: Number,
-      default: 9, // Default to 'Todo el tiempo' (was 3 - 'Last 30 days')
+      default: 8, // Default to 'Año 2024'
     },
     startLabel: {
       type: String,
@@ -169,8 +169,8 @@ export default {
 
   data() {
     return {
-      localStartDate: this.startDate,
-      localEndDate: this.endDate,
+      localStartDate: this.startDate || "2024-01-01",
+      localEndDate: this.endDate || "2024-12-31",
       startMenu: false,
       endMenu: false,
       selectedQuickFilter: this.defaultSelectedFilter,
@@ -262,6 +262,33 @@ export default {
           },
         },
         {
+          label: "Año 2023",
+          getDateRange: () => {
+            return {
+              startDate: "2023-01-01",
+              endDate: "2023-12-31",
+            };
+          },
+        },
+        {
+          label: "Año 2022",
+          getDateRange: () => {
+            return {
+              startDate: "2022-01-01",
+              endDate: "2022-12-31",
+            };
+          },
+        },
+        {
+          label: "Año 2021",
+          getDateRange: () => {
+            return {
+              startDate: "2021-01-01",
+              endDate: "2021-12-31",
+            };
+          },
+        },
+        {
           label: "Todo el tiempo",
           getDateRange: () => {
             return {
@@ -274,14 +301,41 @@ export default {
     };
   },
 
+  created() {
+    // Apply the year 2024 filter by default when component is created
+    setTimeout(() => {
+      this.selectQuickFilter(8); // Index 8 is "Año 2024"
+    }, 0);
+  },
+
   methods: {
     applyDateFilter() {
-      this.$emit("filter-applied", {
-        startDate: this.localStartDate,
-        endDate: this.localEndDate,
-        activeFilterLabel: null,
+      const payload = {
         forceRefresh: true,
-      });
+        activeFilterLabel: null,
+      };
+
+      // Convert empty strings to null
+      const startDate =
+        this.localStartDate && this.localStartDate.trim() !== ""
+          ? this.localStartDate
+          : null;
+      const endDate =
+        this.localEndDate && this.localEndDate.trim() !== ""
+          ? this.localEndDate
+          : null;
+
+      // Only add date parameters if they are not null or empty
+      if (startDate !== null) {
+        payload.startDate = startDate;
+      }
+
+      if (endDate !== null) {
+        payload.endDate = endDate;
+      }
+
+      console.log("Manual filter applied:", payload);
+      this.$emit("filter-applied", payload);
     },
 
     selectQuickFilter(index) {
@@ -294,11 +348,28 @@ export default {
       this.localStartDate = startDate;
       this.localEndDate = endDate;
 
-      this.$emit("filter-applied", {
-        startDate,
-        endDate,
+      // Create payload with filter information
+      const payload = {
         activeFilterLabel: selectedFilter.label,
-      });
+        quickFilterIndex: index,
+      };
+
+      // For "Todo el tiempo" filter (index 12), don't include dates in the payload
+      if (index === 12) {
+        console.log("Todo el tiempo filter selected - using null dates");
+      } else {
+        // Only add date parameters for other filters and if they are not null
+        if (startDate !== null && startDate !== undefined) {
+          payload.startDate = startDate;
+        }
+
+        if (endDate !== null && endDate !== undefined) {
+          payload.endDate = endDate;
+        }
+      }
+
+      console.log("Emitting filter payload:", payload);
+      this.$emit("filter-applied", payload);
     },
   },
 

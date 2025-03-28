@@ -177,8 +177,7 @@
             value: topMonthlyCategory ? topMonthlyCategory.name : '',
             label: 'Categoría Principal de Consulta',
             color: 'success',
-          },
-        ]"
+          },        ]"
       />
 
       <!-- Monthly Trend Chart for Products and Stock -->
@@ -187,7 +186,7 @@
         :labels="monthlyLabels"
         :datasets="productsDatasets"
         title="Tendencia Mensual de Consultas sobre Productos y Stock"
-        subtitle="Evolución mensual de consultas sobre productos"
+        subtitle="Evolución mensual de consultas sobre productos y ventas"
         icon="mdi-package-variant-closed"
         :loading="loading"
       />
@@ -198,7 +197,7 @@
         :labels="monthlyLabels"
         :datasets="sizesDatasets"
         title="Tendencia Mensual de Consultas sobre Tallas"
-        subtitle="Evolución mensual de consultas sobre tallas"
+        subtitle="Evolución mensual de consultas sobre tallas y ventas"
         icon="mdi-tshirt-crew-outline"
         :loading="loading"
       />
@@ -209,7 +208,7 @@
         :labels="monthlyLabels"
         :datasets="locationDatasets"
         title="Tendencia Mensual de Consultas sobre Ubicación"
-        subtitle="Evolución mensual de consultas sobre ubicación"
+        subtitle="Evolución mensual de consultas sobre ubicación y ventas"
         icon="mdi-map-marker-outline"
         :loading="loading"
       />
@@ -220,7 +219,7 @@
         :labels="monthlyLabels"
         :datasets="shippingDatasets"
         title="Tendencia Mensual de Consultas sobre Despachos"
-        subtitle="Evolución mensual de consultas sobre despachos"
+        subtitle="Evolución mensual de consultas sobre despachos y ventas"
         icon="mdi-truck-delivery-outline"
         :loading="loading"
       />
@@ -231,7 +230,7 @@
         :labels="monthlyLabels"
         :datasets="warrantiesDatasets"
         title="Tendencia Mensual de Consultas sobre Cambios y Garantías"
-        subtitle="Evolución mensual de consultas sobre cambios y garantías"
+        subtitle="Evolución mensual de consultas sobre cambios y garantías con ventas"
         icon="mdi-swap-horizontal"
         :loading="loading"
       />
@@ -242,7 +241,7 @@
         :labels="monthlyLabels"
         :datasets="supplierDatasets"
         title="Tendencia Mensual de Consultas sobre Proveedores"
-        subtitle="Evolución mensual de consultas sobre como convertirse en proveedor"
+        subtitle="Evolución mensual de consultas sobre como convertirse en proveedor con ventas"
         icon="mdi-account-hard-hat"
         :loading="loading"
       />
@@ -253,7 +252,7 @@
         :labels="monthlyLabels"
         :datasets="promotionsDatasets"
         title="Tendencia Mensual de Aclaraciones sobre Promociones"
-        subtitle="Evolución mensual de aclaraciones sobre promociones y descuentos"
+        subtitle="Evolución mensual de aclaraciones sobre promociones y descuentos con ventas"
         icon="mdi-tag-multiple"
         :loading="loading"
       />
@@ -320,18 +319,20 @@ export default {
       startDate: null,
       endDate: null,
       dashboardData: null,
-      selectedQuickFilter: 9,
+      selectedQuickFilter: 8,
       activeQuickFilterLabel: "Todo el tiempo",
       viewMode: VIEW_MODES.COUNTS,
       monthlyData: null,
+      salesData: null,
       chartColors: {
-        products: ["#4CAF50", "#2196F3", "#9C27B0", "#FF9800"],
+        products: ["#4CAF50", "#2196F3", "#FF5722", "#FF9800"],
         sizes: ["#F44336", "#3F51B5", "#009688"],
         location: ["#E91E63", "#673AB7", "#00BCD4", "#FF5722"],
-        shipping: ["#9C27B0", "#3F51B5"],
+        shipping: ["#FF5722", "#3F51B5"],
         returns: ["#F44336", "#FF9800"],
         warranties: ["#4CAF50", "#FF5722"],
-        supplier: ["#2196F3", "#9C27B0"],
+        supplier: ["#2196F3", "#FF9800"],
+        sales: "#9C27B0",
       },
     };
   },
@@ -450,10 +451,18 @@ export default {
         },
       ];
 
-      return this.createDatasetsByCategory(
+      const typesDatasets = this.createDatasetsByCategory(
         "consultas_sobre_productos_y_stock",
         productTypes
       );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for sizes monthly chart
@@ -476,7 +485,18 @@ export default {
         },
       ];
 
-      return this.createDatasetsByCategory("consultas_sobre_tallas", sizeTypes);
+      const typesDatasets = this.createDatasetsByCategory(
+        "consultas_sobre_tallas",
+        sizeTypes
+      );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for location monthly chart
@@ -503,10 +523,18 @@ export default {
         },
       ];
 
-      return this.createDatasetsByCategory(
+      const typesDatasets = this.createDatasetsByCategory(
         "consultas_sobre_ubicacion",
         locationTypes
       );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for shipping monthly chart
@@ -517,7 +545,7 @@ export default {
       const shippingTypes = [
         {
           label: "Consultas sobre Estado del Pedido",
-          color: "#9C27B0",
+          color: "#FF5722",
         },
         {
           label: "Pregunta si hacemos despachos y cuanto tarda",
@@ -525,10 +553,18 @@ export default {
         },
       ];
 
-      return this.createDatasetsByCategory(
+      const typesDatasets = this.createDatasetsByCategory(
         "consultas_sobre_despachos",
         shippingTypes
       );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for warranties monthly chart
@@ -547,10 +583,18 @@ export default {
         },
       ];
 
-      return this.createDatasetsByCategory(
+      const typesDatasets = this.createDatasetsByCategory(
         "consultas_sobre_cambios_y_garantias",
         warrantyTypes
       );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for supplier monthly chart
@@ -565,14 +609,22 @@ export default {
         },
         {
           label: "Quiere Ser Influencer o rostro de la marca",
-          color: "#9C27B0",
+          color: "#FF9800",
         },
       ];
 
-      return this.createDatasetsByCategory(
+      const typesDatasets = this.createDatasetsByCategory(
         "consultas_sobre_como_convertirse_en_proveedor",
         supplierTypes
       );
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
 
     // Datasets for promotions monthly chart
@@ -603,7 +655,7 @@ export default {
         }
       );
 
-      return [
+      const typesDatasets = [
         {
           label: "Aclaraciones sobre Promociones y Descuentos",
           data: data,
@@ -618,6 +670,14 @@ export default {
           borderWidth: 2,
         },
       ];
+
+      // Add sales dataset if available
+      if (this.salesData && this.salesData.length > 0) {
+        const salesDataset = this.createSalesDataset();
+        return [...typesDatasets, salesDataset];
+      }
+
+      return typesDatasets;
     },
   },
 
@@ -644,6 +704,8 @@ export default {
         } else if (this.viewMode === VIEW_MODES.MONTHLY) {
           this.monthlyData = null;
         }
+        // Always clear sales data when date range changes
+        this.salesData = null;
       }
 
       // Fetch data based on current view mode
@@ -657,6 +719,11 @@ export default {
         return;
       } else if (this.viewMode === VIEW_MODES.MONTHLY && this.monthlyData) {
         this.loading = false; // Ensure loading is off since we're using cached data
+
+        // Make sure we have sales data when switching to monthly view
+        if (!this.salesData) {
+          this.fetchSalesData();
+        }
         return;
       }
 
@@ -670,6 +737,11 @@ export default {
         await this.fetchCountsData();
       } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.monthlyData) {
         await this.fetchMonthlyData();
+
+        // Fetch sales data if we're in monthly view
+        if (!this.salesData) {
+          await this.fetchSalesData();
+        }
       }
     },
 
@@ -719,6 +791,20 @@ export default {
     calculatePercentage(value, total) {
       if (!total) return 0;
       return Math.round((value / total) * 100);
+    },
+
+    formatTotalSales(salesData) {
+      if (!salesData || salesData.length === 0) return "0";
+
+      // Calculate total sales
+      const totalSales = salesData.reduce((sum, item) => sum + item.total, 0);
+
+      // Format with currency
+      return new Intl.NumberFormat("es-CL", {
+        style: "currency",
+        currency: "CLP",
+        minimumFractionDigits: 0,
+      }).format(totalSales);
     },
 
     getBooleanCategoryYesCount(category) {
@@ -785,6 +871,69 @@ export default {
       }
     },
 
+    async fetchSalesData() {
+      try {
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+
+        const response = await metricsApi.getSheetSalesByMonth(payload);
+
+        if (response.data && response.data.ok) {
+          this.salesData = response.data.payload;
+        } else {
+          console.error("Error in sales data response:", response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch sales data:", error);
+      }
+    },
+
+    createSalesDataset() {
+      // Create a map of year-month combinations from the monthly consultation data
+      const monthKeys = this.monthlyData.monthlyData.map(
+        (month) => `${month.year}-${month.month}`
+      );
+
+      // Filter sales data to match the months we have in monthly consultation data
+      const matchedSalesData = [];
+
+      monthKeys.forEach((key) => {
+        const [year, month] = key.split("-").map(Number);
+        const salesItem = this.salesData.find(
+          (item) => item.year === year && item.month === month
+        );
+
+        if (salesItem) {
+          matchedSalesData.push(salesItem.total);
+        } else {
+          // If no matching sales data for this month, use 0
+          matchedSalesData.push(0);
+        }
+      });
+
+      return {
+        label: "Ventas",
+        data: matchedSalesData,
+        borderColor: this.chartColors.sales,
+        backgroundColor: `${this.chartColors.sales}33`,
+        borderWidth: 3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.4,
+        yAxisID: "y-axis-sales", // This tells Chart.js to use the secondary y-axis
+        type: "line", // Ensure it's a line chart
+        order: 0, // Lower order means it appears in front
+      };
+    },
+
     createDatasetsByCategory(categoryName, typeOptions) {
       if (!this.monthlyData || !this.monthlyData.monthlyData.length === 0)
         return [];
@@ -835,6 +984,11 @@ export default {
   },
 
   mounted() {
+    // Initialize with 2024 date range
+    this.startDate = "2024-01-01";
+    this.endDate = "2024-12-31";
+    this.activeQuickFilterLabel = "Año 2024";
+
     this.fetchData();
 
     // For better user experience, also prefetch the other view's data
@@ -842,6 +996,10 @@ export default {
     setTimeout(() => {
       if (this.viewMode === VIEW_MODES.COUNTS && !this.monthlyData) {
         this.fetchMonthlyData();
+        // Also fetch sales data if we don't have it yet
+        if (!this.salesData) {
+          this.fetchSalesData();
+        }
       } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.dashboardData) {
         this.fetchCountsData();
       }
