@@ -62,11 +62,19 @@ export default {
   },
   methods: {
     async initialize() {
-      const whats_app_business_account_id = "115075534784026";
+      // get bots
+      const companyId =
+        this.$store.getters["authModule/getCurrentCompany"].company._id;
+      await Promise.all([
+        this.$store.dispatch("botsModule/list", {
+          companies: [companyId],
+          platform: "whatsapp",
+        }),
+      ]);
+      // get
+      const botId = this.$store.state.botsModule.bots[0]._id;
       this.templateMessages = (
-        await graphApiService.getWhatsappMessageTemplates(
-          whats_app_business_account_id
-        )
+        await graphApiService.getWhatsappMessageTemplates(botId)
       ).data.payload;
     },
   },
