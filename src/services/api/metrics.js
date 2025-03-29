@@ -38,7 +38,7 @@ export default {
 
     return axios
       .post(
-        `/api/metrics/cleanleads_by_channel_by_month`,
+        `/api/metrics/cleanleads_by_month`,
         requestParams,
         options
       )

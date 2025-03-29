@@ -110,6 +110,7 @@ export default {
   beforeDestroy() {
     window.removeEventListener("resize", this.handleResize);
     if (this.chart) {
+      this.chart.off("legendselectchanged", this.handleLegendSelectChanged);
       this.chart.dispose();
       this.chart = null;
     }
@@ -126,6 +127,8 @@ export default {
         // Initialize chart if it doesn't exist yet
         if (!this.chart) {
           this.chart = echarts.init(container);
+          // Add event listener for legend changes
+          this.chart.on("legendselectchanged", this.handleLegendSelectChanged);
         }
 
         this.renderChart();
@@ -209,26 +212,27 @@ export default {
               data: salesDataset.data,
               yAxisIndex: 1, // Use the right y-axis
               lineStyle: {
-                width: 3,
+                width: 4,
                 color: salesDataset.borderColor,
-                type: salesDataset.lineStyle?.type || "solid",
+                type: "dashed",
+                dashOffset: 0,
                 cap: "round",
                 join: "round",
+                dash: [8, 8], // Set explicit dash pattern [dash length, gap length]
                 shadowBlur: 0,
               },
               itemStyle: {
                 color: salesDataset.borderColor,
-                borderWidth: 2,
+                borderWidth: 3,
               },
-              symbol: salesDataset.symbol || "diamond",
-              symbolSize:
-                salesDataset.symbolSize || (hasSingleDataPoint ? 8 : 7),
+              symbol: salesDataset.symbol || "circle",
+              symbolSize: 9, // Larger symbols for better visibility
               emphasis: {
-                scale: true,
-                focus: "series",
+                scale: false,
+                focus: "none",
                 itemStyle: {
                   borderWidth: 3,
-                  shadowBlur: 10,
+                  shadowBlur: 0,
                   shadowOffsetX: 0,
                   shadowColor: "rgba(0, 0, 0, 0.3)",
                 },
@@ -415,6 +419,65 @@ export default {
         currency: "CLP",
         minimumFractionDigits: 0,
       }).format(value);
+    },
+
+    handleLegendSelectChanged(params) {
+      if (!this.chart || !this.datasets) return;
+
+      const selected = params.selected;
+      const visibleDatasetLabels = Object.keys(selected).filter(
+        (name) => selected[name]
+      );
+
+      // Filter datasets based on visibility
+      const visibleDatasets = this.datasets.filter((d) =>
+        visibleDatasetLabels.includes(d.label)
+      );
+
+      // Separate visible sales data from other visible datasets
+      const visibleSalesDataset = visibleDatasets.find(
+        (d) => d.label === "Ventas"
+      );
+      const visibleRegularDatasets = visibleDatasets.filter(
+        (d) => d.label !== "Ventas"
+      );
+
+      // Recalculate maximum values for visible data
+      let maxRegularValue = 0;
+      if (visibleRegularDatasets.length > 0) {
+        maxRegularValue = visibleRegularDatasets.reduce((max, dataset) => {
+          // Ensure dataset.data is not empty before calculating max
+          const datasetMax =
+            dataset.data.length > 0 ? Math.max(...dataset.data) : 0;
+          return datasetMax > max ? datasetMax : max;
+        }, 0);
+      }
+
+      let maxSalesValue = 0;
+      if (visibleSalesDataset && visibleSalesDataset.data.length > 0) {
+        maxSalesValue = Math.max(...visibleSalesDataset.data);
+      }
+
+      // Add padding, handle cases where max is 0 or very small
+      const yAxisMaxRegular =
+        visibleRegularDatasets.length > 0
+          ? Math.max(10, maxRegularValue * 1.2)
+          : 10; // Ensure a minimum axis range
+      const yAxisMaxSales = visibleSalesDataset
+        ? Math.max(1000, maxSalesValue * 1.2)
+        : 1000; // Ensure a minimum axis range for sales
+
+      // Update the chart's yAxis options
+      this.chart.setOption({
+        yAxis: [
+          {
+            max: yAxisMaxRegular, // Update left axis max
+          },
+          {
+            max: yAxisMaxSales, // Update right axis max
+          },
+        ],
+      });
     },
   },
 };
