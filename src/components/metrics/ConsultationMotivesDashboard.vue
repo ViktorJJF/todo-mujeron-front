@@ -177,7 +177,8 @@
             value: topMonthlyCategory ? topMonthlyCategory.name : '',
             label: 'Categoría Principal de Consulta',
             color: 'success',
-          },        ]"
+          },
+        ]"
       />
 
       <!-- Monthly Trend Chart for Products and Stock -->
@@ -294,6 +295,7 @@ import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
 import UnifiedBarChart from "@/components/metrics/UnifiedBarChart";
 import UnifiedBooleanMetric from "@/components/metrics/UnifiedBooleanMetric";
 import UnifiedLineChart from "@/components/metrics/UnifiedLineChart";
+import axios from "axios";
 
 // Constants for view modes
 const VIEW_MODES = {
@@ -324,6 +326,8 @@ export default {
       viewMode: VIEW_MODES.COUNTS,
       monthlyData: null,
       salesData: null,
+      metaAdsData: null,
+      metaAdsAxiosCancelToken: null,
       chartColors: {
         products: ["#4CAF50", "#2196F3", "#FF5722", "#FF9800"],
         sizes: ["#F44336", "#3F51B5", "#009688"],
@@ -333,6 +337,7 @@ export default {
         warranties: ["#4CAF50", "#FF5722"],
         supplier: ["#2196F3", "#FF9800"],
         sales: "#9C27B0",
+        metaAds: "#1E88E5",
       },
     };
   },
@@ -459,7 +464,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -493,7 +504,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -531,7 +548,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -561,7 +584,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -591,7 +620,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -621,7 +656,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -674,7 +715,13 @@ export default {
       // Add sales dataset if available
       if (this.salesData && this.salesData.length > 0) {
         const salesDataset = this.createSalesDataset();
-        return [...typesDatasets, salesDataset];
+        typesDatasets.push(salesDataset);
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        const adsDataset = this.createMetaAdsDataset();
+        typesDatasets.push(adsDataset);
       }
 
       return typesDatasets;
@@ -855,6 +902,16 @@ export default {
 
         if (response.data && response.data.ok) {
           this.monthlyData = response.data.payload;
+
+          // Fetch sales data if it's not already loaded
+          if (!this.salesData) {
+            await this.fetchSalesData();
+          }
+
+          // Fetch Meta Ads data if it's not already loaded
+          if (!this.metaAdsData) {
+            await this.fetchMetaAdsData();
+          }
         } else {
           console.error(
             "Error in consultation motives monthly data response:",
@@ -934,6 +991,45 @@ export default {
       };
     },
 
+    createMetaAdsDataset() {
+      // Create a map of year-month combinations from the monthly consultation data
+      const monthKeys = this.monthlyData.monthlyData.map(
+        (month) => `${month.year}-${month.month}`
+      );
+
+      // Filter Meta Ads data to match the months we have in monthly consultation data
+      const matchedAdsData = [];
+
+      monthKeys.forEach((key) => {
+        const [year, month] = key.split("-").map(Number);
+        const adsEntry = this.metaAdsData.monthly.find(
+          (item) => item.year === year && item.month === month
+        );
+
+        if (adsEntry) {
+          matchedAdsData.push(adsEntry.spend);
+        } else {
+          // If no matching ads data for this month, use 0
+          matchedAdsData.push(0);
+        }
+      });
+
+      return {
+        label: "Inversión Ads",
+        data: matchedAdsData,
+        borderColor: this.chartColors.metaAds,
+        backgroundColor: `${this.chartColors.metaAds}33`,
+        borderWidth: 3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.4,
+        borderDash: [5, 5], // Línea punteada
+        yAxisIndex: 2, // Usar el tercer eje Y
+        type: "line", // Ensure it's a line chart
+        order: 1, // Higher order means it appears behind
+      };
+    },
+
     createDatasetsByCategory(categoryName, typeOptions) {
       if (!this.monthlyData || !this.monthlyData.monthlyData.length === 0)
         return [];
@@ -981,6 +1077,45 @@ export default {
         };
       });
     },
+
+    async fetchMetaAdsData() {
+      try {
+        // Cancelar petición anterior si existe
+        if (this.metaAdsAxiosCancelToken) {
+          this.metaAdsAxiosCancelToken.cancel(
+            "Operation canceled due to new request"
+          );
+        }
+
+        // Crear nuevo token de cancelación
+        this.metaAdsAxiosCancelToken = axios.CancelToken.source();
+
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+
+        const response = await metricsApi.getMetaAdSpend(payload, {
+          cancelToken: this.metaAdsAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.metaAdsData = response.data.payload;
+        } else {
+          console.error("Error in Meta Ads data response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch Meta Ads data:", error);
+        }
+      }
+    },
   },
 
   mounted() {
@@ -999,6 +1134,10 @@ export default {
         // Also fetch sales data if we don't have it yet
         if (!this.salesData) {
           this.fetchSalesData();
+        }
+        // Also fetch Meta Ads data if we don't have it yet
+        if (!this.metaAdsData) {
+          this.fetchMetaAdsData();
         }
       } else if (this.viewMode === VIEW_MODES.MONTHLY && !this.dashboardData) {
         this.fetchCountsData();

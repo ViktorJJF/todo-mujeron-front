@@ -291,11 +291,16 @@ export default {
       loadingSales: false,
       salesData: null,
 
+      // Meta Ads data
+      loadingMetaAds: false,
+      metaAdsData: null,
+
       // Request cancellation tokens
       messagesAxiosCancelToken: null,
       leadsAxiosCancelToken: null,
       cleanLeadsAxiosCancelToken: null,
       salesAxiosCancelToken: null,
+      metaAdsAxiosCancelToken: null,
 
       // Colors for charts
       channelColors: {
@@ -341,6 +346,7 @@ export default {
       leadsLoaded: false,
       cleanLeadsLoaded: false,
       salesLoaded: false,
+      metaAdsLoaded: false,
     };
   },
 
@@ -523,6 +529,64 @@ export default {
         });
       }
 
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData && this.metaAdsData.monthly.length > 0) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Prepare Meta Ads spend data for each month in the messages chart
+        const adsData = uniqueMonthYears.map((monthYear) => {
+          const [monthName, yearStr] = monthYear.split(" ");
+          const year = parseInt(yearStr);
+          const month = monthNameToNumber[monthName.toLowerCase()];
+
+          const adsEntry = this.metaAdsData.monthly.find(
+            (item) => item.month === month && item.year === year
+          );
+
+          return adsEntry ? adsEntry.spend : 0;
+        });
+
+        // Calculate percentage (not really meaningful for ads vs messages, but kept for tooltip consistency)
+        const totalAdsSpend = adsData.reduce((sum, value) => sum + value, 0);
+        const adsPercentage = adsData.map((value) =>
+          totalAdsSpend > 0 ? ((value / totalAdsSpend) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add the Meta Ads dataset
+        platformDatasets.push({
+          label: "Inversión Ads",
+          data: adsData,
+          percentage: adsPercentage,
+          borderColor: "#1E88E5", // Blue
+          backgroundColor: "#1E88E5",
+          lineStyle: {
+            width: 3,
+            color: "#1E88E5",
+            type: "dashed",
+          },
+          itemStyle: {
+            color: "#1E88E5",
+          },
+          symbol: "triangle",
+          symbolSize: 7,
+          yAxisIndex: 2, // Use the third y-axis
+        });
+      }
+
       return platformDatasets;
     },
 
@@ -670,6 +734,72 @@ export default {
           },
           symbol: "diamond",
           symbolSize: 7,
+        });
+      }
+
+      // Add Meta Ads dataset if available
+      if (
+        this.metaAdsData &&
+        this.metaAdsData.monthly.length > 0 &&
+        this.leadsData.length > 0
+      ) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Get months from leads data
+        const leadsMonths = this.leadsLabels.map((label) => {
+          const [monthName, yearStr] = label.split(" ");
+          return {
+            month: monthNameToNumber[monthName.toLowerCase()],
+            year: parseInt(yearStr),
+          };
+        });
+
+        // Match Meta Ads data to leads months
+        const adsData = leadsMonths.map(({ month, year }) => {
+          const adsEntry = this.metaAdsData.monthly.find(
+            (item) => item.month === month && item.year === year
+          );
+          return adsEntry ? adsEntry.spend : 0;
+        });
+
+        // Calculate percentage
+        const totalAdsSpend = adsData.reduce((sum, value) => sum + value, 0);
+        const adsPercentage = adsData.map((value) =>
+          totalAdsSpend > 0 ? ((value / totalAdsSpend) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add to datasets
+        datasets.push({
+          label: "Inversión Ads",
+          data: adsData,
+          percentage: adsPercentage,
+          borderColor: "#1E88E5", // Blue
+          backgroundColor: "#1E88E5",
+          lineStyle: {
+            width: 3,
+            color: "#1E88E5",
+            type: "dashed",
+          },
+          itemStyle: {
+            color: "#1E88E5",
+          },
+          symbol: "triangle",
+          symbolSize: 7,
+          yAxisIndex: 2, // Use the third y-axis
         });
       }
 
@@ -824,6 +954,72 @@ export default {
         });
       }
 
+      // Add Meta Ads dataset if available
+      if (
+        this.metaAdsData &&
+        this.metaAdsData.monthly.length > 0 &&
+        this.cleanLeadsData.length > 0
+      ) {
+        // Map month names to their numerical representation for matching
+        const monthNameToNumber = {
+          enero: 1,
+          febrero: 2,
+          marzo: 3,
+          abril: 4,
+          mayo: 5,
+          junio: 6,
+          julio: 7,
+          agosto: 8,
+          septiembre: 9,
+          octubre: 10,
+          noviembre: 11,
+          diciembre: 12,
+        };
+
+        // Get months from clean leads data
+        const cleanLeadsMonths = this.cleanLeadsLabels.map((label) => {
+          const [monthName, yearStr] = label.split(" ");
+          return {
+            month: monthNameToNumber[monthName.toLowerCase()],
+            year: parseInt(yearStr),
+          };
+        });
+
+        // Match Meta Ads data to clean leads months
+        const adsData = cleanLeadsMonths.map(({ month, year }) => {
+          const adsEntry = this.metaAdsData.monthly.find(
+            (item) => item.month === month && item.year === year
+          );
+          return adsEntry ? adsEntry.spend : 0;
+        });
+
+        // Calculate percentage
+        const totalAdsSpend = adsData.reduce((sum, value) => sum + value, 0);
+        const adsPercentage = adsData.map((value) =>
+          totalAdsSpend > 0 ? ((value / totalAdsSpend) * 100).toFixed(1) : "0.0"
+        );
+
+        // Add to datasets
+        datasets.push({
+          label: "Inversión Ads",
+          data: adsData,
+          percentage: adsPercentage,
+          borderColor: "#1E88E5", // Blue
+          backgroundColor: "#1E88E5",
+          lineStyle: {
+            width: 3,
+            color: "#1E88E5",
+            type: "dashed",
+          },
+          itemStyle: {
+            color: "#1E88E5",
+          },
+          symbol: "triangle",
+          symbolSize: 7,
+          yAxisIndex: 2, // Use the third y-axis
+        });
+      }
+
       return datasets;
     },
 
@@ -899,7 +1095,8 @@ export default {
         this.loadingMessages ||
         this.loadingLeads ||
         this.loadingCleanLeads ||
-        this.loadingSales
+        this.loadingSales ||
+        this.loadingMetaAds
       );
     },
 
@@ -909,6 +1106,7 @@ export default {
       if (this.loadingLeads) loadingItems.push("leads");
       if (this.loadingCleanLeads) loadingItems.push("clean leads");
       if (this.loadingSales) loadingItems.push("ventas");
+      if (this.loadingMetaAds) loadingItems.push("inversión en ads");
 
       if (loadingItems.length > 0) {
         return `Cargando datos de ${loadingItems.join(" y ")}...`;
@@ -998,18 +1196,21 @@ export default {
         this.leadsData = null;
         this.cleanLeadsData = null;
         this.salesData = null;
+        this.metaAdsData = null;
 
         // Reset loaded flags
         this.messagesLoaded = false;
         this.leadsLoaded = false;
         this.cleanLeadsLoaded = false;
         this.salesLoaded = false;
+        this.metaAdsLoaded = false;
 
         // Set loading flags
         this.loadingMessages = true;
         this.loadingLeads = true;
         this.loadingCleanLeads = true;
         this.loadingSales = true;
+        this.loadingMetaAds = true;
       }
 
       // Log current state for debugging
@@ -1028,6 +1229,7 @@ export default {
       this.fetchLeadsData();
       this.fetchCleanLeadsData();
       this.fetchSalesData();
+      this.fetchMetaAdsData();
     },
 
     cancelPendingRequests() {
@@ -1052,12 +1254,18 @@ export default {
           "Operation canceled due to new request"
         );
       }
+      if (this.metaAdsAxiosCancelToken) {
+        this.metaAdsAxiosCancelToken.cancel(
+          "Operation canceled due to new request"
+        );
+      }
 
       // Create new cancel tokens
       this.messagesAxiosCancelToken = axios.CancelToken.source();
       this.leadsAxiosCancelToken = axios.CancelToken.source();
       this.cleanLeadsAxiosCancelToken = axios.CancelToken.source();
       this.salesAxiosCancelToken = axios.CancelToken.source();
+      this.metaAdsAxiosCancelToken = axios.CancelToken.source();
     },
 
     async fetchMessagesData() {
@@ -1251,6 +1459,46 @@ export default {
       }
     },
 
+    async fetchMetaAdsData() {
+      this.loadingMetaAds = true;
+      this.metaAdsLoaded = false;
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company._id;
+
+        // Build request params - only company ID by default
+        const params = { company };
+
+        // Only add date parameters if they're not null or undefined
+        if (this.startDate !== null && this.startDate !== undefined) {
+          params.startDate = this.startDate;
+        }
+
+        if (this.endDate !== null && this.endDate !== undefined) {
+          params.endDate = this.endDate;
+        }
+
+        console.log("Meta Ads API request params:", params);
+
+        const response = await metricsApi.getMetaAdSpend(params, {
+          cancelToken: this.metaAdsAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.metaAdsData = response.data.payload || {};
+          this.metaAdsLoaded = true;
+        } else {
+          console.error("Error in Meta Ads response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Error fetching Meta Ads data:", error);
+        }
+      } finally {
+        this.loadingMetaAds = false;
+      }
+    },
+
     renderPieChart() {
       if (this.pieChart) {
         this.pieChart.dispose();
@@ -1357,11 +1605,13 @@ export default {
       this.leadsData = null;
       this.cleanLeadsData = null;
       this.salesData = null;
+      this.metaAdsData = null;
 
       this.fetchMessagesData();
       this.fetchLeadsData();
       this.fetchCleanLeadsData();
       this.fetchSalesData();
+      this.fetchMetaAdsData();
     },
 
     mounted() {
@@ -1390,12 +1640,14 @@ export default {
       this.leadsAxiosCancelToken = axios.CancelToken.source();
       this.cleanLeadsAxiosCancelToken = axios.CancelToken.source();
       this.salesAxiosCancelToken = axios.CancelToken.source();
+      this.metaAdsAxiosCancelToken = axios.CancelToken.source();
 
       // Set loading states to true before fetching data
       this.loadingMessages = true;
       this.loadingLeads = true;
       this.loadingCleanLeads = true;
       this.loadingSales = true;
+      this.loadingMetaAds = true;
 
       // Initial data fetch - fetch each endpoint independently
       this.fetchAllData();
