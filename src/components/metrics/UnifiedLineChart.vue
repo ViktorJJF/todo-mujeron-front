@@ -267,22 +267,16 @@ export default {
                 color: metaAdsDataset.borderColor || "#1E88E5",
                 borderWidth: 2,
               },
-              symbol: metaAdsDataset.symbol || "triangle",
-              symbolSize: 8,
-              z: 2,
-              emphasis: {
-                scale: false,
-                focus: "none",
-                itemStyle: {
-                  borderWidth: 3,
-                  shadowBlur: 0,
-                  shadowOffsetX: 0,
-                  shadowColor: "rgba(0, 0, 0, 0.3)",
-                },
-                lineStyle: {
-                  width: 4,
-                },
+              symbol: "circle",
+              symbolSize: 6,
+              z: 10,
+              silent: false,
+              emphasis: false,
+              hoverAnimation: false,
+              tooltip: {
+                show: true,
               },
+              animation: false,
               label: {
                 show: false,
               },
