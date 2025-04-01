@@ -29,9 +29,9 @@ export default {
   deleteLabel(id, fanpageId) {
     return axios.delete(`/api/graph-api/labels/${id}?fanpageId=${fanpageId}`);
   },
-  getWhatsappMessageTemplates(whats_app_business_account_id) {
+  getWhatsappMessageTemplates(botId) {
     return axios.get(
-      `/api/graph-api/whatsapp/message-templates?whats_app_business_account_id=${whats_app_business_account_id}`
+      `/api/graph-api/whatsapp/message-templates?botId=${botId}`
     );
   },
   sendWhatsappMessageTemplates(
