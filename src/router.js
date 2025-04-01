@@ -139,6 +139,11 @@ let routes = [
         component: () => import("@/views/MarketplaceBulk/index.vue"),
       },
       {
+        path: "/metricas",
+        name: "Metrics",
+        component: () => import("@/views/Metrics/index.vue"),
+      },
+      {
         path: "/contactos",
         name: "Contactos",
         component: () => import("@/views/Contactos.vue"),
@@ -392,7 +397,6 @@ let routes = [
         path: "/marketing/massive-messages",
         name: "MassiveMessages",
         component: () => import("@/views/MassiveMessages"),
-
       },
       {
         path: "/marketing/segmentos",

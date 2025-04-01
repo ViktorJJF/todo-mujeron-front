@@ -3,7 +3,7 @@ import axios from "axios";
 // import { checkIfTokenNeedsRefresh } from "@/utils/utils.js";
 // import { checkForUpdates } from "@/utils/updates.js";
 
-axios.defaults.timeout = 20000;
+axios.defaults.timeout = 60000;
 
 axios.defaults.baseURL = process.env.VUE_APP_API_URL || "";
 axios.defaults.headers.common["Accept-Language"] =

@@ -47,5 +47,5 @@ export default () => ({
     platforms: [],
   },
   botIds: [],
-  type: "static",
+  type: "dynamic",
 });
