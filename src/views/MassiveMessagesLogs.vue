@@ -377,6 +377,7 @@ export default {
         this.$store.dispatch(ENTITY + "Module/list", {
           sort: "createdAt",
           order: -1,
+          limit: 3,
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
