@@ -143,7 +143,12 @@ export default {
 
       // Separate sales data from other datasets
       const salesDataset = this.datasets.find((d) => d.label === "Ventas");
-      const regularDatasets = this.datasets.filter((d) => d.label !== "Ventas");
+      const metaAdsDataset = this.datasets.find(
+        (d) => d.label === "Inversión Ads"
+      );
+      const regularDatasets = this.datasets.filter(
+        (d) => d.label !== "Ventas" && d.label !== "Inversión Ads"
+      );
 
       // Calculate maximum values for proper y-axis scaling
       let maxRegularValue = 0;
@@ -159,9 +164,45 @@ export default {
         maxSalesValue = Math.max(...salesDataset.data);
       }
 
+      let maxAdsValue = 0;
+      if (metaAdsDataset) {
+        maxAdsValue = Math.max(...metaAdsDataset.data);
+      }
+
       // Add a 20% padding for better visualization
       const yAxisMaxRegular = maxRegularValue * 1.2;
       const yAxisMaxSales = maxSalesValue * 1.2;
+      const yAxisMaxAds = maxAdsValue * 1.2;
+
+      // Create series for sales data
+      const salesSeries = salesDataset
+        ? [
+            {
+              name: salesDataset.label,
+              type: "bar",
+              barWidth: "40%",
+              data: salesDataset.data,
+              yAxisIndex: 1,
+              itemStyle: {
+                color: salesDataset.borderColor || "#9C27B0",
+                borderRadius: [3, 3, 0, 0],
+                opacity: 0.75,
+              },
+              z: 1,
+              emphasis: {
+                itemStyle: {
+                  opacity: 0.9,
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: "rgba(0, 0, 0, 0.3)",
+                },
+              },
+              label: {
+                show: false,
+              },
+            },
+          ]
+        : [];
 
       // Create series for regular data
       const regularSeries = regularDatasets.map((dataset) => ({
@@ -169,7 +210,7 @@ export default {
         type: "line",
         smooth: !hasSingleDataPoint,
         data: dataset.data,
-        yAxisIndex: 0, // Use the left y-axis
+        yAxisIndex: 0,
         lineStyle: {
           width: 3,
           color: dataset.borderColor,
@@ -184,6 +225,7 @@ export default {
         },
         symbol: dataset.symbol || "circle",
         symbolSize: dataset.symbolSize || (hasSingleDataPoint ? 8 : 6),
+        z: 2,
         emphasis: {
           scale: true,
           focus: "series",
@@ -202,44 +244,39 @@ export default {
         },
       }));
 
-      // Create series for sales data
-      const salesSeries = salesDataset
+      // Create series for Meta Ads data
+      const adsSeries = metaAdsDataset
         ? [
             {
-              name: salesDataset.label,
+              name: metaAdsDataset.label,
               type: "line",
               smooth: !hasSingleDataPoint,
-              data: salesDataset.data,
-              yAxisIndex: 1, // Use the right y-axis
+              data: metaAdsDataset.data,
+              yAxisIndex: 2,
               lineStyle: {
-                width: 4,
-                color: salesDataset.borderColor,
+                width: 3,
+                color: metaAdsDataset.borderColor || "#1E88E5",
                 type: "dashed",
                 dashOffset: 0,
                 cap: "round",
                 join: "round",
-                dash: [8, 8], // Set explicit dash pattern [dash length, gap length]
+                dash: [4, 4],
                 shadowBlur: 0,
               },
               itemStyle: {
-                color: salesDataset.borderColor,
-                borderWidth: 3,
+                color: metaAdsDataset.borderColor || "#1E88E5",
+                borderWidth: 2,
               },
-              symbol: salesDataset.symbol || "circle",
-              symbolSize: 9, // Larger symbols for better visibility
-              emphasis: {
-                scale: false,
-                focus: "none",
-                itemStyle: {
-                  borderWidth: 3,
-                  shadowBlur: 0,
-                  shadowOffsetX: 0,
-                  shadowColor: "rgba(0, 0, 0, 0.3)",
-                },
-                lineStyle: {
-                  width: 4,
-                },
+              symbol: "circle",
+              symbolSize: 6,
+              z: 10,
+              silent: false,
+              emphasis: false,
+              hoverAnimation: false,
+              tooltip: {
+                show: true,
               },
+              animation: false,
               label: {
                 show: false,
               },
@@ -248,7 +285,7 @@ export default {
         : [];
 
       // Combine the series
-      const series = [...regularSeries, ...salesSeries];
+      const series = [...regularSeries, ...salesSeries, ...adsSeries];
 
       const option = {
         tooltip: {
@@ -269,8 +306,17 @@ export default {
                 // Format sales value with thousands separators
                 const salesValue = this.formatCurrency(param.value);
                 tooltipText += `<div style="display: flex; align-items: center; margin: 5px 0;">
-                  <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; border-radius: 50%; margin-right: 5px;"></span>
+                  <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; margin-right: 5px;"></span>
                   <span style="font-weight: bold; color: ${param.color}">${param.seriesName}: ${salesValue}</span>
+                </div>`;
+              }
+              // Handle Meta Ads data differently
+              else if (param.seriesName === "Inversión Ads") {
+                // Format ads value with thousands separators
+                const adsValue = this.formatCurrency(param.value);
+                tooltipText += `<div style="display: flex; align-items: center; margin: 5px 0;">
+                  <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; border-radius: 50%; margin-right: 5px;"></span>
+                  <span style="font-weight: bold; color: ${param.color}">${param.seriesName}: ${adsValue}</span>
                 </div>`;
               } else {
                 // For regular metrics
@@ -297,17 +343,23 @@ export default {
             fontSize: 13,
           },
           extraCssText: "box-shadow: 0 4px 8px rgba(0,0,0,0.1);",
+          axisPointer: {
+            type: "shadow",
+            shadowStyle: {
+              color: "rgba(0, 0, 0, 0.05)",
+            },
+          },
         },
         grid: {
           left: "5%",
-          right: "10%", // Make more room for the right y-axis
-          bottom: "12%",
+          right: "15%",
+          bottom: "15%",
           top: 60,
           containLabel: true,
         },
         xAxis: {
           type: "category",
-          boundaryGap: false,
+          boundaryGap: true,
           data: this.labels,
           axisLine: {
             lineStyle: {
@@ -322,11 +374,11 @@ export default {
             fontSize: 12,
             color: "#666",
             rotate: this.labels.length > 6 ? 30 : 0,
+            margin: 14,
           },
         },
         yAxis: [
           {
-            // Left y-axis for regular data
             type: "value",
             max: yAxisMaxRegular,
             axisLine: {
@@ -352,7 +404,6 @@ export default {
             },
           },
           {
-            // Right y-axis for sales data
             type: "value",
             name: "Ventas",
             nameLocation: "end",
@@ -363,6 +414,7 @@ export default {
             },
             max: yAxisMaxSales,
             position: "right",
+            offset: 0,
             axisLine: {
               show: true,
               lineStyle: {
@@ -372,6 +424,41 @@ export default {
             },
             axisLabel: {
               color: salesDataset ? salesDataset.borderColor : "#9C27B0",
+              formatter: (value) => {
+                // Format with K/M for thousands/millions
+                if (value >= 1000000) {
+                  return (value / 1000000).toFixed(1) + "M";
+                } else if (value >= 1000) {
+                  return (value / 1000).toFixed(0) + "K";
+                }
+                return value;
+              },
+            },
+            splitLine: {
+              show: false,
+            },
+          },
+          {
+            type: "value",
+            name: "Inversión Ads",
+            nameLocation: "end",
+            nameTextStyle: {
+              color: metaAdsDataset ? metaAdsDataset.borderColor : "#1E88E5",
+              padding: [0, 0, 0, 20],
+              fontWeight: "bold",
+            },
+            max: yAxisMaxAds,
+            position: "right",
+            offset: 60,
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: metaAdsDataset ? metaAdsDataset.borderColor : "#1E88E5",
+                width: 2,
+              },
+            },
+            axisLabel: {
+              color: metaAdsDataset ? metaAdsDataset.borderColor : "#1E88E5",
               formatter: (value) => {
                 // Format with K/M for thousands/millions
                 if (value >= 1000000) {
@@ -434,12 +521,15 @@ export default {
         visibleDatasetLabels.includes(d.label)
       );
 
-      // Separate visible sales data from other visible datasets
+      // Separate visible datasets
       const visibleSalesDataset = visibleDatasets.find(
         (d) => d.label === "Ventas"
       );
+      const visibleAdsDataset = visibleDatasets.find(
+        (d) => d.label === "Inversión Ads"
+      );
       const visibleRegularDatasets = visibleDatasets.filter(
-        (d) => d.label !== "Ventas"
+        (d) => d.label !== "Ventas" && d.label !== "Inversión Ads"
       );
 
       // Recalculate maximum values for visible data
@@ -458,6 +548,11 @@ export default {
         maxSalesValue = Math.max(...visibleSalesDataset.data);
       }
 
+      let maxAdsValue = 0;
+      if (visibleAdsDataset && visibleAdsDataset.data.length > 0) {
+        maxAdsValue = Math.max(...visibleAdsDataset.data);
+      }
+
       // Add padding, handle cases where max is 0 or very small
       const yAxisMaxRegular =
         visibleRegularDatasets.length > 0
@@ -466,6 +561,9 @@ export default {
       const yAxisMaxSales = visibleSalesDataset
         ? Math.max(1000, maxSalesValue * 1.2)
         : 1000; // Ensure a minimum axis range for sales
+      const yAxisMaxAds = visibleAdsDataset
+        ? Math.max(100, maxAdsValue * 1.2)
+        : 1000; // Ensure a minimum axis range for ads
 
       // Update the chart's yAxis options
       this.chart.setOption({
@@ -474,7 +572,10 @@ export default {
             max: yAxisMaxRegular, // Update left axis max
           },
           {
-            max: yAxisMaxSales, // Update right axis max
+            max: yAxisMaxSales, // Update right axis max for sales
+          },
+          {
+            max: yAxisMaxAds, // Update right axis max for ads
           },
         ],
       });
