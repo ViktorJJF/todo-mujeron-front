@@ -37,11 +37,7 @@ export default {
     const requestParams = params || {};
 
     return axios
-      .post(
-        `/api/metrics/cleanleads_by_month`,
-        requestParams,
-        options
-      )
+      .post(`/api/metrics/cleanleads_by_month`, requestParams, options)
       .catch((error) => {
         if (axios.isCancel(error)) {
           // Request was cancelled, this is normal
@@ -329,9 +325,31 @@ export default {
     const requestParams = params || {};
 
     return axios
-      .post(`/api/metrics/sheet_sales_by_month`, requestParams)
+      .post(`/api/metrics/sales_by_month`, requestParams)
       .catch((error) => {
         console.error("Error fetching sheet sales by month metrics:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get Meta Ads Spend metrics
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @param {Object} [options] - Request options including cancelToken
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: import('../../types/metrics').MetaAdSpendResponse}>>} API response
+   */
+  getMetaAdSpend(params, options = {}) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/meta_ad_spend`, requestParams, options)
+      .catch((error) => {
+        if (axios.isCancel(error)) {
+          // Request was cancelled, this is normal
+          return Promise.reject(error);
+        }
+        console.error("Error fetching meta ads spend metrics:", error);
         throw error;
       });
   },

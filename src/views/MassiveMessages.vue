@@ -263,7 +263,7 @@
                 dense
                 class="elevation-0"
                 :footer-props="{
-                  'items-per-page-options': [10, 25, 50],
+                  'items-per-page-options': [50, 100, 200],
                   'items-per-page-text': 'Registros por página:',
                 }"
                 :no-data-text="'No hay conversaciones disponibles'"
@@ -390,7 +390,7 @@ export default {
     search: "",
     options: {
       page: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 50,
       sortBy: ["last_activity"],
       sortDesc: [true],
     },
@@ -574,6 +574,7 @@ export default {
 
       this.loading_table = true;
       try {
+        console.log("El company id es", this.$store.getters["authModule/getCurrentCompany"].company._id)
         const query = {
           platforms: this.selectedPlatforms,
           timeframe: "24h",
@@ -581,6 +582,7 @@ export default {
           limit: this.options.itemsPerPage,
           sort: this.options.sortBy[0] || "last_activity",
           order: this.options.sortDesc[0] ? "-1" : "1",
+          companyId: this.$store.getters["authModule/getCurrentCompany"].company._id
         };
 
         const response = await chatsApi.getRecentChats(query);

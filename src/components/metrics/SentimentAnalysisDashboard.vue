@@ -226,6 +226,7 @@ import UnifiedSummaryCard from "@/components/metrics/UnifiedSummaryCard";
 import UnifiedBarChart from "@/components/metrics/UnifiedBarChart";
 import UnifiedBooleanMetric from "@/components/metrics/UnifiedBooleanMetric";
 import UnifiedLineChart from "@/components/metrics/UnifiedLineChart";
+import axios from "axios";
 
 // Constants for view modes
 const VIEW_MODES = {
@@ -254,6 +255,8 @@ export default {
       dashboardData: null,
       monthlyData: null,
       salesData: null,
+      metaAdsData: null,
+      metaAdsAxiosCancelToken: null,
       selectedQuickFilter: 9,
       activeQuickFilterLabel: "Todo el tiempo",
       quickFilters: [
@@ -488,6 +491,11 @@ export default {
         datasets.push(this.createSalesDataset());
       }
 
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData) {
+        datasets.push(this.createMetaAdsDataset());
+      }
+
       return datasets;
     },
 
@@ -552,6 +560,11 @@ export default {
       // Add sales dataset if available
       if (this.salesData) {
         datasets.push(this.createSalesDataset());
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData) {
+        datasets.push(this.createMetaAdsDataset());
       }
 
       return datasets;
@@ -622,6 +635,11 @@ export default {
       // Add sales dataset if available
       if (this.salesData) {
         datasets.push(this.createSalesDataset());
+      }
+
+      // Add Meta Ads dataset if available
+      if (this.metaAdsData) {
+        datasets.push(this.createMetaAdsDataset());
       }
 
       return datasets;
@@ -848,6 +866,9 @@ export default {
 
           // Fetch sales data after getting monthly data
           await this.fetchSalesData();
+
+          // Fetch Meta Ads data after getting monthly data
+          await this.fetchMetaAdsData();
         } else {
           console.error(
             "Error in monthly sentiment analysis data response:",
@@ -889,6 +910,45 @@ export default {
       }
     },
 
+    async fetchMetaAdsData() {
+      try {
+        // Cancelar petición anterior si existe
+        if (this.metaAdsAxiosCancelToken) {
+          this.metaAdsAxiosCancelToken.cancel(
+            "Operation canceled due to new request"
+          );
+        }
+
+        // Crear nuevo token de cancelación
+        this.metaAdsAxiosCancelToken = axios.CancelToken.source();
+
+        let payload = {
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+        };
+        if (this.startDate) {
+          payload.startDate = this.startDate;
+        }
+        if (this.endDate) {
+          payload.endDate = this.endDate;
+        }
+
+        const response = await metricsApi.getMetaAdSpend(payload, {
+          cancelToken: this.metaAdsAxiosCancelToken.token,
+        });
+
+        if (response.data && response.data.ok) {
+          this.metaAdsData = response.data.payload;
+        } else {
+          console.error("Error in Meta Ads data response:", response);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch Meta Ads data:", error);
+        }
+      }
+    },
+
     createSalesDataset() {
       if (!this.monthlyData || !this.monthlyData.monthlyData || !this.salesData)
         return null;
@@ -925,6 +985,50 @@ export default {
         pointHoverRadius: 7,
         tension: 0.4,
         yAxisIndex: 1, // Use the secondary y-axis
+      };
+    },
+
+    createMetaAdsDataset() {
+      if (
+        !this.monthlyData ||
+        !this.monthlyData.monthlyData ||
+        !this.metaAdsData
+      )
+        return null;
+
+      // Create a map of year-month combinations from the monthly data
+      const monthKeys = this.monthlyData.monthlyData.map(
+        (month) => `${month.year}-${month.month}`
+      );
+
+      // Filter Meta Ads data to match the months we have in monthly data
+      const matchedAdsData = [];
+
+      monthKeys.forEach((key) => {
+        const [year, month] = key.split("-").map(Number);
+        const adsEntry = this.metaAdsData.monthly.find(
+          (item) => item.year === year && item.month === month
+        );
+
+        if (adsEntry) {
+          matchedAdsData.push(adsEntry.spend);
+        } else {
+          // If no matching ads data for this month, use 0
+          matchedAdsData.push(0);
+        }
+      });
+
+      return {
+        label: "Inversión Ads",
+        data: matchedAdsData,
+        borderColor: "#1E88E5", // Blue color for Meta Ads
+        backgroundColor: "#1E88E533", // Transparent version for area
+        borderWidth: 3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        borderDash: [5, 5], // Dashed line
+        tension: 0.4,
+        yAxisIndex: 2, // Use the third y-axis for Meta Ads
       };
     },
 
