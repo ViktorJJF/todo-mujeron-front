@@ -115,6 +115,7 @@
                     item-text="alias"
                     item-value="_id"
                     v-model="user.chatsPermissions.companies"
+                    @change="onSelectedCompaniesChange"
                     clearable
                     multiple
                     chips
@@ -135,6 +136,25 @@
                   <VSelectWithValidation
                     :items="platforms"
                     v-model="user.chatsPermissions.platforms"
+                    clearable
+                    multiple
+                    chips
+                  />
+                </v-col>
+              </v-row>
+              <v-row dense>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Grupos de Chats</p>
+                  <v-checkbox
+                    v-model="user.chatsPermissions.enableBotGroups"
+                    label="Habilitar Grupos de Chats"
+                  ></v-checkbox>
+                  <VSelectWithValidation
+                    v-if="user.chatsPermissions.enableBotGroups"
+                    :items="botOptions"
+                    v-model="user.chatsPermissions.botGroups"
+                    item-text="text"
+                    item-value="value"
                     clearable
                     multiple
                     chips
@@ -215,6 +235,8 @@ export default {
       user: null,
       companies: [],
       selectedCompanies: [],
+      bots: [], // <- Add bots to data
+      botOptions: [],
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
@@ -244,7 +266,7 @@ export default {
         query: { chatsPermissions: true },
       });
 
-      await this.$store.dispatch("companiesModule/list"),
+      await this.$store.dispatch("companiesModule/list");
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies
       );
@@ -253,6 +275,8 @@ export default {
         Object.assign(user, {
           chatsPermissions: {
             platforms: [],
+            enableBotGroups: false,
+            botGroups: [],
             assigned: null,
             status: [],
           },
@@ -260,6 +284,28 @@ export default {
       }
       this.user = user;
       this.selectedCompanies = this.user.corporation.companies.map(c => c.company);
+      await this.fetchBots(this.chatPermissionCompanies); // Fetch bots for initial companies
+    },
+    // Fetch bots using selected companies
+    async fetchBots(selectedChatPermissionCompanies = []) {
+      if (!selectedChatPermissionCompanies.length) {
+        this.bots = [];
+        this.botOptions = [];
+        return;
+      }
+      // Get array of company IDs
+      await this.$store.dispatch("botsModule/list", {
+        companies: selectedChatPermissionCompanies,
+      });
+      this.bots = this.$store.state.botsModule.bots || [];
+      this.botOptions = this.bots.filter(bot => bot.platform === 'whatsapp_automated').map(bot => ({
+        text: bot.name,
+        value: bot._id
+      }));
+    },
+    // Watch for changes in selectedCompanies to update bots
+    async onSelectedCompaniesChange(selectedChatPermissionCompanies) {
+      await this.fetchBots(selectedChatPermissionCompanies);
     },
     async save() {
       this.loadingButton = true;
@@ -312,6 +358,9 @@ export default {
     },
     status() {
       return this.user.status ? "Activo" : "Inactivo";
+    },
+    chatPermissionCompanies() {
+      return this.user?.chatsPermissions?.companies.map(c => c._id) || [];
     },
   },
 };
