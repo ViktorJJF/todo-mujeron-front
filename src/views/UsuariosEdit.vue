@@ -149,18 +149,33 @@
                     v-model="user.chatsPermissions.enableBotGroups"
                     label="Habilitar Grupos de Chats"
                   ></v-checkbox>
-                  <VSelectWithValidation
-                    v-if="user.chatsPermissions.enableBotGroups"
-                    :items="botOptions"
-                    v-model="user.chatsPermissions.botGroups"
-                    item-text="text"
-                    item-value="value"
-                    clearable
-                    multiple
-                    chips
-                  />
                 </v-col>
               </v-row>
+              <template v-if="user.chatsPermissions.enableBotGroups">
+                <v-row v-for="(botGroup, index) in user.chatsPermissions.botGroups" :key="index">
+                <v-col cols="4">
+                  <p class="body-1 font-weight-bold mb-0">Nombre de Grupo</p>
+                    <VTextFieldWithValidation
+                      rules=""
+                      v-model="botGroup.name"
+                      label="Nombre de Grupo"
+                      maxlength="15"
+                    />
+                </v-col>
+                <v-col cols="8">
+                  <p class="body-1 font-weight-bold mb-0">Lista de Chats</p>
+                  <VSelectWithValidation
+                      :items="botOptions"
+                      v-model="botGroup.botIds"
+                      item-text="text"
+                      item-value="value"
+                      clearable
+                      multiple
+                      chips
+                    />
+                </v-col>
+              </v-row>
+              </template>
               <v-row dense>
                 <v-col>
                   <p class="body-1 font-weight-bold mb-0">Estados</p>
@@ -237,6 +252,10 @@ export default {
       selectedCompanies: [],
       bots: [], // <- Add bots to data
       botOptions: [],
+      emptyBotGroup: {
+        name: "",
+        botIds: [],
+      },
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
@@ -276,7 +295,7 @@ export default {
           chatsPermissions: {
             platforms: [],
             enableBotGroups: false,
-            botGroups: [],
+            botGroups: [this.emptyBotGroup],
             assigned: null,
             status: [],
           },
@@ -363,6 +382,13 @@ export default {
       return this.user?.chatsPermissions?.companies.map(c => c._id) || [];
     },
   },
+  watch: {
+    'user.chatsPermissions.enableBotGroups': function (value) {
+      if (!value) {
+        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
+      }
+    }
+  }
 };
 </script>
 
