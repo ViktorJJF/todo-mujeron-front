@@ -162,7 +162,7 @@
                       maxlength="15"
                     />
                 </v-col>
-                <v-col cols="8">
+                <v-col cols="7">
                   <p class="body-1 font-weight-bold mb-0">Lista de Chats</p>
                   <VSelectWithValidation
                       :items="botOptions"
@@ -174,7 +174,24 @@
                       chips
                     />
                 </v-col>
+                <v-col cols="1" class="d-flex align-center">
+                  <v-btn
+                    icon
+                    color="error"
+                    @click="removeBotGroup(index)"
+                    
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </v-col>
               </v-row>
+                <v-row>
+                  <v-col cols="12" class="d-flex justify-center">
+                    <v-btn color="primary" @click="addBotGroup">
+                      <v-icon left>mdi-plus</v-icon> Agregar Nueva Lista de Chats
+                    </v-btn>
+                  </v-col>
+                </v-row>
               </template>
               <v-row dense>
                 <v-col>
@@ -325,6 +342,19 @@ export default {
     // Watch for changes in selectedCompanies to update bots
     async onSelectedCompaniesChange(selectedChatPermissionCompanies) {
       await this.fetchBots(selectedChatPermissionCompanies);
+    },
+    // Add a new bot group to the list
+    addBotGroup() {
+      if (!this.user.chatsPermissions.botGroups) {
+        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
+      }
+      // Create a new empty bot group (deep copy to avoid reference issues)
+      const newGroup = JSON.parse(JSON.stringify(this.emptyBotGroup));
+      this.user.chatsPermissions.botGroups.push(newGroup);
+    },
+    // Remove a bot group from the list
+    removeBotGroup(index) {
+      this.user.chatsPermissions.botGroups.splice(index, 1);
     },
     async save() {
       this.loadingButton = true;
