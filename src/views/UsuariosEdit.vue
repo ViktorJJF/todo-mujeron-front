@@ -115,6 +115,7 @@
                     item-text="alias"
                     item-value="_id"
                     v-model="user.chatsPermissions.companies"
+                    @change="onSelectedCompaniesChange"
                     clearable
                     multiple
                     chips
@@ -141,6 +142,57 @@
                   />
                 </v-col>
               </v-row>
+              <v-row dense>
+                <v-col>
+                  <p class="body-1 font-weight-bold mb-0">Grupos de Chats</p>
+                  <v-checkbox
+                    v-model="user.chatsPermissions.enableBotGroups"
+                    label="Habilitar Grupos de Chats"
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+              <template v-if="user.chatsPermissions.enableBotGroups">
+                <v-row v-for="(botGroup, index) in user.chatsPermissions.botGroups" :key="index">
+                <v-col cols="4">
+                  <p class="body-1 font-weight-bold mb-0">Nombre de Grupo</p>
+                    <VTextFieldWithValidation
+                      rules=""
+                      v-model="botGroup.name"
+                      label="Nombre de Grupo"
+                      maxlength="15"
+                    />
+                </v-col>
+                <v-col cols="7">
+                  <p class="body-1 font-weight-bold mb-0">Lista de Chats</p>
+                  <VSelectWithValidation
+                      :items="botOptions"
+                      v-model="botGroup.botIds"
+                      item-text="text"
+                      item-value="value"
+                      clearable
+                      multiple
+                      chips
+                    />
+                </v-col>
+                <v-col cols="1" class="d-flex align-center">
+                  <v-btn
+                    icon
+                    color="error"
+                    @click="removeBotGroup(index)"
+                    
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+                <v-row>
+                  <v-col cols="12" class="d-flex justify-center">
+                    <v-btn color="primary" @click="addBotGroup">
+                      <v-icon left>mdi-plus</v-icon> Agregar Nueva Lista de Chats
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </template>
               <v-row dense>
                 <v-col>
                   <p class="body-1 font-weight-bold mb-0">Estados</p>
@@ -215,6 +267,12 @@ export default {
       user: null,
       companies: [],
       selectedCompanies: [],
+      bots: [], // <- Add bots to data
+      botOptions: [],
+      emptyBotGroup: {
+        name: "",
+        botIds: [],
+      },
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
@@ -244,7 +302,7 @@ export default {
         query: { chatsPermissions: true },
       });
 
-      await this.$store.dispatch("companiesModule/list"),
+      await this.$store.dispatch("companiesModule/list");
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies
       );
@@ -253,6 +311,8 @@ export default {
         Object.assign(user, {
           chatsPermissions: {
             platforms: [],
+            enableBotGroups: false,
+            botGroups: [this.emptyBotGroup],
             assigned: null,
             status: [],
           },
@@ -260,6 +320,41 @@ export default {
       }
       this.user = user;
       this.selectedCompanies = this.user.corporation.companies.map(c => c.company);
+      await this.fetchBots(this.chatPermissionCompanies); // Fetch bots for initial companies
+    },
+    // Fetch bots using selected companies
+    async fetchBots(selectedChatPermissionCompanies = []) {
+      if (!selectedChatPermissionCompanies.length) {
+        this.bots = [];
+        this.botOptions = [];
+        return;
+      }
+      // Get array of company IDs
+      await this.$store.dispatch("botsModule/list", {
+        companies: selectedChatPermissionCompanies,
+      });
+      this.bots = this.$store.state.botsModule.bots || [];
+      this.botOptions = this.bots.filter(bot => bot.platform === 'whatsapp_automated').map(bot => ({
+        text: bot.name,
+        value: bot._id
+      }));
+    },
+    // Watch for changes in selectedCompanies to update bots
+    async onSelectedCompaniesChange(selectedChatPermissionCompanies) {
+      await this.fetchBots(selectedChatPermissionCompanies);
+    },
+    // Add a new bot group to the list
+    addBotGroup() {
+      if (!this.user.chatsPermissions.botGroups) {
+        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
+      }
+      // Create a new empty bot group (deep copy to avoid reference issues)
+      const newGroup = JSON.parse(JSON.stringify(this.emptyBotGroup));
+      this.user.chatsPermissions.botGroups.push(newGroup);
+    },
+    // Remove a bot group from the list
+    removeBotGroup(index) {
+      this.user.chatsPermissions.botGroups.splice(index, 1);
     },
     async save() {
       this.loadingButton = true;
@@ -313,7 +408,17 @@ export default {
     status() {
       return this.user.status ? "Activo" : "Inactivo";
     },
+    chatPermissionCompanies() {
+      return this.user?.chatsPermissions?.companies.map(c => c._id) || [];
+    },
   },
+  watch: {
+    'user.chatsPermissions.enableBotGroups': function (value) {
+      if (!value) {
+        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
+      }
+    }
+  }
 };
 </script>
 
