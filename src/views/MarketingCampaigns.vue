@@ -55,12 +55,26 @@
           </template>
           <template v-slot:expanded-item="{ headers, item }">
             <td :colspan="headers.length">
-              <div class="mt-2">
-                <b
-                  >Tandas de {{ item.chunkSize }} usuarios - Total:
-                  {{ item.chunkPages }}
-                  {{ item.chunkPages == 1 ? "tanda" : "tandas" }}</b
-                >
+              <div class="w-full mt-2">
+                <div class="d-flex justify-space-between align-center mt-1">
+                  <div>
+                    <b>
+                      Tandas de {{ item.chunkSize }} usuarios - Total:
+                      {{ item.chunkPages }}
+                      {{ item.chunkPages == 1 ? "tanda" : "tandas" }}
+                    </b>
+                  </div>
+                  <div class="mr-16 pr-16" v-if="item.autoSendChunksSequentiallyOnStart">
+                    <v-btn class="mr-2" @click="startSendingCampaignsSequentially(item)">
+                      <v-icon>mdi-play</v-icon>
+                      Iniciar
+                    </v-btn>
+                    <v-btn class="mr-2" @click="pauseSendingCampaignsSequentially(item)">
+                      <v-icon>mdi-pause</v-icon>
+                      Pausar
+                    </v-btn>
+                  </div>
+                </div>
                 <v-list>
                   <v-list-item
                     v-for="(chunk, chunkIndex) in item.chunks"
@@ -305,6 +319,7 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
+    timer: null,
   }),
   computed: {
     formTitle() {
@@ -397,6 +412,35 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       }, 300);
+    },
+    async startSendingCampaignsSequentially(item) {
+      item.status = "Enviando";
+      item.chunksPagesSent = [];
+      this.timer = null;
+      let chunkIndex = 0;
+      const sendNextChunk = () => {
+        if (chunkIndex < item.chunks.length) {
+          console.log("Enviando tanda", chunkIndex + 1);
+          item.chunksPagesSent.push(chunkIndex + 1);
+          this.timer = setTimeout(() => {
+            chunkIndex++;
+            sendNextChunk();
+          }, item.millisecondsBetweenChunks);
+        } else {
+          item.status = "Finalizado";
+          clearTimeout(this.timer);
+          console.log("finalizado");
+          console.log("chunksPagesSent", item.chunksPagesSent);
+        }
+      };
+      sendNextChunk();
+    },
+    async pauseSendingCampaignsSequentially(item) {
+      item.status = "Pausado";
+      // pause the timer
+      clearTimeout(this.timer);
+      console.log("paused");
+      console.log("chunksPagesSent", item.chunksPagesSent);
     },
     async save() {
       this.loadingButton = true;
