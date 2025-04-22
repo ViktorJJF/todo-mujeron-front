@@ -65,7 +65,7 @@
                     </b>
                   </div>
                   <div class="mr-16 pr-16" v-if="item.autoSendChunksSequentiallyOnStart">
-                    <v-btn v-if="item.status != 'Procesando'" class="mr-2" @click="startSendingCampaignsSequentially(item)">
+                    <v-btn v-if="!timers[item._id]?.timer" class="mr-2" @click="startSendingCampaignsSequentially(item)">
                       <v-icon>mdi-play</v-icon>
                       Iniciar
                     </v-btn>
@@ -324,7 +324,7 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
-    timer: null,
+    timers: {},
   }),
   computed: {
     formTitle() {
@@ -423,17 +423,22 @@ export default {
       item.chunksPagesSent = [];
       this.timer = null;
       let chunkIndex = 0;
+      this.timers[item._id] = {
+        chunkIndex,
+        timer: null,
+      };
       const sendNextChunk = () => {
         if (chunkIndex < item.chunks.length) {
           console.log("Procesando tanda", chunkIndex + 1);
           item.chunksPagesSent.push(chunkIndex + 1);
-          this.timer = setTimeout(() => {
+          this.timers[item._id].timer = setTimeout(() => {
             chunkIndex++;
             sendNextChunk();
           }, item.millisecondsBetweenChunks);
         } else {
           item.status = "Finalizado";
-          clearTimeout(this.timer);
+          this.timers[item._id].timer = null;
+          clearTimeout(this.timers[item._id].timer);
           console.log("finalizado");
           console.log("chunksPagesSent", item.chunksPagesSent);
         }
@@ -443,7 +448,8 @@ export default {
     async pauseSendingCampaignsSequentially(item) {
       item.status = "Pausado";
       // pause the timer
-      clearTimeout(this.timer);
+      clearTimeout(this.timers[item._id].timer);
+      this.timers[item._id].timer = null;
       console.log("paused");
       console.log("chunksPagesSent", item.chunksPagesSent);
     },
