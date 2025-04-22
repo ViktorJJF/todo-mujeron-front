@@ -129,6 +129,32 @@
               dense
             ></v-text-field>
           </v-col>
+          <v-col cols="12" sm="12" md="12">
+            <div class="body-1 font-weight-bold">
+              Enviar tandas automaticamente
+            </div>
+            <v-checkbox
+              v-model="editedItem.autoSendChunksSequentiallyOnStart"
+              label="Enviar tandas automaticamente al presionar 'Iniciar' "
+              hide-details
+              @change="editedItem.millisecondsBetweenChunks = 0"
+            ></v-checkbox>
+          </v-col>
+          <v-col v-if="editedItem.autoSendChunksSequentiallyOnStart" cols="12" sm="12" md="12">
+            <div class="body-1 font-weight-bold">
+              Milisegundos entre cada tanda
+            </div>
+          </v-col>
+          <v-col v-if="editedItem.autoSendChunksSequentiallyOnStart" cols="12" sm="4" md="4">
+            <v-text-field
+              v-model.number="editedItem.millisecondsBetweenChunks"
+              type="number"
+              outlined
+              dense
+              solo
+              hide-details
+            />
+          </v-col>
         </v-row>
       </v-container>
       <TemplateMessagesList
@@ -193,6 +219,9 @@
         </div>
         <div>
           <b>Envío por tandas: </b>{{ editedItem.chunkSize || "Sin tandas" }}
+        </div>
+        <div v-if="editedItem.autoSendChunksSequentiallyOnStart">
+          <b>Tiempo entre cada tanda al presionar 'Iniciar': </b>{{ editedItem.millisecondsBetweenChunks }} ms
         </div>
       </v-container>
       <v-card-actions rd-actions>
