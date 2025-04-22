@@ -65,11 +65,11 @@
                     </b>
                   </div>
                   <div class="mr-16 pr-16" v-if="item.autoSendChunksSequentiallyOnStart">
-                    <v-btn class="mr-2" @click="startSendingCampaignsSequentially(item)">
+                    <v-btn v-if="item.status != 'Procesando'" class="mr-2" @click="startSendingCampaignsSequentially(item)">
                       <v-icon>mdi-play</v-icon>
                       Iniciar
                     </v-btn>
-                    <v-btn class="mr-2" @click="pauseSendingCampaignsSequentially(item)">
+                    <v-btn v-else class="mr-2" @click="pauseSendingCampaignsSequentially(item)">
                       <v-icon>mdi-pause</v-icon>
                       Pausar
                     </v-btn>
@@ -99,7 +99,12 @@
                       style="cursor: pointer"
                       @click="getChunkDetail(item, chunk, chunkIndex)"
                     >
-                      {{ "Tanda " + (chunkIndex + 1) }}
+                    <div class="d-flex align-center">
+                      <span>{{ "Tanda " + (chunkIndex + 1) }}</span>
+                      <span class="ml-8" :style="{ color: item.chunksPagesSent.includes(chunkIndex) ? 'blue' : 'grey' }">
+                        {{ item.chunksPagesSent.includes(chunkIndex) ? "Enviado" : "No enviado" }}
+                      </span>
+                    </div>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
@@ -414,13 +419,13 @@ export default {
       }, 300);
     },
     async startSendingCampaignsSequentially(item) {
-      item.status = "Enviando";
+      item.status = "Procesando";
       item.chunksPagesSent = [];
       this.timer = null;
       let chunkIndex = 0;
       const sendNextChunk = () => {
         if (chunkIndex < item.chunks.length) {
-          console.log("Enviando tanda", chunkIndex + 1);
+          console.log("Procesando tanda", chunkIndex + 1);
           item.chunksPagesSent.push(chunkIndex + 1);
           this.timer = setTimeout(() => {
             chunkIndex++;
