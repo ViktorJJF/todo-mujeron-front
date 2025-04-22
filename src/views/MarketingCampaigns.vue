@@ -438,8 +438,8 @@ export default {
       };
       const sendNextChunk = () => {
         if (chunkIndex < item.chunks.length) {
-          console.log("Procesando tanda", chunkIndex + 1);
           item.chunksPagesSent.push(chunkIndex + 1);
+          this.sendChunkCampaign(item, item.chunks[chunkIndex], chunkIndex);
           this.timers[item._id].timer = setTimeout(() => {
             chunkIndex++;
             sendNextChunk();
@@ -448,8 +448,6 @@ export default {
           item.status = "Finalizado";
           this.timers[item._id].timer = null;
           clearTimeout(this.timers[item._id].timer);
-          console.log("finalizado");
-          console.log("chunksPagesSent", item.chunksPagesSent);
         }
       };
       sendNextChunk();
@@ -459,8 +457,6 @@ export default {
       // pause the timer
       clearTimeout(this.timers[item._id].timer);
       this.timers[item._id].timer = null;
-      console.log("paused");
-      console.log("chunksPagesSent", item.chunksPagesSent);
     },
     async save() {
       this.loadingButton = true;
