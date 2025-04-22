@@ -65,6 +65,15 @@
                     </b>
                   </div>
                   <div class="mr-16 pr-16" v-if="item.autoSendChunksSequentiallyOnStart">
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on }">
+                        <span class="mr-2" v-on="on">
+                          <v-icon>mdi-clock-outline</v-icon>
+                          {{ item.millisecondsBetweenChunks }} ms
+                        </span>
+                      </template>
+                      <span> Tiempo entre cada tanda al presionar 'Iniciar' </span>
+                    </v-tooltip>
                     <v-btn v-if="!timers[item._id]?.timer" class="mr-2" @click="startSendingCampaignsSequentially(item)">
                       <v-icon>mdi-play</v-icon>
                       Iniciar
