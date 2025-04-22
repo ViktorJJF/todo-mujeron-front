@@ -101,8 +101,8 @@
                     >
                     <div class="d-flex align-center">
                       <span>{{ "Tanda " + (chunkIndex + 1) }}</span>
-                      <span class="ml-8" :style="{ color: item.chunksPagesSent.includes(chunkIndex) ? 'blue' : 'grey' }">
-                        {{ item.chunksPagesSent.includes(chunkIndex) ? "Enviado" : "No enviado" }}
+                      <span class="ml-8" :style="{ color: item.chunksPagesSent.includes(chunkIndex + 1) ? 'blue' : 'grey' }">
+                        {{ item.chunksPagesSent.includes(chunkIndex + 1) ? "Enviado" : "No enviado" }}
                       </span>
                     </div>
                     </v-list-item-content>
