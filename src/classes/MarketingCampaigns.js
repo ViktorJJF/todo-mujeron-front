@@ -11,4 +11,6 @@ export default () => ({
   chunkSize: 100,
   chunkPages: 1,
   chunls: [],
+  autoSendChunksSequentiallyOnStart: false,
+  millisecondsBetweenChunks: 0,
 });

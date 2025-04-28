@@ -55,12 +55,35 @@
           </template>
           <template v-slot:expanded-item="{ headers, item }">
             <td :colspan="headers.length">
-              <div class="mt-2">
-                <b
-                  >Tandas de {{ item.chunkSize }} usuarios - Total:
-                  {{ item.chunkPages }}
-                  {{ item.chunkPages == 1 ? "tanda" : "tandas" }}</b
-                >
+              <div class="w-full mt-2">
+                <div class="d-flex justify-space-between align-center mt-1">
+                  <div>
+                    <b>
+                      Tandas de {{ item.chunkSize }} usuarios - Total:
+                      {{ item.chunkPages }}
+                      {{ item.chunkPages == 1 ? "tanda" : "tandas" }}
+                    </b>
+                  </div>
+                  <div class="mr-16 pr-16" v-if="item.autoSendChunksSequentiallyOnStart">
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on }">
+                        <span class="mr-2" v-on="on">
+                          <v-icon>mdi-clock-outline</v-icon>
+                          {{ item.millisecondsBetweenChunks }} ms
+                        </span>
+                      </template>
+                      <span> Tiempo entre cada tanda al presionar 'Iniciar' </span>
+                    </v-tooltip>
+                    <v-btn v-if="!timers[item._id]?.timer" class="mr-2" @click="startSendingCampaignsSequentially(item)">
+                      <v-icon>mdi-play</v-icon>
+                      Iniciar
+                    </v-btn>
+                    <v-btn v-else class="mr-2" @click="pauseSendingCampaignsSequentially(item)">
+                      <v-icon>mdi-pause</v-icon>
+                      Pausar
+                    </v-btn>
+                  </div>
+                </div>
                 <v-list>
                   <v-list-item
                     v-for="(chunk, chunkIndex) in item.chunks"
@@ -85,7 +108,12 @@
                       style="cursor: pointer"
                       @click="getChunkDetail(item, chunk, chunkIndex)"
                     >
-                      {{ "Tanda " + (chunkIndex + 1) }}
+                    <div class="d-flex align-center">
+                      <span>{{ "Tanda " + (chunkIndex + 1) }}</span>
+                      <span class="ml-8" :style="{ color: item.chunksPagesSent.includes(chunkIndex + 1) ? 'blue' : 'grey' }">
+                        {{ item.chunksPagesSent.includes(chunkIndex + 1) ? "Enviado" : "No enviado" }}
+                      </span>
+                    </div>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
@@ -305,6 +333,7 @@ export default {
     menu1: false,
     menu2: false,
     rolPermisos: {},
+    timers: {},
   }),
   computed: {
     formTitle() {
@@ -397,6 +426,37 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       }, 300);
+    },
+    async startSendingCampaignsSequentially(item) {
+      item.status = "Procesando";
+      item.chunksPagesSent = [];
+      this.timer = null;
+      let chunkIndex = 0;
+      this.timers[item._id] = {
+        chunkIndex,
+        timer: null,
+      };
+      const sendNextChunk = () => {
+        if (chunkIndex < item.chunks.length) {
+          item.chunksPagesSent.push(chunkIndex + 1);
+          this.sendChunkCampaign(item, item.chunks[chunkIndex], chunkIndex);
+          this.timers[item._id].timer = setTimeout(() => {
+            chunkIndex++;
+            sendNextChunk();
+          }, item.millisecondsBetweenChunks);
+        } else {
+          item.status = "Finalizado";
+          this.timers[item._id].timer = null;
+          clearTimeout(this.timers[item._id].timer);
+        }
+      };
+      sendNextChunk();
+    },
+    async pauseSendingCampaignsSequentially(item) {
+      item.status = "Pausado";
+      // pause the timer
+      clearTimeout(this.timers[item._id].timer);
+      this.timers[item._id].timer = null;
     },
     async save() {
       this.loadingButton = true;
