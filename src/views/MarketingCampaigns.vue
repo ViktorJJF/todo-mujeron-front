@@ -963,12 +963,20 @@ export default {
       return !isNaN(delay) && delay >= 0;
     },
     hasScheduledChunks() {
-      // Utility to check if an item has any scheduled chunks (not sent/processing by backend yet)
+      // Utility to check if an item has any chunks that are actively scheduled or processing by backend
       return (item) => {
         if (!item || !item.scheduledChunks) return false;
-        return Object.values(item.scheduledChunks).some(
-          (chunk) => chunk.status === "scheduled" ||
-        );
+        return Object.values(item.scheduledChunks).some((scheduledChunk) => {
+          if (!scheduledChunk || !scheduledChunk.status) return false;
+          // These statuses are set in _processCampaignItem based on backend data
+          // and represent states where a campaign-level stop might be relevant.
+          return (
+            scheduledChunk.status === "scheduled" || // Programmed for future
+            scheduledChunk.status === "past_due_schedule" || // Programmed for past, not yet processed by backend
+            scheduledChunk.status === "processing_by_backend" || // Actively being sent/processed by backend
+            scheduledChunk.status === "scheduled_pending_api" // UI requested schedule, potentially waiting for backend action or confirmation
+          );
+        });
       };
     },
     allChunksProcessedInBulkNow() {
@@ -1839,28 +1847,45 @@ export default {
         let errorOccurred = false;
         if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
 
+        let actuallyScheduledCountForDelayCalculation = 0; // Counter for chunks that will be actively scheduled
+
         const promises = item.chunks.map((_chunk, i) => {
           const chunkIndex = i;
           const chunkPage = chunkIndex + 1;
 
-          // Check if chunk was already sent and should be skipped for scheduling
-          if (
-            item.chunksPagesSent &&
-            item.chunksPagesSent.includes(chunkPage)
-          ) {
+          const statusPackage = this.getTandaProgrammedStatusPackage(
+            item,
+            chunkIndex
+          );
+          const isEffectivelySent =
+            statusPackage.status === this.PROGRAMMED_CHUNK_STATUSES.SENT;
+          const isEffectivelyProcessing =
+            statusPackage.status === this.PROGRAMMED_CHUNK_STATUSES.PROCESSING;
+
+          if (isEffectivelySent || isEffectivelyProcessing) {
+            let skipStatus = isEffectivelySent
+              ? "skipped_scheduling_already_sent"
+              : "skipped_scheduling_processing";
+            let skipMessage = isEffectivelySent ? "Ya enviado." : "En proceso.";
+
+            // Update item.scheduledChunks to reflect this skip, preserving or setting a relevant time
+            const existingScheduledInfo = item.scheduledChunks[chunkIndex];
             this.$set(item.scheduledChunks, chunkIndex, {
-              status: "skipped_scheduling_already_sent",
-              message: "Ya enviado anteriormente, no se reprogramó.",
-              scheduledTime: new Date().toISOString(), // Placeholder or actual sent time if available
+              ...(existingScheduledInfo || {}),
+              status: skipStatus,
+              message: skipMessage,
+              // If it was already sent/processing, its original scheduledTime might be more relevant
+              scheduledTime:
+                existingScheduledInfo?.scheduledTime ||
+                new Date().toISOString(),
             });
-            return Promise.resolve({
-              status: "skipped_scheduling_already_sent",
-              chunkPage,
-            });
+            return Promise.resolve({ status: skipStatus, chunkPage }); // Mark as skipped
           }
 
+          // This chunk is eligible for scheduling
+          actuallyScheduledCountForDelayCalculation++;
           const totalDelayForThisChunk =
-            (chunkIndex + 1) * baseDelayMilliseconds;
+            actuallyScheduledCountForDelayCalculation * baseDelayMilliseconds; // Use the counter for actual schedulable order
           const scheduledTime = new Date(
             now.getTime() + totalDelayForThisChunk
           );
@@ -1977,16 +2002,50 @@ export default {
         !this.isBulkBaseScheduleDelayValid
       )
         return "Calculando...";
+
       const baseHours = parseInt(this.bulkScheduleDialog.baseDelayHours || 0);
       const baseMinutes = parseInt(
         this.bulkScheduleDialog.baseDelayMinutes || 0
       );
       const baseDelayMilliseconds =
         baseHours * 60 * 60 * 1000 + baseMinutes * 60 * 1000;
+
       if (baseDelayMilliseconds <= 0) return "Retraso base no válido";
+
+      const item = this.bulkScheduleDialog.item;
+      if (!item || !item.chunks || chunkIndex >= item.chunks.length)
+        return "Error de datos";
+
+      let schedulableChunkOrder = 0; // Order of this chunk among those actually being scheduled
+
+      for (let i = 0; i <= chunkIndex; i++) {
+        const statusPackage = this.getTandaProgrammedStatusPackage(item, i);
+        const isEffectivelySent =
+          statusPackage.status === this.PROGRAMMED_CHUNK_STATUSES.SENT;
+        const isEffectivelyProcessing =
+          statusPackage.status === this.PROGRAMMED_CHUNK_STATUSES.PROCESSING;
+
+        const isChunkSkippable = isEffectivelySent || isEffectivelyProcessing;
+
+        if (!isChunkSkippable) {
+          schedulableChunkOrder++;
+        }
+
+        // If this is the target chunk (chunkIndex) and it's being skipped
+        if (i === chunkIndex && isChunkSkippable) {
+          if (isEffectivelySent) return "Ya Enviado";
+          if (isEffectivelyProcessing) return "En Proceso";
+          return "Omitido (estado no programable)"; // Fallback, should be covered by above
+        }
+      }
+
+      if (schedulableChunkOrder === 0) {
+        return "No se programará (sin nueva fecha)";
+      }
+
       const now = new Date();
       const cumulativeDelayMilliseconds =
-        (chunkIndex + 1) * baseDelayMilliseconds;
+        schedulableChunkOrder * baseDelayMilliseconds;
       const futureTime = new Date(now.getTime() + cumulativeDelayMilliseconds);
       return format(futureTime, "dd/MM/yyyy HH:mm:ss", { locale: es });
     },
