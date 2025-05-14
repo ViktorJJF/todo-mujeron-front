@@ -68,15 +68,16 @@
                     Programar Todas las Tandas
                   </v-btn>
                   <v-btn
-                    icon
-                    color="primary"
+                    outlined
+                    color="info"
                     class="ml-2"
                     @click="refreshCampaignItem(item)"
                     :loading="item.isRefreshing"
                     v-if="item.chunks && item.chunks.length > 0"
-                    title="Refrescar datos de la campaña"
+                    title="Refrescar detalle tandas"
                   >
-                    <v-icon>mdi-refresh</v-icon>
+                    <v-icon left>mdi-refresh</v-icon>
+                    Refrescar Campaña
                   </v-btn>
                   <v-btn
                     color="warning"
@@ -391,7 +392,7 @@
     </v-dialog>
 
     <!-- Dialog for scheduling chunks -->
-    <v-dialog v-model="scheduleDialog.show" max-width="500px" persistent eager>
+    <v-dialog v-model="scheduleDialog.show" max-width="500px" eager>
       <v-card>
         <v-card-title class="headline primary white--text">
           Programar envío
@@ -503,11 +504,7 @@
     </v-dialog>
 
     <!-- Dialog for BULK scheduling chunks -->
-    <v-dialog
-      v-model="bulkScheduleDialog.show"
-      max-width="600px"
-      eager
-    >
+    <v-dialog v-model="bulkScheduleDialog.show" max-width="600px" eager>
       <v-card>
         <v-card-title class="headline secondary white--text">
           <v-icon left dark>mdi-calendar-clock</v-icon>
@@ -970,7 +967,7 @@ export default {
       return (item) => {
         if (!item || !item.scheduledChunks) return false;
         return Object.values(item.scheduledChunks).some(
-          (chunk) => chunk.status === "scheduled"
+          (chunk) => chunk.status === "scheduled" ||
         );
       };
     },
@@ -1839,13 +1836,29 @@ export default {
         const baseDelayMilliseconds =
           hoursNum * 60 * 60 * 1000 + minutesNum * 60 * 1000;
         const now = new Date();
-        let successfulSchedules = 0;
         let errorOccurred = false;
         if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
 
         const promises = item.chunks.map((_chunk, i) => {
           const chunkIndex = i;
           const chunkPage = chunkIndex + 1;
+
+          // Check if chunk was already sent and should be skipped for scheduling
+          if (
+            item.chunksPagesSent &&
+            item.chunksPagesSent.includes(chunkPage)
+          ) {
+            this.$set(item.scheduledChunks, chunkIndex, {
+              status: "skipped_scheduling_already_sent",
+              message: "Ya enviado anteriormente, no se reprogramó.",
+              scheduledTime: new Date().toISOString(), // Placeholder or actual sent time if available
+            });
+            return Promise.resolve({
+              status: "skipped_scheduling_already_sent",
+              chunkPage,
+            });
+          }
+
           const totalDelayForThisChunk =
             (chunkIndex + 1) * baseDelayMilliseconds;
           const scheduledTime = new Date(
@@ -1881,7 +1894,7 @@ export default {
                   "status",
                   "scheduled"
                 );
-              successfulSchedules++;
+              // successfulSchedules++; // This variable is no longer used directly here
             })
             .catch((err) => {
               console.error(
@@ -1905,28 +1918,47 @@ export default {
         });
 
         Promise.all(promises)
-          .then(async () => {
-            if (successfulSchedules > 0)
-              buildSuccess(
-                `${successfulSchedules} de ${item.chunks.length} tandas programadas.`,
-                this.$store.commit
+          .then(async (results) => {
+            const actualScheduledCount = results.filter(
+              (r) => r && !r.status
+            ).length; // successful API calls
+            const skippedCount = results.filter(
+              (r) => r && r.status === "skipped_scheduling_already_sent"
+            ).length;
+            // errorOccurred is already tracked for API call failures
+
+            let messages = [];
+            if (actualScheduledCount > 0) {
+              messages.push(
+                `${actualScheduledCount} de ${
+                  item.chunks.length - skippedCount
+                } tandas elegibles fueron programadas.`
               );
-            if (errorOccurred)
-              buildSuccess(
-                `Algunas tandas no pudieron ser programadas.`,
-                this.$store.commit,
-                "warning"
+            }
+            if (skippedCount > 0) {
+              messages.push(
+                `${skippedCount} tanda(s) ya habían sido enviadas y no se reprogramaron.`
               );
-            if (
-              !errorOccurred &&
-              successfulSchedules === 0 &&
-              item.chunks.length > 0
-            )
-              buildSuccess(
-                `No se programaron tandas.`,
-                this.$store.commit,
-                "info"
+            }
+            if (errorOccurred) {
+              messages.push(
+                "Algunas tandas no pudieron ser programadas debido a errores."
               );
+            }
+            if (messages.length === 0 && item.chunks.length > 0) {
+              messages.push("No se programaron nuevas tandas.");
+            } else if (item.chunks.length === 0) {
+              messages.push("No hay tandas para programar.");
+            }
+
+            if (errorOccurred) {
+              buildSuccess(messages.join(" "), this.$store.commit, "warning");
+            } else if (actualScheduledCount > 0) {
+              buildSuccess(messages.join(" "), this.$store.commit, "success");
+            } else {
+              buildSuccess(messages.join(" "), this.$store.commit, "info");
+            }
+
             // await this.refreshCampaignItem(item); // Refresh item instead of full initialize
             this.closeBulkScheduleDialog();
           })
@@ -2180,6 +2212,75 @@ export default {
       const sendNextChunk = async () => {
         if (chunkIndex < item.chunks.length) {
           const currentChunkObject = item.chunks[chunkIndex];
+
+          // Check if chunk was already sent
+          if (
+            item.chunksPagesSent &&
+            item.chunksPagesSent.includes(chunkIndex + 1)
+          ) {
+            this.$set(currentChunkObject, "_bulkSendStatus", "already_sent");
+            this.$set(
+              currentChunkObject,
+              "_bulkSendMessage",
+              "Esta tanda ya fue enviada."
+            );
+
+            chunkIndex++;
+            if (chunkIndex < item.chunks.length) {
+              this.timers[timerId].timer = setTimeout(sendNextChunk, delayMs);
+            } else {
+              // All chunks processed (some might have been skipped)
+              if (this.timers[timerId]) {
+                clearTimeout(this.timers[timerId].timer);
+                this.timers[timerId].timer = null;
+              }
+              this.bulkScheduleDialog.loading = false;
+              // Update completion messages
+              const allEffectivelyProcessed = item.chunks.every(
+                (c) =>
+                  c._bulkSendStatus === "sent" ||
+                  c._bulkSendStatus === "already_sent" ||
+                  c._bulkSendStatus === "error" // Consider error as processed for completion
+              );
+              const anyError = item.chunks.some(
+                (c) => c._bulkSendStatus === "error"
+              );
+              const anyActuallySent = item.chunks.some(
+                (c) => c._bulkSendStatus === "sent"
+              );
+              const allSkipped = item.chunks.every(
+                (c) => c._bulkSendStatus === "already_sent"
+              );
+
+              if (anyError) {
+                buildSuccess(
+                  `Envío secuencial de tandas para '${item.name}' completado con algunos errores.`,
+                  this.$store.commit,
+                  "warning"
+                );
+              } else if (allSkipped) {
+                buildSuccess(
+                  `Envío secuencial para '${item.name}': Todas las tandas ya habían sido enviadas.`,
+                  this.$store.commit,
+                  "info"
+                );
+              } else if (allEffectivelyProcessed && anyActuallySent) {
+                buildSuccess(
+                  `Envío secuencial de tandas para '${item.name}' completado exitosamente.`,
+                  this.$store.commit
+                );
+              } else if (allEffectivelyProcessed) {
+                // No errors, none actually sent (e.g. all skipped or empty)
+                buildSuccess(
+                  `Proceso de envío secuencial para '${item.name}' finalizado. No se enviaron nuevas tandas.`,
+                  this.$store.commit,
+                  "info"
+                );
+              }
+            }
+            return; // Return after handling skipped chunk
+          }
+
           this.$set(currentChunkObject, "_bulkSendStatus", "sending");
           this.$set(currentChunkObject, "_bulkSendMessage", "");
 
@@ -2219,27 +2320,42 @@ export default {
             this.bulkScheduleDialog.loading = false; // Indicate overall process for button is done
             // isBulkNowSending remains true to show the final progress list.
             // A "Close" button becomes active.
-            const allSuccessful = item.chunks.every(
-              (c) => c._bulkSendStatus === "sent"
+            const allEffectivelyProcessed = item.chunks.every(
+              (c) =>
+                c._bulkSendStatus === "sent" ||
+                c._bulkSendStatus === "already_sent" ||
+                c._bulkSendStatus === "error"
             );
             const anyError = item.chunks.some(
               (c) => c._bulkSendStatus === "error"
             );
+            const anyActuallySent = item.chunks.some(
+              (c) => c._bulkSendStatus === "sent"
+            );
+            const allSkipped = item.chunks.every(
+              (c) => c._bulkSendStatus === "already_sent"
+            );
 
-            if (allSuccessful && !anyError) {
-              buildSuccess(
-                `Envío secuencial de tandas para '${item.name}' completado exitosamente.`,
-                this.$store.commit
-              );
-            } else if (anyError) {
+            if (anyError) {
               buildSuccess(
                 `Envío secuencial de tandas para '${item.name}' completado con algunos errores.`,
                 this.$store.commit,
                 "warning"
               );
-            } else {
+            } else if (allSkipped) {
               buildSuccess(
-                `Envío secuencial de tandas para '${item.name}' procesado.`,
+                `Envío secuencial para '${item.name}': Todas las tandas ya habían sido enviadas.`,
+                this.$store.commit,
+                "info"
+              );
+            } else if (allEffectivelyProcessed && anyActuallySent) {
+              buildSuccess(
+                `Envío secuencial de tandas para '${item.name}' completado exitosamente.`,
+                this.$store.commit
+              );
+            } else if (allEffectivelyProcessed) {
+              buildSuccess(
+                `Proceso de envío secuencial para '${item.name}' finalizado. No se enviaron nuevas tandas.`,
                 this.$store.commit,
                 "info"
               );
