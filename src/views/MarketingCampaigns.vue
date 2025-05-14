@@ -25,6 +25,17 @@
           @click:row="getCleanleadsChunks"
         >
           <template v-slot:top>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                dense
+                hide-details
+                v-model="search"
+                append-icon="search"
+                placeholder="Busca algo"
+                single-line
+                outlined
+              ></v-text-field>
+            </v-col>
             <v-container>
               <v-row>
                 <v-col cols="12" sm="12">
@@ -32,10 +43,11 @@
                     <strong>Mostrando:</strong>
                     {{
                       $store.state.itemsPerPage > items.length
-                        ? items.length
+                        ? $store.state.marketingCampaignsModule.total
                         : $store.state.itemsPerPage
                     }}
-                    de {{ items.length }} registros
+                    de
+                    {{ $store.state.marketingCampaignsModule.total }} registros
                   </span>
                 </v-col>
               </v-row>
@@ -136,8 +148,10 @@
                         <template v-slot:activator="{ on }">
                           <v-btn
                             v-if="
-                              getTandaProgrammedStatusPackage(item, chunkIndex).status === null ||
-                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.ERROR
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .status === null ||
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .status === PROGRAMMED_CHUNK_STATUSES.ERROR
                             "
                             @click="openScheduleDialog(item, chunk, chunkIndex)"
                             color="info"
@@ -151,10 +165,12 @@
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
 
-                           <v-btn
+                          <v-btn
                             v-if="
-                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
-                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
                             "
                             @click="
                               stopSpecificScheduledChunk(item, chunkIndex)
@@ -168,16 +184,26 @@
                           </v-btn>
                         </template>
                         <span
-                          >{{ getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING || getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
+                          >{{
+                            getTandaProgrammedStatusPackage(item, chunkIndex)
+                              .status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
+                            getTandaProgrammedStatusPackage(item, chunkIndex)
+                              .status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
                               ? "Detener Programación"
                               : "Enviar/Programar"
                           }}
                           Tanda {{ chunkIndex + 1 }}
                         </span>
-                        <span v-if="getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING">
+                        <span
+                          v-if="
+                            getTandaProgrammedStatusPackage(item, chunkIndex)
+                              .status === PROGRAMMED_CHUNK_STATUSES.PENDING
+                          "
+                        >
                           ({{
                             getRelativeTime(
-                              getTandaProgrammedStatusPackage(item, chunkIndex).scheduledDateTime
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .scheduledDateTime
                             )
                           }})
                         </span>
@@ -210,7 +236,9 @@
                         />
                         <v-btn
                           v-if="
-                            getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING &&
+                            getTandaProgrammedStatusPackage(item, chunkIndex)
+                              .status ===
+                              PROGRAMMED_CHUNK_STATUSES.PROCESSING &&
                             !isStoppingChunk(item, chunkIndex)
                           "
                           icon
@@ -320,14 +348,18 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? items.length
+                ? $store.state.marketingCampaignsModule.total
                 : $store.state.itemsPerPage
             }}
-            de {{ items.length }} registros
+            de {{ $store.state.marketingCampaignsModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            v-model="page"
+            :length="$store.state.marketingCampaignsModule.totalPages"
+            @input="initialize(page)"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -474,7 +506,6 @@
     <v-dialog
       v-model="bulkScheduleDialog.show"
       max-width="600px"
-      persistent
       eager
     >
       <v-card>
@@ -806,6 +837,7 @@ export default {
     page: 1,
     pageCount: 0,
     loadingButton: false,
+    fieldsToSearch: ["name"],
     search: "",
     dialog: false,
     headers: [
@@ -855,7 +887,7 @@ export default {
     PROGRAMMED_CHUNK_STATUSES: PROGRAMMED_CHUNK_STATUSES, // Make constants available in the template
     scheduleDialog: {
       show: false,
-      type: "now",
+      type: "schedule",
       hours: "0",
       minutes: "15",
       chunkIndex: null,
@@ -975,16 +1007,11 @@ export default {
     dialog(val) {
       val || this.close();
     },
-    isShowingDetail(val) {
-      if (!val) {
-        this.chunkDetail = null;
-      }
-    },
-    bulkScheduleDialog: {
-      deep: true,
-      handler() {
-        this.bulkScheduleDialog.loading = false;
-      },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(this.page);
+      }, 600);
     },
   },
   async mounted() {
@@ -1259,15 +1286,21 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
-    async initialize() {
+    async initialize(page = 1) {
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "createdAt",
+        order: "desc",
+        companies: [
+          this.$store.getters["authModule/getCurrentCompany"].company._id,
+        ],
+        includeCount: true,
+      };
       this.$store.commit("loadingModule/showLoading"); // Show loading at the start
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          companies: [
-            this.$store.getters["authModule/getCurrentCompany"].company._id,
-          ],
-          includeCount: true,
-        }),
+        this.$store.dispatch(ENTITY + "Module/list", { ...payload }),
       ]);
 
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
@@ -1697,7 +1730,6 @@ export default {
         });
       }
       this.bulkScheduleDialog.item = item; // item now has chunks with _bulkSendStatus
-      this.bulkScheduleDialog.type = "now";
       this.bulkScheduleDialog.millisecondsBetweenChunksForBulkNow =
         item.autoSendChunksSequentiallyOnStart &&
         typeof item.millisecondsBetweenChunks === "number"
