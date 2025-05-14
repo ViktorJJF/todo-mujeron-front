@@ -135,18 +135,27 @@
                       <v-tooltip bottom>
                         <template v-slot:activator="{ on }">
                           <v-btn
-                            v-if="!isChunkScheduled(item, chunkIndex)"
+                            v-if="
+                              getTandaProgrammedStatusPackage(item, chunkIndex).status === null ||
+                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.ERROR
+                            "
                             @click="openScheduleDialog(item, chunk, chunkIndex)"
                             color="info"
                             small
                             v-on="on"
                             :disabled="
+                              // This disabled check might still be useful for race conditions
                               isChunkSentOrProcessing(item, chunkIndex)
                             "
                           >
                             <v-icon>mdi-send</v-icon>
                           </v-btn>
-                          <v-btn
+
+                           <v-btn
+                            v-if="
+                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
+                              getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
+                            "
                             @click="
                               stopSpecificScheduledChunk(item, chunkIndex)
                             "
@@ -159,17 +168,16 @@
                           </v-btn>
                         </template>
                         <span
-                          >{{
-                            isChunkScheduled(item, chunkIndex)
+                          >{{ getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING || getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
                               ? "Detener Programación"
                               : "Enviar/Programar"
                           }}
                           Tanda {{ chunkIndex + 1 }}
                         </span>
-                        <span v-if="isChunkScheduled(item, chunkIndex)">
+                        <span v-if="getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PENDING">
                           ({{
                             getRelativeTime(
-                              item.scheduledChunks[chunkIndex].scheduledTime
+                              getTandaProgrammedStatusPackage(item, chunkIndex).scheduledDateTime
                             )
                           }})
                         </span>
@@ -202,17 +210,17 @@
                         />
                         <v-btn
                           v-if="
-                            !isChunkSentOrProcessing(item, chunkIndex) &&
+                            getTandaProgrammedStatusPackage(item, chunkIndex).status === PROGRAMMED_CHUNK_STATUSES.PROCESSING &&
                             !isStoppingChunk(item, chunkIndex)
                           "
                           icon
                           x-small
-                          color="error"
+                          color="warning"
                           class="ml-2"
-                          title="Detener manualmente"
+                          title="Detener procesamiento de tanda"
                           @click.stop="stopManuallyChunk(item, chunkIndex)"
                         >
-                          <v-icon small>mdi-hand-back-left</v-icon>
+                          <v-icon small>mdi-cancel</v-icon>
                         </v-btn>
                       </div>
                     </v-list-item-content>
@@ -496,22 +504,126 @@
 
           <!-- Inputs for 'Enviar todas ahora secuencialmente' -->
           <div v-if="bulkScheduleDialog.type === 'now'">
-            <v-card outlined class="pa-4 mb-4">
+            <!-- Configuration View -->
+            <div v-if="!bulkScheduleDialog.isBulkNowSending">
+              <v-card outlined class="pa-4 mb-4">
+                <v-card-title
+                  class="px-0 pt-0 text-subtitle-1 font-weight-bold"
+                >
+                  Configurar envío inmediato secuencial
+                </v-card-title>
+                <v-text-field
+                  v-model="
+                    bulkScheduleDialog.millisecondsBetweenChunksForBulkNow
+                  "
+                  label="Tiempo entre tandas (ms)"
+                  type="number"
+                  min="0"
+                  outlined
+                  dense
+                  @input="validateBulkScheduleInputs"
+                  hint="Tiempo de espera en milisegundos entre el envío de cada tanda."
+                  persistent-hint
+                ></v-text-field>
+              </v-card>
+            </div>
+
+            <!-- Progress View -->
+            <div
+              v-if="
+                bulkScheduleDialog.isBulkNowSending &&
+                bulkScheduleDialog.item &&
+                bulkScheduleDialog.item.chunks
+              "
+            >
               <v-card-title class="px-0 pt-0 text-subtitle-1 font-weight-bold">
-                Configurar envío inmediato secuencial
+                Enviando Tandas...
               </v-card-title>
-              <v-text-field
-                v-model="bulkScheduleDialog.millisecondsBetweenChunksForBulkNow"
-                label="Tiempo entre tandas (ms)"
-                type="number"
-                min="0"
-                outlined
+              <v-list dense style="max-height: 300px; overflow-y: auto">
+                <v-list-item
+                  v-for="(chunk, index) in bulkScheduleDialog.item.chunks"
+                  :key="'bulk-send-progress-' + index"
+                >
+                  <v-list-item-icon class="mr-3">
+                    <v-progress-circular
+                      v-if="chunk._bulkSendStatus === 'sending'"
+                      indeterminate
+                      color="primary"
+                      size="20"
+                    ></v-progress-circular>
+                    <v-icon
+                      v-if="chunk._bulkSendStatus === 'sent'"
+                      color="success"
+                      >mdi-check-circle</v-icon
+                    >
+                    <v-icon
+                      v-if="chunk._bulkSendStatus === 'error'"
+                      color="error"
+                      >mdi-alert-circle</v-icon
+                    >
+                    <v-icon
+                      v-if="chunk._bulkSendStatus === 'cancelled'"
+                      color="warning"
+                      >mdi-cancel</v-icon
+                    >
+                    <v-icon
+                      v-if="chunk._bulkSendStatus === 'pending'"
+                      color="grey"
+                      >mdi-clock-outline</v-icon
+                    >
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>Tanda {{ index + 1 }}</v-list-item-title>
+                    <v-list-item-subtitle
+                      v-if="chunk._bulkSendStatus === 'error'"
+                    >
+                      Error: {{ chunk._bulkSendMessage }}
+                    </v-list-item-subtitle>
+                    <v-list-item-subtitle
+                      v-else-if="chunk._bulkSendStatus === 'sending'"
+                    >
+                      Enviando...
+                    </v-list-item-subtitle>
+                    <v-list-item-subtitle
+                      v-else-if="chunk._bulkSendStatus === 'sent'"
+                    >
+                      Solicitud de envío realizada.
+                    </v-list-item-subtitle>
+                    <v-list-item-subtitle
+                      v-else-if="chunk._bulkSendStatus === 'cancelled'"
+                    >
+                      {{ chunk._bulkSendMessage || "Cancelado." }}
+                    </v-list-item-subtitle>
+                    <v-list-item-subtitle v-else>
+                      Pendiente...
+                    </v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+              <v-alert
+                v-if="
+                  !bulkScheduleDialog.loading && allChunksProcessedInBulkNow
+                "
+                :type="
+                  bulkScheduleDialog.item.chunks.some(
+                    (c) => c._bulkSendStatus === 'error'
+                  )
+                    ? 'warning'
+                    : 'success'
+                "
+                class="mt-3"
                 dense
-                @input="validateBulkScheduleInputs"
-                hint="Tiempo de espera en milisegundos entre el envío de cada tanda."
-                persistent-hint
-              ></v-text-field>
-            </v-card>
+                outlined
+              >
+                {{
+                  bulkScheduleDialog.item.chunks.some(
+                    (c) => c._bulkSendStatus === "error"
+                  )
+                    ? "Proceso completado con errores."
+                    : "Todas las tandas han sido procesadas."
+                }}
+              </v-alert>
+            </div>
           </div>
 
           <!-- Inputs for 'Programar envío secuencial con retraso acumulativo' -->
@@ -610,19 +722,34 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey darken-1" text @click="closeBulkScheduleDialog">
-            CANCELAR
+          <v-btn
+            color="grey darken-1"
+            text
+            @click="handleCloseOrCancelBulkDialog"
+            :disabled="
+              bulkScheduleDialog.type === 'now' &&
+              bulkScheduleDialog.isBulkNowSending &&
+              bulkScheduleDialog.loading
+            "
+          >
+            {{ bulkDialogCloseButtonText }}
           </v-btn>
           <v-btn
-            :color="bulkScheduleDialog.type === 'now' ? 'success' : 'primary'"
-            :loading="bulkScheduleDialog.loading"
-            :disabled="
-              bulkScheduleDialog.loading ||
-              (bulkScheduleDialog.type === 'schedule' &&
-                !isBulkBaseScheduleDelayValid) ||
-              (bulkScheduleDialog.type === 'now' &&
-                !isBulkNowScheduleDelayValid)
+            v-if="
+              !(
+                bulkScheduleDialog.type === 'now' &&
+                bulkScheduleDialog.isBulkNowSending
+              )
             "
+            :color="bulkScheduleDialog.type === 'now' ? 'success' : 'primary'"
+            :loading="
+              bulkScheduleDialog.loading &&
+              !(
+                bulkScheduleDialog.type === 'now' &&
+                bulkScheduleDialog.isBulkNowSending
+              )
+            "
+            :disabled="getConfirmBulkDisabledState()"
             @click="confirmBulkSchedule"
           >
             {{
@@ -725,6 +852,7 @@ export default {
     timers: {},
     stoppingAllGlobally: false, // for global stop button loading state
     stoppingChunkStates: {}, // To track loading state for individual chunk stops e.g. { 'campaignId_chunkIndex': true }
+    PROGRAMMED_CHUNK_STATUSES: PROGRAMMED_CHUNK_STATUSES, // Make constants available in the template
     scheduleDialog: {
       show: false,
       type: "now",
@@ -744,6 +872,7 @@ export default {
       baseDelayMinutes: "15", // For 'schedule' type
       item: null,
       loading: false,
+      isBulkNowSending: false, // Added for bulk "now" sending UI state
     },
   }),
   computed: {
@@ -812,6 +941,34 @@ export default {
           (chunk) => chunk.status === "scheduled"
         );
       };
+    },
+    allChunksProcessedInBulkNow() {
+      if (
+        !this.bulkScheduleDialog.item ||
+        !this.bulkScheduleDialog.item.chunks ||
+        !this.bulkScheduleDialog.isBulkNowSending
+      ) {
+        return false;
+      }
+      return this.bulkScheduleDialog.item.chunks.every(
+        (chunk) =>
+          chunk._bulkSendStatus === "sent" || chunk._bulkSendStatus === "error"
+      );
+    },
+    bulkDialogCloseButtonText() {
+      if (
+        this.bulkScheduleDialog.type === "now" &&
+        this.bulkScheduleDialog.isBulkNowSending
+      ) {
+        if (this.bulkScheduleDialog.loading) {
+          // Sending in progress
+          return "ENVIANDO..."; // Or consider this button a "Stop"
+        } else {
+          // Sending finished
+          return "CERRAR";
+        }
+      }
+      return "CANCELAR";
     },
   },
   watch: {
@@ -1532,7 +1689,14 @@ export default {
     },
 
     openBulkScheduleDialog(item) {
-      this.bulkScheduleDialog.item = item;
+      // Reset any previous bulk send statuses
+      if (item.chunks && item.chunks.length > 0) {
+        item.chunks.forEach((chunk) => {
+          this.$set(chunk, "_bulkSendStatus", "pending");
+          this.$set(chunk, "_bulkSendMessage", "");
+        });
+      }
+      this.bulkScheduleDialog.item = item; // item now has chunks with _bulkSendStatus
       this.bulkScheduleDialog.type = "now";
       this.bulkScheduleDialog.millisecondsBetweenChunksForBulkNow =
         item.autoSendChunksSequentiallyOnStart &&
@@ -1542,12 +1706,21 @@ export default {
       this.bulkScheduleDialog.baseDelayHours = "0";
       this.bulkScheduleDialog.baseDelayMinutes = "15";
       this.bulkScheduleDialog.loading = false;
+      this.bulkScheduleDialog.isBulkNowSending = false; // Ensure it's reset
       this.bulkScheduleDialog.show = true;
     },
 
     closeBulkScheduleDialog() {
       this.bulkScheduleDialog.show = false;
       this.bulkScheduleDialog.loading = false;
+      this.bulkScheduleDialog.isBulkNowSending = false; // Reset this state too
+      // Optional: Clean up _bulkSendStatus if they are only for dialog context
+      // if (this.bulkScheduleDialog.item && this.bulkScheduleDialog.item.chunks) {
+      //   this.bulkScheduleDialog.item.chunks.forEach(chunk => {
+      //     this.$delete(chunk, '_bulkSendStatus');
+      //     this.$delete(chunk, '_bulkSendMessage');
+      //   });
+      // }
     },
 
     validateBulkScheduleInputs() {
@@ -1595,20 +1768,27 @@ export default {
           this.bulkScheduleDialog.loading = false;
           return;
         }
-        if (this.timers[item._id]) this.timers[item._id].isPaused = false;
-        else
-          this.timers[item._id] = {
-            chunkIndex: 0,
-            timer: null,
-            isPaused: false,
-            currentDelay: delayMs,
-          };
-        this.startSendingCampaignsSequentially(item, delayMs);
+
+        this.bulkScheduleDialog.isBulkNowSending = true; // Switch to progress view
+
+        // Ensure chunks have _bulkSendStatus initialized (double check, openBulkScheduleDialog should do it)
+        if (item.chunks && item.chunks.length > 0) {
+          item.chunks.forEach((chunk) => {
+            if (chunk._bulkSendStatus === undefined)
+              this.$set(chunk, "_bulkSendStatus", "pending");
+            if (chunk._bulkSendMessage === undefined)
+              this.$set(chunk, "_bulkSendMessage", "");
+          });
+        }
+
+        this.startBulkNowSequentialSend(item, delayMs);
+
         buildSuccess(
-          `Iniciando envío secuencial con ${delayMs}ms de espera.`,
+          `Iniciando envío secuencial con ${delayMs}ms de espera. Se mostrará el progreso.`,
           this.$store.commit
         );
-        this.closeBulkScheduleDialog();
+        // loading for the button itself can be tricky; the dialog content shows activity
+        // this.bulkScheduleDialog.loading = false; // Or keep true if button becomes "Enviando..."
       } else if (type === "schedule") {
         const hoursNum = parseInt(this.bulkScheduleDialog.baseDelayHours || 0);
         const minutesNum = parseInt(
@@ -1919,6 +2099,199 @@ export default {
           this.$set(this.stoppingChunkStates, stoppingKey, false);
         }
       }
+    },
+
+    async startBulkNowSequentialSend(currentItemFromDialog, delayMs) {
+      // Use this.bulkScheduleDialog.item to ensure reactivity with the dialog's displayed item
+      const item = this.bulkScheduleDialog.item;
+
+      if (!item || item._id !== currentItemFromDialog._id) {
+        console.error(
+          "Item mismatch or missing item in startBulkNowSequentialSend.",
+          {
+            dialogItem: item ? item._id : "null",
+            passedItem: currentItemFromDialog
+              ? currentItemFromDialog._id
+              : "null",
+          }
+        );
+        if (this.bulkScheduleDialog.item) {
+          this.bulkScheduleDialog.item.chunks.forEach((chunk) => {
+            this.$set(chunk, "_bulkSendStatus", "error");
+            this.$set(
+              chunk,
+              "_bulkSendMessage",
+              "Error interno de la UI (item mismatch)."
+            );
+          });
+        }
+        this.bulkScheduleDialog.loading = false; // Stop button loading
+        return;
+      }
+
+      if (!item.chunksPagesSent) {
+        this.$set(item, "chunksPagesSent", []);
+      } else {
+        item.chunksPagesSent = []; // Reset for this bulk operation
+      }
+
+      // Clear any existing timer for this specific campaign item if tied to general sequential sending
+      // This bulk operation has its own timer logic for sequencing.
+      const timerId = `bulk_${item._id}`;
+      if (this.timers[timerId] && this.timers[timerId].timer) {
+        clearTimeout(this.timers[timerId].timer);
+      }
+      this.timers[timerId] = { timer: null };
+
+      let chunkIndex = 0;
+
+      const sendNextChunk = async () => {
+        if (chunkIndex < item.chunks.length) {
+          const currentChunkObject = item.chunks[chunkIndex];
+          this.$set(currentChunkObject, "_bulkSendStatus", "sending");
+          this.$set(currentChunkObject, "_bulkSendMessage", "");
+
+          try {
+            await this.sendChunkCampaign(
+              item, // campaign item
+              currentChunkObject, // chunk object (not just index or content)
+              chunkIndex, // chunk index (0-based)
+              { isProgrammed: false, isBulkNow: true } // options
+            );
+            this.$set(currentChunkObject, "_bulkSendStatus", "sent");
+            // chunksPagesSent is updated within sendChunkCampaign if successful & not programmed
+          } catch (error) {
+            console.error(
+              `Error enviando tanda ${chunkIndex + 1} en bulk 'now':`,
+              error
+            );
+            this.$set(currentChunkObject, "_bulkSendStatus", "error");
+            this.$set(
+              currentChunkObject,
+              "_bulkSendMessage",
+              error.message || "Error desconocido al enviar."
+            );
+            // Continue with next chunk even if one fails, or decide to stop.
+            // Current logic: continue.
+          }
+
+          chunkIndex++;
+          if (chunkIndex < item.chunks.length) {
+            this.timers[timerId].timer = setTimeout(sendNextChunk, delayMs);
+          } else {
+            // All chunks processed
+            if (this.timers[timerId]) {
+              clearTimeout(this.timers[timerId].timer);
+              this.timers[timerId].timer = null;
+            }
+            this.bulkScheduleDialog.loading = false; // Indicate overall process for button is done
+            // isBulkNowSending remains true to show the final progress list.
+            // A "Close" button becomes active.
+            const allSuccessful = item.chunks.every(
+              (c) => c._bulkSendStatus === "sent"
+            );
+            const anyError = item.chunks.some(
+              (c) => c._bulkSendStatus === "error"
+            );
+
+            if (allSuccessful && !anyError) {
+              buildSuccess(
+                `Envío secuencial de tandas para '${item.name}' completado exitosamente.`,
+                this.$store.commit
+              );
+            } else if (anyError) {
+              buildSuccess(
+                `Envío secuencial de tandas para '${item.name}' completado con algunos errores.`,
+                this.$store.commit,
+                "warning"
+              );
+            } else {
+              buildSuccess(
+                `Envío secuencial de tandas para '${item.name}' procesado.`,
+                this.$store.commit,
+                "info"
+              );
+            }
+          }
+        }
+      };
+      sendNextChunk(); // Start the first one
+    },
+
+    handleCloseOrCancelBulkDialog() {
+      if (
+        this.bulkScheduleDialog.type === "now" &&
+        this.bulkScheduleDialog.isBulkNowSending &&
+        this.bulkScheduleDialog.loading
+      ) {
+        // Potentially implement stop bulk send: clear timers[ `bulk_${item._id}`].timer
+        // For now, this button is disabled or shows "ENVIANDO..." when loading is true.
+        // If user clicks when it says "ENVIANDO..." (meaning loading is true), we might want to stop.
+        // However, the button is currently set to be disabled when loading=true for this case.
+        // So, this branch might not be reachable if button is disabled.
+        console.warn(
+          "Stop bulk send requested while in progress - not fully implemented."
+        );
+        // To attempt stopping:
+        const timerId = `bulk_${this.bulkScheduleDialog.item._id}`;
+        if (this.timers[timerId] && this.timers[timerId].timer) {
+          clearTimeout(this.timers[timerId].timer);
+          this.timers[timerId].timer = null;
+          this.bulkScheduleDialog.loading = false; // Stop loading indicator
+          // Mark remaining chunks as cancelled or similar.
+          // This requires iterating item.chunks and setting _bulkSendStatus
+          if (
+            this.bulkScheduleDialog.item &&
+            this.bulkScheduleDialog.item.chunks
+          ) {
+            let foundSending = false;
+            this.bulkScheduleDialog.item.chunks.forEach((c) => {
+              if (c._bulkSendStatus === "sending") {
+                this.$set(c, "_bulkSendStatus", "cancelled");
+                this.$set(c, "_bulkSendMessage", "Detenido por el usuario.");
+                foundSending = true;
+              }
+              if (foundSending && c._bulkSendStatus === "pending") {
+                this.$set(c, "_bulkSendStatus", "cancelled");
+                this.$set(c, "_bulkSendMessage", "Detenido por el usuario.");
+              }
+            });
+          }
+          buildSuccess(
+            "Proceso de envío masivo detenido.",
+            this.$store.commit,
+            "info"
+          );
+        }
+        // Even if stopped, we might want to keep the dialog open to show status, then close.
+        // Or just close it:
+        // this.closeBulkScheduleDialog();
+        return; // Explicitly return after handling stop attempt
+      }
+      this.closeBulkScheduleDialog();
+    },
+
+    getConfirmBulkDisabledState() {
+      if (
+        this.bulkScheduleDialog.loading &&
+        !(
+          this.bulkScheduleDialog.type === "now" &&
+          this.bulkScheduleDialog.isBulkNowSending
+        )
+      )
+        return true;
+      if (
+        this.bulkScheduleDialog.type === "schedule" &&
+        !this.isBulkBaseScheduleDelayValid
+      )
+        return true;
+      if (
+        this.bulkScheduleDialog.type === "now" &&
+        !this.bulkScheduleDialog.isBulkNowSending &&
+        !this.isBulkNowScheduleDelayValid
+      )
+        return true;
+      return false;
     },
   },
 };
