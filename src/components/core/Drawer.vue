@@ -29,7 +29,7 @@
     <v-list nav flat>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-settings"
         color="white"
         v-if="
           checkAuth('Configuracion/TodoFull') ||
@@ -56,6 +56,9 @@
             :to="{ name: 'Companies' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Companies')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-office-building</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Compañias </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -63,6 +66,9 @@
             :to="{ name: 'Usuarios' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Usuarios')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-account-multiple</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Usuarios </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -70,6 +76,9 @@
             :to="{ name: 'EquipoDeVentas' }"
             v-if="checkAuth('Configuracion/TodoFull', 'EquipodeVentas')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-account-group</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Equipo de ventas </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -77,6 +86,9 @@
             :to="{ name: 'Agentes' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Agentes')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-account</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Agentes </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -84,6 +96,9 @@
             :to="{ name: 'Locaciones' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Locaciones')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-map-marker</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Locaciones </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -91,6 +106,9 @@
             :to="{ name: 'TodofullLabels' }"
             v-if="checkAuth('Configuracion/TodoFull', 'TodofullLabels')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-label</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Etiquetas Todofull</v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -98,6 +116,9 @@
             :to="{ name: 'Groups' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-group</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -129,7 +150,9 @@
             "
           >
             <v-list-item-content>
-              {{ propiedad.text }}
+              <v-list-item-title>
+                {{ propiedad.text }}
+              </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-group
@@ -193,7 +216,7 @@
       </v-list-group>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-account"
         color="white"
         v-if="checkAuth('GoogleContact/Contactos')"
       >
@@ -219,7 +242,7 @@
       </v-list-group>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-message-processing"
         color="white"
         v-if="
           checkAuth('ChatBot/Bots') ||
@@ -238,7 +261,7 @@
           v-if="checkAuth('ChatBot/Bots', 'Bots')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-robot</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content> Bots </v-list-item-content>
@@ -260,12 +283,18 @@
             active-class="primary custom2"
             :to="{ name: 'TelegramGroups' }"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-telegram</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'TelegramRoutines' }"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-script</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Rutinas </v-list-item-content>
           </v-list-item>
         </v-list-group>
@@ -292,6 +321,9 @@
             :to="{ name: 'LeadsNuevos' }"
             v-if="checkAuth('ChatBot/Leads', 'Sin-Asignar')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-account-question</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Sin asignar </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -299,6 +331,9 @@
             :to="{ name: 'LeadsCompraRealizada' }"
             v-if="checkAuth('ChatBot/Leads', 'Compra-Realizada')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-cart-check</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Compra Realizada </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -306,6 +341,9 @@
             :to="{ name: 'LeadsCompraFallida' }"
             v-if="checkAuth('ChatBot/Leads', 'Compra-Fallida')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-cart-remove</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Compra Fallida </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -313,6 +351,9 @@
             :to="{ name: 'LeadsReconectar' }"
             v-if="checkAuth('ChatBot/Leads', 'Re-conectar')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-connection</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Re-conectar </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -320,6 +361,9 @@
             :to="{ name: 'LeadsInformados' }"
             v-if="checkAuth('ChatBot/Leads', 'Informados')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-information</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Informados </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -327,6 +371,9 @@
             :to="{ name: 'LeadsTodos' }"
             v-if="checkAuth('ChatBot/Leads', 'Lista-Completa')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-format-list-bulleted</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Lista Completa </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -334,13 +381,16 @@
             :to="{ name: 'LeadsWhatsapp' }"
             v-if="checkAuth('ChatBot/Leads', 'Lista-Completa')"
           >
+            <v-list-item-icon>
+              <v-icon>mdi-whatsapp</v-icon>
+            </v-list-item-icon>
             <v-list-item-content> Leads WhatsApp</v-list-item-content>
           </v-list-item>
         </v-list-group>
       </v-list-group>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-facebook"
         color="white"
         v-if="checkAuth('Facebook/Facebook')"
       >
@@ -369,7 +419,7 @@
           v-if="checkAuth('Facebook/Facebook', 'Comentarios')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-comment</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Comentarios </v-list-item-content>
         </v-list-item>
@@ -379,7 +429,7 @@
           v-if="checkAuth('Facebook/Facebook', 'Comentarios-SinResponder')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-comment-remove</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Comentarios sin responder</v-list-item-content>
         </v-list-item>
@@ -389,7 +439,7 @@
           v-if="checkAuth('Facebook/Facebook', 'Comentarios-SinResponder')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-chart-timeline-variant</v-icon>
           </v-list-item-icon>
           <v-list-item-content>Seguimiento GPT</v-list-item-content>
         </v-list-item>
@@ -399,7 +449,7 @@
           v-if="checkAuth('Facebook/Facebook', 'Ads-Messenger')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-facebook-messenger</v-icon>
           </v-list-item-icon>
           <v-list-item-content>Ads Messenger</v-list-item-content>
         </v-list-item>
@@ -409,7 +459,7 @@
           v-if="checkAuth('Facebook/Facebook', 'Etiquetas')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-label</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Etiquetas </v-list-item-content>
         </v-list-item>
@@ -418,7 +468,7 @@
           :to="{ name: 'FacebookAudiences' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-account-group</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Audiencias </v-list-item-content>
         </v-list-item>
@@ -427,7 +477,7 @@
           :to="{ name: 'TemplateMessages' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-message-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Mensajes de Plantilla </v-list-item-content>
         </v-list-item>
@@ -436,7 +486,7 @@
           :to="{ name: 'ImaginaTemplateMessages' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-message-image-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             Mensajes de Plantilla Imagina
@@ -446,7 +496,7 @@
 
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-web"
         color="white"
         v-if="checkAuth('MultiPaginas/Paginas')"
       >
@@ -459,14 +509,14 @@
           v-if="checkAuth('MultiPaginas/Paginas', 'Paginas')"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-file-document</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content> Página </v-list-item-content>
         </v-list-item>
         <v-list-item active-class="primary custom2" :to="{ name: 'Ordenes' }">
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-cart</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content> Ordenes </v-list-item-content>
@@ -476,7 +526,7 @@
           :to="{ name: 'TelegramRoutines' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-image</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content> Historias Estáticas </v-list-item-content>
@@ -485,7 +535,7 @@
 
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-store"
         color="white"
       >
         <template v-slot:activator>
@@ -496,7 +546,7 @@
           :to="{ name: 'MarketplaceOrdenes' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-cart</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Ordenes</v-list-item-content>
@@ -506,7 +556,7 @@
           :to="{ name: 'MarketplaceProductos' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-package-variant</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Productos</v-list-item-content>
@@ -516,7 +566,7 @@
           :to="{ name: 'MarketplaceProductosVariaciones' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-view-module</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Variaciones</v-list-item-content>
@@ -526,7 +576,7 @@
           :to="{ name: 'MarketplaceBulkUpdate' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-table-edit</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Modificar Lote</v-list-item-content>
@@ -534,7 +584,7 @@
       </v-list-group>
 
       <v-list-group
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-shopify"
         color="white"
         no-action
         @click="
@@ -575,7 +625,7 @@
       </v-list-group>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-format-list-bulleted"
+        prepend-icon="mdi-bullhorn"
         color="white"
       >
         <template v-slot:activator>
@@ -586,7 +636,7 @@
           :to="{ name: 'MassiveMessages' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-message-bulleted</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Mensajes masivos</v-list-item-content>
@@ -596,7 +646,7 @@
           :to="{ name: 'MassiveMessagesLogs' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-history</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Historial Mensajes masivos</v-list-item-content>
@@ -606,7 +656,7 @@
           :to="{ name: 'MarketingSegments' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-account-group-outline</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Segmentos</v-list-item-content>
@@ -616,7 +666,7 @@
           :to="{ name: 'MarketingCampaigns' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-flag-variant</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Campañas</v-list-item-content>
@@ -626,7 +676,7 @@
           :to="{ name: 'TemplateMessagesLogs' }"
         >
           <v-list-item-icon>
-            <v-icon>mdi-check</v-icon>
+            <v-icon>mdi-history</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>Historial Plantillas</v-list-item-content>
@@ -640,7 +690,7 @@
       </v-list-item>
       <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
         <v-list-item-icon>
-          <v-icon>mdi-check</v-icon>
+          <v-icon>mdi-chat</v-icon>
         </v-list-item-icon>
         <v-list-item-content> Chat en vivo </v-list-item-content>
       </v-list-item>
@@ -649,7 +699,7 @@
         :to="{ name: 'SettingsView' }"
       >
         <v-list-item-icon>
-          <v-icon>mdi-check</v-icon>
+          <v-icon>mdi-cog</v-icon>
         </v-list-item-icon>
         <v-list-item-content> Configuración </v-list-item-content>
       </v-list-item>
@@ -670,17 +720,17 @@ export default {
       active2: false,
       propiedades: [
         {
-          icon: "mdi-check",
+          icon: "mdi-account",
           text: "Google Contact",
           to: "Telefonos",
         },
         {
-          icon: "mdi-check",
+          icon: "mdi-label",
           text: "Etiquetas y Agentes",
           to: "LabelsAndAgents",
         },
         {
-          icon: "mdi-check",
+          icon: "mdi-form",
           text: "Gravity Forms",
           to: "GravityForms",
         },
@@ -690,7 +740,7 @@ export default {
         //   to: "Woocommerce",
         // },
         {
-          icon: "mdi-check",
+          icon: "mdi-store",
           text: "Marketplace",
           to: "MarketplaceFuentes",
         },
@@ -705,19 +755,19 @@ export default {
       ],
       googleContacts: [
         {
-          icon: "mdi-check",
+          icon: "mdi-account",
           text: "Contactos",
           to: "Contactos",
         },
       ],
       etiquetas: [
         {
-          icon: "mdi-check",
+          icon: "mdi-label",
           text: "FB Messenger",
           to: "",
         },
         {
-          icon: "mdi-check",
+          icon: "mdi-facebook-ads",
           text: "FB Ads",
           to: "FB Ads",
         },
