@@ -10,7 +10,6 @@
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
-          :search="search"
           hide-default-footer
           :headers="headers"
           :items="items"
@@ -37,6 +36,18 @@
               ></v-text-field>
             </v-col>
             <v-container>
+                            <v-row>
+                <v-col cols="12" sm="6"
+                  ><v-btn
+                    color="primary"
+                    dark
+                    class="mb-2"
+                    v-show="rolPermisos['Write']"
+                    @click.stop="dialogNewCampaign = true"
+                    >Nueva campaña</v-btn
+                  >
+                </v-col>
+              </v-row>
               <v-row>
                 <v-col cols="12" sm="12">
                   <span>

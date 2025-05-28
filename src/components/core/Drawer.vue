@@ -29,7 +29,6 @@
     <v-list nav flat>
       <v-list-group
         :value="false"
-        prepend-icon="mdi-settings"
         color="white"
         v-if="
           checkAuth('Configuracion/TodoFull') ||
@@ -37,7 +36,12 @@
         "
       >
         <template v-slot:activator>
-          <v-list-item-title>Configuración</v-list-item-title>
+          <v-list-item-icon>
+            <v-icon>mdi-cog</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Configuración</v-list-item-title>
+          </v-list-item-content>
         </template>
         <v-list-group
           color="white"
@@ -149,6 +153,9 @@
               checkAuth('Configuracion/Propiedades', propiedad.to)
             "
           >
+            <v-list-item-icon>
+              <v-icon>{{ propiedad.icon }}</v-icon>
+            </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
                 {{ propiedad.text }}
@@ -179,6 +186,9 @@
                 checkAuth('Configuracion/Propiedades/Mailchimp', 'Contactos')
               "
             >
+              <v-list-item-icon>
+                <v-icon>mdi-account-multiple</v-icon>
+              </v-list-item-icon>
               <v-list-item-content> Contactos </v-list-item-content>
             </v-list-item>
             <v-list-item
@@ -188,6 +198,9 @@
                 checkAuth('Configuracion/Propiedades/Mailchimp', 'Etiquetas')
               "
             >
+              <v-list-item-icon>
+                <v-icon>mdi-tag-multiple</v-icon>
+              </v-list-item-icon>
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
           </v-list-group>
@@ -209,6 +222,9 @@
               :to="{ name: 'Vendors' }"
               v-if="checkAuth('Configuracion/Propiedades/Genial', 'Vendedores')"
             >
+              <v-list-item-icon>
+                <v-icon>mdi-account-tie</v-icon>
+              </v-list-item-icon>
               <v-list-item-content> Vendedores </v-list-item-content>
             </v-list-item>
           </v-list-group>
@@ -533,11 +549,7 @@
         </v-list-item>
       </v-list-group>
 
-      <v-list-group
-        :value="false"
-        prepend-icon="mdi-store"
-        color="white"
-      >
+      <v-list-group :value="false" prepend-icon="mdi-store" color="white">
         <template v-slot:activator>
           <v-list-item-title>Marketplace</v-list-item-title>
         </template>
@@ -584,7 +596,6 @@
       </v-list-group>
 
       <v-list-group
-        prepend-icon="mdi-shopify"
         color="white"
         no-action
         @click="
@@ -595,6 +606,9 @@
         v-if="checkAuth('Configuracion/Propiedades/Woocommerces')"
       >
         <template v-slot:activator>
+          <v-list-item-icon>
+            <v-icon>mdi-storefront</v-icon>
+          </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>Woocommerce</v-list-item-title>
           </v-list-item-content>
@@ -606,6 +620,9 @@
             checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')
           "
         >
+          <v-list-item-icon>
+            <v-icon>mdi-package-variant</v-icon>
+          </v-list-item-icon>
           <v-list-item-content> Productos </v-list-item-content>
         </v-list-item>
         <v-list-item
@@ -613,6 +630,9 @@
           :to="{ name: 'EcommerceOrders' }"
           v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
         >
+          <v-list-item-icon>
+            <v-icon>mdi-cart</v-icon>
+          </v-list-item-icon>
           <v-list-item-content> Órdenes </v-list-item-content>
         </v-list-item>
         <v-list-item
@@ -620,14 +640,13 @@
           :to="{ name: 'EcommerceProductsVariations' }"
           v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
         >
+          <v-list-item-icon>
+            <v-icon>mdi-view-module</v-icon>
+          </v-list-item-icon>
           <v-list-item-content> Variaciones </v-list-item-content>
         </v-list-item>
       </v-list-group>
-      <v-list-group
-        :value="false"
-        prepend-icon="mdi-bullhorn"
-        color="white"
-      >
+      <v-list-group :value="false" prepend-icon="mdi-bullhorn" color="white">
         <template v-slot:activator>
           <v-list-item-title>Marketing</v-list-item-title>
         </template>
@@ -720,17 +739,17 @@ export default {
       active2: false,
       propiedades: [
         {
-          icon: "mdi-account",
+          icon: "mdi-phone",
           text: "Google Contact",
           to: "Telefonos",
         },
         {
-          icon: "mdi-label",
+          icon: "mdi-tag-multiple",
           text: "Etiquetas y Agentes",
           to: "LabelsAndAgents",
         },
         {
-          icon: "mdi-form",
+          icon: "mdi-form-select",
           text: "Gravity Forms",
           to: "GravityForms",
         },
@@ -740,7 +759,7 @@ export default {
         //   to: "Woocommerce",
         // },
         {
-          icon: "mdi-store",
+          icon: "mdi-storefront",
           text: "Marketplace",
           to: "MarketplaceFuentes",
         },
@@ -776,15 +795,15 @@ export default {
         {
           title: "Configuración",
           active: false,
-          icon: "mdi-format-list-bulleted",
+          icon: "mdi-settings",
           items: [
             {
-              icon: "mdi-format-list-bulleted",
+              icon: "mdi-office-building",
               text: "Todo-Full",
               to: "EquipoDeVentas",
             },
             {
-              icon: "mdi-format-list-bulleted",
+              icon: "mdi-map-marker",
               text: "Locaciones",
               to: "Locaciones",
             },
