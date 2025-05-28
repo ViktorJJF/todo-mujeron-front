@@ -745,20 +745,26 @@ export default {
           alert("Debes ingresar al menos un número de teléfono");
         }
 
+        // Function to sanitize phone numbers
+        const sanitizePhoneNumber = (phone) => {
+          return phone.replace(/[^0-9]/g, "");
+        };
+
         // Get array of phone numbers
         const recipients =
           this.testMode === "single"
             ? [
                 {
-                  phone: this.testPhone,
+                  phone: sanitizePhoneNumber(this.testPhone),
                   dynamic_parameters: this.testPlaceholderValues,
                 },
               ]
             : this.bulkPhones
                 .split("\n")
-                .filter((phone) => phone.trim())
+                .map((phone) => phone.trim())
+                .filter((phone) => phone)
                 .map((phone) => ({
-                  phone: phone.trim(),
+                  phone: sanitizePhoneNumber(phone),
                   dynamic_parameters: this.testPlaceholderValues,
                 }));
 

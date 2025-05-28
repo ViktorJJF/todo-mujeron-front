@@ -49,9 +49,10 @@
           no-action
           sub-group
           v-if="checkAuth('Configuracion/TodoFull')"
+          class="sub-group-indent"
         >
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="sub-group-activator">
               <v-list-item-title>TODO-FULL</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -59,9 +60,10 @@
             active-class="primary custom2"
             :to="{ name: 'Companies' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Companies')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-office-building</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-office-building</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Compañias </v-list-item-content>
           </v-list-item>
@@ -69,9 +71,10 @@
             active-class="primary custom2"
             :to="{ name: 'Usuarios' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Usuarios')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-account-multiple</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-account-multiple</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Usuarios </v-list-item-content>
           </v-list-item>
@@ -79,9 +82,10 @@
             active-class="primary custom2"
             :to="{ name: 'EquipoDeVentas' }"
             v-if="checkAuth('Configuracion/TodoFull', 'EquipodeVentas')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-account-group</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-account-group</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Equipo de ventas </v-list-item-content>
           </v-list-item>
@@ -89,9 +93,10 @@
             active-class="primary custom2"
             :to="{ name: 'Agentes' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Agentes')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-account</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-account</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Agentes </v-list-item-content>
           </v-list-item>
@@ -99,9 +104,10 @@
             active-class="primary custom2"
             :to="{ name: 'Locaciones' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Locaciones')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-map-marker</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-map-marker</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Locaciones </v-list-item-content>
           </v-list-item>
@@ -109,9 +115,10 @@
             active-class="primary custom2"
             :to="{ name: 'TodofullLabels' }"
             v-if="checkAuth('Configuracion/TodoFull', 'TodofullLabels')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-label</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-label</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Etiquetas Todofull</v-list-item-content>
           </v-list-item>
@@ -119,9 +126,10 @@
             active-class="primary custom2"
             :to="{ name: 'Groups' }"
             v-if="checkAuth('Configuracion/TodoFull', 'Groups')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-group</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-group</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
@@ -137,9 +145,10 @@
             checkAuth('Configuracion/Propiedades/Woocommerces') ||
             checkAuth('Configuracion/Propiedades/Genial')
           "
+          class="sub-group-indent"
         >
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="sub-group-activator">
               <v-list-item-title>Propiedades</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -152,9 +161,10 @@
               propiedad.to === 'MarketplaceFuentes' ||
               checkAuth('Configuracion/Propiedades', propiedad.to)
             "
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>{{ propiedad.icon }}</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">{{ propiedad.icon }}</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
@@ -173,9 +183,10 @@
                 : ''
             "
             v-if="checkAuth('Configuracion/Propiedades/Mailchimp')"
+            class="nested-sub-group"
           >
             <template v-slot:activator>
-              <v-list-item-content>
+              <v-list-item-content class="nested-sub-group-activator">
                 <v-list-item-title>Mailchimp</v-list-item-title>
               </v-list-item-content>
             </template>
@@ -185,9 +196,10 @@
               v-if="
                 checkAuth('Configuracion/Propiedades/Mailchimp', 'Contactos')
               "
+              class="nested-sub-item"
             >
-              <v-list-item-icon>
-                <v-icon>mdi-account-multiple</v-icon>
+              <v-list-item-icon class="nested-sub-item-icon">
+                <v-icon size="18">mdi-account-multiple</v-icon>
               </v-list-item-icon>
               <v-list-item-content> Contactos </v-list-item-content>
             </v-list-item>
@@ -197,9 +209,10 @@
               v-if="
                 checkAuth('Configuracion/Propiedades/Mailchimp', 'Etiquetas')
               "
+              class="nested-sub-item"
             >
-              <v-list-item-icon>
-                <v-icon>mdi-tag-multiple</v-icon>
+              <v-list-item-icon class="nested-sub-item-icon">
+                <v-icon size="18">mdi-tag-multiple</v-icon>
               </v-list-item-icon>
               <v-list-item-content> Etiquetas </v-list-item-content>
             </v-list-item>
@@ -211,9 +224,10 @@
             no-action
             sub-group
             v-if="checkAuth('Configuracion/Propiedades/Genial')"
+            class="nested-sub-group"
           >
             <template v-slot:activator>
-              <v-list-item-content>
+              <v-list-item-content class="nested-sub-group-activator">
                 <v-list-item-title>Genial</v-list-item-title>
               </v-list-item-content>
             </template>
@@ -221,9 +235,10 @@
               active-class="primary custom2"
               :to="{ name: 'Vendors' }"
               v-if="checkAuth('Configuracion/Propiedades/Genial', 'Vendedores')"
+              class="nested-sub-item"
             >
-              <v-list-item-icon>
-                <v-icon>mdi-account-tie</v-icon>
+              <v-list-item-icon class="nested-sub-item-icon">
+                <v-icon size="18">mdi-account-tie</v-icon>
               </v-list-item-icon>
               <v-list-item-content> Vendedores </v-list-item-content>
             </v-list-item>
@@ -247,8 +262,9 @@
           active-class="primary custom2"
           :to="{ name: googleContact.to }"
           v-show="checkAuth('GoogleContact/Contactos', 'Contactos')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>{{ googleContact.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
@@ -275,8 +291,9 @@
           active-class="primary custom2"
           :to="{ name: 'Bots' }"
           v-if="checkAuth('ChatBot/Bots', 'Bots')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-robot</v-icon>
           </v-list-item-icon>
 
@@ -289,27 +306,30 @@
           sub-group
           active-class="primary custom2"
           v-if="checkAuth('ChatBot/Bots', 'Bots')"
+          class="sub-group-indent"
         >
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="sub-group-activator">
               <v-list-item-title>Telegram</v-list-item-title>
             </v-list-item-content>
           </template>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'TelegramGroups' }"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-telegram</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-telegram</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Grupos </v-list-item-content>
           </v-list-item>
           <v-list-item
             active-class="primary custom2"
             :to="{ name: 'TelegramRoutines' }"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-script</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-script</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Rutinas </v-list-item-content>
           </v-list-item>
@@ -326,9 +346,10 @@
               : ''
           "
           v-if="checkAuth('ChatBot/Leads')"
+          class="sub-group-indent"
         >
           <template v-slot:activator>
-            <v-list-item-content>
+            <v-list-item-content class="sub-group-activator">
               <v-list-item-title>Leads</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -336,9 +357,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsNuevos' }"
             v-if="checkAuth('ChatBot/Leads', 'Sin-Asignar')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-account-question</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-account-question</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Sin asignar </v-list-item-content>
           </v-list-item>
@@ -346,9 +368,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsCompraRealizada' }"
             v-if="checkAuth('ChatBot/Leads', 'Compra-Realizada')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-cart-check</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-cart-check</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Compra Realizada </v-list-item-content>
           </v-list-item>
@@ -356,9 +379,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsCompraFallida' }"
             v-if="checkAuth('ChatBot/Leads', 'Compra-Fallida')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-cart-remove</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-cart-remove</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Compra Fallida </v-list-item-content>
           </v-list-item>
@@ -366,9 +390,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsReconectar' }"
             v-if="checkAuth('ChatBot/Leads', 'Re-conectar')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-connection</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-connection</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Re-conectar </v-list-item-content>
           </v-list-item>
@@ -376,9 +401,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsInformados' }"
             v-if="checkAuth('ChatBot/Leads', 'Informados')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-information</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-information</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Informados </v-list-item-content>
           </v-list-item>
@@ -386,9 +412,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsTodos' }"
             v-if="checkAuth('ChatBot/Leads', 'Lista-Completa')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-format-list-bulleted</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-format-list-bulleted</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Lista Completa </v-list-item-content>
           </v-list-item>
@@ -396,9 +423,10 @@
             active-class="primary custom2"
             :to="{ name: 'LeadsWhatsapp' }"
             v-if="checkAuth('ChatBot/Leads', 'Lista-Completa')"
+            class="sub-item-indent"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-whatsapp</v-icon>
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-whatsapp</v-icon>
             </v-list-item-icon>
             <v-list-item-content> Leads WhatsApp</v-list-item-content>
           </v-list-item>
@@ -433,8 +461,9 @@
           active-class="primary custom2"
           :to="{ name: 'CommentToMSN' }"
           v-if="checkAuth('Facebook/Facebook', 'Comentarios')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-comment</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Comentarios </v-list-item-content>
@@ -443,8 +472,9 @@
           active-class="primary custom2"
           :to="{ name: 'CommentsWithoutResponses' }"
           v-if="checkAuth('Facebook/Facebook', 'Comentarios-SinResponder')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-comment-remove</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Comentarios sin responder</v-list-item-content>
@@ -453,8 +483,9 @@
           active-class="primary custom2"
           :to="{ name: 'LlmTracker' }"
           v-if="checkAuth('Facebook/Facebook', 'Comentarios-SinResponder')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-chart-timeline-variant</v-icon>
           </v-list-item-icon>
           <v-list-item-content>Seguimiento GPT</v-list-item-content>
@@ -463,8 +494,9 @@
           active-class="primary custom2"
           :to="{ name: 'AdsMessenger' }"
           v-if="checkAuth('Facebook/Facebook', 'Ads-Messenger')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-facebook-messenger</v-icon>
           </v-list-item-icon>
           <v-list-item-content>Ads Messenger</v-list-item-content>
@@ -473,8 +505,9 @@
           active-class="primary custom2"
           :to="{ name: 'FacebookLabels' }"
           v-if="checkAuth('Facebook/Facebook', 'Etiquetas')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-label</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Etiquetas </v-list-item-content>
@@ -482,8 +515,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'FacebookAudiences' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-account-group</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Audiencias </v-list-item-content>
@@ -491,8 +525,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'TemplateMessages' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-message-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Mensajes de Plantilla </v-list-item-content>
@@ -500,8 +535,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'ImaginaTemplateMessages' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-message-image-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
@@ -523,15 +559,20 @@
           active-class="primary custom2"
           :to="{ name: 'Catalogs' }"
           v-if="checkAuth('MultiPaginas/Paginas', 'Paginas')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-file-document</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content> Página </v-list-item-content>
         </v-list-item>
-        <v-list-item active-class="primary custom2" :to="{ name: 'Ordenes' }">
-          <v-list-item-icon>
+        <v-list-item
+          active-class="primary custom2"
+          :to="{ name: 'Ordenes' }"
+          class="main-menu-item"
+        >
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-cart</v-icon>
           </v-list-item-icon>
 
@@ -540,8 +581,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'TelegramRoutines' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-image</v-icon>
           </v-list-item-icon>
 
@@ -556,8 +598,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketplaceOrdenes' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-cart</v-icon>
           </v-list-item-icon>
 
@@ -566,8 +609,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketplaceProductos' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-package-variant</v-icon>
           </v-list-item-icon>
 
@@ -576,8 +620,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketplaceProductosVariaciones' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-view-module</v-icon>
           </v-list-item-icon>
 
@@ -586,8 +631,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketplaceBulkUpdate' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-table-edit</v-icon>
           </v-list-item-icon>
 
@@ -619,8 +665,9 @@
           v-if="
             checkAuth('Configuracion/Propiedades/Woocommerces', 'Productos')
           "
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-package-variant</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Productos </v-list-item-content>
@@ -629,8 +676,9 @@
           active-class="primary custom2"
           :to="{ name: 'EcommerceOrders' }"
           v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-cart</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Órdenes </v-list-item-content>
@@ -639,8 +687,9 @@
           active-class="primary custom2"
           :to="{ name: 'EcommerceProductsVariations' }"
           v-if="checkAuth('Configuracion/Propiedades/Woocommerces', 'Ordenes')"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-view-module</v-icon>
           </v-list-item-icon>
           <v-list-item-content> Variaciones </v-list-item-content>
@@ -653,8 +702,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MassiveMessages' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-message-bulleted</v-icon>
           </v-list-item-icon>
 
@@ -663,8 +713,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MassiveMessagesLogs' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-history</v-icon>
           </v-list-item-icon>
 
@@ -673,8 +724,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketingSegments' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-account-group-outline</v-icon>
           </v-list-item-icon>
 
@@ -683,8 +735,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'MarketingCampaigns' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-flag-variant</v-icon>
           </v-list-item-icon>
 
@@ -693,8 +746,9 @@
         <v-list-item
           active-class="primary custom2"
           :to="{ name: 'TemplateMessagesLogs' }"
+          class="main-menu-item"
         >
-          <v-list-item-icon>
+          <v-list-item-icon class="main-menu-icon">
             <v-icon>mdi-history</v-icon>
           </v-list-item-icon>
 
@@ -712,15 +766,6 @@
           <v-icon>mdi-chat</v-icon>
         </v-list-item-icon>
         <v-list-item-content> Chat en vivo </v-list-item-content>
-      </v-list-item>
-      <v-list-item
-        active-class="primary custom2"
-        :to="{ name: 'SettingsView' }"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-cog</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content> Configuración </v-list-item-content>
       </v-list-item>
 
       <v-divider class="mx-3 mb-3"></v-divider>
@@ -874,5 +919,141 @@ export default {
 <style lang="scss" scoped>
 .custom2 {
   color: white;
+}
+
+// Main group styling
+.v-list-group {
+  &::before {
+    background-color: transparent;
+  }
+}
+
+// Sub-group indentation (level 1)
+.sub-group-indent {
+  .v-list-group__header {
+    padding-left: 32px !important;
+  }
+}
+
+.sub-group-activator {
+  padding-left: 8px;
+
+  .v-list-item__title {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+}
+
+// Sub-item indentation (level 2)
+.sub-item-indent {
+  padding-left: 56px !important;
+  min-height: 40px !important;
+
+  .v-list-item__content {
+    font-size: 13px;
+  }
+}
+
+.sub-item-icon {
+  margin-right: 16px !important;
+  min-width: 32px !important;
+
+  .v-icon {
+    opacity: 0.8;
+  }
+}
+
+// Nested sub-group indentation (level 2)
+.nested-sub-group {
+  .v-list-group__header {
+    padding-left: 56px !important;
+  }
+}
+
+.nested-sub-group-activator {
+  padding-left: 8px;
+
+  .v-list-item__title {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.85;
+  }
+}
+
+// Nested sub-item indentation (level 3)
+.nested-sub-item {
+  padding-left: 80px !important;
+  min-height: 36px !important;
+
+  .v-list-item__content {
+    font-size: 12px;
+  }
+}
+
+.nested-sub-item-icon {
+  margin-right: 12px !important;
+  min-width: 28px !important;
+
+  .v-icon {
+    opacity: 0.7;
+  }
+}
+
+// Hover effects
+.v-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+// Active state improvements
+.v-list-item--active {
+  background-color: rgba(var(--v-theme-primary), 0.2) !important;
+  border-left: 3px solid var(--v-theme-primary);
+
+  .v-icon {
+    color: var(--v-theme-primary) !important;
+  }
+}
+
+// Divider styling
+.v-divider {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  margin: 8px 16px !important;
+}
+
+// Profile section styling
+.title {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+// Logo section
+.v-img {
+  border-radius: 8px;
+  margin: 8px;
+}
+
+// Button styling
+.v-btn {
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+.main-menu-item {
+  padding-left: 32px !important;
+  min-height: 40px !important;
+
+  .v-list-item__content {
+    font-size: 14px;
+  }
+}
+
+.main-menu-icon {
+  margin-right: 16px !important;
+  min-width: 32px !important;
+
+  .v-icon {
+    opacity: 0.9;
+  }
 }
 </style>
