@@ -181,7 +181,9 @@
                                   ><span v-pre>{{ contact.name }}</span></v-chip
                                 >
                                 <v-chip class="mr-2 mb-2" small
-                                  ><span v-pre>{{ contact.fullname }}</span></v-chip
+                                  ><span v-pre>{{
+                                    contact.fullname
+                                  }}</span></v-chip
                                 >
                                 <v-chip class="mr-2 mb-2" small
                                   ><span v-pre>{{
@@ -357,10 +359,10 @@
                   v-model="bulkPhones"
                   :placeholder="
                     '521234567890' +
-                      '\n' +
-                      '521234567891' +
-                      '\n' +
-                      '521234567892'
+                    '\n' +
+                    '521234567891' +
+                    '\n' +
+                    '521234567892'
                   "
                   outlined
                   dense
@@ -389,7 +391,7 @@
                 <v-img
                   v-if="
                     selectedTemplate.type === 'media' &&
-                      selectedTemplate.mediaUrl
+                    selectedTemplate.mediaUrl
                   "
                   :src="selectedTemplate.mediaUrl"
                   max-height="150"
@@ -401,7 +403,7 @@
                 <v-alert
                   v-if="
                     selectedTemplate.type === 'document' &&
-                      selectedTemplate.documentUrl
+                    selectedTemplate.documentUrl
                   "
                   dense
                   text
@@ -418,7 +420,7 @@
                 cols="12"
                 v-if="
                   selectedTemplate.placeholders &&
-                    selectedTemplate.placeholders.length > 0
+                  selectedTemplate.placeholders.length > 0
                 "
               >
                 <v-alert dense text type="info" class="mb-2">
@@ -431,8 +433,9 @@
                   <v-col
                     cols="12"
                     sm="6"
-                    v-for="(placeholder,
-                    index) in selectedTemplate.placeholders"
+                    v-for="(
+                      placeholder, index
+                    ) in selectedTemplate.placeholders"
                     :key="index"
                   >
                     <v-text-field
@@ -484,7 +487,7 @@ export default {
     VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "d 'de' MMMM 'del' yyyy", {
         locale: es,
       });
@@ -587,10 +590,10 @@ export default {
       auth
         .roleAuthorization({
           id: this.$store.state.authModule.user._id,
-          menu: "Configuracion/Propiedades",
-          model: "GravityForms",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          menu: "Facebook/Facebook",
+          model: "Mensajes-Plantilla-Imagina",
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -618,9 +621,8 @@ export default {
           ],
         }),
       ]);
-      this.todofullLabels = this.$store.state["todofullLabelsModule"][
-        "todofullLabels"
-      ];
+      this.todofullLabels =
+        this.$store.state["todofullLabelsModule"]["todofullLabels"];
       //asignar al data del componente
       this[ENTITY] = this.$deepCopy(
         this.$store.state[ENTITY + "Module"][ENTITY]
@@ -652,9 +654,8 @@ export default {
     },
     async save() {
       this.loadingButton = true;
-      this.editedItem.company = this.$store.getters[
-        "authModule/getCurrentCompany"
-      ].company._id;
+      this.editedItem.company =
+        this.$store.getters["authModule/getCurrentCompany"].company._id;
       // in case of mediaUrl, infer the type and mediaType
       if (this.editedItem.mediaUrl) {
         this.editedItem.type = "media";
