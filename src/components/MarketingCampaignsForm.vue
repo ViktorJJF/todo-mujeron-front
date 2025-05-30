@@ -381,7 +381,10 @@ export default {
       return textOne.indexOf(searchText) > -1;
     },
     async getImaginaTemplateMessages() {
-      const response = await imaginaTemplateMessagesService.list();
+      const response = await imaginaTemplateMessagesService.list({
+        page: 1,
+        limit: 1000,
+      });
       console.log("🐞 LOG HERE response:", response.data);
       this.imaginaTemplateMessages = response.data.payload;
     },
