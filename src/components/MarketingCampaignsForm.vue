@@ -140,12 +140,22 @@
               @change="editedItem.millisecondsBetweenChunks = 0"
             ></v-checkbox>
           </v-col>
-          <v-col v-if="editedItem.autoSendChunksSequentiallyOnStart" cols="12" sm="12" md="12">
+          <v-col
+            v-if="editedItem.autoSendChunksSequentiallyOnStart"
+            cols="12"
+            sm="12"
+            md="12"
+          >
             <div class="body-1 font-weight-bold">
               Milisegundos entre cada tanda
             </div>
           </v-col>
-          <v-col v-if="editedItem.autoSendChunksSequentiallyOnStart" cols="12" sm="4" md="4">
+          <v-col
+            v-if="editedItem.autoSendChunksSequentiallyOnStart"
+            cols="12"
+            sm="4"
+            md="4"
+          >
             <v-text-field
               v-model.number="editedItem.millisecondsBetweenChunks"
               type="number"
@@ -171,28 +181,43 @@
           (!selectedBot || selectedBot.platform === 'whatsapp_automated')
         "
       >
-        <v-data-table
-          :headers="[
-            { text: 'Nombre', value: 'name' },
-            { text: 'Acciones', value: 'actions', sortable: false },
-          ]"
-          :items="imaginaTemplateMessages"
-          dense
-          hide-default-footer
-        >
-          <template v-slot:item.actions="{ item }">
-            <v-btn
-              small
-              color="primary"
-              @click="
-                editedItem.templateMessage = item.name;
-                step += 1;
-              "
-            >
-              Seleccionar
-            </v-btn>
-          </template>
-        </v-data-table>
+        <v-container class="pa-5">
+          <div class="body-1 font-weight-bold mb-3">
+            Plantillas de Mensaje Disponibles
+          </div>
+          <div class="template-messages-table-container">
+            <table class="template-messages-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in imaginaTemplateMessages"
+                  :key="item._id || item.id || item.name"
+                >
+                  <td>{{ item.name }}</td>
+                  <td>
+                    <button
+                      class="select-button"
+                      @click="
+                        editedItem.templateMessage = item.name;
+                        step += 1;
+                      "
+                    >
+                      Seleccionar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-if="imaginaTemplateMessages.length === 0" class="no-data">
+              No hay plantillas de mensaje disponibles
+            </div>
+          </div>
+        </v-container>
       </div>
       <v-container class="pa-5" v-if="step == 3">
         <div><b>Nombre de campaña: </b>{{ editedItem.name }}</div>
@@ -221,7 +246,8 @@
           <b>Envío por tandas: </b>{{ editedItem.chunkSize || "Sin tandas" }}
         </div>
         <div v-if="editedItem.autoSendChunksSequentiallyOnStart">
-          <b>Tiempo entre cada tanda al presionar 'Iniciar': </b>{{ editedItem.millisecondsBetweenChunks }} ms
+          <b>Tiempo entre cada tanda al presionar 'Iniciar': </b
+          >{{ editedItem.millisecondsBetweenChunks }} ms
         </div>
       </v-container>
       <v-card-actions rd-actions>
@@ -400,4 +426,70 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.template-messages-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.template-messages-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #424242;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 16px;
+    color: #616161;
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.select-button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #1565c0;
+  }
+
+  &:active {
+    background-color: #0d47a1;
+  }
+}
+
+.no-data {
+  padding: 24px;
+  text-align: center;
+  color: #9e9e9e;
+  font-style: italic;
+}
+</style>
