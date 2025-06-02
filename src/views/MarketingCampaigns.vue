@@ -36,7 +36,7 @@
               ></v-text-field>
             </v-col>
             <v-container>
-                            <v-row>
+              <v-row>
                 <v-col cols="12" sm="6"
                   ><v-btn
                     color="primary"
@@ -222,11 +222,11 @@
                       </v-tooltip>
                     </v-list-item-action>
                     <v-list-item-content
-                      style="cursor: pointer"
-                      @click="getChunkDetail(item, chunk, chunkIndex)"
                     >
                       <div class="d-flex align-center">
-                        <span>{{ "Tanda " + (chunkIndex + 1) }}</span>
+                        <span 
+                      style="cursor: pointer"
+                      @click="getChunkDetail(item, chunk, chunkIndex)">{{ "Tanda " + (chunkIndex + 1) }}</span>
                         <programmed-chunk-status
                           v-if="
                             getTandaProgrammedStatusPackage(item, chunkIndex)
@@ -239,6 +239,10 @@
                           :error-message="
                             getTandaProgrammedStatusPackage(item, chunkIndex)
                               .errorMessage
+                          "
+                          :error-phones="
+                            getTandaProgrammedStatusPackage(item, chunkIndex)
+                              .errorPhones
                           "
                           :scheduled-date-time="
                             getTandaProgrammedStatusPackage(item, chunkIndex)
@@ -1063,28 +1067,65 @@ export default {
         campaign.programmedChunks &&
         Array.isArray(campaign.programmedChunks)
       ) {
+        console.log(
+          `Processing ${campaign.programmedChunks.length} programmedChunks for campaign ${campaign.name}`
+        );
         const newScheduledChunksUpdates = {}; // Collect updates here
         for (const progChunk of campaign.programmedChunks) {
           const chunkIndex = progChunk.chunkPage - 1; // assuming chunkPage is 1-indexed
           if (chunkIndex >= 0) {
+            console.log(
+              `Processing progChunk ${progChunk.chunkPage} with status: ${progChunk.status}`,
+              progChunk
+            );
             const scheduledTime = progChunk.sendAt;
             const sendAtDate = new Date(scheduledTime);
             const now = new Date();
             let uiStatus;
 
-            if (progChunk.isSent) {
+            // Check status field and distinguish between successful send and partial errors
+            if (progChunk.status === "sent") {
               uiStatus = "sent_by_backend";
               if (!campaign.chunksPagesSent.includes(progChunk.chunkPage)) {
                 campaign.chunksPagesSent.push(progChunk.chunkPage);
               }
-            } else if (progChunk.isProcessing) {
+            } else if (progChunk.status === "sent_with_some_errors") {
+              console.log(
+                `Found sent_with_some_errors for chunk ${progChunk.chunkPage}, setting uiStatus to sent_with_some_errors_by_backend`
+              );
+              uiStatus = "sent_with_some_errors_by_backend";
+              if (!campaign.chunksPagesSent.includes(progChunk.chunkPage)) {
+                campaign.chunksPagesSent.push(progChunk.chunkPage);
+              }
+            } else if (progChunk.status === "processing") {
               uiStatus = "processing_by_backend";
-            } else if (sendAtDate > now) {
-              uiStatus = "scheduled";
+            } else if (
+              progChunk.status === "scheduled" ||
+              progChunk.status === "pending"
+            ) {
+              if (sendAtDate > now) {
+                uiStatus = "scheduled";
+              } else {
+                // Scheduled in the past, but not sent/processing by backend yet
+                uiStatus = "past_due_schedule";
+              }
+            } else if (
+              progChunk.status === "error" ||
+              progChunk.status === "failed"
+            ) {
+              uiStatus = "schedule_failed";
             } else {
-              // Scheduled in the past, but not sent/processing by backend yet
-              uiStatus = "past_due_schedule";
+              // Default case - check by date if no clear status
+              if (sendAtDate > now) {
+                uiStatus = "scheduled";
+              } else {
+                uiStatus = "past_due_schedule";
+              }
             }
+
+            console.log(
+              `Chunk ${progChunk.chunkPage} final uiStatus: ${uiStatus}`
+            );
 
             // Prepare the update for this specific chunkIndex
             newScheduledChunksUpdates[chunkIndex] = {
@@ -1093,6 +1134,8 @@ export default {
               ...(campaign.scheduledChunks[chunkIndex] || {}), // Spread existing state for this chunk first
               scheduledTime: scheduledTime,
               status: uiStatus,
+              errorMessage: progChunk.errorMessage || null,
+              errorPhones: progChunk.errorPhones || null,
               // If progChunk provides these, use them, otherwise keep existing or undefined
               delayHours:
                 progChunk.delayHours !== undefined
@@ -1109,6 +1152,11 @@ export default {
             };
           }
         }
+        console.log(
+          "Final newScheduledChunksUpdates:",
+          newScheduledChunksUpdates
+        );
+        console.log("Final chunksPagesSent:", campaign.chunksPagesSent);
         // Apply all collected updates to campaign.scheduledChunks reactively
         // This ensures we don't lose other chunkIndexes that weren't in programmedChunks
         this.$set(campaign, "scheduledChunks", {
@@ -1225,20 +1273,40 @@ export default {
         item.chunksPagesSent &&
         item.chunksPagesSent.includes(chunkIndex + 1)
       ) {
+        // Default to SENT, but check if there are errors to change to SENT_WITH_SOME_ERRORS
         statusPackage.status = PROGRAMMED_CHUNK_STATUSES.SENT;
         statusPackage.scheduledDateTime =
           scheduledChunkInfo && scheduledChunkInfo.scheduledTime
             ? scheduledChunkInfo.scheduledTime
             : new Date().toISOString();
+
+        // Include error information and adjust status if there are errors
+        if (scheduledChunkInfo) {
+          statusPackage.errorMessage = scheduledChunkInfo.errorMessage;
+          statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
+
+          // If this chunk was sent with some errors, use the specific status
+          if (
+            scheduledChunkInfo.status === "sent_with_some_errors_by_backend"
+          ) {
+            statusPackage.status =
+              PROGRAMMED_CHUNK_STATUSES.SENT_WITH_SOME_ERRORS;
+          }
+        }
         return statusPackage;
       }
 
       if (scheduledChunkInfo) {
         statusPackage.scheduledDateTime = scheduledChunkInfo.scheduledTime;
+        statusPackage.errorMessage = scheduledChunkInfo.errorMessage;
+        statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
         const backendStatus = scheduledChunkInfo.status;
 
         if (backendStatus === "sent_by_backend") {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.SENT;
+        } else if (backendStatus === "sent_with_some_errors_by_backend") {
+          statusPackage.status =
+            PROGRAMMED_CHUNK_STATUSES.SENT_WITH_SOME_ERRORS;
         } else if (
           backendStatus === "processing_by_backend" ||
           backendStatus === "scheduled_pending_api"
@@ -1252,7 +1320,9 @@ export default {
         } else if (backendStatus === "schedule_failed") {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.ERROR;
           statusPackage.errorMessage =
-            scheduledChunkInfo.error || "Error al programar la tanda.";
+            scheduledChunkInfo.errorMessage ||
+            scheduledChunkInfo.error ||
+            "Error al programar la tanda.";
         } else if (backendStatus === "stopped_by_user") {
           statusPackage.status = null;
         }
@@ -1271,9 +1341,10 @@ export default {
         item.scheduledChunks && item.scheduledChunks[chunkIndex];
       if (scheduledChunk) {
         return (
-          scheduledChunk.status === "sent" ||
-          scheduledChunk.status === "processing" ||
-          scheduledChunk.status === "sent_with_some_errors"
+          scheduledChunk.status === "sent_by_backend" ||
+          scheduledChunk.status === "sent_with_some_errors_by_backend" ||
+          scheduledChunk.status === "processing_by_backend" ||
+          scheduledChunk.status === "scheduled_pending_api"
         );
       }
       return false;
@@ -1283,7 +1354,8 @@ export default {
       return (
         item.scheduledChunks &&
         item.scheduledChunks[chunkIndex] &&
-        item.scheduledChunks[chunkIndex].status === "pending"
+        (item.scheduledChunks[chunkIndex].status === "scheduled" ||
+          item.scheduledChunks[chunkIndex].status === "past_due_schedule")
       );
     },
 

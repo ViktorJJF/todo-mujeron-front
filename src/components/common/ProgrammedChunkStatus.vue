@@ -24,7 +24,7 @@
       </div>
       <div v-if="errorPhones && errorPhones.length" class="error-phones">
         <div class="error-phones-title">
-          Error Phones ({{ errorPhones.length }}):
+          Teléfonos con Error ({{ errorPhones.length }}):
         </div>
         <div class="error-phones-list">
           <div
@@ -42,14 +42,14 @@
             class="show-more"
             @click="showAllPhones = true"
           >
-            Show {{ errorPhones.length - 3 }} more...
+            Mostrar {{ errorPhones.length - 3 }} más...
           </div>
           <div
             v-if="showAllPhones && errorPhones.length > 3"
             class="show-less"
             @click="showAllPhones = false"
           >
-            Show less
+            Mostrar menos
           </div>
         </div>
       </div>
@@ -119,11 +119,12 @@ export default {
     },
     statusDisplay() {
       const displayMap = {
-        [PROGRAMMED_CHUNK_STATUSES.PENDING]: "Pending",
-        [PROGRAMMED_CHUNK_STATUSES.PROCESSING]: "Processing",
-        [PROGRAMMED_CHUNK_STATUSES.SENT]: "Sent",
+        [PROGRAMMED_CHUNK_STATUSES.PENDING]: "Pendiente",
+        [PROGRAMMED_CHUNK_STATUSES.PROCESSING]: "Procesando",
+        [PROGRAMMED_CHUNK_STATUSES.SENT]: "Enviado",
         [PROGRAMMED_CHUNK_STATUSES.ERROR]: "Error",
-        [PROGRAMMED_CHUNK_STATUSES.SENT_WITH_SOME_ERRORS]: "Partial Success",
+        [PROGRAMMED_CHUNK_STATUSES.SENT_WITH_SOME_ERRORS]:
+          "Enviado con Errores",
       };
 
       return displayMap[this.status] || this.status;
@@ -139,7 +140,7 @@ export default {
 
       // If scheduled in the past
       if (diffMs < 0) {
-        return "Past due";
+        return "Pasado";
       }
 
       // If scheduled today
@@ -156,7 +157,7 @@ export default {
       if (
         scheduledDate.setHours(0, 0, 0, 0) === tomorrow.setHours(0, 0, 0, 0)
       ) {
-        return `Tomorrow at ${new Date(date).toLocaleTimeString([], {
+        return `Mañana a las ${new Date(date).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}`;
@@ -222,7 +223,7 @@ export default {
 }
 
 .status-partial {
-  background-color: #9b59b6;
+  background-color: #f39c12; /* Use a warning color like amber */
 }
 
 .status-unknown {
