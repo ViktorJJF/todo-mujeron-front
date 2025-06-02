@@ -221,12 +221,13 @@
                         </span>
                       </v-tooltip>
                     </v-list-item-action>
-                    <v-list-item-content
-                    >
+                    <v-list-item-content>
                       <div class="d-flex align-center">
-                        <span 
-                      style="cursor: pointer"
-                      @click="getChunkDetail(item, chunk, chunkIndex)">{{ "Tanda " + (chunkIndex + 1) }}</span>
+                        <span
+                          style="cursor: pointer"
+                          @click="getChunkDetail(item, chunk, chunkIndex)"
+                          >{{ "Tanda " + (chunkIndex + 1) }}</span
+                        >
                         <programmed-chunk-status
                           v-if="
                             getTandaProgrammedStatusPackage(item, chunkIndex)
@@ -1168,11 +1169,24 @@ export default {
         this.$set(campaign, "scheduledChunks", {});
       }
 
-      // Calculate chunk pages
+      // Calculate chunk pages considering both current segment/chunk size and existing programmed chunks
       const segmentCount = campaign.segmentCount || 0;
       const chunkSize = campaign.chunkSize || segmentCount;
       let chunkPages = chunkSize > 0 ? Math.ceil(segmentCount / chunkSize) : 0;
       if (segmentCount > 0 && chunkPages === 0 && chunkSize > 0) chunkPages = 1;
+
+      // Consider existing programmed chunks to ensure we don't lose chunks that were created previously
+      if (
+        campaign.programmedChunks &&
+        Array.isArray(campaign.programmedChunks) &&
+        campaign.programmedChunks.length > 0
+      ) {
+        const maxProgrammedChunkPage = Math.max(
+          ...campaign.programmedChunks.map((pc) => pc.chunkPage)
+        );
+        chunkPages = Math.max(chunkPages, maxProgrammedChunkPage);
+      }
+
       this.$set(campaign, "chunkPages", chunkPages);
 
       // Initialize or update UI chunks array (item.chunks)
