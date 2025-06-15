@@ -512,6 +512,32 @@
                               ></v-select>
                             </v-col>
                           </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Catálogos Todofull
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione los catálogos"
+                                outlined
+                                multiple
+                                chips
+                                clearable
+                                :items="todofullCatalogs"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.todofullCatalogs"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Estado</div>
@@ -626,6 +652,7 @@ import telegramGroupsApi from "@/services/api/telegramGroups";
 import categoriesApi from "@/services/api/ecommercesCategories";
 import graphApiService from "@/services/api/graphApi";
 import ecommercesApi from "@/services/api/ecommerces";
+import cloudStorageLinksApi from "@/services/api/cloudStorageLinks";
 
 export default {
   components: {
@@ -700,7 +727,7 @@ export default {
         value: "meta_label_products",
       },
       {
-        name: "Catálogos Todofull",
+        name: "Catálogos para reemplazar",
         value: "todofull_catalogs",
       },
     ],
@@ -710,6 +737,7 @@ export default {
     todofullCategories: [],
     todofullTallas: [],
     todofullBrands: [],
+    todofullCatalogs: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -767,6 +795,7 @@ export default {
         this.editedItem.todofullCategories = [];
         this.editedItem.todofullTallas = [];
         this.editedItem.todofullBrands = [];
+        this.editedItem.todofullCatalogs = [];
       }
     },
   },
@@ -948,8 +977,35 @@ export default {
           const query = { country: company.country, products_available: true };
           const categoriesRes = await ecommercesApi.listCategories(query);
           this.todofullCategories = categoriesRes.data.payload;
+
+          // Fetch cloud storage catalogs
+          await this.fetchTodofullCatalogs();
         } catch (error) {
           console.error("Error fetching todofull categories:", error);
+        }
+      }
+    },
+
+    async fetchTodofullCatalogs() {
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
+      if (company) {
+        try {
+          const query = {
+            sort: "createdAt",
+            order: "desc",
+            companies: [company._id],
+            fields: "name",
+            type: "files",
+            isActive: true,
+            filter: "",
+            page: 1,
+            limit: 100, // Get more catalogs to show all available
+          };
+          const catalogsRes = await cloudStorageLinksApi.list(query);
+          this.todofullCatalogs = catalogsRes.data.payload;
+        } catch (error) {
+          console.error("Error fetching todofull catalogs:", error);
         }
       }
     },

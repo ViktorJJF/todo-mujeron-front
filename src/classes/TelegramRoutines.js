@@ -15,4 +15,5 @@ export default () => ({
   todofullCategories: [],
   todofullTallas: [],
   todofullBrands: [],
+  todofullCatalogs: [],
 });
