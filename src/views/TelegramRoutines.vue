@@ -76,6 +76,9 @@
                             v-if="
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_turn_on_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
                               )
                             "
                           >
@@ -103,12 +106,15 @@
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) &&
-                                !editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                ) &&
-                                !editedItem.typeOfPosts.includes(
-                                  'meta_label_products'
-                                )
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -204,9 +210,9 @@
                               editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                )
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -232,12 +238,12 @@
                               editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_label_products'
-                                )
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              ) ||
+                              editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -281,6 +287,9 @@
                             v-if="
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_turn_on_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
                               )
                             "
                           >
@@ -299,6 +308,9 @@
                             v-if="
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_turn_on_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
                               )
                             "
                           >
@@ -318,12 +330,12 @@
                               editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                ) ||
-                                editedItem.typeOfPosts.includes(
-                                  'meta_label_products'
-                                )
+                              editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              ) ||
+                              editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -404,12 +416,15 @@
                               !editedItem.typeOfPosts.includes(
                                 'meta_catalog_shut_down_products'
                               ) &&
-                                !editedItem.typeOfPosts.includes(
-                                  'meta_catalog_turn_on_products'
-                                ) &&
-                                !editedItem.typeOfPosts.includes(
-                                  'meta_label_products'
-                                )
+                              !editedItem.typeOfPosts.includes(
+                                'meta_catalog_turn_on_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'meta_label_products'
+                              ) &&
+                              !editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
                             "
                           >
                             <v-col cols="12" sm="12" md="12">
@@ -421,6 +436,106 @@
                                 v-model="editedItem.imagesQuantity"
                                 label="Ingresa la cantidad de imagenes"
                               />
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Categorías Todofull
+                              </div>
+                              <div
+                                style="
+                                  border: 1px solid #ccc;
+                                  border-radius: 4px;
+                                  padding: 8px;
+                                  max-height: 200px;
+                                  overflow-y: auto;
+                                "
+                              >
+                                <v-treeview
+                                  v-model="editedItem.todofullCategories"
+                                  :items="todofullCategoriesTree"
+                                  item-key="idCategory"
+                                  selectable
+                                  dense
+                                >
+                                  <template v-slot:label="{ item }">
+                                    {{ item.name }}
+                                  </template>
+                                </v-treeview>
+                              </div>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="6" md="6">
+                              <div class="body-1 font-weight-bold">
+                                Tallas Todofull
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione las tallas"
+                                outlined
+                                multiple
+                                chips
+                                clearable
+                                :items="todofullTallas"
+                                v-model="editedItem.todofullTallas"
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <div class="body-1 font-weight-bold">
+                                Marcas Todofull
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione las marcas"
+                                outlined
+                                multiple
+                                chips
+                                clearable
+                                :items="todofullBrands"
+                                v-model="editedItem.todofullBrands"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold">
+                                Catálogos Todofull
+                              </div>
+                              <v-select
+                                dense
+                                hide-details
+                                placeholder="Seleccione los catálogos"
+                                outlined
+                                multiple
+                                chips
+                                clearable
+                                :items="todofullCatalogs"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="editedItem.todofullCatalogs"
+                              ></v-select>
                             </v-col>
                           </v-row>
                           <v-row>
@@ -536,6 +651,8 @@ import auth from "@/services/api/auth";
 import telegramGroupsApi from "@/services/api/telegramGroups";
 import categoriesApi from "@/services/api/ecommercesCategories";
 import graphApiService from "@/services/api/graphApi";
+import ecommercesApi from "@/services/api/ecommerces";
+import cloudStorageLinksApi from "@/services/api/cloudStorageLinks";
 
 export default {
   components: {
@@ -544,7 +661,7 @@ export default {
     VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
@@ -609,9 +726,18 @@ export default {
         name: "Catálogos Meta - etiquetar productos",
         value: "meta_label_products",
       },
+      {
+        name: "Catálogos para reemplazar",
+        value: "todofull_catalogs",
+      },
     ],
     metaCatalogs: [],
     woocommerces: [],
+    // New data for todofull_catalogs filters using same structure as catalog
+    todofullCategories: [],
+    todofullTallas: [],
+    todofullBrands: [],
+    todofullCatalogs: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -622,6 +748,18 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nueva rutina" : "Editar rutina";
     },
+    // Create category tree structure like in catalog
+    todofullCategoriesTree() {
+      const rootCategories = this.todofullCategories.filter(
+        (cat) => cat.parent === 0
+      );
+      return rootCategories.map((category) => ({
+        ...category,
+        children: this.todofullCategories.filter(
+          (cat) => cat.parent === category.idCategory
+        ),
+      }));
+    },
   },
 
   watch: {
@@ -630,7 +768,7 @@ export default {
         this.close();
       }
     },
-    "editedItem.country": function(val) {
+    "editedItem.country": function (val) {
       if (val && val.length) {
         const query = { country: val };
         categoriesApi.list(query).then((res) => {
@@ -640,6 +778,24 @@ export default {
             a.name.localeCompare(b.name)
           );
         });
+      }
+    },
+    "editedItem.todofullCategories": function (val) {
+      // When categories change, fetch related tallas and brands
+      if (val && val.length > 0) {
+        this.fetchTodofullAttributes();
+      } else {
+        this.editedItem.todofullTallas = [];
+        this.editedItem.todofullBrands = [];
+      }
+    },
+    "editedItem.typeOfPosts": function (val) {
+      // Reset todofull fields if todofull_catalogs is not selected
+      if (!val || !val.includes("todofull_catalogs")) {
+        this.editedItem.todofullCategories = [];
+        this.editedItem.todofullTallas = [];
+        this.editedItem.todofullBrands = [];
+        this.editedItem.todofullCatalogs = [];
       }
     },
   },
@@ -657,8 +813,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Configuracion/Propiedades",
           model: "Facebook",
-          company: this.$store.getters["authModule/getCurrentCompany"].company
-            ._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -674,8 +830,8 @@ export default {
     },
 
     async initialize() {
-      const company = this.$store.getters["authModule/getCurrentCompany"]
-        .company;
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
       await Promise.all([
         this.$store.dispatch("woocommercesModule/list", {
           companies: [
@@ -692,6 +848,7 @@ export default {
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
         }),
+        this.fetchTodofullData(),
       ]);
       // get catalogs
       graphApiService.getCatalogs().then((res) => {
@@ -778,8 +935,9 @@ export default {
             "telegramRoutinesModule/create",
             {
               ...this.editedItem,
-              country: this.$store.getters["authModule/getCurrentCompany"]
-                .company.country,
+              country:
+                this.$store.getters["authModule/getCurrentCompany"].company
+                  .country,
               companies: [
                 this.$store.getters["authModule/getCurrentCompany"].company._id,
               ],
@@ -807,6 +965,79 @@ export default {
       } finally {
         // Set the loading state back to false once execution is complete
         this.$set(this.loadingRoutine, item._id, false);
+      }
+    },
+
+    async fetchTodofullData() {
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
+      if (company && company.country) {
+        try {
+          // Fetch all categories (like in catalog)
+          const query = { country: company.country, products_available: true };
+          const categoriesRes = await ecommercesApi.listCategories(query);
+          this.todofullCategories = categoriesRes.data.payload;
+
+          // Fetch cloud storage catalogs
+          await this.fetchTodofullCatalogs();
+        } catch (error) {
+          console.error("Error fetching todofull categories:", error);
+        }
+      }
+    },
+
+    async fetchTodofullCatalogs() {
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
+      if (company) {
+        try {
+          const query = {
+            sort: "createdAt",
+            order: "desc",
+            companies: [company._id],
+            fields: "name",
+            type: "files",
+            isActive: true,
+            filter: "",
+            page: 1,
+            limit: 100, // Get more catalogs to show all available
+          };
+          const catalogsRes = await cloudStorageLinksApi.list(query);
+          this.todofullCatalogs = catalogsRes.data.payload;
+        } catch (error) {
+          console.error("Error fetching todofull catalogs:", error);
+        }
+      }
+    },
+
+    async fetchTodofullAttributes() {
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
+      if (!company || !company.country) return;
+
+      try {
+        // Use same API pattern as catalog for filtering
+        const query = {
+          country: company.country,
+          products_available: true,
+          categories: this.editedItem.todofullCategories.join(","),
+        };
+
+        const [sizesRes, attributesRes] = await Promise.all([
+          ecommercesApi.listSizes(query),
+          ecommercesApi.listAttributes({ ...query, name: "marca" }),
+        ]);
+
+        // Format tallas like in catalog
+        this.todofullTallas = sizesRes.data.payload.map(
+          (talla) => talla.option
+        );
+        // Format brands like in catalog
+        this.todofullBrands = attributesRes.data.payload.map(
+          (attr) => attr.options
+        );
+      } catch (error) {
+        console.error("Error fetching todofull attributes:", error);
       }
     },
   },

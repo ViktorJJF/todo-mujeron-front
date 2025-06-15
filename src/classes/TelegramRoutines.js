@@ -12,4 +12,8 @@ export default () => ({
   typeOfPosts: [],
   hasUniqueSizes: false,
   action: "create",
+  todofullCategories: [],
+  todofullTallas: [],
+  todofullBrands: [],
+  todofullCatalogs: [],
 });

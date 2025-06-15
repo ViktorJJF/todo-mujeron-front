@@ -285,7 +285,7 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click="handleDownloadPdf()">
+            <v-list-item @click="handleDownloadPdf({ hidePurchase: true })">
               <v-list-item-title>Descargar normal</v-list-item-title>
             </v-list-item>
             <v-list-item @click="handleDownloadPdf({ hideDetails: true })">
@@ -297,7 +297,11 @@
             <v-list-item @click="handleDownloadPdf({ includePrice: true })">
               <v-list-item-title>Descargar con precio</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleDownloadPdf({ promotionsOnly: true, includePrice: true })">
+            <v-list-item
+              @click="
+                handleDownloadPdf({ promotionsOnly: true, includePrice: true })
+              "
+            >
               <v-list-item-title>Descargar promociones</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -509,14 +513,14 @@
 </template>
 
 <script>
-import TallasSelect from "@/components/catalog/TallasSelect"
-import EcommercesApi from "@/services/api/ecommerces"
-import Flipbook from "flipbook-vue"
-import MarqueeText from "vue-marquee-text-component"
-import BuyForm from "../BuyForm"
-import { downloadPdf } from '../download-pdf'
-import BottomNavigation from "./BottomNavigation"
-import PersonaR from "./persona.jpg"
+import TallasSelect from "@/components/catalog/TallasSelect";
+import EcommercesApi from "@/services/api/ecommerces";
+import Flipbook from "flipbook-vue";
+import MarqueeText from "vue-marquee-text-component";
+import BuyForm from "../BuyForm";
+import { downloadPdf } from "../download-pdf";
+import BottomNavigation from "./BottomNavigation";
+import PersonaR from "./persona.jpg";
 
 const COUNTRIES = ["Chile", "Peru"];
 const DEFAULT_COUNTRY = "Chile";
@@ -730,24 +734,47 @@ export default {
     onScroll() {
       this.isAppBarHidden = window.scrollY >= 95;
     },
-    async handleDownloadPdf({ maxSize, includePrice, hideDetails, promotionsOnly } = {}) {
-      this.downloadLoading = true
+    async handleDownloadPdf({
+      hidePurchase,
+      maxSize,
+      includePrice,
+      hideDetails,
+      promotionsOnly,
+    } = {}) {
+      this.downloadLoading = true;
 
       while (this.productsDocsSource.nextPage) {
-        await this.fetchProducts(this.productsDocsSource.nextPage)
+        await this.fetchProducts(this.productsDocsSource.nextPage);
       }
 
       const products = promotionsOnly
-        ? this.productsSource.filter(product => (product.sale_price || product.variations[0].sale_price) > 0)
-        : this.productsSource
+        ? this.productsSource.filter((product) => {
+            const regularPrice =
+              product.regular_price || product.variations[0].regular_price;
+            const salePrice =
+              product.sale_price || product.variations[0].sale_price;
+            return salePrice > 0 && salePrice < regularPrice;
+          })
+        : this.productsSource;
 
       if (promotionsOnly && !products.length) {
-        alert('No hay promociones disponibles con el filtro seleccionado')
+        this.downloadLoading = false;
+        return this.$swal({
+          title: "No hay promociones",
+          text: "No hay promociones disponibles con el filtro seleccionado",
+          icon: "info",
+        });
       }
 
-      await downloadPdf(products, { maxSize, includePrice, hideDetails, country: this.country })
+      await downloadPdf(products, {
+        maxSize,
+        includePrice,
+        hideDetails,
+        country: this.country,
+        hidePurchase,
+      });
 
-      this.downloadLoading = false
+      this.downloadLoading = false;
     },
     async handleSearchInputChange(val) {
       if (!val) return;
@@ -764,7 +791,7 @@ export default {
       this.productsSelected = [];
     },
     formatAmount(amount) {
-      return new Intl.NumberFormat().format(amount)
+      return new Intl.NumberFormat().format(amount);
     },
     getAvailableVariations(product) {
       const variations = [];
