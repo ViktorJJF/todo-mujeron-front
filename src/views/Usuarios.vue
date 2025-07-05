@@ -39,7 +39,12 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on" v-show="rolPermisos['Write']"
+                      <v-btn
+                        color="primary"
+                        dark
+                        class="mb-2"
+                        v-on="on"
+                        v-show="rolPermisos['Write']"
                         >Agregar usuario</v-btn
                       >
                     </template>
@@ -52,69 +57,75 @@
                       <ValidationObserver ref="obs" v-slot="{ passes }">
                         <v-container class="pa-5">
                           <v-row dense>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Nombres</p>
-                        <VTextFieldWithValidation
-                          rules="required"
-                          v-model="editedItem.first_name"
-                          label="Nombres"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Apellidos</p>
-                        <VTextFieldWithValidation
-                          rules="required"
-                          v-model="editedItem.last_name"
-                          label="Apellidos"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Email</p>
-                        <VTextFieldWithValidation
-                          rules="required"
-                          v-model="editedItem.email"
-                          label="Email"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <p class="body-1 font-weight-bold mb-0">Celular</p>
-                        <VTextFieldWithValidation
-                          :rules="{
-                            required: false,
-                            decimal: true,
-                          }"
-                          v-model="editedItem.phone_number"
-                          label="+51982745576"
-                        />
-                      </v-col>
-                      <v-col cols="12">
-                        <span class="body-1 font-weight-bold"
-                          >Compañia</span>
-                        <VSelectWithValidation
-                          v-model="editedItem.companies"
-                          :items="companies"
-                          @change="updateGroupsList"
-                          rules="required"
-                          item-text="alias"
-                          item-value="_id"
-                          placeholder="Seleccionar Compañia"
-                          multiple
-                        />
-                      </v-col>
-                      <v-col cols="12">
-                        <span class="body-1 font-weight-bold"
-                          >Grupo</span>
-                        <VSelectWithValidation
-                          v-model="editedItem.roles"
-                          :items="groups"
-                          rules="required"
-                          item-text="nombre"
-                          item-value="_id"
-                          placeholder="Seleccionar Grupos"
-                          multiple
-                        />
-                      </v-col>
-                      <!--
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">
+                                Nombres
+                              </p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.first_name"
+                                label="Nombres"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">
+                                Apellidos
+                              </p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.last_name"
+                                label="Apellidos"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">Email</p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.email"
+                                label="Email"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">
+                                Celular
+                              </p>
+                              <VTextFieldWithValidation
+                                :rules="{
+                                  required: false,
+                                  decimal: true,
+                                }"
+                                v-model="editedItem.phone_number"
+                                label="+51982745576"
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold"
+                                >Compañia</span
+                              >
+                              <VSelectWithValidation
+                                v-model="editedItem.companies"
+                                :items="companies"
+                                @change="updateGroupsList"
+                                rules="required"
+                                item-text="alias"
+                                item-value="_id"
+                                placeholder="Seleccionar Compañia"
+                                multiple
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <span class="body-1 font-weight-bold">Grupo</span>
+                              <VSelectWithValidation
+                                v-model="editedItem.roles"
+                                :items="groups"
+                                rules="required"
+                                item-text="nombre"
+                                item-value="_id"
+                                placeholder="Seleccionar Grupos"
+                                multiple
+                              />
+                            </v-col>
+                            <!--
                       <v-col cols="12" sm="6" md="6">
                         <p class="body-1 font-weight-bold mb-0">Ciudad</p>
                         <VSelectWithValidation
@@ -127,28 +138,26 @@
                         />
                       </v-col> -->
 
-                      <v-col cols="12" sm="6" md="6" >
-                        <p class="body-1 font-weight-bold mb-0">Contraseña</p>
-                          <VTextFieldWithValidation
-                            rules="required"
-                            v-model="editedItem.password"
-                            label="Contraseña"
-                            type="password"
-                          />
-                       </v-col>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">
+                                Contraseña
+                              </p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.password"
+                                label="Contraseña"
+                                type="password"
+                              />
+                            </v-col>
 
-                      <v-col cols="12" sm="6" md="6" >
-                        <p class="body-1 font-weight-bold mb-0">Estado</p>
-                         <v-switch
-                          v-model="editedItem.status"
-                          inset
-                        ></v-switch>
-                      </v-col>
-
-
-                      
-
-                    </v-row>
+                            <v-col cols="12" sm="6" md="6">
+                              <p class="body-1 font-weight-bold mb-0">Estado</p>
+                              <v-switch
+                                v-model="editedItem.status"
+                                inset
+                              ></v-switch>
+                            </v-col>
+                          </v-row>
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -169,17 +178,34 @@
               </v-row>
             </v-container>
           </template>
-          <template v-slot:item.corporation="{ item }">
-            <span v-for="(company, index) in item.corporation.companies" :key="index">
-              - {{ company.company.alias }}
-              <br>
-            </span>
+          <template v-slot:item.corporations="{ item }">
+            <div
+              v-for="(corporation, corpIndex) in item.corporations"
+              :key="`corp-${corpIndex}`"
+            >
+              <span
+                v-for="(company, companyIndex) in corporation.companies"
+                :key="`comp-${corpIndex}-${companyIndex}`"
+              >
+                - {{ company.company.alias }}
+                <br />
+              </span>
+            </div>
           </template>
-          <template v-slot:[`item.action`]="{ item }">
-            <v-btn class="mr-3" small color="secondary" :to="{ name: 'UsuariosEdit',  params: {id: item._id,}, }" v-if="rolPermisos['Edit']"
+          <template v-slot:item.action="{ item }">
+            <v-btn
+              class="mr-3"
+              small
+              color="secondary"
+              :to="{ name: 'UsuariosEdit', params: { id: item._id } }"
+              v-if="rolPermisos['Edit']"
               >Editar</v-btn
             >
-            <v-btn small color="error" @click="deleteItem(item)" v-if="rolPermisos['Delete']"
+            <v-btn
+              small
+              color="error"
+              @click="deleteItem(item)"
+              v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
           </template>
@@ -226,10 +252,10 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
-    VSelectWithValidation
+    VSelectWithValidation,
   },
   filters: {
-    formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
@@ -262,7 +288,7 @@ export default {
         text: "Compañias",
         align: "left",
         sortable: true,
-        value: "corporation",
+        value: "corporations",
       },
       {
         text: "Estado",
@@ -290,7 +316,6 @@ export default {
     cities() {
       return this.$store.state.cities;
     },
-
   },
 
   watch: {
@@ -299,44 +324,43 @@ export default {
     },
   },
 
-   async created(){
+  async created() {
     await this.$store.dispatch("usersModule/list");
-    await this.$store.dispatch("companiesModule/list"),
-
-    this.initialize();
+    await this.$store.dispatch("companiesModule/list"), this.initialize();
   },
 
-    mounted() {
+  mounted() {
     this.$store.commit("loadingModule/showLoading");
-    this.rolAuth(); 
+    this.rolAuth();
   },
-
 
   methods: {
     async updateGroupsList() {
       this.groups = [];
       if (this.editedItem.companies.length) {
-        await this.$store.dispatch("groupsModule/list", { companies: this.editedItem.companies });
+        await this.$store.dispatch("groupsModule/list", {
+          companies: this.editedItem.companies,
+        });
         this.groups = this.$deepCopy(this.$store.state.groupsModule.groups);
-        this.groups = this.groups.map(g => {
+        this.groups = this.groups.map((g) => {
           g.nombre = `${g.nombre} (${g.company.alias})`;
           return g;
         });
       }
     },
-     rolAuth(){
-      auth.roleAuthorization(
-        {
-          'id':this.$store.state.authModule.user._id, 
-          'menu':'Configuracion/TodoFull',
-          'model':'Usuarios',
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+    rolAuth() {
+      auth
+        .roleAuthorization({
+          id: this.$store.state.authModule.user._id,
+          menu: "Configuracion/TodoFull",
+          model: "Usuarios",
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
-          .then((res) => {
+        .then((res) => {
           this.rolPermisos = res.data;
-          }).finally(() =>
-            this.$store.commit("loadingModule/showLoading", false)
-          );
+        })
+        .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
     initialize() {
       this.usuarios = this.$deepCopy(this.$store.state.usersModule.users);
@@ -370,25 +394,22 @@ export default {
 
     async save() {
       this.loadingButton = true;
-        //create item
-        try {
-          this.editedItem.corporation = this.$store.state.authModule.user.corporation._id;
-          let newItem = await this.$store.dispatch(
-            "usersModule/create",
-            this.editedItem
-          );
-          this.usuarios.push(newItem);
-          console.log("newItem", newItem);
-          this.close();
-        } finally {
-          this.loadingButton = false;
-        }
-      
+      //create item
+      try {
+        this.editedItem.corporation =
+          this.$store.state.authModule.user.corporation._id;
+        let newItem = await this.$store.dispatch(
+          "usersModule/create",
+          this.editedItem
+        );
+        this.usuarios.push(newItem);
+        console.log("newItem", newItem);
+        this.close();
+      } finally {
+        this.loadingButton = false;
+      }
     },
   },
-  
-
-
 };
 </script>
 
