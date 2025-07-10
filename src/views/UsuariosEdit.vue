@@ -448,6 +448,15 @@ export default {
       this.user = user;
       if (this.user.chatGroups) {
         this.selectedChatGroups = this.user.chatGroups.map((g) => g._id);
+        // Transform chatGroups botIds from objects to IDs if they are populated
+        this.user.chatGroups = this.user.chatGroups.map((group) => ({
+          ...group,
+          botIds: Array.isArray(group.botIds)
+            ? group.botIds.map((bot) =>
+                typeof bot === "object" ? bot._id : bot
+              )
+            : [],
+        }));
       }
       this.selectedCompanies = this.user.corporation.companies.map(
         (c) => c.company
@@ -505,10 +514,17 @@ export default {
       );
 
       if (selectedFullGroup) {
+        // Ensure botIds are just IDs, not populated objects
+        const botIds = Array.isArray(selectedFullGroup.botIds)
+          ? selectedFullGroup.botIds.map((bot) =>
+              typeof bot === "object" ? bot._id : bot
+            )
+          : [];
+
         const updatedGroup = {
           ...this.user.chatGroups[index],
           _id: chatGroupId,
-          botIds: [...(selectedFullGroup.botIds || [])],
+          botIds: [...botIds],
         };
         this.user.chatGroups.splice(index, 1, updatedGroup);
       }

@@ -539,7 +539,7 @@ import Bots from "@/classes/Bots";
 import auth from "@/services/api/auth";
 import { convertMsToTime } from "@/utils/utils";
 import graphApi from "@/services/api/graphApi";
-import groups from "@/services/api/groups";
+import chatGroups from "@/services/api/chatGroups";
 import users from "@/services/api/users";
 import companies from "@/services/api/companies";
 
@@ -681,18 +681,18 @@ export default {
 
     async loadGroups() {
       try {
-        const response = await groups.list({
+        const response = await chatGroups.list({
           "companies[]":
             this.$store.getters["authModule/getCurrentCompany"].company._id,
         });
         this.groups = response.data.payload
           .map((group) => ({
-            text: group.nombre,
+            text: group.name,
             value: group._id,
           }))
           .sort((a, b) => a.text.localeCompare(b.text));
       } catch (error) {
-        console.error("Error loading groups:", error);
+        console.error("Error loading chat groups:", error);
       }
     },
 
