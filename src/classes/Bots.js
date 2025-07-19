@@ -16,4 +16,9 @@ export default () => ({
   autoActivateAfter: 0,
   imaginaWhatsappId: "",
   imaginaApiKey: "",
+  legimusChannelId: "",
+  capabilities: {
+    isEligibleForCampaigns: true,
+    isEligibleForMassiveMessaging: true,
+  },
 });

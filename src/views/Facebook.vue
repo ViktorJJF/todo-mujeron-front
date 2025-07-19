@@ -353,7 +353,48 @@
                                 />
                               </v-col>
                             </v-row>
+                            <v-row
+                              v-if="editedItem.platform === 'whatsapp_automated'"
+                              dense
+                            >
+                              <v-col cols="12" sm="12" md="12">
+                                <p class="body-1 font-weight-bold">
+                                  Legimus Channel ID
+                                </p>
+                                <VTextFieldWithValidation
+                                  rules=""
+                                  v-model="editedItem.legimusChannelId"
+                                  label="Ingresa el Legimus Channel ID"
+                                />
+                              </v-col>
+                            </v-row>
                           </template>
+
+                          <v-divider></v-divider>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <h3 class="mt-3">Capacidades</h3>
+                            </v-col>
+                          </v-row>
+                          <v-row dense>
+                            <v-col cols="12" sm="6">
+                              <v-checkbox
+                                v-model="
+                                  editedItem.capabilities.isEligibleForCampaigns
+                                "
+                                label="Elegible para Campañas"
+                              ></v-checkbox>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                              <v-checkbox
+                                v-model="
+                                  editedItem.capabilities
+                                    .isEligibleForMassiveMessaging
+                                "
+                                label="Elegible para Mensajería Masiva"
+                              ></v-checkbox>
+                            </v-col>
+                          </v-row>
 
                           <v-divider></v-divider>
                           <v-row dense>
@@ -490,14 +531,6 @@
               v-if="rolPermisos['Delete']"
               >Eliminar</v-btn
             >
-            <v-btn
-              small
-              color="primary"
-              class="ml-2"
-              @click="openCreateChatGroupDialog"
-              v-if="rolPermisos['Write']"
-              >Crear Grupo</v-btn
-            >
           </template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true"
@@ -507,6 +540,57 @@
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
+          <template v-slot:[`item.capabilities`]="{ item }">
+            <div v-if="item.capabilities">
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    v-bind="attrs"
+                    v-on="on"
+                    :color="
+                      item.capabilities.isEligibleForCampaigns
+                        ? 'primary'
+                        : 'grey'
+                    "
+                    class="mr-4"
+                  >
+                    mdi-bullhorn-outline
+                  </v-icon>
+                </template>
+                <span
+                  >Campañas:
+                  {{
+                    item.capabilities.isEligibleForCampaigns
+                      ? "Activado"
+                      : "Desactivado"
+                  }}</span
+                >
+              </v-tooltip>
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    v-bind="attrs"
+                    v-on="on"
+                    :color="
+                      item.capabilities.isEligibleForMassiveMessaging
+                        ? 'primary'
+                        : 'grey'
+                    "
+                  >
+                    mdi-forum-outline
+                  </v-icon>
+                </template>
+                <span
+                  >Mensajería Masiva:
+                  {{
+                    item.capabilities.isEligibleForMassiveMessaging
+                      ? "Activado"
+                      : "Desactivado"
+                  }}</span
+                >
+              </v-tooltip>
+            </div>
+          </template>
           <template v-slot:[`item.status`]="{ item }">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -591,6 +675,7 @@ export default {
         sortable: false,
         value: "createdAt",
       },
+      { text: "Capacidades", value: "capabilities", sortable: false },
       { text: "Acciones", value: "action", sortable: false },
     ],
     bots: [],
@@ -706,7 +791,7 @@ export default {
         const response = await users.list();
         this.users = response.data.payload
           .map((user) => ({
-            text: `${user.first_name} ${user.last_name}`,
+            text: `${user.first_name} ${user.last_name} (${user.email})`,
             value: user._id,
           }))
           .sort((a, b) => a.text.localeCompare(b.text));

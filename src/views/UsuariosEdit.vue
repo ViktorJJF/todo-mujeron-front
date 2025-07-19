@@ -392,6 +392,7 @@ export default {
         { text: "Instagram", value: "instagram" },
         { text: "Whatsapp", value: "whatsapp" },
         { text: "WhatsApp Many To One ", value: "whatsapp_automated" },
+        { text: "WhatsApp One to One ", value: "whatsapp_private" }, // this platform is whatsapp_automated but with filter for one-one
       ],
       assigned: [
         { text: "Todos", value: "all" },
