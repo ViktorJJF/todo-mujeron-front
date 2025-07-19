@@ -246,6 +246,7 @@
                                   outlined
                                   item-text="text"
                                   item-value="value"
+                                  clearable
                                 />
                               </v-col>
                             </v-row>
@@ -288,7 +289,7 @@
                             >
                               <v-col cols="12" sm="12" md="12">
                                 <p class="body-1 font-weight-bold">Usuario</p>
-                                <v-select
+                                <v-autocomplete
                                   :items="users"
                                   v-model="editedItem.userId"
                                   dense
@@ -620,6 +621,10 @@ export default {
       if (newVal === "many_to_one") {
         this.editedItem.userId = null;
       } else if (newVal === "one_to_one") {
+        this.editedItem.groupId = null;
+      } else if (newVal === null || newVal === undefined) {
+        // Clear both userId and groupId when conversation type is removed
+        this.editedItem.userId = null;
         this.editedItem.groupId = null;
       }
     },
