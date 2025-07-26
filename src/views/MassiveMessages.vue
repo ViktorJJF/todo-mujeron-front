@@ -251,6 +251,16 @@
                 </v-chip>
               </v-card-title>
 
+              <!-- Excluded Counts Display -->
+              <v-card-subtitle v-if="excludedCounts" class="py-3 px-4 excluded-counts-display">
+                <div class="d-flex align-center justify-center">
+                  <v-icon left small color="orange darken-1">mdi-alert-circle-outline</v-icon>
+                  <span class="text-body-2 font-weight-medium orange--text text--darken-1">
+                    {{ excludedCounts.leads }} leads, {{ excludedCounts.cleanLeads }} clean leads serán excluidos en el envío
+                  </span>
+                </div>
+              </v-card-subtitle>
+
               <v-data-table
                 v-model="selectedChats"
                 :headers="headers"
@@ -401,6 +411,7 @@ export default {
     imaginaTemplates: [],
     confirmDialog: false,
     urlType: null,
+    excludedCounts: null,
     platformFileLimits: {
       facebook: {
         image: "Imágenes: JPG, PNG, GIF (hasta 25MB)",
@@ -595,6 +606,7 @@ export default {
           platform: chat.platform || "",
         }));
         this.totalConversations = response.data.totalDocs || 0;
+        this.excludedCounts = response.data.excludedCounts || null;
       } catch (err) {
         this.error = "Error al cargar las conversaciones";
         console.error(err);
@@ -794,6 +806,12 @@ export default {
       height: 18px;
       font-size: 0.65rem;
     }
+  }
+
+  .excluded-counts-display {
+    background-color: rgba(255, 152, 0, 0.08);
+    border-top: 1px solid rgba(255, 152, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 152, 0, 0.2);
   }
 }
 </style>
