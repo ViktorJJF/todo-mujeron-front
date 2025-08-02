@@ -11,7 +11,7 @@
               color="white"
               class="primary--text"
               :loading="loading"
-              :disabled="loading || (!conversations.length && !selectAllChats)"
+              :disabled="loading"
               @click="sendMessages"
               elevation="1"
             >
