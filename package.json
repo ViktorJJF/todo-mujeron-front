@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "dev": "vue-cli-service serve",
+    "serve": "CHOKIDAR_USEPOLLING=true vue-cli-service serve",
+    "dev": "CHOKIDAR_USEPOLLING=true vue-cli-service serve",
     "local": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
@@ -24,7 +24,6 @@
     "jspdf": "^2.4.0",
     "lodash": "^4.17.21",
     "material-design-icons-iconfont": "^5.0.1",
-    "node-sass": "^4.14.1",
     "pdf-lib": "^1.17.1",
     "pusher-js": "^6.0.3",
     "roboto-fontface": "*",
@@ -84,8 +83,5 @@
   "browserslist": [
     "> 1%",
     "last 2 versions"
-  ],
-  "engines": {
-    "node": ">=14.15.0 <=14.21.3"
-  }
+  ]
 }

@@ -39,7 +39,6 @@
                         color="primary"
                         dark
                         class="mb-2"
-                        v-show="rolPermisos['Write']"
                         v-on="on"
                         @click="editedItem = { ...defaultItem }"
                         >{{ $t(entity + ".NEW_ITEM") }}</v-btn
@@ -344,6 +343,9 @@ export default {
         this.$store.dispatch("marketingCampaignsModule/list", {
           sort: "name",
           order: "asc",
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       this.odooValues = response[0].value;

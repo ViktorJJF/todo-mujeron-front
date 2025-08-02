@@ -350,7 +350,10 @@ export default {
       ]);
       this.segments =
         this.$store.state.marketingSegmentsModule.marketingSegments;
-      this.bots = this.$store.state.botsModule.bots;
+      // show only numbers which are available to send campaigns
+      this.bots = this.$store.state.botsModule.bots.filter(
+        (bot) => bot.capabilities?.isEligibleForCampaigns !== false
+      );
       for (const bot of this.bots) {
         bot["textToShow"] = `${bot.phone} (${
           bot.platform === "whatsapp_automated"

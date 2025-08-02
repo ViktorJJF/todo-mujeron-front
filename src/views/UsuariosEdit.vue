@@ -72,8 +72,7 @@
           <v-form>
             <v-container>
               <v-col cols="12">
-                <span class="body-1 font-weight-bold"
-                  >Compañia</span>
+                <span class="body-1 font-weight-bold">Compañia</span>
                 <VSelectWithValidation
                   v-model="selectedCompanies"
                   :items="companies"
@@ -107,6 +106,24 @@
         <ValidationObserver ref="obs" v-slot="{ passes }">
           <v-form>
             <v-container>
+              <v-row dense>
+                <v-col cols="12">
+                  <p class="body-1 font-weight-bold mb-0">
+                    Grupos de Chat Asignados
+                  </p>
+                  <VSelectWithValidation
+                    v-model="selectedChatGroups"
+                    :items="chatGroups"
+                    item-text="name"
+                    item-value="_id"
+                    placeholder="Seleccionar Grupos"
+                    multiple
+                    clearable
+                    chips
+                  />
+                </v-col>
+              </v-row>
+              <v-divider class="my-3"></v-divider>
               <v-row dense>
                 <v-col>
                   <p class="body-1 font-weight-bold mb-0">Compañias</p>
@@ -142,53 +159,48 @@
                   />
                 </v-col>
               </v-row>
-              <v-row dense>
-                <v-col>
-                  <p class="body-1 font-weight-bold mb-0">Grupos de Chats</p>
-                  <v-checkbox
-                    v-model="user.chatsPermissions.enableBotGroups"
-                    label="Habilitar Grupos de Chats"
-                  ></v-checkbox>
-                </v-col>
-              </v-row>
-              <template v-if="user.chatsPermissions.enableBotGroups">
-                <v-row v-for="(botGroup, index) in user.chatsPermissions.botGroups" :key="index">
-                <v-col cols="4">
-                  <p class="body-1 font-weight-bold mb-0">Nombre de Grupo</p>
-                    <VTextFieldWithValidation
-                      rules=""
-                      v-model="botGroup.name"
-                      label="Nombre de Grupo"
-                      maxlength="15"
+              <template>
+                <v-row
+                  v-for="(chatGroup, index) in user.chatGroups"
+                  :key="index"
+                >
+                  <v-col cols="4">
+                    <p class="body-1 font-weight-bold mb-0">Nombre de Grupo</p>
+                    <VSelectWithValidation
+                      :items="chatGroupsForSelect"
+                      item-text="name"
+                      item-value="_id"
+                      v-model="chatGroup._id"
+                      @change="
+                        (chatGroupId) =>
+                          onChatGroupSelected(chatGroup, chatGroupId, index)
+                      "
+                      label="Seleccione un Grupo"
                     />
-                </v-col>
-                <v-col cols="7">
-                  <p class="body-1 font-weight-bold mb-0">Lista de Chats</p>
-                  <VSelectWithValidation
+                  </v-col>
+                  <v-col cols="7">
+                    <p class="body-1 font-weight-bold mb-0">Lista de Chats</p>
+                    <VSelectWithValidation
                       :items="botOptions"
-                      v-model="botGroup.botIds"
+                      v-model="chatGroup.botIds"
                       item-text="text"
                       item-value="value"
                       clearable
                       multiple
                       chips
                     />
-                </v-col>
-                <v-col cols="1" class="d-flex align-center">
-                  <v-btn
-                    icon
-                    color="error"
-                    @click="removeBotGroup(index)"
-                    
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
+                  </v-col>
+                  <v-col cols="1" class="d-flex align-center">
+                    <v-btn icon color="error" @click="removechatGroup(index)">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
                 <v-row>
                   <v-col cols="12" class="d-flex justify-center">
                     <v-btn color="primary" @click="addBotGroup">
-                      <v-icon left>mdi-plus</v-icon> Agregar Nueva Lista de Chats
+                      <v-icon left>mdi-plus</v-icon> Agregar Nueva Lista de
+                      Chats
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -246,6 +258,97 @@
         </ValidationObserver>
       </material-card>
     </v-row>
+    <v-dialog v-model="chatGroupDialog" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Nuevo Grupo de Chat</span>
+        </v-card-title>
+        <v-card-text>
+          <ValidationObserver ref="obsNewChatGroup" v-slot="{ passes }">
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <VTextFieldWithValidation
+                    rules="required"
+                    v-model="newChatGroup.name"
+                    label="Nombre del Grupo"
+                  />
+                </v-col>
+              </v-row>
+            </v-container>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="chatGroupDialog = false"
+                >Cancelar</v-btn
+              >
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="passes(createNewChatGroup)"
+                >Guardar</v-btn
+              >
+            </v-card-actions>
+          </ValidationObserver>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="editChatGroupDialog" max-width="500px">
+      <v-card>
+        <v-card-title>Editar Grupo de Chat</v-card-title>
+        <v-card-text>
+          <ValidationObserver ref="obsEditChatGroup" v-slot="{ passes }">
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <VTextFieldWithValidation
+                    rules="required"
+                    v-model="editChatGroup.name"
+                    label="Nombre del Grupo"
+                  />
+                </v-col>
+                <v-col cols="12">
+                  <VSelectWithValidation
+                    v-model="editChatGroup.botIds"
+                    :items="bots"
+                    item-text="name"
+                    item-value="_id"
+                    label="Bots"
+                    multiple
+                    chips
+                  />
+                </v-col>
+              </v-row>
+            </v-container>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text color="primary" @click="editChatGroupDialog = false"
+                >Cancelar</v-btn
+              >
+              <v-btn text color="success" @click="passes(saveEditChatGroup)"
+                >Guardar</v-btn
+              >
+            </v-card-actions>
+          </ValidationObserver>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="deleteChatGroupDialog" max-width="400px">
+      <v-card>
+        <v-card-title class="headline">¿Eliminar grupo de chat?</v-card-title>
+        <v-card-text
+          >¿Estás seguro de que deseas eliminar este grupo de chat?</v-card-text
+        >
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="deleteChatGroupDialog = false"
+            >Cancelar</v-btn
+          >
+          <v-btn text color="error" @click="confirmDeleteChatGroup"
+            >Eliminar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -270,14 +373,26 @@ export default {
       bots: [], // <- Add bots to data
       botOptions: [],
       emptyBotGroup: {
-        name: "",
+        chatGroupId: null,
         botIds: [],
       },
+      chatGroups: [],
+      selectedChatGroups: [],
+      chatGroupDialog: false,
+      newChatGroup: {
+        name: "",
+        botIds: [],
+        userIds: [],
+        companies: [],
+      },
+      allBots: [],
+      allUsers: [],
       platforms: [
         { text: "Facebook", value: "facebook" },
         { text: "Instagram", value: "instagram" },
         { text: "Whatsapp", value: "whatsapp" },
         { text: "WhatsApp Many To One ", value: "whatsapp_automated" },
+        { text: "WhatsApp One to One ", value: "whatsapp_private" }, // this platform is whatsapp_automated but with filter for one-one
       ],
       assigned: [
         { text: "Todos", value: "all" },
@@ -290,6 +405,10 @@ export default {
         { text: "Recientes", value: "recents" },
         { text: "Equipo", value: "team" },
       ],
+      editChatGroupDialog: false,
+      deleteChatGroupDialog: false,
+      editChatGroup: {},
+      deleteChatGroup: {},
     };
   },
   created() {
@@ -297,29 +416,52 @@ export default {
   },
   methods: {
     async initialData() {
-      const user = await this.$store.dispatch("usersModule/listOne", {
+      const userPromise = this.$store.dispatch("usersModule/listOne", {
         id: this.$route.params.id,
         query: { chatsPermissions: true },
       });
 
-      await this.$store.dispatch("companiesModule/list");
+      const companiesPromise = this.$store.dispatch("companiesModule/list");
+      const chatGroupsPromise = this.$store.dispatch("chatGroupsModule/list");
+
+      const [user] = await Promise.all([
+        userPromise,
+        companiesPromise,
+        chatGroupsPromise,
+      ]);
+
       this.companies = this.$deepCopy(
         this.$store.state.companiesModule.companies
+      );
+      this.chatGroups = this.$deepCopy(
+        this.$store.state.chatGroupsModule.chatGroups
       );
 
       if (!user.chatsPermissions) {
         Object.assign(user, {
           chatsPermissions: {
             platforms: [],
-            enableBotGroups: false,
-            botGroups: [this.emptyBotGroup],
             assigned: null,
             status: [],
           },
         });
       }
       this.user = user;
-      this.selectedCompanies = this.user.corporation.companies.map(c => c.company);
+      if (this.user.chatGroups) {
+        this.selectedChatGroups = this.user.chatGroups.map((g) => g._id);
+        // Transform chatGroups botIds from objects to IDs if they are populated
+        this.user.chatGroups = this.user.chatGroups.map((group) => ({
+          ...group,
+          botIds: Array.isArray(group.botIds)
+            ? group.botIds.map((bot) =>
+                typeof bot === "object" ? bot._id : bot
+              )
+            : [],
+        }));
+      }
+      this.selectedCompanies = this.user.corporation.companies.map(
+        (c) => c.company
+      );
       await this.fetchBots(this.chatPermissionCompanies); // Fetch bots for initial companies
     },
     // Fetch bots using selected companies
@@ -334,54 +476,169 @@ export default {
         companies: selectedChatPermissionCompanies,
       });
       this.bots = this.$store.state.botsModule.bots || [];
-      this.botOptions = this.bots.filter(bot => bot.platform === 'whatsapp_automated').map(bot => ({
-        text: bot.name,
-        value: bot._id
-      }));
+      this.botOptions = this.bots
+        .filter((bot) => bot.platform === "whatsapp_automated")
+        .map((bot) => ({
+          text: bot.name,
+          value: bot._id,
+        }));
     },
     // Watch for changes in selectedCompanies to update bots
     async onSelectedCompaniesChange(selectedChatPermissionCompanies) {
       await this.fetchBots(selectedChatPermissionCompanies);
     },
+    onChatGroupSelected(chatGroup, chatGroupId, index) {
+      if (chatGroupId === "CREATE_NEW") {
+        this.openCreateChatGroupDialog().then((newGroup) => {
+          if (newGroup) {
+            const newGroupData = this.chatGroups.find(
+              (cg) => cg._id === newGroup._id
+            );
+            if (newGroupData) {
+              this.user.chatGroups.splice(
+                index,
+                1,
+                this.$deepCopy(newGroupData)
+              );
+              if (!this.selectedChatGroups.includes(newGroup._id)) {
+                this.selectedChatGroups.push(newGroup._id);
+              }
+            }
+          } else {
+            this.user.chatGroups[index]._id = null;
+          }
+        });
+        return;
+      }
+      const selectedFullGroup = this.chatGroups.find(
+        (g) => g._id === chatGroupId
+      );
+
+      if (selectedFullGroup) {
+        // Ensure botIds are just IDs, not populated objects
+        const botIds = Array.isArray(selectedFullGroup.botIds)
+          ? selectedFullGroup.botIds.map((bot) =>
+              typeof bot === "object" ? bot._id : bot
+            )
+          : [];
+
+        const updatedGroup = {
+          ...this.user.chatGroups[index],
+          _id: chatGroupId,
+          botIds: [...botIds],
+        };
+        this.user.chatGroups.splice(index, 1, updatedGroup);
+      }
+    },
+    removechatGroup(index) {
+      this.user.chatGroups.splice(index, 1);
+    },
+    openCreateChatGroupDialog() {
+      return new Promise((resolve) => {
+        // reset form
+        this.newChatGroup = {
+          name: "",
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
+          userIds: [this.user._id],
+          botIds: [],
+        };
+
+        this.resolveCreateChatGroup = resolve;
+        this.chatGroupDialog = true;
+      });
+    },
     // Add a new bot group to the list
     addBotGroup() {
-      if (!this.user.chatsPermissions.botGroups) {
-        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
+      if (!this.user.chatGroups) {
+        this.user.chatGroups = [];
       }
-      // Create a new empty bot group (deep copy to avoid reference issues)
-      const newGroup = JSON.parse(JSON.stringify(this.emptyBotGroup));
-      this.user.chatsPermissions.botGroups.push(newGroup);
+      this.user.chatGroups.push({
+        _id: null,
+        botIds: [],
+      });
     },
-    // Remove a bot group from the list
-    removeBotGroup(index) {
-      this.user.chatsPermissions.botGroups.splice(index, 1);
+    async createNewChatGroup() {
+      const newGroup = await this.$store.dispatch(
+        "chatGroupsModule/create",
+        this.newChatGroup
+      );
+      this.chatGroupDialog = false;
+      await this.$store.dispatch("chatGroupsModule/list");
+      this.chatGroups = this.$deepCopy(
+        this.$store.state.chatGroupsModule.chatGroups
+      );
+      if (this.resolveCreateChatGroup) {
+        this.resolveCreateChatGroup(newGroup);
+      }
     },
     async save() {
       this.loadingButton = true;
       let itemId = this.user._id;
-      this.user.companies = this.selectedCompanies.map(c => {
+      this.user.companies = this.selectedCompanies.map((c) => {
         return {
           company: {
             _id: c,
-          }
+          },
         };
       });
+      this.user.chatGroups = this.selectedChatGroups;
       await this.$store.dispatch("usersModule/update", {
         id: itemId,
         data: this.user,
       });
     },
-    updateUser() {
-      console.log(this.user._id);
-      this.user.corporation.companies = this.selectedCompanies.map(c => ({
-        company: {
-          _id: c,
-        }
-      }));
-      this.$store.dispatch("usersModule/update", {
-        id: this.user._id,
-        data: this.user,
-      });
+    async updateUser() {
+      try {
+        this.$store.commit("loadingModule/showLoading", true);
+
+        const userToUpdate = JSON.parse(JSON.stringify(this.user));
+
+        userToUpdate.corporation.companies = this.selectedCompanies.map(
+          (c) => ({
+            company: {
+              _id: c,
+            },
+          })
+        );
+
+        userToUpdate.chatGroups = this.user.chatGroups
+          .map((cg) => cg._id)
+          .filter((id) => id);
+
+        const userUpdatePromise = this.$store.dispatch("usersModule/update", {
+          id: userToUpdate._id,
+          data: userToUpdate,
+        });
+
+        const chatGroupUpdatePromises = this.user.chatGroups.map(
+          (chatGroup) => {
+            if (chatGroup._id) {
+              return this.$store.dispatch("chatGroupsModule/update", {
+                id: chatGroup._id,
+                data: {
+                  botIds: chatGroup.botIds,
+                },
+              });
+            }
+            return Promise.resolve();
+          }
+        );
+
+        await Promise.all([userUpdatePromise, ...chatGroupUpdatePromises]);
+
+        this.$store.commit(
+          "successModule/showSuccess",
+          "Usuario y grupos de chat actualizados correctamente"
+        );
+
+        await this.initialData();
+      } catch (error) {
+        handleError(error, this.$store.commit);
+      } finally {
+        this.$store.commit("loadingModule/showLoading", false);
+      }
     },
     updatePassword() {
       return new Promise((resolve, reject) => {
@@ -400,6 +657,34 @@ export default {
           );
       });
     },
+    getBotName(botId) {
+      const bot = this.bots.find((b) => b._id === botId);
+      return bot ? bot.name : botId;
+    },
+    openEditChatGroupDialog(group) {
+      this.editChatGroup = { ...group };
+      this.editChatGroupDialog = true;
+    },
+    async saveEditChatGroup() {
+      await this.$store.dispatch("chatGroupsModule/update", {
+        id: this.editChatGroup._id,
+        data: this.editChatGroup,
+      });
+      this.editChatGroupDialog = false;
+      await this.initialData();
+    },
+    openDeleteChatGroupDialog(group) {
+      this.deleteChatGroup = group;
+      this.deleteChatGroupDialog = true;
+    },
+    async confirmDeleteChatGroup() {
+      await this.$store.dispatch(
+        "chatGroupsModule/remove",
+        this.deleteChatGroup._id
+      );
+      this.deleteChatGroupDialog = false;
+      await this.initialData();
+    },
   },
   computed: {
     cities() {
@@ -409,16 +694,16 @@ export default {
       return this.user.status ? "Activo" : "Inactivo";
     },
     chatPermissionCompanies() {
-      return this.user?.chatsPermissions?.companies.map(c => c._id) || [];
+      return this.user?.chatsPermissions?.companies.map((c) => c._id) || [];
+    },
+    chatGroupsForSelect() {
+      return [
+        ...this.chatGroups,
+        { name: "Crear nuevo grupo...", _id: "CREATE_NEW" },
+      ];
     },
   },
-  watch: {
-    'user.chatsPermissions.enableBotGroups': function (value) {
-      if (!value) {
-        this.user.chatsPermissions.botGroups = [this.emptyBotGroup];
-      }
-    }
-  }
+  watch: {},
 };
 </script>
 
