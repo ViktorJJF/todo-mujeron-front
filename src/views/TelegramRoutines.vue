@@ -438,6 +438,93 @@
                               />
                             </v-col>
                           </v-row>
+                                                       <v-row v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              )
+                            ">
+                                                                                      <v-col cols="12" sm="12" md="12">
+                               <div class="body-1 font-weight-bold">
+                                 <v-icon class="mr-1">mdi-download</v-icon>
+                                 Opción de descarga
+                               </div>
+                               <v-select
+                                 dense
+                                 hide-details
+                                 placeholder="Seleccione una opción de descarga"
+                                 outlined
+                                 :items="downloadOptions"
+                                 item-text="text"
+                                 item-value="value"
+                                 v-model="editedItem.downloadOption"
+                                 clearable
+                               ></v-select>
+                             </v-col>
+                           </v-row>
+                           <v-row v-if="
+                             editedItem.typeOfPosts.includes(
+                               'todofull_catalogs'
+                             )
+                           ">
+                             <v-col cols="12" sm="12" md="12">
+                               <div class="body-1 font-weight-bold">
+                                 <v-icon class="mr-1">mdi-cloud</v-icon>
+                                 Catálogo destino
+                                 <v-tooltip bottom>
+                                   <template v-slot:activator="{ on, attrs }">
+                                     <v-icon small class="ml-1" color="info" v-bind="attrs" v-on="on">
+                                       mdi-information
+                                     </v-icon>
+                                   </template>
+                                   <span>Se colocarán los archivos descargados en el catálogo seleccionado (reemplazarán cualquier archivo existente)</span>
+                                 </v-tooltip>
+                               </div>
+                               <v-combobox
+                                 dense
+                                 hide-details
+                                 placeholder="Seleccione un enlace de almacenamiento"
+                                 outlined
+                                 :items="cloudStorageLinks"
+                                 item-text="name"
+                                 item-value="_id"
+                                 v-model="editedItem.cloudStorageLink"
+                                 clearable
+                                 return-object
+                                 :filter="filterCloudStorageLinks"
+                               ></v-combobox>
+                             </v-col>
+                           </v-row>
+                           <v-row v-if="
+                             editedItem.typeOfPosts.includes(
+                               'todofull_catalogs'
+                             )
+                           ">
+                             <v-col cols="12" sm="12" md="12">
+                               <div class="body-1 font-weight-bold">
+                                 <v-icon class="mr-1">mdi-file-document</v-icon>
+                                 Nombre del catálogo
+                                 <v-tooltip bottom>
+                                   <template v-slot:activator="{ on, attrs }">
+                                     <v-icon small class="ml-1" color="info" v-bind="attrs" v-on="on">
+                                       mdi-information
+                                     </v-icon>
+                                   </template>
+                                   <span>Nombre que se usará para el catálogo generado. Puede ser auto-generado basado en las selecciones.</span>
+                                 </v-tooltip>
+                               </div>
+                               <v-text-field
+                                 dense
+                                 hide-details
+                                 placeholder="Ingrese el nombre del catálogo"
+                                 outlined
+                                 v-model="editedItem.catalogName"
+                                 clearable
+                                 :append-icon="canGenerateCatalogName ? 'mdi-auto-fix' : ''"
+                                 @click:append="generateCatalogName"
+                                 :disabled="!canGenerateCatalogName"
+                               ></v-text-field>
+                             </v-col>
+                          </v-row>
                           <v-row
                             v-if="
                               editedItem.typeOfPosts.includes(
@@ -472,6 +559,7 @@
                               </div>
                             </v-col>
                           </v-row>
+
                           <v-row
                             v-if="
                               editedItem.typeOfPosts.includes(
@@ -512,32 +600,7 @@
                               ></v-select>
                             </v-col>
                           </v-row>
-                          <v-row
-                            v-if="
-                              editedItem.typeOfPosts.includes(
-                                'todofull_catalogs'
-                              )
-                            "
-                          >
-                            <v-col cols="12" sm="12" md="12">
-                              <div class="body-1 font-weight-bold">
-                                Catálogos Todofull
-                              </div>
-                              <v-select
-                                dense
-                                hide-details
-                                placeholder="Seleccione los catálogos"
-                                outlined
-                                multiple
-                                chips
-                                clearable
-                                :items="todofullCatalogs"
-                                item-text="name"
-                                item-value="_id"
-                                v-model="editedItem.todofullCatalogs"
-                              ></v-select>
-                            </v-col>
-                          </v-row>
+
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Estado</div>
@@ -551,6 +614,8 @@
                               ></v-select>
                             </v-col>
                           </v-row>
+                          
+                       
                         </v-container>
                         <v-card-actions rd-actions>
                           <div class="flex-grow-1"></div>
@@ -727,7 +792,7 @@ export default {
         value: "meta_label_products",
       },
       {
-        name: "Catálogos para reemplazar",
+        name: "Catálogos Todofull",
         value: "todofull_catalogs",
       },
     ],
@@ -737,7 +802,16 @@ export default {
     todofullCategories: [],
     todofullTallas: [],
     todofullBrands: [],
-    todofullCatalogs: [],
+    // Download options for PDF generation
+    downloadOptions: [
+      { text: "Descargar normal", value: "normal" },
+      { text: "Descargar catálogo", value: "catalog" },
+      { text: "Descargar para WhatsApp", value: "whatsapp" },
+      { text: "Descargar con precio", value: "withPrice" },
+      { text: "Descargar promociones", value: "promotions" },
+    ],
+    // Cloud storage links
+    cloudStorageLinks: [],
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -759,6 +833,11 @@ export default {
           (cat) => cat.parent === category.idCategory
         ),
       }));
+    },
+    // Check if catalog name can be auto-generated
+    canGenerateCatalogName() {
+      return this.editedItem.todofullCategories && 
+             this.editedItem.todofullCategories.length > 0;
     },
   },
 
@@ -795,7 +874,6 @@ export default {
         this.editedItem.todofullCategories = [];
         this.editedItem.todofullTallas = [];
         this.editedItem.todofullBrands = [];
-        this.editedItem.todofullCatalogs = [];
       }
     },
   },
@@ -849,6 +927,7 @@ export default {
           ],
         }),
         this.fetchTodofullData(),
+        this.fetchCloudStorageLinks(),
       ]);
       // get catalogs
       graphApiService.getCatalogs().then((res) => {
@@ -872,10 +951,21 @@ export default {
         this.$store.state.telegramRoutinesModule.routines
       );
       this.woocommerces = this.$store.state.woocommercesModule.woocommerces;
-      // add typeofposts to all routines
+      // add typeofposts to all routines and handle nested todofullCatalogs
       for (const routine of this.routines) {
         if (!routine.typeOfPosts) {
           routine.typeOfPosts = [];
+        }
+        
+        // Handle nested todofullCatalogs structure for display purposes
+        if (routine.todofullCatalogs && typeof routine.todofullCatalogs === 'object') {
+          // Extract nested fields for display in the table if needed
+          routine.todofullCategories = routine.todofullCatalogs.todofullCategories || [];
+          routine.todofullTallas = routine.todofullCatalogs.todofullTallas || [];
+          routine.todofullBrands = routine.todofullCatalogs.todofullBrands || [];
+          routine.downloadOption = routine.todofullCatalogs.downloadOption || null;
+          // Cloud storage link will be handled in fetchCloudStorageLinks after data is loaded
+          routine.catalogName = routine.todofullCatalogs.catalogName || "";
         }
       }
       this.bots = this.$store.state.botsModule.bots;
@@ -893,6 +983,29 @@ export default {
     editItem(item) {
       this.editedIndex = this.routines.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      
+      // Handle nested todofullCatalogs structure when editing
+      if (this.editedItem.todofullCatalogs) {
+        this.editedItem.todofullCategories = this.editedItem.todofullCatalogs.todofullCategories || [];
+        this.editedItem.todofullTallas = this.editedItem.todofullCatalogs.todofullTallas || [];
+        this.editedItem.todofullBrands = this.editedItem.todofullCatalogs.todofullBrands || [];
+        this.editedItem.downloadOption = this.editedItem.todofullCatalogs.downloadOption || null;
+        // Find the cloud storage link object by ID for proper display in combobox
+        const cloudStorageLinkId = this.editedItem.todofullCatalogs.cloudStorageLinkId || null;
+        if (cloudStorageLinkId) {
+          this.editedItem.cloudStorageLink = this.cloudStorageLinks.find(link => link._id === cloudStorageLinkId) || null;
+        } else {
+          this.editedItem.cloudStorageLink = null;
+        }
+        this.editedItem.catalogName = this.editedItem.todofullCatalogs.catalogName || "";
+      } else {
+        // Initialize empty arrays if not present
+        this.editedItem.todofullCategories = [];
+        this.editedItem.todofullTallas = [];
+        this.editedItem.todofullBrands = [];
+        this.editedItem.downloadOption = null;
+      }
+      
       this.dialog = true;
     },
 
@@ -916,12 +1029,39 @@ export default {
     async save() {
       console.log(this.editedItem);
       this.loadingButton = true;
+      
+      // Prepare the data according to backend schema
+      const dataToSave = { ...this.editedItem };
+      
+      // If todofull_catalogs is selected, structure the data according to backend schema
+      if (dataToSave.typeOfPosts && dataToSave.typeOfPosts.includes('todofull_catalogs')) {
+        dataToSave.todofullCatalogs = {
+          todofullCategories: dataToSave.todofullCategories || [],
+          todofullTallas: dataToSave.todofullTallas || [],
+          todofullBrands: dataToSave.todofullBrands || [],
+          downloadOption: dataToSave.downloadOption || null,
+          cloudStorageLinkId: dataToSave.cloudStorageLink?._id || dataToSave.cloudStorageLink || null,
+          catalogName: dataToSave.catalogName || "",
+        };
+        
+        // Remove the individual fields as they should be nested
+        delete dataToSave.todofullCategories;
+        delete dataToSave.todofullTallas;
+        delete dataToSave.todofullBrands;
+        delete dataToSave.downloadOption;
+        delete dataToSave.cloudStorageLink;
+        delete dataToSave.catalogName;
+      } else {
+        // If not todofull_catalogs, ensure todofullCatalogs is not set
+        delete dataToSave.todofullCatalogs;
+      }
+      
       if (this.editedIndex > -1) {
         let itemId = this.routines[this.editedIndex]._id;
         try {
           await this.$store.dispatch("telegramRoutinesModule/update", {
             id: itemId,
-            data: this.editedItem,
+            data: dataToSave,
           });
           Object.assign(this.routines[this.editedIndex], this.editedItem);
           this.close();
@@ -934,7 +1074,7 @@ export default {
           let newItem = await this.$store.dispatch(
             "telegramRoutinesModule/create",
             {
-              ...this.editedItem,
+              ...dataToSave,
               country:
                 this.$store.getters["authModule/getCurrentCompany"].company
                   .country,
@@ -977,35 +1117,8 @@ export default {
           const query = { country: company.country, products_available: true };
           const categoriesRes = await ecommercesApi.listCategories(query);
           this.todofullCategories = categoriesRes.data.payload;
-
-          // Fetch cloud storage catalogs
-          await this.fetchTodofullCatalogs();
         } catch (error) {
           console.error("Error fetching todofull categories:", error);
-        }
-      }
-    },
-
-    async fetchTodofullCatalogs() {
-      const company =
-        this.$store.getters["authModule/getCurrentCompany"].company;
-      if (company) {
-        try {
-          const query = {
-            sort: "createdAt",
-            order: "desc",
-            companies: [company._id],
-            fields: "name",
-            type: "files",
-            isActive: true,
-            filter: "",
-            page: 1,
-            limit: 100, // Get more catalogs to show all available
-          };
-          const catalogsRes = await cloudStorageLinksApi.list(query);
-          this.todofullCatalogs = catalogsRes.data.payload;
-        } catch (error) {
-          console.error("Error fetching todofull catalogs:", error);
         }
       }
     },
@@ -1039,6 +1152,81 @@ export default {
       } catch (error) {
         console.error("Error fetching todofull attributes:", error);
       }
+    },
+
+    async fetchCloudStorageLinks() {
+      const company =
+        this.$store.getters["authModule/getCurrentCompany"].company;
+      if (!company) return;
+
+      try {
+        const query = {
+          companies: [company._id],
+          type: "files",
+          isActive: true,
+          fields: "name",
+          limit: 9999,
+          sort: "createdAt",
+          order: "desc",
+        };
+
+        const response = await cloudStorageLinksApi.list(query);
+        this.cloudStorageLinks = response.data.payload;
+        
+        // Update cloud storage link objects for existing routines after fetching the data
+        this.routines.forEach(routine => {
+          if (routine.todofullCatalogs && routine.todofullCatalogs.cloudStorageLinkId) {
+            const cloudStorageLinkId = routine.todofullCatalogs.cloudStorageLinkId;
+            routine.cloudStorageLink = this.cloudStorageLinks.find(link => link._id === cloudStorageLinkId) || null;
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching cloud storage links:", error);
+      }
+    },
+
+    generateCatalogName() {
+      if (!this.canGenerateCatalogName) return;
+
+      const selectedCategories = this.editedItem.todofullCategories || [];
+      const categoryNames = selectedCategories.map(catId => {
+        const category = this.todofullCategories.find(cat => cat.idCategory === catId);
+        return category ? category.name : '';
+      }).filter(name => name);
+
+      const selectedTallas = this.editedItem.todofullTallas || [];
+      const selectedBrands = this.editedItem.todofullBrands || [];
+
+      let catalogName = 'Catálogo';
+      
+      if (categoryNames.length > 0) {
+        catalogName += ` ${categoryNames.join(', ')}`;
+      }
+      
+      if (selectedTallas.length > 0) {
+        catalogName += ` - Tallas: ${selectedTallas.join(', ')}`;
+      }
+      
+      if (selectedBrands.length > 0) {
+        catalogName += ` - Marcas: ${selectedBrands.join(', ')}`;
+      }
+
+      // Add current date
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      catalogName += ` - ${dateStr}`;
+
+      this.editedItem.catalogName = catalogName;
+    },
+
+    filterCloudStorageLinks(item, queryText, itemText) {
+      const text = itemText.toLowerCase();
+      const query = queryText.toLowerCase();
+      return text.indexOf(query) > -1;
     },
   },
 };

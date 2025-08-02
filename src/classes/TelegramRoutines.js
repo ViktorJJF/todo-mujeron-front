@@ -12,8 +12,15 @@ export default () => ({
   typeOfPosts: [],
   hasUniqueSizes: false,
   action: "create",
+  // Frontend fields for form handling
   todofullCategories: [],
   todofullTallas: [],
   todofullBrands: [],
-  todofullCatalogs: [],
+  todofullCatalogs: [], // This will be transformed to object structure when saving
+  // Download option for PDF generation
+  downloadOption: null,
+  // Cloud storage link
+  cloudStorageLink: null,
+  // Catalog name
+  catalogName: "",
 });
