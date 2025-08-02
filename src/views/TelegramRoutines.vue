@@ -554,6 +554,9 @@
                                 >
                                   <template v-slot:label="{ item }">
                                     {{ item.name }}
+                                    <span v-if="item.products" class="caption ml-1"
+                                      >({{ item.products }})</span
+                                    >
                                   </template>
                                 </v-treeview>
                               </div>
