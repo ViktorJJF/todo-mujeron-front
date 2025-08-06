@@ -24,7 +24,7 @@
                   <div>
                     <div class="font-weight-medium">{{ group.name }}</div>
                     <div class="caption grey--text">
-                      {{ getGroupUsers(group).length }} usuarios, {{ getGroupBots(group).length }} bots
+                      {{ getGroupUsers(group).length }} usuarios
                     </div>
                   </div>
                   <v-menu bottom left>
