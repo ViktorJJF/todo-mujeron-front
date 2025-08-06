@@ -772,8 +772,8 @@ export default {
     async loadGroups() {
       try {
         const response = await chatGroups.list({
-          "companies[]":
-            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          "corporation[]":
+            this.$store.getters["authModule/getCurrentCompany"].company.corporation,
         });
         this.groups = response.data.payload
           .map((group) => ({
