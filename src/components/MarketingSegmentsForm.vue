@@ -398,6 +398,24 @@
               </template>
             </div>
           </div>
+          <div class="campaign-filter-container mt-3">
+            <div class="campaign-filter-group">
+              <span class="font-weight-bold">Catálogo enviado</span>
+              <v-combobox
+                dense
+                hide-details
+                placeholder="Selecciona un catálogo"
+                outlined
+                :items="cloudStorageLinks"
+                item-text="name"
+                item-value="_id"
+                v-model="selectedCloudStorageLink"
+                clearable
+                return-object
+                :filter="filterCloudStorageLinks"
+              ></v-combobox>
+            </div>
+          </div>
           <v-col v-if="!activatePreview" cols="12" sm="12">
             <span class="font-weight-bold">Descripción</span>
             <v-textarea
@@ -507,6 +525,7 @@ export default {
             campaigns: [],
             timeInterval: "any_time",
           },
+          cloudStorageLinkId: null,
           hasChatInteractionLast24h: false,
         },
         botIds: [],
@@ -571,15 +590,12 @@ export default {
         (v) =>
           (v && v.length > 0) || "Debe seleccionar al menos una plataforma",
       ],
+      cloudStorageLinks: [],
+      selectedCloudStorageLink: null,
     };
   },
   async mounted() {
-    // getting segments
-    await Promise.all([
-      this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
-    ]);
-    this.botIds = this.$store.state.botsModule.bots;
-    this.editedItem.botIds = this.botIds.map((bot) => bot._id);
+    await this.initialize();
   },
   computed: {
     formTitle() {
@@ -603,6 +619,17 @@ export default {
     },
   },
   methods: {
+    async initialize() {
+      // Load bots and catalogs
+      await Promise.all([
+        this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
+        this.fetchCloudStorageLinks(),
+      ]);
+      this.botIds = this.$store.state.botsModule.bots;
+      this.editedItem.botIds = this.botIds.map((bot) => bot._id);
+      // Sync initial selection if id already present
+      this.syncSelectedCloudStorageLinkFromId();
+    },
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
     },
@@ -707,8 +734,55 @@ export default {
         this.$set(this.editedItem.filters, "platforms", []);
       }
     },
+    async fetchCloudStorageLinks() {
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company;
+        if (!company) return;
+        const query = {
+          companies: [company._id],
+          type: "files",
+          isActive: true,
+          fields: "name",
+          limit: 9999,
+          sort: "createdAt",
+          order: "desc",
+        };
+        const { default: cloudStorageLinksApi } = await import(
+          "@/services/api/cloudStorageLinks"
+        );
+        const response = await cloudStorageLinksApi.list(query);
+        this.cloudStorageLinks = response.data.payload || [];
+        // After loading, try to match existing id to object
+        this.syncSelectedCloudStorageLinkFromId();
+      } catch (error) {
+        console.error("Error fetching cloud storage links:", error);
+      }
+    },
+    filterCloudStorageLinks(item, queryText, itemText) {
+      const text = (itemText || "").toLowerCase();
+      const query = (queryText || "").toLowerCase();
+      return text.indexOf(query) > -1;
+    },
+    syncSelectedCloudStorageLinkFromId() {
+      const id = this.editedItem?.filters?.cloudStorageLinkId;
+      if (!id || !Array.isArray(this.cloudStorageLinks)) {
+        this.selectedCloudStorageLink = null;
+        return;
+      }
+      const found = this.cloudStorageLinks.find((l) => l && l._id === id);
+      this.selectedCloudStorageLink = found || null;
+    },
   },
   watch: {
+    selectedCloudStorageLink(newVal) {
+      const id = newVal && newVal._id ? newVal._id : null;
+      this.$set(this.editedItem.filters, "cloudStorageLinkId", id);
+    },
+    "editedItem.filters.cloudStorageLinkId"() {
+      // When id changes externally, re-sync selected object
+      this.syncSelectedCloudStorageLinkFromId();
+    },
     "editedItem.filters.campaignFilter": {
       deep: true,
       handler() {
