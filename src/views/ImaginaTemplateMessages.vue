@@ -75,6 +75,7 @@
                                   { text: 'Texto', value: 'text' },
                                   { text: 'Media', value: 'media' },
                                   { text: 'Documento', value: 'document' },
+                                  { text: 'Catálogo', value: 'catalog' },
                                 ]"
                                 item-text="text"
                                 item-value="value"
@@ -137,6 +138,27 @@
                                   </v-row>
                                 </template>
                               </v-img>
+                            </v-col>
+
+                            <v-col
+                              cols="12"
+                              sm="12"
+                              md="12"
+                              v-if="editedItem.type === 'catalog'"
+                            >
+                              <p class="body-1 font-weight-bold">Catálogo</p>
+                              <v-combobox
+                                dense
+                                hide-details
+                                placeholder="Selecciona un catálogo"
+                                outlined
+                                :items="cloudStorageLinks"
+                                item-text="name"
+                                item-value="_id"
+                                v-model="selectedCloudStorageLink"
+                                clearable
+                                return-object
+                              ></v-combobox>
                             </v-col>
 
                             <v-col
@@ -534,6 +556,8 @@ export default {
     bots: [],
     campaignName: "",
     testPlaceholderValues: [],
+    cloudStorageLinks: [],
+    selectedCloudStorageLink: null,
   }),
   computed: {
     formTitle() {
@@ -557,6 +581,9 @@ export default {
         this.detectPlaceholders(newVal.message);
       }
     },
+    selectedCloudStorageLink(newVal) {
+      this.editedItem.cloudStorageLinkId = newVal ? newVal._id : null;
+    },
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -569,6 +596,29 @@ export default {
     this.rolAuth();
   },
   methods: {
+    async fetchCloudStorageLinks() {
+      try {
+        const company =
+          this.$store.getters["authModule/getCurrentCompany"].company;
+        if (!company) return;
+        const query = {
+          companies: [company._id],
+          type: "files",
+          isActive: true,
+          fields: "name",
+          limit: 9999,
+          sort: "createdAt",
+          order: "desc",
+        };
+        const { default: cloudStorageLinksApi } = await import(
+          "@/services/api/cloudStorageLinks"
+        );
+        const response = await cloudStorageLinksApi.list(query);
+        this.cloudStorageLinks = response.data.payload || [];
+      } catch (error) {
+        console.error("Error fetching cloud storage links:", error);
+      }
+    },
     detectPlaceholders(message) {
       // Regular expression to match {{number}} pattern
       const regex = /{{(\d+)}}/g;
@@ -620,6 +670,7 @@ export default {
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
         }),
+        this.fetchCloudStorageLinks(),
       ]);
       this.todofullLabels =
         this.$store.state["todofullLabelsModule"]["todofullLabels"];
@@ -633,6 +684,11 @@ export default {
     editItem(item) {
       this.editedIndex = this[ENTITY].indexOf(item);
       this.editedItem = Object.assign({}, item);
+      if (this.editedItem.cloudStorageLinkId) {
+        this.selectedCloudStorageLink = this.cloudStorageLinks.find(
+          (link) => link._id === this.editedItem.cloudStorageLinkId
+        );
+      }
       this.dialog = true;
     },
     async deleteItem(item) {
@@ -650,6 +706,7 @@ export default {
       this.$nextTick(() => {
         this.editedItem = { ...this.defaultItem };
         this.editedIndex = -1;
+        this.selectedCloudStorageLink = null;
       });
     },
     async save() {
@@ -679,6 +736,9 @@ export default {
         this.editedItem.documentName = this.editedItem.documentUrl
           .split("/")
           .pop();
+      }
+      if (this.editedItem.type === "catalog" && this.selectedCloudStorageLink) {
+        this.editedItem.cloudStorageLinkId = this.selectedCloudStorageLink._id;
       }
       if (this.editedIndex > -1) {
         Object.keys(this.editedItem).forEach((key) => {
@@ -795,6 +855,15 @@ export default {
           payload.document_url = this.selectedTemplate.documentUrl;
           payload.document_type = this.selectedTemplate.documentType;
           payload.document_name = this.selectedTemplate.documentName;
+        }
+
+        if (this.selectedTemplate.type === "catalog") {
+          const catalog = this.cloudStorageLinks.find(
+            (link) => link._id === this.selectedTemplate.cloudStorageLinkId
+          );
+          if (catalog) {
+            payload.catalog_url = catalog.url;
+          }
         }
         await this.$store.dispatch(
           "imaginaTemplateMessagesModule/sendMassiveMessages",

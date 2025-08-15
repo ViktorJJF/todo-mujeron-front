@@ -7,5 +7,6 @@ export default () => ({
   documentUrl: "",
   documentName: "",
   documentType: null,
-  type: "text"
+  type: "text",
+  cloudStorageLinkId: null,
 });
