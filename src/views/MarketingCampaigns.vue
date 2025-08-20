@@ -339,6 +339,12 @@
                 : "Sin fecha programada"
             }}
           </template>
+          <template v-slot:[`item.segment`]="{ item }">
+            {{ item.segment ? item.segment.name : "Sin segmento" }}
+          </template>
+          <template v-slot:[`item.template`]="{ item }">
+            {{ item.template ? item.template.name : "Sin template" }}
+          </template>
           <template v-slot:[`item.range`]="{ item }">
             {{ item.segmentCount }}
             {{
@@ -859,6 +865,18 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
+      },
+      {
+        text: "Segmento",
+        align: "left",
+        sortable: false,
+        value: "segment",
+      },
+      {
+        text: "Template",
+        align: "left",
+        sortable: false,
+        value: "templateMessage",
       },
       {
         text: "Alcance leads",
