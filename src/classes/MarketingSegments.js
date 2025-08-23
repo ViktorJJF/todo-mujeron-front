@@ -45,6 +45,13 @@ export default () => ({
     markMessagesAsRead: false,
     hasChatInteractionLast24h: false,
     platforms: [],
+    catalogInteraction: null,
+    catalogFilter: {
+      type: null,
+      catalogs: [],
+      timeInterval: "any_time",
+    },
+    cloudStorageLinkId: null,
   },
   botIds: [],
   type: "dynamic",

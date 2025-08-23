@@ -398,22 +398,120 @@
               </template>
             </div>
           </div>
+
+          <!-- Advanced Catalog Filters Section -->
           <div class="campaign-filter-container mt-3">
             <div class="campaign-filter-group">
-              <span class="font-weight-bold">Catálogo enviado</span>
-              <v-combobox
+              <span class="font-weight-bold"
+                >Interacción con catálogos</span
+              >
+              <p class="caption text-muted mb-2">
+                Filtra leads basado en su interacción con catálogos específicos
+                de la nube
+              </p>
+
+              <!-- Catalog Interaction -->
+              <v-select
                 dense
                 hide-details
-                placeholder="Selecciona un catálogo"
+                placeholder="Selecciona interacción con catálogo"
                 outlined
-                :items="cloudStorageLinks"
-                item-text="name"
-                item-value="_id"
-                v-model="selectedCloudStorageLink"
+                :items="[
+                  { text: 'Se envió', value: 'sent' },
+                  { text: 'No se envió', value: 'not_sent' },
+                ]"
+                v-model="editedItem.filters.catalogInteraction"
+                @change="onCatalogInteractionChange"
+                class="campaign-select"
                 clearable
-                return-object
-                :filter="filterCloudStorageLinks"
-              ></v-combobox>
+              ></v-select>
+
+              <!-- Catalog Filter Type and Selection -->
+              <template v-if="editedItem.filters.catalogInteraction">
+                <div class="nested-filter">
+                  <div class="nested-item">
+                    <span class="font-weight-bold mt-3"
+                      >Tipo de filtro de catálogo</span
+                    >
+                    <v-select
+                      dense
+                      hide-details
+                      placeholder="Selecciona tipo de filtro"
+                      outlined
+                      :items="[
+                        { text: 'Cualquier catálogo', value: 'any' },
+                        {
+                          text: 'Todos los catálogos de la lista',
+                          value: 'all',
+                        },
+                        { text: 'Es cualquiera de', value: 'is' },
+                      ]"
+                      :hint="getCatalogFilterTypeHint()"
+                      persistent-hint
+                      v-model="editedItem.filters.catalogFilter.type"
+                      @change="onCatalogFilterTypeChange"
+                      class="campaign-select"
+                    ></v-select>
+                  </div>
+
+                  <!-- Catalog Selection -->
+                  <div
+                    v-if="
+                      editedItem.filters.catalogFilter.type === 'is' ||
+                      editedItem.filters.catalogFilter.type === 'all'
+                    "
+                    class="nested-item deeper"
+                  >
+                    <span class="font-weight-bold mt-3"
+                      >Seleccionar catálogos</span
+                    >
+                    <ValidationProvider
+                      v-slot="{ errors }"
+                      :rules="{ required: isCatalogSelectionRequired }"
+                    >
+                      <v-combobox
+                        dense
+                        hide-details
+                        placeholder="Buscar y seleccionar catálogos"
+                        outlined
+                        :items="cloudStorageLinks"
+                        v-model="editedItem.filters.catalogFilter.catalogs"
+                        item-value="_id"
+                        item-text="name"
+                        multiple
+                        chips
+                        :error-messages="errors"
+                        class="campaign-select"
+                        :filter="filterCloudStorageLinks"
+                        clearable
+                        return-object
+                      ></v-combobox>
+                    </ValidationProvider>
+                  </div>
+
+                  <!-- Time Interval -->
+                  <div class="nested-item">
+                    <span class="font-weight-bold mt-3"
+                      >Intervalo de tiempo</span
+                    >
+                    <v-select
+                      dense
+                      hide-details
+                      placeholder="Selecciona intervalo"
+                      outlined
+                      :items="[
+                        { text: 'Cualquier momento', value: 'any_time' },
+                        { text: 'Último mes', value: 'last_month' },
+                        { text: 'Últimos 3 meses', value: 'last_3_months' },
+                        { text: 'Últimos 6 meses', value: 'last_6_months' },
+                        { text: 'Último año', value: 'last_year' },
+                      ]"
+                      v-model="editedItem.filters.catalogFilter.timeInterval"
+                      class="campaign-select"
+                    ></v-select>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
           <v-col v-if="!activatePreview" cols="12" sm="12">
@@ -527,6 +625,12 @@ export default {
           },
           cloudStorageLinkId: null,
           hasChatInteractionLast24h: false,
+          catalogInteraction: null,
+          catalogFilter: {
+            type: null,
+            catalogs: [],
+            timeInterval: "any_time",
+          },
         },
         botIds: [],
         type: "static",
@@ -617,18 +721,23 @@ export default {
     hasChatInteractionLast24h() {
       return this.editedItem.filters.hasChatInteractionLast24h;
     },
+    isCatalogSelectionRequired() {
+      return (
+        this.editedItem.filters.catalogFilter.type === "is" ||
+        this.editedItem.filters.catalogFilter.type === "all"
+      );
+    },
   },
   methods: {
     async initialize() {
-      // Load bots and catalogs
       await Promise.all([
         this.$store.dispatch("botsModule/list", { platform: "whatsapp" }),
         this.fetchCloudStorageLinks(),
       ]);
       this.botIds = this.$store.state.botsModule.bots;
       this.editedItem.botIds = this.botIds.map((bot) => bot._id);
-      // Sync initial selection if id already present
       this.syncSelectedCloudStorageLinkFromId();
+      this.initializeCatalogFilterCatalogs();
     },
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
@@ -638,20 +747,70 @@ export default {
     },
     async save() {
       this.loadingButton = true;
+
+      // Create a clean copy of the data for sending to backend
+      const dataToSave = JSON.parse(JSON.stringify(this.editedItem));
+
+      // Clean up catalog filter if not needed
+      if (!dataToSave.filters.catalogInteraction) {
+        dataToSave.filters.catalogFilter = {
+          type: null,
+          catalogs: [],
+          timeInterval: "any_time",
+        };
+      }
+
+      // Validate catalog filter data
+      if (
+        dataToSave.filters.catalogInteraction &&
+        (dataToSave.filters.catalogFilter.type === "is" ||
+          dataToSave.filters.catalogFilter.type === "all") &&
+        (!dataToSave.filters.catalogFilter.catalogs ||
+          dataToSave.filters.catalogFilter.catalogs.length === 0)
+      ) {
+        this.$store.commit("snackbarModule/showSnackbar", {
+          text: 'Debe seleccionar al menos un catálogo cuando el tipo de filtro es "Es cualquiera de" o "Todos los catálogos de la lista"',
+          color: "error",
+        });
+        this.loadingButton = false;
+        return;
+      }
+
+      // Convert catalog objects to IDs before saving
+      if (
+        dataToSave.filters.catalogFilter.catalogs &&
+        dataToSave.filters.catalogFilter.catalogs.length > 0
+      ) {
+        // Create a new array with only the _id values
+        const catalogIds = dataToSave.filters.catalogFilter.catalogs
+          .map((catalog) => {
+            if (typeof catalog === "object" && catalog._id) {
+              return catalog._id;
+            } else if (typeof catalog === "string") {
+              return catalog;
+            }
+            return null;
+          })
+          .filter(Boolean); // Remove any null values
+
+        // Replace the catalogs array with just the IDs
+        dataToSave.filters.catalogFilter.catalogs = catalogIds;
+      }
+
       if (this.editedIndex > -1) {
         try {
           await this.$store.dispatch(ENTITY + "Module/update", {
             id: this.editedItem._id,
-            data: this.editedItem,
+            data: dataToSave,
           });
         } finally {
           this.loadingButton = false;
         }
       } else {
-        this.editedItem.company =
+        dataToSave.company =
           this.$store.getters["authModule/getCurrentCompany"].company._id;
         try {
-          await this.$store.dispatch(ENTITY + "Module/create", this.editedItem);
+          await this.$store.dispatch(ENTITY + "Module/create", dataToSave);
         } finally {
           this.loadingButton = false;
         }
@@ -678,6 +837,41 @@ export default {
     onCampaignSelectionChange(value) {
       if (value !== "is") {
         this.$set(this.editedItem.filters.campaignFilter, "campaigns", []);
+      }
+    },
+    onCatalogInteractionChange(value) {
+      this.$set(this.editedItem.filters, "catalogInteraction", value);
+
+      if (!value) {
+        this.$set(this.editedItem.filters.catalogFilter, "type", null);
+        this.$set(this.editedItem.filters.catalogFilter, "catalogs", []);
+        this.$set(
+          this.editedItem.filters.catalogFilter,
+          "timeInterval",
+          "any_time"
+        );
+      }
+      // if catalogInteraction is null, remove all catalogFilter properties
+      if (!value) {
+        this.$set(this.editedItem.filters, "catalogFilter", {});
+      }
+    },
+    onCatalogFilterTypeChange(value) {
+      if (value !== "is" && value !== "all") {
+        this.$set(this.editedItem.filters.catalogFilter, "catalogs", []);
+      }
+    },
+    getCatalogFilterTypeHint() {
+      const type = this.editedItem.filters.catalogFilter.type;
+      switch (type) {
+        case "any":
+          return "Incluye leads que han interactuado con cualquier catálogo";
+        case "all":
+          return "Incluye leads que han interactuado con TODOS los catálogos seleccionados";
+        case "is":
+          return "Incluye leads que han interactuado con CUALQUIERA de los catálogos seleccionados";
+        default:
+          return "";
       }
     },
     addCondition(groupIndex) {
@@ -755,6 +949,7 @@ export default {
         this.cloudStorageLinks = response.data.payload || [];
         // After loading, try to match existing id to object
         this.syncSelectedCloudStorageLinkFromId();
+        // Removed: initializeCatalogFilterCatalogs() from here to avoid redundancy
       } catch (error) {
         console.error("Error fetching cloud storage links:", error);
       }
@@ -772,6 +967,53 @@ export default {
       }
       const found = this.cloudStorageLinks.find((l) => l && l._id === id);
       this.selectedCloudStorageLink = found || null;
+    },
+    initializeCatalogFilterCatalogs() {
+      // Only proceed if we have catalogFilter and catalogs array
+      if (
+        !this.editedItem.filters.catalogFilter ||
+        !this.editedItem.filters.catalogFilter.catalogs ||
+        !Array.isArray(this.editedItem.filters.catalogFilter.catalogs) ||
+        this.editedItem.filters.catalogFilter.catalogs.length === 0
+      ) {
+        return;
+      }
+
+      // Ensure cloudStorageLinks are available before attempting conversion
+      if (
+        !Array.isArray(this.cloudStorageLinks) ||
+        this.cloudStorageLinks.length === 0
+      ) {
+        console.warn(
+          "cloudStorageLinks not available yet for catalog filter initialization."
+        );
+        return;
+      }
+
+      // Check if catalogs are already objects (have _id property)
+      const firstCatalog = this.editedItem.filters.catalogFilter.catalogs[0];
+      if (typeof firstCatalog === "object" && firstCatalog._id) {
+        // Already objects, no need to convert
+        return;
+      }
+
+      // Convert string IDs to objects
+      if (typeof firstCatalog === "string") {
+        const catalogObjects = this.editedItem.filters.catalogFilter.catalogs
+          .map((id) =>
+            this.cloudStorageLinks.find((catalog) => catalog._id === id)
+          )
+          .filter(Boolean); // Filter out any undefined if an ID is not found
+
+        if (catalogObjects.length > 0) {
+          this.$set(
+            this.editedItem.filters.catalogFilter,
+            "catalogs",
+            catalogObjects
+          );
+          console.log("Catalog filter catalogs initialized:", catalogObjects);
+        }
+      }
     },
   },
   watch: {
@@ -793,6 +1035,31 @@ export default {
         );
       },
     },
+    "editedItem.filters.catalogFilter": {
+      deep: true,
+      handler() {
+        // This watcher will trigger whenever any nested property of catalogFilter changes
+        console.log(
+          "Catalog filter updated:",
+          this.editedItem.filters.catalogFilter
+        );
+      },
+    },
+    "editedItem.filters.catalogFilter.catalogs": {
+      handler(newVal) {
+        if (newVal && newVal.length > 0 && typeof newVal[0] === "string") {
+          this.initializeCatalogFilterCatalogs();
+        }
+      },
+      immediate: true,
+    },
+    cloudStorageLinks: {
+      handler() {
+        // When cloudStorageLinks are loaded, initialize catalog filter catalogs
+        this.initializeCatalogFilterCatalogs();
+      },
+      immediate: true,
+    },
     "editedItem.filters.hasChatInteractionLast24h"(newValue) {
       if (newValue) {
         this.$set(this.editedItem.filters, "includeWithChats", false);
@@ -813,6 +1080,15 @@ export default {
             conditions: [],
           },
         ],
+      });
+    }
+
+    // Initialize catalogFilter if it doesn't exist
+    if (!this.editedItem.filters.catalogFilter) {
+      this.$set(this.editedItem.filters, "catalogFilter", {
+        type: null,
+        catalogs: [],
+        timeInterval: "any_time",
       });
     }
   },
@@ -901,5 +1177,14 @@ export default {
 
 .mt-3 {
   margin-top: 12px;
+}
+
+.text-muted {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.caption {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
 }
 </style>
