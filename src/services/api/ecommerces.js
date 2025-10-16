@@ -18,6 +18,9 @@ export default {
   listAttributes(query) {
     return axios.get(`/api/ecommerces/attributes`, { params: query });
   },
+  listAttributesWithValues(query) {
+    return axios.get(`/api/ecommerces/attributes-with-values`, { params: query });
+  },
   update(id, payload) {
     return axios.put(`/api/ecommerces/${id}`, payload);
   },
@@ -27,7 +30,7 @@ export default {
   updateVariation(id, variation, payload) {
     return axios.put(`/api/ecommerces/${id}/variations/${variation}`, payload);
   },
-  updateVariationBatch(id, payload) {
+  updateVariationBatch(id, payload) { 
     return axios.post(`/api/ecommerces/${id}/variations/batch`, payload);
   },
   create(payload) {

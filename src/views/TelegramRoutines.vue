@@ -604,6 +604,64 @@
                             </v-col>
                           </v-row>
 
+                          <v-row
+                            v-if="
+                              editedItem.typeOfPosts.includes(
+                                'todofull_catalogs'
+                              ) && availableAttributes.length > 0
+                            "
+                          >
+                            <v-col cols="12" sm="12" md="12">
+                              <div class="body-1 font-weight-bold mb-2">
+                                <v-icon class="mr-1">mdi-tag-multiple</v-icon>
+                                Atributos Adicionales
+                                <v-tooltip bottom>
+                                  <template v-slot:activator="{ on, attrs }">
+                                    <v-icon small class="ml-1" color="info" v-bind="attrs" v-on="on">
+                                      mdi-information
+                                    </v-icon>
+                                  </template>
+                                  <span>Selecciona atributos adicionales para filtrar los productos del catálogo</span>
+                                </v-tooltip>
+                              </div>
+                              <div
+                                style="
+                                  border: 1px solid #ccc;
+                                  border-radius: 4px;
+                                  padding: 12px;
+                                  max-height: 300px;
+                                  overflow-y: auto;
+                                "
+                              >
+                                <div
+                                  v-for="(attribute, index) in availableAttributes"
+                                  :key="index"
+                                  class="mb-3"
+                                >
+                                  <div class="subtitle-2 font-weight-bold mb-1">
+                                    {{ attribute.name }}
+                                    <span v-if="attribute.id" class="caption">(ID: {{ attribute.id }})</span>
+                                  </div>
+                                  <v-select
+                                    dense
+                                    hide-details
+                                    :placeholder="`Seleccione valores para ${attribute.name}`"
+                                    outlined
+                                    multiple
+                                    chips
+                                    small-chips
+                                    clearable
+                                    :items="attribute.options"
+                                    v-model="selectedAdditionalAttributes[attribute.name]"
+                                  ></v-select>
+                                </div>
+                                <div v-if="availableAttributes.length === 0" class="text-center grey--text">
+                                  No hay atributos adicionales disponibles para las categorías seleccionadas
+                                </div>
+                              </div>
+                            </v-col>
+                          </v-row>
+
                           <v-row>
                             <v-col cols="12" sm="12" md="12">
                               <div class="body-1 font-weight-bold">Estado</div>
@@ -815,6 +873,10 @@ export default {
     ],
     // Cloud storage links
     cloudStorageLinks: [],
+    // Available attributes with values for selection
+    availableAttributes: [],
+    // Selected additional attributes (will be stored in additionalAttributes object)
+    selectedAdditionalAttributes: {},
   }),
   created() {
     telegramGroupsApi.list().then((res) => {
@@ -869,6 +931,8 @@ export default {
       } else {
         this.editedItem.todofullTallas = [];
         this.editedItem.todofullBrands = [];
+        this.availableAttributes = [];
+        this.selectedAdditionalAttributes = {};
       }
     },
     "editedItem.typeOfPosts": function (val) {
@@ -1001,12 +1065,15 @@ export default {
           this.editedItem.cloudStorageLink = null;
         }
         this.editedItem.catalogName = this.editedItem.todofullCatalogs.catalogName || "";
+        // Load additionalAttributes from DB
+        this.selectedAdditionalAttributes = this.editedItem.todofullCatalogs.additionalAttributes || {};
       } else {
         // Initialize empty arrays if not present
         this.editedItem.todofullCategories = [];
         this.editedItem.todofullTallas = [];
         this.editedItem.todofullBrands = [];
         this.editedItem.downloadOption = null;
+        this.selectedAdditionalAttributes = {};
       }
       
       this.dialog = true;
@@ -1026,6 +1093,8 @@ export default {
       setTimeout(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
+        this.selectedAdditionalAttributes = {};
+        this.availableAttributes = [];
       }, 300);
     },
 
@@ -1038,6 +1107,14 @@ export default {
       
       // If todofull_catalogs is selected, structure the data according to backend schema
       if (dataToSave.typeOfPosts && dataToSave.typeOfPosts.includes('todofull_catalogs')) {
+        // Filter out empty attribute selections
+        const additionalAttributes = {};
+        Object.keys(this.selectedAdditionalAttributes).forEach(key => {
+          if (this.selectedAdditionalAttributes[key] && this.selectedAdditionalAttributes[key].length > 0) {
+            additionalAttributes[key] = this.selectedAdditionalAttributes[key];
+          }
+        });
+        
         dataToSave.todofullCatalogs = {
           todofullCategories: dataToSave.todofullCategories || [],
           todofullTallas: dataToSave.todofullTallas || [],
@@ -1045,6 +1122,7 @@ export default {
           downloadOption: dataToSave.downloadOption || null,
           cloudStorageLinkId: dataToSave.cloudStorageLink?._id || dataToSave.cloudStorageLink || null,
           catalogName: dataToSave.catalogName || "",
+          additionalAttributes: additionalAttributes,
         };
         
         // Remove the individual fields as they should be nested
@@ -1139,9 +1217,10 @@ export default {
           categories: this.editedItem.todofullCategories.join(","),
         };
 
-        const [sizesRes, attributesRes] = await Promise.all([
+        const [sizesRes, attributesRes, attributesWithValuesRes] = await Promise.all([
           ecommercesApi.listSizes(query),
           ecommercesApi.listAttributes({ ...query, name: "marca" }),
+          ecommercesApi.listAttributesWithValues(query),
         ]);
 
         // Format tallas like in catalog
@@ -1152,6 +1231,9 @@ export default {
         this.todofullBrands = attributesRes.data.payload.map(
           (attr) => attr.options
         );
+        
+        // Store available attributes with values for selection
+        this.availableAttributes = attributesWithValuesRes.data.payload;
       } catch (error) {
         console.error("Error fetching todofull attributes:", error);
       }
