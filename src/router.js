@@ -104,6 +104,11 @@ let routes = [
         component: () => import("@/views/TelegramRoutines.vue"),
       },
       {
+        path: "/telegram/rutinas/ejecuciones",
+        name: "TelegramRoutineExecutions",
+        component: () => import("@/views/TelegramRoutineExecutions.vue"),
+      },
+      {
         path: "/catalogs",
         name: "Catalogs",
         component: () => import("@/views/CatalogsManager.vue"),

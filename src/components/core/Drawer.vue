@@ -333,6 +333,16 @@
             </v-list-item-icon>
             <v-list-item-content> Rutinas </v-list-item-content>
           </v-list-item>
+          <v-list-item
+            active-class="primary custom2"
+            :to="{ name: 'TelegramRoutineExecutions' }"
+            class="sub-item-indent"
+          >
+            <v-list-item-icon class="sub-item-icon">
+              <v-icon size="20">mdi-history</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content> Ejecuciones </v-list-item-content>
+          </v-list-item>
         </v-list-group>
         <v-list-group
           color="white"
