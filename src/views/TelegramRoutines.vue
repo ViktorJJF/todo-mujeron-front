@@ -747,6 +747,34 @@
             >
             <v-chip v-else color="error">Inactivo</v-chip>
           </template>
+          <template v-slot:[`item.scheduleDays`]="{ item }">
+            <div v-if="item.scheduleDays && item.scheduleDays.length > 0">
+              <div class="mb-2">
+                <v-chip
+                  v-for="day in item.scheduleDays"
+                  :key="day"
+                  x-small
+                  class="mr-1 mb-1"
+                  color="primary"
+                  outlined
+                >
+                  {{ getDayName(day) }}
+                </v-chip>
+              </div>
+              <div v-if="item.scheduleTime" class="d-flex align-center mt-2">
+                <v-icon 
+                  x-small 
+                  class="mr-1 grey--text text--lighten-1"
+                >
+                  mdi-clock-outline
+                </v-icon>
+                <span class="text-caption font-weight-medium grey--text text--darken-1">
+                  {{ item.scheduleTime }}
+                </span>
+              </div>
+            </div>
+            <span v-else class="grey--text text--darken-1 font-italic">Sin programación</span>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -804,15 +832,35 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
+        width: "25%"
+      },
+      {
+        text: "Programación",
+        align: "left",
+        sortable: false,
+        value: "scheduleDays",
+        width: "25%"
       },
       {
         text: "Última Actualización",
         align: "left",
         sortable: false,
         value: "updatedAt",
+        width: "20%"
       },
-      { text: "Estado", value: "status", sortable: false },
-      { text: "Acciones", value: "action", sortable: false },
+      { 
+        text: "Estado", 
+        value: "status", 
+        sortable: false,
+        width: "10%"
+      },
+      { 
+        text: "Acciones", 
+        value: "action", 
+        sortable: false,
+        width: "20%",
+        align: "center"
+      },
     ],
     categories: [],
     routines: [],
@@ -965,6 +1013,19 @@ export default {
           this.rolPermisos = res.data;
         })
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
+    },
+
+    getDayName(dayValue) {
+      const days = {
+        0: "Domingo",
+        1: "Lunes", 
+        2: "Martes",
+        3: "Miércoles",
+        4: "Jueves",
+        5: "Viernes",
+        6: "Sábado"
+      };
+      return days[dayValue] || dayValue;
     },
 
     addUser() {
