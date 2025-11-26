@@ -413,6 +413,7 @@ export default {
       const response = await imaginaTemplateMessagesService.list({
         page: 1,
         limit: 1000,
+        company: this.$store.getters["authModule/getCurrentCompany"].company._id,
       });
       console.log("🐞 LOG HERE response:", response.data);
       this.imaginaTemplateMessages = response.data.payload;

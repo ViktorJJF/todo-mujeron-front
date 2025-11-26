@@ -1132,7 +1132,12 @@ export default {
               progChunk.status === "error" ||
               progChunk.status === "failed"
             ) {
-              uiStatus = "schedule_failed";
+              uiStatus = "error";
+              // Don't add error chunks to chunksPagesSent - they should be retryable
+              const sentIndex = campaign.chunksPagesSent.indexOf(progChunk.chunkPage);
+              if (sentIndex > -1) {
+                campaign.chunksPagesSent.splice(sentIndex, 1);
+              }
             } else {
               // Default case - check by date if no clear status
               if (sendAtDate > now) {
@@ -1154,6 +1159,7 @@ export default {
               scheduledTime: scheduledTime,
               status: uiStatus,
               errorMessage: progChunk.errorMessage || null,
+              lastRealError: progChunk.lastRealError || null,
               errorPhones: progChunk.errorPhones || null,
               // If progChunk provides these, use them, otherwise keep existing or undefined
               delayHours:
@@ -1294,12 +1300,26 @@ export default {
       const statusPackage = {
         status: null,
         errorMessage: null,
+        lastRealError: null,
         errorPhones: null,
         scheduledDateTime: null,
       };
 
       const scheduledChunkInfo =
         item.scheduledChunks && item.scheduledChunks[chunkIndex];
+
+      // Check for error status first - this should take priority over sent status
+      if (scheduledChunkInfo && (
+        scheduledChunkInfo.status === "error" ||
+        scheduledChunkInfo.status === "schedule_failed"
+      )) {
+        statusPackage.status = PROGRAMMED_CHUNK_STATUSES.ERROR;
+        statusPackage.errorMessage = scheduledChunkInfo.errorMessage || "Error al procesar la tanda.";
+        statusPackage.lastRealError = scheduledChunkInfo.lastRealError || null;
+        statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
+        statusPackage.scheduledDateTime = scheduledChunkInfo.scheduledTime;
+        return statusPackage;
+      }
 
       if (
         item.chunksPagesSent &&
@@ -1315,6 +1335,7 @@ export default {
         // Include error information and adjust status if there are errors
         if (scheduledChunkInfo) {
           statusPackage.errorMessage = scheduledChunkInfo.errorMessage;
+          statusPackage.lastRealError = scheduledChunkInfo.lastRealError;
           statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
 
           // If this chunk was sent with some errors, use the specific status
@@ -1331,6 +1352,7 @@ export default {
       if (scheduledChunkInfo) {
         statusPackage.scheduledDateTime = scheduledChunkInfo.scheduledTime;
         statusPackage.errorMessage = scheduledChunkInfo.errorMessage;
+        statusPackage.lastRealError = scheduledChunkInfo.lastRealError;
         statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
         const backendStatus = scheduledChunkInfo.status;
 
@@ -1349,12 +1371,13 @@ export default {
           backendStatus === "past_due_schedule"
         ) {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.PENDING;
-        } else if (backendStatus === "schedule_failed") {
+        } else if (backendStatus === "schedule_failed" || backendStatus === "error") {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.ERROR;
           statusPackage.errorMessage =
             scheduledChunkInfo.errorMessage ||
             scheduledChunkInfo.error ||
             "Error al programar la tanda.";
+          statusPackage.lastRealError = scheduledChunkInfo.lastRealError;
         } else if (backendStatus === "stopped_by_user") {
           statusPackage.status = null;
         }

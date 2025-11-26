@@ -22,6 +22,9 @@
       <div v-if="errorMessage" class="error-message">
         <i class="fa fa-exclamation-triangle"></i> {{ errorMessage }}
       </div>
+      <div v-if="lastRealError" class="last-real-error">
+        <i class="fa fa-info-circle"></i> {{ lastRealError }}
+      </div>
       <div v-if="errorPhones && errorPhones.length" class="error-phones">
         <div class="error-phones-title">
           Teléfonos con Error ({{ errorPhones.length }}):
@@ -73,6 +76,10 @@ export default {
       type: String,
       default: "",
     },
+    lastRealError: {
+      type: String,
+      default: "",
+    },
     errorPhones: {
       type: Array,
       default: () => [],
@@ -90,7 +97,9 @@ export default {
   computed: {
     hasErrors() {
       return (
-        this.errorMessage || (this.errorPhones && this.errorPhones.length > 0)
+        this.errorMessage || 
+        this.lastRealError || 
+        (this.errorPhones && this.errorPhones.length > 0)
       );
     },
     badgeClass() {
@@ -240,8 +249,19 @@ export default {
 
 .error-message {
   color: #e74c3c;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-weight: 500;
+}
+
+.last-real-error {
+  color: #c0392b;
+  margin-bottom: 10px;
+  font-weight: 400;
+  padding: 6px 10px;
+  background-color: #fdeaea;
+  border-left: 3px solid #e74c3c;
+  border-radius: 2px;
+  font-size: 0.9rem;
 }
 
 .error-phones-title {
