@@ -24,31 +24,55 @@
                 >Filtrar por nombre: {{ search }}</span
               >
               <v-row>
-                <v-col cols="12" sm="3">
+                <v-col cols="12" sm="2">
                   <v-text-field
                     dense
                     hide-details
                     v-model="search"
-                    append-icon="search"
-                    placeholder="Escribe el nombre de la plantilla o teléfono"
+                    append-icon="mdi-magnify"
+                    placeholder="Buscar..."
+                    label="Buscar"
                     single-line
                     outlined
+                    clearable
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12" sm="3">
+                <v-col cols="12" sm="2">
                   <bot-filter-select
                     v-model="selectedBotId"
                     :platforms="['whatsapp_automated', 'whatsapp']"
-                    placeholder="Filtrar por bot"
+                    label="Bot"
+                    placeholder="Todos"
+                    all-option-text="Todos"
                   ></bot-filter-select>
+                </v-col>
+                <v-col cols="12" sm="2">
+                  <campaign-filter-select
+                    v-model="selectedCampaignId"
+                    label="Campaña"
+                    placeholder="Todas"
+                    all-option-text="Todas"
+                  ></campaign-filter-select>
                 </v-col>
                 <v-col cols="12" sm="3">
                   <date-range-picker
                     v-model="dateRange"
-                    label="Filtrar por fecha"
+                    label="Rango de fechas"
+                    placeholder="Seleccione fechas"
                   ></date-range-picker>
                 </v-col>
-                <v-col cols="12" sm="3">
+                <v-col cols="12" sm="1">
+                  <v-btn
+                    color="primary"
+                    icon
+                    @click="initialize(page)"
+                    :loading="isRefreshing"
+                    title="Refrescar"
+                  >
+                    <v-icon>mdi-refresh</v-icon>
+                  </v-btn>
+                </v-col>
+                <v-col cols="12" sm="2">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
                       <v-btn
@@ -231,6 +255,7 @@ import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
 import BotFilterSelect from "@/components/common/BotFilterSelect.vue";
+import CampaignFilterSelect from "@/components/common/CampaignFilterSelect.vue";
 import DateRangePicker from "@/components/common/DateRangePicker.vue";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
@@ -240,6 +265,7 @@ export default {
     MaterialCard,
     VTextFieldWithValidation,
     BotFilterSelect,
+    CampaignFilterSelect,
     DateRangePicker,
   },
   filters: {
@@ -303,7 +329,9 @@ export default {
     fieldsToSearch: ["template", "phone"],
     rolPermisos: {},
     selectedBotId: null,
+    selectedCampaignId: null,
     dateRange: [],
+    isRefreshing: false,
   }),
   computed: {
     formTitle() {
@@ -335,6 +363,11 @@ export default {
     },
     dateRange() {
       // Reset to page 1 when date range filter changes
+      this.page = 1;
+      this.initialize(1);
+    },
+    selectedCampaignId() {
+      // Reset to page 1 when campaign filter changes
       this.page = 1;
       this.initialize(1);
     },
@@ -377,12 +410,18 @@ export default {
         payload.botId = this.selectedBotId;
       }
 
+      // Add campaignId filter if a campaign is selected
+      if (this.selectedCampaignId) {
+        payload.campaignId = this.selectedCampaignId;
+      }
+
       // Add date range filter if selected
       if (this.dateRange && this.dateRange.length === 2) {
         payload.startDate = this.dateRange[0];
         payload.endDate = this.dateRange[1];
       }
 
+      this.isRefreshing = true;
       this.$store.commit("loadingModule/showLoading");
       //llamada asincrona de items
       await Promise.all([
@@ -396,6 +435,7 @@ export default {
       //asignar al data del componente
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
       this.$store.commit("loadingModule/showLoading", false);
+      this.isRefreshing = false;
     },
     getBot(botId) {
       const bots = this.$store.state.botsModule.bots || [];
@@ -419,4 +459,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.v-row {
+  margin-bottom: 8px;
+}
+</style>

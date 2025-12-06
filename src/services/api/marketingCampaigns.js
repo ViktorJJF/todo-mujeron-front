@@ -43,12 +43,19 @@ export default {
     return axios.post("/api/marketing-campaigns/send_chunk", payload);
   },
   chunkDetail(chunkPage, chunkSize, segment, campaign) {
-    return axios.post("/api/marketing-campaigns/chunk_detail", {
+    const payload = {
       chunkPage,
       chunkSize,
       segment,
       campaign,
-    });
+    };
+    
+    // Extract campaignId from campaign object if it exists
+    if (campaign && campaign._id) {
+      payload.campaignId = campaign._id;
+    }
+    
+    return axios.post("/api/marketing-campaigns/chunk_detail", payload);
   },
   delete(id) {
     return axios.delete(`/api/marketing-campaigns/${id}`);
@@ -72,6 +79,12 @@ export default {
   },
   stopManuallyChunk(campaignId, chunkPage) {
     return axios.post(`/api/marketing-campaigns/stop_manually_chunk`, {
+      campaignId,
+      chunkPage,
+    });
+  },
+  simulateBotSelection(campaignId, chunkPage) {
+    return axios.post(`/api/marketing-campaigns/simulate_bot_selection`, {
       campaignId,
       chunkPage,
     });

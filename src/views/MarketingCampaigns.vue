@@ -267,6 +267,19 @@
                         >
                           <v-icon small>mdi-cancel</v-icon>
                         </v-btn>
+                        <v-btn
+                          v-if="item.dynamicBots || !item.from"
+                          icon
+                          x-small
+                          color="teal darken-2"
+                          class="ml-2"
+                          title="Simular asignación de agentes"
+                          @click.stop="
+                            openSimulateBotSelectionDialog(item, chunkIndex)
+                          "
+                        >
+                          <v-icon small>mdi-account-tie-voice</v-icon>
+                        </v-btn>
                       </div>
                     </v-list-item-content>
                   </v-list-item>
@@ -398,18 +411,119 @@
     </v-dialog>
     <v-dialog v-model="isShowingDetail" max-width="700px">
       <v-card>
-        <v-container fluid>
-          <v-card-title>
-            <span class="headline">Detalle</span>
-          </v-card-title>
-          <v-divider class="mb-3"></v-divider>
-          <h3 v-if="!chunkDetail">Cargando datos...</h3>
-          <ul v-else>
-            <li v-for="(lead, index) in chunkDetail.leads" :key="index">
-              {{ lead.telefono }}
-            </li>
-          </ul>
-        </v-container>
+        <v-toolbar flat color="primary" dark>
+          <v-toolbar-title>Detalle de Tanda</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="isShowingDetail = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <div v-if="!chunkDetail" class="pa-4 text-center">
+          <h3 class="mb-2">Cargando datos...</h3>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+          ></v-progress-circular>
+        </div>
+
+        <div v-else>
+          <v-tabs v-model="activeTab" background-color="transparent" grow>
+            <v-tab>Leads</v-tab>
+            <v-tab>Métricas</v-tab>
+          </v-tabs>
+
+          <v-tabs-items v-model="activeTab">
+            <v-tab-item>
+              <v-card flat>
+                <v-card-text style="max-height: 400px; overflow-y: auto">
+                  <ul v-if="chunkDetail.leads && chunkDetail.leads.length">
+                    <li v-for="(lead, index) in chunkDetail.leads" :key="index">
+                      {{ lead.telefono }}
+                    </li>
+                  </ul>
+                  <p v-else>No hay leads en esta tanda.</p>
+                </v-card-text>
+              </v-card>
+            </v-tab-item>
+
+            <v-tab-item>
+              <v-card flat>
+                <v-card-text style="max-height: 400px; overflow-y: auto">
+                  <div v-if="chunkDetail.metrics">
+                    <v-row>
+                      <v-col cols="6">
+                        <v-card outlined class="pa-2 text-center">
+                          <div class="text-h5 font-weight-bold primary--text">
+                            {{ chunkDetail.metrics.totalLeads }}
+                          </div>
+                          <div class="caption grey--text">Total Leads</div>
+                        </v-card>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-card outlined class="pa-2 text-center">
+                          <div class="text-h5 font-weight-bold success--text">
+                            {{ chunkDetail.metrics.messagesSent }}
+                          </div>
+                          <div class="caption grey--text">
+                            Mensajes Enviados
+                          </div>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+
+                    <v-divider class="my-4"></v-divider>
+
+                    <h4 class="mb-2">Distribución por Bot</h4>
+                    <v-simple-table
+                      v-if="sortedBotMetrics && sortedBotMetrics.length"
+                    >
+                      <template v-slot:default>
+                        <thead>
+                          <tr>
+                            <th class="text-left">Bot</th>
+                            <th class="text-center">Enviados</th>
+                            <th class="text-center">%</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="botStat in sortedBotMetrics"
+                            :key="botStat.botId"
+                          >
+                            <td>
+                              <div class="font-weight-medium">
+                                {{ botStat.botName }}
+                              </div>
+                              <div class="caption grey--text">
+                                {{ botStat.botId }}
+                              </div>
+                            </td>
+                            <td class="text-center">{{ botStat.count }}</td>
+                            <td class="text-center">
+                              {{ parseFloat(botStat.percentage).toFixed(2) }}%
+                            </td>
+                          </tr>
+                        </tbody>
+                      </template>
+                    </v-simple-table>
+                    <p v-else class="text-center grey--text pa-4">
+                      No hay datos de bots disponibles.
+                    </p>
+                  </div>
+                  <div v-else class="text-center pa-4">
+                    <v-icon size="48" color="grey lighten-2"
+                      >mdi-chart-bar-off</v-icon
+                    >
+                    <p class="mt-2 grey--text">
+                      No hay métricas disponibles para esta tanda.
+                    </p>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-tab-item>
+          </v-tabs-items>
+        </div>
       </v-card>
     </v-dialog>
 
@@ -811,6 +925,282 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog for Simulate Bot Selection -->
+    <v-dialog v-model="simulationDialog.show" max-width="900px" eager>
+      <v-card class="rounded-lg">
+        <v-toolbar flat color="white" class="border-bottom">
+          <v-icon left color="teal darken-2">mdi-account-tie-voice</v-icon>
+          <v-toolbar-title class="teal--text text--darken-2 font-weight-bold">
+            Simulación de Asignación - Tanda
+            {{
+              simulationDialog.chunkIndex != null
+                ? simulationDialog.chunkIndex + 1
+                : ""
+            }}
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon color="grey darken-2" @click="closeSimulationDialog">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <v-card-text class="pt-6 px-6">
+          <div v-if="simulationDialog.loading" class="text-center py-12">
+            <v-progress-circular
+              indeterminate
+              color="teal darken-2"
+              size="60"
+              width="4"
+            ></v-progress-circular>
+            <p class="mt-4 text-h6 grey--text text--darken-1 font-weight-light">
+              Analizando asignación de agentes...
+            </p>
+          </div>
+
+          <div v-else-if="simulationDialog.results.length > 0">
+            <!-- Summary Stats -->
+            <v-row class="mb-6">
+              <v-col cols="12" sm="4">
+                <v-sheet
+                  outlined
+                  rounded="lg"
+                  class="pa-4 text-center d-flex flex-column align-center justify-center fill-height"
+                  color="grey lighten-5"
+                >
+                  <div
+                    class="text-h3 font-weight-bold teal--text text--darken-2 mb-1"
+                  >
+                    {{ simulationDialog.results.length }}
+                  </div>
+                  <div
+                    class="caption font-weight-medium grey--text text--darken-1 text-uppercase letter-spacing-1"
+                  >
+                    Total Leads
+                  </div>
+                </v-sheet>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <v-sheet
+                  outlined
+                  rounded="lg"
+                  class="pa-4 text-center d-flex flex-column align-center justify-center fill-height"
+                  color="grey lighten-5"
+                >
+                  <div
+                    class="text-h3 font-weight-bold teal--text text--darken-2 mb-1"
+                  >
+                    {{ getUniqueBotsCount }}
+                  </div>
+                  <div
+                    class="caption font-weight-medium grey--text text--darken-1 text-uppercase letter-spacing-1"
+                  >
+                    Agentes Asignados
+                  </div>
+                </v-sheet>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <v-sheet
+                  outlined
+                  rounded="lg"
+                  class="pa-4 text-center d-flex flex-column align-center justify-center fill-height"
+                  color="grey lighten-5"
+                >
+                  <div
+                    class="text-h3 font-weight-bold teal--text text--darken-2 mb-1"
+                  >
+                    {{ getReasonsSummary.length }}
+                  </div>
+                  <div
+                    class="caption font-weight-medium grey--text text--darken-1 text-uppercase letter-spacing-1"
+                  >
+                    Criterios de Match
+                  </div>
+                </v-sheet>
+              </v-col>
+            </v-row>
+
+            <!-- Bot Distribution -->
+            <v-card outlined rounded="lg" class="mb-6">
+              <v-card-title
+                class="subtitle-1 font-weight-bold grey--text text--darken-3 py-3 px-4 border-bottom"
+              >
+                <v-icon left color="teal darken-2" small>mdi-chart-pie</v-icon>
+                Distribución por Agente
+              </v-card-title>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left pl-4 grey--text text--darken-2">
+                        Agente
+                      </th>
+                      <th class="text-center grey--text text--darken-2">
+                        Leads
+                      </th>
+                      <th class="text-left grey--text text--darken-2">
+                        Motivos
+                      </th>
+                      <th class="text-center grey--text text--darken-2">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="bot in getBotDistributionSorted"
+                      :key="bot.botId"
+                      class="hover-row"
+                    >
+                      <td class="pl-4 py-3">
+                        <div
+                          class="font-weight-medium text-body-2 grey--text text--darken-3"
+                        >
+                          {{ bot.botName }}
+                        </div>
+                        <div class="caption grey--text">
+                          {{ bot.botPhone }}
+                        </div>
+                      </td>
+                      <td class="text-center font-weight-medium">
+                        {{ bot.count }}
+                      </td>
+                      <td>
+                        <div class="d-flex flex-wrap gap-1 py-1">
+                          <v-chip
+                            v-for="(count, reason) in bot.reasons"
+                            :key="reason"
+                            :color="getReasonColor(reason)"
+                            x-small
+                            label
+                            outlined
+                            class="mr-1 mb-1 font-weight-medium"
+                          >
+                            {{ reason }}: {{ count }}
+                          </v-chip>
+                        </div>
+                      </td>
+                      <td class="text-center font-weight-medium">
+                        {{ bot.percentage.toFixed(1) }}%
+                      </td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-card>
+
+            <!-- Detailed Results Table -->
+            <v-card outlined rounded="lg" class="overflow-hidden">
+              <v-card-title
+                class="subtitle-1 font-weight-bold grey--text text--darken-3 py-3 px-4 border-bottom"
+              >
+                <v-icon left color="teal darken-2" small
+                  >mdi-format-list-bulleted</v-icon
+                >
+                Detalle de Asignación
+              </v-card-title>
+              <v-card-text class="px-4 pt-4 pb-2">
+                <v-select
+                  v-model="selectedBotFilter"
+                  :items="uniqueBotsForFilter"
+                  item-text="botName"
+                  item-value="botId"
+                  label="Filtrar por Bot Asignado"
+                  placeholder="Todos los bots"
+                  outlined
+                  dense
+                  clearable
+                  hide-details
+                  prepend-inner-icon="mdi-filter"
+                  class="mb-2"
+                >
+                  <template v-slot:item="{ item }">
+                    <div>
+                      <div class="font-weight-medium">{{ item.botName }}</div>
+                      <div class="caption grey--text">{{ item.botPhone }}</div>
+                    </div>
+                  </template>
+                  <template v-slot:selection="{ item }">
+                    <span v-if="item">{{ item.botName }}</span>
+                    <span v-else class="grey--text">Todos los bots</span>
+                  </template>
+                </v-select>
+              </v-card-text>
+              <v-data-table
+                :headers="simulationHeaders"
+                :items="filteredSimulationResults"
+                :items-per-page="10"
+                class="elevation-0"
+                dense
+              >
+                <template v-slot:[`item.phone`]="{ item }">
+                  <span class="font-weight-medium grey--text text--darken-2">{{
+                    item.phone
+                  }}</span>
+                </template>
+                <template v-slot:[`item.botName`]="{ item }">
+                  <div class="py-1">
+                    <span
+                      class="d-block text-body-2 grey--text text--darken-3"
+                      >{{ item.botName }}</span
+                    >
+                    <span class="caption grey--text">{{ item.botPhone }}</span>
+                  </div>
+                </template>
+                <template v-slot:[`item.reason`]="{ item }">
+                  <v-chip
+                    :color="getReasonColor(item.reason)"
+                    x-small
+                    label
+                    outlined
+                    class="font-weight-medium"
+                  >
+                    {{ item.reason }}
+                  </v-chip>
+                </template>
+                <template v-slot:[`item.details`]="{ item }">
+                  <v-tooltip
+                    bottom
+                    max-width="400"
+                    content-class="custom-tooltip"
+                  >
+                    <template v-slot:activator="{ on }">
+                      <span
+                        v-on="on"
+                        class="text-truncate d-inline-block grey--text text--darken-1 cursor-pointer"
+                        style="max-width: 250px"
+                      >
+                        {{ item.details }}
+                      </span>
+                    </template>
+                    <span class="caption">{{ item.details }}</span>
+                  </v-tooltip>
+                </template>
+              </v-data-table>
+            </v-card>
+          </div>
+
+          <div v-else class="text-center py-12">
+            <v-icon size="64" color="grey lighten-3"
+              >mdi-account-voice-off</v-icon
+            >
+            <p class="mt-4 grey--text text--darken-1">
+              No hay resultados disponibles.
+            </p>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-6 pt-2">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey darken-1"
+            text
+            class="px-6"
+            @click="closeSimulationDialog"
+          >
+            Cerrar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -848,6 +1238,7 @@ export default {
     },
   },
   data: () => ({
+    activeTab: 0,
     chunkDetail: null,
     isShowingDetail: false,
     expanded: [],
@@ -937,6 +1328,20 @@ export default {
       loading: false,
       isBulkNowSending: false, // Added for bulk "now" sending UI state
     },
+    simulationDialog: {
+      show: false,
+      loading: false,
+      item: null,
+      chunkIndex: null,
+      results: [],
+    },
+    simulationHeaders: [
+      { text: "Teléfono Lead", value: "phone", sortable: true },
+      { text: "Bot Asignado", value: "botName", sortable: true },
+      { text: "Razón", value: "reason", sortable: true },
+      { text: "Detalles", value: "details", sortable: false },
+    ],
+    selectedBotFilter: null,
   }),
   computed: {
     formTitle() {
@@ -1041,6 +1446,85 @@ export default {
       }
       return "CANCELAR";
     },
+    sortedBotMetrics() {
+      if (
+        !this.chunkDetail ||
+        !this.chunkDetail.metrics ||
+        !this.chunkDetail.metrics.byBot
+      ) {
+        return [];
+      }
+      return [...this.chunkDetail.metrics.byBot].sort(
+        (a, b) => b.count - a.count
+      );
+    },
+    getUniqueBotsCount() {
+      if (!this.simulationDialog.results.length) return 0;
+      const uniqueBots = new Set(
+        this.simulationDialog.results.map((r) => r.botId)
+      );
+      return uniqueBots.size;
+    },
+    getReasonsSummary() {
+      if (!this.simulationDialog.results.length) return [];
+      const reasonCounts = {};
+      this.simulationDialog.results.forEach((r) => {
+        reasonCounts[r.reason] = (reasonCounts[r.reason] || 0) + 1;
+      });
+      return Object.entries(reasonCounts)
+        .map(([reason, count]) => ({ reason, count }))
+        .sort((a, b) => b.count - a.count);
+    },
+    getBotDistributionSorted() {
+      if (!this.simulationDialog.results.length) return [];
+      const botCounts = {};
+      this.simulationDialog.results.forEach((r) => {
+        if (!botCounts[r.botId]) {
+          botCounts[r.botId] = {
+            botId: r.botId,
+            botName: r.botName,
+            botPhone: r.botPhone,
+            count: 0,
+            reasons: {}, // Initialize reasons object
+          };
+        }
+        botCounts[r.botId].count++;
+        // Count reasons per bot
+        botCounts[r.botId].reasons[r.reason] =
+          (botCounts[r.botId].reasons[r.reason] || 0) + 1;
+      });
+      const total = this.simulationDialog.results.length;
+      return Object.values(botCounts)
+        .map((bot) => ({
+          ...bot,
+          percentage: (bot.count / total) * 100,
+        }))
+        .sort((a, b) => b.count - a.count);
+    },
+    uniqueBotsForFilter() {
+      if (!this.simulationDialog.results.length) return [];
+      const uniqueBotsMap = new Map();
+      this.simulationDialog.results.forEach((r) => {
+        if (!uniqueBotsMap.has(r.botId)) {
+          uniqueBotsMap.set(r.botId, {
+            botId: r.botId,
+            botName: r.botName,
+            botPhone: r.botPhone,
+          });
+        }
+      });
+      return Array.from(uniqueBotsMap.values()).sort((a, b) =>
+        a.botName.localeCompare(b.botName)
+      );
+    },
+    filteredSimulationResults() {
+      if (!this.selectedBotFilter) {
+        return this.simulationDialog.results;
+      }
+      return this.simulationDialog.results.filter(
+        (r) => r.botId === this.selectedBotFilter
+      );
+    },
   },
   watch: {
     dialog(val) {
@@ -1134,7 +1618,9 @@ export default {
             ) {
               uiStatus = "error";
               // Don't add error chunks to chunksPagesSent - they should be retryable
-              const sentIndex = campaign.chunksPagesSent.indexOf(progChunk.chunkPage);
+              const sentIndex = campaign.chunksPagesSent.indexOf(
+                progChunk.chunkPage
+              );
               if (sentIndex > -1) {
                 campaign.chunksPagesSent.splice(sentIndex, 1);
               }
@@ -1309,12 +1795,14 @@ export default {
         item.scheduledChunks && item.scheduledChunks[chunkIndex];
 
       // Check for error status first - this should take priority over sent status
-      if (scheduledChunkInfo && (
-        scheduledChunkInfo.status === "error" ||
-        scheduledChunkInfo.status === "schedule_failed"
-      )) {
+      if (
+        scheduledChunkInfo &&
+        (scheduledChunkInfo.status === "error" ||
+          scheduledChunkInfo.status === "schedule_failed")
+      ) {
         statusPackage.status = PROGRAMMED_CHUNK_STATUSES.ERROR;
-        statusPackage.errorMessage = scheduledChunkInfo.errorMessage || "Error al procesar la tanda.";
+        statusPackage.errorMessage =
+          scheduledChunkInfo.errorMessage || "Error al procesar la tanda.";
         statusPackage.lastRealError = scheduledChunkInfo.lastRealError || null;
         statusPackage.errorPhones = scheduledChunkInfo.errorPhones;
         statusPackage.scheduledDateTime = scheduledChunkInfo.scheduledTime;
@@ -1371,7 +1859,10 @@ export default {
           backendStatus === "past_due_schedule"
         ) {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.PENDING;
-        } else if (backendStatus === "schedule_failed" || backendStatus === "error") {
+        } else if (
+          backendStatus === "schedule_failed" ||
+          backendStatus === "error"
+        ) {
           statusPackage.status = PROGRAMMED_CHUNK_STATUSES.ERROR;
           statusPackage.errorMessage =
             scheduledChunkInfo.errorMessage ||
@@ -2637,6 +3128,57 @@ export default {
       )
         return true;
       return false;
+    },
+
+    async openSimulateBotSelectionDialog(item, chunkIndex) {
+      this.simulationDialog.show = true;
+      this.simulationDialog.loading = true;
+      this.simulationDialog.item = item;
+      this.simulationDialog.chunkIndex = chunkIndex;
+      this.simulationDialog.results = [];
+
+      try {
+        const response = await marketingCampaignsService.simulateBotSelection(
+          item._id,
+          chunkIndex + 1
+        );
+        if (response.data && response.data.payload) {
+          this.simulationDialog.results = response.data.payload.results || [];
+        }
+      } catch (error) {
+        console.error("Error simulating bot selection:", error);
+        buildSuccess(
+          "Error al simular selección de bots.",
+          this.$store.commit,
+          "error"
+        );
+      } finally {
+        this.simulationDialog.loading = false;
+      }
+    },
+
+    closeSimulationDialog() {
+      this.simulationDialog.show = false;
+      this.simulationDialog.loading = false;
+      this.simulationDialog.results = [];
+      this.simulationDialog.item = null;
+      this.simulationDialog.chunkIndex = null;
+      this.selectedBotFilter = null; // Reset filter when closing
+    },
+
+    getReasonColor(reason) {
+      const colors = {
+        // New backend reason types
+        EXISTE_EN_LEAD: "teal darken-1",
+        EXISTE_GOOGLE_CONTACT: "blue darken-1",
+        // Legacy reason types (kept for backward compatibility)
+        STICKY_AGENT: "blue darken-1",
+        SOURCE_MATCH: "teal darken-1",
+        RANDOM: "orange darken-2",
+        DEFAULT: "blue-grey darken-1",
+        FALLBACK: "deep-purple darken-1",
+      };
+      return colors[reason] || "grey darken-1";
     },
   },
 };

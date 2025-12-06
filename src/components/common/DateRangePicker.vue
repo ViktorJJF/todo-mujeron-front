@@ -11,7 +11,8 @@
       <v-text-field
         v-model="dateRangeText"
         :label="label"
-        prepend-icon="mdi-calendar"
+        :placeholder="placeholder"
+        prepend-icon="mdi-calendar-range"
         readonly
         v-bind="attrs"
         v-on="on"
@@ -46,6 +47,10 @@ export default {
       type: String,
       default: "Rango de fechas",
     },
+    placeholder: {
+      type: String,
+      default: "Seleccione un rango de fechas",
+    },
     value: {
       type: Array,
       default: () => [],
@@ -67,6 +72,9 @@ export default {
   },
   computed: {
     dateRangeText() {
+      if (this.dates.length === 0) {
+        return "";
+      }
       return this.dates.join(" ~ ");
     },
   },

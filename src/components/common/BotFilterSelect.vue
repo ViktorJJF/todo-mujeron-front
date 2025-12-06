@@ -7,6 +7,7 @@
     item-value="value"
     item-text="text"
     :placeholder="placeholder"
+    :label="label"
     single-line
     outlined
     clearable
@@ -39,7 +40,11 @@ export default {
     },
     placeholder: {
       type: String,
-      default: "Filtrar por bot",
+      default: "Seleccione un bot",
+    },
+    label: {
+      type: String,
+      default: "Bot",
     },
     showAllOption: {
       type: Boolean,
@@ -69,9 +74,7 @@ export default {
       if (!this.platforms || this.platforms.length === 0) {
         return this.bots;
       }
-      return this.bots.filter((bot) =>
-        this.platforms.includes(bot.platform)
-      );
+      return this.bots.filter((bot) => this.platforms.includes(bot.platform));
     },
     botSelectItems() {
       const items = [];
@@ -120,4 +123,3 @@ export default {
 </script>
 
 <style lang="scss" scoped></style>
-
