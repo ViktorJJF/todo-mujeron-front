@@ -10,14 +10,13 @@
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
-          :search="search"
           hide-default-footer
           :headers="headers"
-          :items="templateMessagesLogs"
-          sort-by="calories"
-          @page-count="pageCount = $event"
+          :items="items"
+          sort-by="createdAt"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :server-items-length="$store.state.templateMessagesLogsModule.total"
         >
           <template v-slot:top>
             <v-container>
@@ -25,18 +24,31 @@
                 >Filtrar por nombre: {{ search }}</span
               >
               <v-row>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="3">
                   <v-text-field
                     dense
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de la etiqueta"
+                    placeholder="Escribe el nombre de la plantilla o teléfono"
                     single-line
                     outlined
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="3">
+                  <bot-filter-select
+                    v-model="selectedBotId"
+                    :platforms="['whatsapp_automated', 'whatsapp']"
+                    placeholder="Filtrar por bot"
+                  ></bot-filter-select>
+                </v-col>
+                <v-col cols="12" sm="3">
+                  <date-range-picker
+                    v-model="dateRange"
+                    label="Filtrar por fecha"
+                  ></date-range-picker>
+                </v-col>
+                <v-col cols="12" sm="3">
                   <v-dialog v-model="dialog" max-width="700px">
                     <template v-slot:activator="{ on }">
                       <v-btn
@@ -110,10 +122,12 @@
                     <strong>Mostrando:</strong>
                     {{
                       $store.state.itemsPerPage > items.length
-                        ? items.length
+                        ? $store.state.templateMessagesLogsModule.total
                         : $store.state.itemsPerPage
                     }}
-                    de {{ items.length }} registros
+                    de
+                    {{ $store.state.templateMessagesLogsModule.total }}
+                    registros
                   </span>
                 </v-col>
               </v-row>
@@ -189,14 +203,18 @@
             <strong>Mostrando:</strong>
             {{
               $store.state.itemsPerPage > items.length
-                ? items.length
+                ? $store.state.templateMessagesLogsModule.total
                 : $store.state.itemsPerPage
             }}
-            de {{ items.length }} registros
+            de {{ $store.state.templateMessagesLogsModule.total }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            v-model="page"
+            :length="$store.state.templateMessagesLogsModule.totalPages"
+            @input="initialize(page)"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -206,12 +224,14 @@
 <script>
 //Nota: Modifica los campos de la tabla
 const ENTITY = "templateMessagesLogs"; // nombre de la entidad en minusculas (se repite en services y modules del store)
-const CLASS_ITEMS = () =>
-  import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
+import TemplateMessagesLogs from "@/classes/TemplateMessagesLogs";
+const CLASS_ITEMS = TemplateMessagesLogs;
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import BotFilterSelect from "@/components/common/BotFilterSelect.vue";
+import DateRangePicker from "@/components/common/DateRangePicker.vue";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
 
@@ -219,6 +239,8 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    BotFilterSelect,
+    DateRangePicker,
   },
   filters: {
     formatDate: function (value) {
@@ -278,9 +300,10 @@ export default {
     defaultItem: CLASS_ITEMS(),
     menu1: false,
     menu2: false,
-    templateMessagesLogs: [],
+    fieldsToSearch: ["template", "phone"],
     rolPermisos: {},
-    bots: [],
+    selectedBotId: null,
+    dateRange: [],
   }),
   computed: {
     formTitle() {
@@ -299,6 +322,22 @@ export default {
     dialog(val) {
       val || this.close();
     },
+    async search() {
+      clearTimeout(this.delayTimer);
+      this.delayTimer = setTimeout(() => {
+        this.initialize(1);
+      }, 600);
+    },
+    selectedBotId() {
+      // Reset to page 1 when bot filter changes
+      this.page = 1;
+      this.initialize(1);
+    },
+    dateRange() {
+      // Reset to page 1 when date range filter changes
+      this.page = 1;
+      this.initialize(1);
+    },
   },
   async mounted() {
     this.$store.commit("loadingModule/showLoading");
@@ -311,7 +350,8 @@ export default {
           id: this.$store.state.authModule.user._id,
           menu: "Facebook/Facebook",
           model: "Etiquetas",
-          company: this.$store.getters["authModule/getCurrentCompany"].company._id,
+          company:
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
         })
         .then((res) => {
           this.rolPermisos = res.data;
@@ -319,30 +359,57 @@ export default {
         .finally(() => this.$store.commit("loadingModule/showLoading", false));
     },
 
-    async initialize() {
+    async initialize(page = 1) {
+      let payload = {
+        page,
+        search: this.search,
+        fieldsToSearch: this.fieldsToSearch,
+        sort: "createdAt",
+        order: "desc",
+        companies: [
+          this.$store.getters["authModule/getCurrentCompany"].company._id,
+        ],
+        includeCount: true,
+      };
+
+      // Add botId filter if a bot is selected
+      if (this.selectedBotId) {
+        payload.botId = this.selectedBotId;
+      }
+
+      // Add date range filter if selected
+      if (this.dateRange && this.dateRange.length === 2) {
+        payload.startDate = this.dateRange[0];
+        payload.endDate = this.dateRange[1];
+      }
+
+      this.$store.commit("loadingModule/showLoading");
       //llamada asincrona de items
       await Promise.all([
-        this.$store.dispatch(ENTITY + "Module/list", {
-          sort: "createdAt",
-          order: -1,
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
-        }),
-        this.$store.dispatch("botsModule/list",{
-          companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
+        this.$store.dispatch(ENTITY + "Module/list", { ...payload }),
+        this.$store.dispatch("botsModule/list", {
+          companies: [
+            this.$store.getters["authModule/getCurrentCompany"].company._id,
+          ],
         }),
       ]);
       //asignar al data del componente
       this[ENTITY] = this.$store.state[ENTITY + "Module"][ENTITY];
-      this.bots = this.$store.state.botsModule.bots;
+      this.$store.commit("loadingModule/showLoading", false);
     },
     getBot(botId) {
-      return this.bots.find((bot) => bot._id === botId);
+      const bots = this.$store.state.botsModule.bots || [];
+      return bots.find((bot) => bot._id === botId);
     },
     getBotOrigin(botId) {
       const bot = this.getBot(botId);
       let message = "";
       if (bot) {
-        message = `${bot.phone} (${bot.platform==='whatsapp_automated'?'WhatsApp Imagina':'Whatsapp Cloud'})`;
+        message = `${bot.phone} (${
+          bot.platform === "whatsapp_automated"
+            ? "WhatsApp Imagina"
+            : "Whatsapp Cloud"
+        })`;
       } else {
         message = "Sin origen";
       }

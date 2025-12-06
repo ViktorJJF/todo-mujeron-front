@@ -1,22 +1,31 @@
 //usar esto para consultar en base de datos sin paginacion del server
 import api from "@/services/api/templateMessagesLogs";
-import { buildSuccess, handleError } from "@/utils/utils.js";
+import {
+  buildSuccess,
+  handleError,
+  buildQueryWithPagination,
+} from "@/utils/utils.js";
 import store from "@/store";
 
 const module = {
   namespaced: true,
   state: {
     templateMessagesLogs: [],
+    totalPages: 0,
+    total: 0,
   },
   actions: {
     list({ commit }, query) {
+      let finalQuery = buildQueryWithPagination(query);
       commit("loadingModule/showLoading", true, { root: true });
       return new Promise((resolve, reject) => {
         api
-          .list(query)
+          .list(finalQuery)
           .then((response) => {
-            commit("list", response.data.payload);
             commit("loadingModule/showLoading", false, { root: true });
+            commit("list", response.data.payload);
+            commit("totalItems", response.data.totalDocs);
+            commit("totalPages", response.data.totalPages);
             resolve(response.data.payload);
           })
           .catch((error) => {
@@ -77,6 +86,12 @@ const module = {
     list(state, data) {
       state.templateMessagesLogs = data;
     },
+    totalItems(state, data) {
+      state.total = data;
+    },
+    totalPages(state, data) {
+      state.totalPages = data;
+    },
     create(state, data) {
       state.templateMessagesLogs.unshift(data);
     },
@@ -103,6 +118,7 @@ const module = {
         (member) => member._id == id
       );
       state.templateMessagesLogs.splice(indexToDelete, 1);
+      state.total -= 1;
     },
   },
   getters: {
