@@ -54,7 +54,7 @@
                         <span class="headline">{{ formTitle }}</span>
                       </v-card-title>
                       <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
+                      <ValidationObserver ref="obs">
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
@@ -191,51 +191,25 @@
                             </v-col>
 
                             <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">
-                                Shortcodes disponibles
-                              </p>
-                              <v-card outlined class="pa-3">
-                                <p class="mb-1">
-                                  Puedes usar los siguientes shortcodes en tu
-                                  mensaje:
-                                </p>
-                                <v-chip class="mr-2 mb-2" small
-                                  ><span v-pre>{{ contact.name }}</span></v-chip
-                                >
-                                <v-chip class="mr-2 mb-2" small
-                                  ><span v-pre>{{
-                                    contact.fullname
-                                  }}</span></v-chip
-                                >
-                                <v-chip class="mr-2 mb-2" small
-                                  ><span v-pre>{{
-                                    contact.number
-                                  }}</span></v-chip
-                                >
-
-                                <p class="caption mt-2 mb-0">
-                                  Los shortcodes serán reemplazados con la
-                                  información del contacto al enviar el mensaje.
-                                </p>
-                              </v-card>
+                              <ShortcodesManager />
                             </v-col>
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close"
-                            >Cancelar</v-btn
-                          >
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                            >Guardar</v-btn
-                          >
-                        </v-card-actions>
-                      </ValidationObserver>
-                    </v-card>
-                  </v-dialog>
+                        </v-row>
+                      </v-container>
+                      <v-card-actions rd-actions>
+                        <div class="flex-grow-1"></div>
+                        <v-btn outlined color="error" text @click="close"
+                          >Cancelar</v-btn
+                        >
+                        <v-btn
+                          :loading="loadingButton"
+                          color="success"
+                          @click="save"
+                          >Guardar</v-btn
+                        >
+                      </v-card-actions>
+                    </ValidationObserver>
+                  </v-card>
+                </v-dialog>
                 </v-col>
               </v-row>
               <!-- <span class="font-weight-bold">Ordenar por</span
@@ -319,7 +293,7 @@
       </material-card>
     </v-row>
     <v-dialog v-model="testDialog" max-width="600">
-      <ValidationObserver ref="obs" v-slot="{ passes }">
+      <ValidationObserver ref="obs">
         <v-card v-if="selectedTemplate">
           <v-card-title>
             <v-icon color="primary" class="mr-1">mdi-whatsapp</v-icon>
@@ -477,7 +451,7 @@
             <v-spacer></v-spacer>
             <v-btn
               color="success"
-              @click="passes(sendTestMessage)"
+              @click="sendTestMessage"
               :loading="loadingTestButton"
             >
               {{ testMode === "single" ? "Enviar mensaje" : "Enviar mensajes" }}
@@ -499,6 +473,7 @@ import ImaginaTemplateMessages from "@/classes/ImaginaTemplateMessages";
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import ShortcodesManager from "@/components/ShortcodesManager";
 import auth from "@/services/api/auth";
 import { es } from "date-fns/locale";
 import { checkIsImage, checkIsAudio, checkIsVideo } from "@/utils/utils";
@@ -507,6 +482,7 @@ export default {
     MaterialCard,
     VTextFieldWithValidation,
     VSelectWithValidation,
+    ShortcodesManager,
   },
   filters: {
     formatDate: function (value) {
@@ -620,6 +596,9 @@ export default {
       }
     },
     detectPlaceholders(message) {
+      // Guard against null/undefined
+      if (!this.editedItem || !message) return;
+      
       // Regular expression to match {{number}} pattern
       const regex = /{{(\d+)}}/g;
       let match;
@@ -634,7 +613,9 @@ export default {
 
       // Store placeholders in editedItem
       this.editedItem.placeholders = placeholders;
-      this.selectedTemplate.placeholders = placeholders;
+      if (this.selectedTemplate) {
+        this.selectedTemplate.placeholders = placeholders;
+      }
     },
     rolAuth() {
       auth
