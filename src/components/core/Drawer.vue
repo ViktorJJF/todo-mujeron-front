@@ -771,6 +771,12 @@
         </v-list-item-icon>
         <v-list-item-content> Métricas </v-list-item-content>
       </v-list-item>
+      <v-list-item active-class="primary custom2" :to="{ name: 'SessionsMetrics' }">
+        <v-list-item-icon>
+          <v-icon>mdi-chart-line</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content> Metricas sesiones </v-list-item-content>
+      </v-list-item>
       <v-list-item active-class="primary custom2" :to="{ name: 'ChatRoom' }">
         <v-list-item-icon>
           <v-icon>mdi-chat</v-icon>

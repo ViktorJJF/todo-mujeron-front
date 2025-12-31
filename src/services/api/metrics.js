@@ -353,4 +353,144 @@ export default {
         throw error;
       });
   },
+
+  // ============================================
+  // SESSION METRICS ENDPOINTS
+  // ============================================
+
+  /**
+   * Get sessions summary by status
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsSummary(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_summary`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions summary:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions consultation motives counts
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsConsultationMotivesCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_consultation_motives_counts`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions consultation motives counts:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions consultation motives by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsConsultationMotivesByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_consultation_motives_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions consultation motives by month:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions sentiment analysis counts
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsSentimentAnalysisCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_sentiment_analysis_counts`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions sentiment analysis counts:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions sentiment analysis by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsSentimentAnalysisByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_sentiment_analysis_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions sentiment analysis by month:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions conversation quality counts
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsConversationQualityCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_conversation_quality_counts`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions conversation quality counts:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions sales analysis counts
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsSalesAnalysisCounts(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_sales_analysis_counts`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions sales analysis counts:", error);
+        throw error;
+      });
+  },
+
+  /**
+   * Get sessions sales analysis by month
+   * @param {import('../../types/metrics').DateRangeParams} params - Date range parameters
+   * @returns {Promise<import('axios').AxiosResponse<{ok: boolean, payload: any}>>} API response
+   */
+  getSessionsSalesAnalysisByMonth(params) {
+    // Ensure params is an object
+    const requestParams = params || {};
+
+    return axios
+      .post(`/api/metrics/sessions_sales_analysis_by_month`, requestParams)
+      .catch((error) => {
+        console.error("Error fetching sessions sales analysis by month:", error);
+        throw error;
+      });
+  },
 };

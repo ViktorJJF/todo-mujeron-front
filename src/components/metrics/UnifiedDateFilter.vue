@@ -302,9 +302,9 @@ export default {
   },
 
   created() {
-    // Apply the year 2024 filter by default when component is created
+    // Apply the default filter when component is created
     setTimeout(() => {
-      this.selectQuickFilter(8); // Index 8 is "Año 2024"
+      this.selectQuickFilter(this.defaultSelectedFilter);
     }, 0);
   },
 

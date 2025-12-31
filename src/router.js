@@ -149,6 +149,11 @@ let routes = [
         component: () => import("@/views/Metrics/index.vue"),
       },
       {
+        path: "/metricas-sesiones",
+        name: "SessionsMetrics",
+        component: () => import("@/views/SessionsMetrics/index.vue"),
+      },
+      {
         path: "/contactos",
         name: "Contactos",
         component: () => import("@/views/Contactos.vue"),
