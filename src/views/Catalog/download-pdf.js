@@ -32,17 +32,14 @@ function getTallas(product) {
 }
 
 function getProductImageUrl({ multimedia }) {
-  // search the the first image available
-  let finalImage;
   const imageExtensions = ["jpg", "jpeg", "png", "gif"];
   for (const media of multimedia) {
-    const extension = media.url.split(".").pop();
+    const extension = media.url.split(".").pop().toLowerCase();
     if (imageExtensions.includes(extension)) {
-      finalImage = media.url;
-      break;
+      return `/api/wp-image?url=${media.url}`;
     }
   }
-  return `/api/wp-image?url=${finalImage}`;
+  return null;
 }
 
 function formatDate() {
@@ -186,7 +183,9 @@ export async function downloadPdf(
     }
 
     const image = getProductImageUrl(product);
-    doc.addImage(image, "JPEG", x, y, width, height);
+    if (image) {
+      doc.addImage(image, "JPEG", x, y, width, height);
+    }
 
     const filename = `${Date.now()}.pdf`;
 
