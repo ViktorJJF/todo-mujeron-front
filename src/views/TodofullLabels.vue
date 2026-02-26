@@ -65,6 +65,16 @@
                                 label="Nombre de etiqueta todofull"
                               />
                             </v-col>
+                            <v-col cols="12" sm="12" md="12" class="mb-2">
+                              <p class="body-1 font-weight-bold">Descripción</p>
+                              <p class="caption grey--text mb-1">Ayuda a la IA a clasificar mejor esta etiqueta</p>
+                              <v-textarea
+                                v-model="editedItem.description"
+                                label="Descripción de la etiqueta"
+                                outlined
+                                rows="3"
+                              ></v-textarea>
+                            </v-col>
                             <v-col cols="12" sm="12" md="12">
                               <v-divider
                                 style="border: 1px solid #ddd"
@@ -394,6 +404,12 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
+      },
+      {
+        text: "Descripción",
+        align: "left",
+        sortable: false,
+        value: "description",
       },
       {
         text: "¿Activo?",
