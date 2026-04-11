@@ -193,6 +193,15 @@
           <template v-slot:item.vendor="{ item }">
             {{item.vendor ? getVendor(item.vendor).name : ''}}
           </template>
+          <template v-slot:item.isActive="{ item }">
+            <v-switch
+              :input-value="item.isActive !== false"
+              :loading="togglingIds.includes(item._id)"
+              @change="(val) => toggleActive(val, item)"
+              hide-details
+              class="mt-0"
+            />
+          </template>
           <template v-slot:item.action="{ item }">
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)"
               >Editar</v-btn
@@ -296,6 +305,12 @@ export default {
         sortable: false,
         value: "vendor",
       },
+      {
+        text: "Estado",
+        align: "center",
+        sortable: false,
+        value: "isActive",
+      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     sources: [],
@@ -305,7 +320,8 @@ export default {
     locaciones: [],
     vendors: [],
     stockBoundary: null,
-    minStock: null
+    minStock: null,
+    togglingIds: [],
   }),
 
   computed: {
@@ -355,6 +371,19 @@ export default {
         companies: [this.$store.getters["authModule/getCurrentCompany"].company._id],
       })
       this.vendors = res.data.payload
+    },
+    async toggleActive(val, item) {
+      this.togglingIds.push(item._id);
+      try {
+        await this.$store.dispatch("marketplaceSourcesModule/update", {
+          id: item._id,
+          data: { isActive: !!val },
+        });
+        const index = this.sources.findIndex(s => s._id === item._id);
+        if (index > -1) this.sources[index].isActive = !!val;
+      } finally {
+        this.togglingIds = this.togglingIds.filter(id => id !== item._id);
+      }
     },
     editItem(item) {
       this.editedIndex = this.sources.indexOf(item);
