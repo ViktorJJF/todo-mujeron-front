@@ -185,8 +185,13 @@
             item.createdAt | formatDate
           }}</template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-chip v-if="item.status" color="success">Activo</v-chip>
-            <v-chip v-else color="error">Inactivo</v-chip>
+            <v-switch
+              v-model="item.status"
+              @change="updateStatus(item)"
+              hide-details
+              dense
+              class="mt-0"
+            ></v-switch>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -256,6 +261,12 @@ export default {
         align: "left",
         sortable: false,
         value: "vendor",
+      },
+      {
+        text: "Estado",
+        align: "center",
+        sortable: true,
+        value: "status",
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
@@ -393,6 +404,12 @@ export default {
       }, 300);
     },
 
+    async updateStatus(item) {
+      await this.$store.dispatch("woocommercesModule/update", {
+        id: item._id,
+        data: { status: item.status },
+      });
+    },
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
