@@ -378,6 +378,13 @@
               Gratis
             </span>
           </template>
+          <template v-slot:[`item.metrics`]="{ item }">
+            <campaign-metrics-funnel
+              v-if="item.metrics"
+              :metrics="item.metrics"
+            />
+            <span v-else class="text--disabled caption">Sin envíos</span>
+          </template>
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
@@ -436,13 +443,96 @@
           <v-tabs-items v-model="activeTab">
             <v-tab-item>
               <v-card flat>
-                <v-card-text style="max-height: 400px; overflow-y: auto">
-                  <ul v-if="chunkDetail.leads && chunkDetail.leads.length">
-                    <li v-for="(lead, index) in chunkDetail.leads" :key="index">
-                      {{ lead.telefono }}
-                    </li>
-                  </ul>
-                  <p v-else>No hay leads en esta tanda.</p>
+                <v-card-text class="pa-0">
+                  <div
+                    v-if="chunkDetail.leads && chunkDetail.leads.length"
+                    class="px-4 pt-3 pb-2 d-flex align-center"
+                    style="gap: 8px; flex-wrap: wrap"
+                  >
+                    <v-text-field
+                      v-model="leadsSearch"
+                      append-icon="mdi-magnify"
+                      placeholder="Buscar teléfono"
+                      single-line
+                      hide-details
+                      dense
+                      outlined
+                      style="max-width: 240px"
+                    ></v-text-field>
+                    <v-chip-group
+                      v-model="leadsStatusFilter"
+                      mandatory
+                      column
+                    >
+                      <v-chip
+                        v-for="filter in leadsStatusFilters"
+                        :key="filter.value"
+                        :value="filter.value"
+                        small
+                        filter
+                      >
+                        {{ filter.label }}
+                        <span
+                          v-if="filter.count !== null"
+                          class="ml-1 caption"
+                          style="opacity: 0.7"
+                        >
+                          ({{ filter.count }})
+                        </span>
+                      </v-chip>
+                    </v-chip-group>
+                  </div>
+                  <v-data-table
+                    v-if="chunkDetail.leads && chunkDetail.leads.length"
+                    :headers="leadStatusHeaders"
+                    :items="filteredChunkLeads"
+                    :search="leadsSearch"
+                    :items-per-page="-1"
+                    hide-default-footer
+                    fixed-header
+                    height="380"
+                    dense
+                  >
+                    <template v-slot:[`item.telefono`]="{ item }">
+                      <span class="font-weight-medium">
+                        {{ item.telefono || item.phone || "—" }}
+                      </span>
+                    </template>
+                    <template v-slot:[`item.campaignStatus`]="{ item }">
+                      <div
+                        v-if="item.campaignStatus"
+                        class="d-flex align-center"
+                      >
+                        <v-icon
+                          x-small
+                          :color="getStatusColor(item.campaignStatus)"
+                          class="mr-1"
+                        >
+                          {{ getStatusIcon(item.campaignStatus) }}
+                        </v-icon>
+                        <span class="lead-status-mono">
+                          {{ item.campaignStatus }}
+                        </span>
+                      </div>
+                      <span v-else class="text--disabled caption">
+                        sin enviar
+                      </span>
+                    </template>
+                    <template
+                      v-slot:[`item.campaignStatusUpdatedAt`]="{ item }"
+                    >
+                      <span
+                        v-if="item.campaignStatusUpdatedAt"
+                        class="caption text--secondary"
+                      >
+                        {{ formatRelativeTime(item.campaignStatusUpdatedAt) }}
+                      </span>
+                      <span v-else class="text--disabled caption">—</span>
+                    </template>
+                  </v-data-table>
+                  <p v-else class="text-center grey--text pa-6">
+                    No hay leads en esta tanda.
+                  </p>
                 </v-card-text>
               </v-card>
             </v-tab-item>
@@ -471,6 +561,25 @@
                         </v-card>
                       </v-col>
                     </v-row>
+
+                    <v-divider class="my-4"></v-divider>
+
+                    <h4 class="mb-2">Distribución por Status</h4>
+                    <div
+                      v-if="
+                        chunkStatusMetrics &&
+                        chunkStatusMetrics.total > 0
+                      "
+                      class="pa-3 rounded"
+                      style="background: rgba(0, 0, 0, 0.02)"
+                    >
+                      <campaign-metrics-funnel
+                        :metrics="chunkStatusMetrics"
+                      />
+                    </div>
+                    <p v-else class="text-center grey--text caption pa-2">
+                      Aún no hay mensajes registrados para esta tanda.
+                    </p>
 
                     <v-divider class="my-4"></v-divider>
 
@@ -1218,6 +1327,7 @@ import { es } from "date-fns/locale";
 import MarketingCampaignsForm from "@/components/MarketingCampaignsForm";
 import marketingCampaignsService from "@/services/api/marketingCampaigns";
 import ProgrammedChunkStatus from "@/components/common/ProgrammedChunkStatus.vue";
+import CampaignMetricsFunnel from "@/components/metrics/CampaignMetricsFunnel.vue";
 import { PROGRAMMED_CHUNK_STATUSES } from "@/services/api/marketingCampaigns";
 
 export default {
@@ -1225,6 +1335,7 @@ export default {
     MaterialCard,
     MarketingCampaignsForm,
     ProgrammedChunkStatus,
+    CampaignMetricsFunnel,
   },
   filters: {
     formatDate: function (value) {
@@ -1293,6 +1404,12 @@ export default {
         sortable: false,
         value: "status",
       },
+      {
+        text: "Resultados",
+        align: "left",
+        sortable: false,
+        value: "metrics",
+      },
       { text: "Acciones", value: "action", sortable: false },
     ],
     [ENTITY]: [],
@@ -1342,6 +1459,13 @@ export default {
       { text: "Detalles", value: "details", sortable: false },
     ],
     selectedBotFilter: null,
+    leadsSearch: "",
+    leadsStatusFilter: "all",
+    leadStatusHeaders: [
+      { text: "Teléfono", value: "telefono", sortable: true },
+      { text: "Status", value: "campaignStatus", sortable: true },
+      { text: "Última actualización", value: "campaignStatusUpdatedAt", sortable: true },
+    ],
   }),
   computed: {
     formTitle() {
@@ -1458,6 +1582,79 @@ export default {
         (a, b) => b.count - a.count
       );
     },
+    chunkStatusMetrics() {
+      if (
+        !this.chunkDetail ||
+        !this.chunkDetail.metrics ||
+        !this.chunkDetail.metrics.byStatus
+      ) {
+        return null;
+      }
+      const metrics = {
+        total: this.chunkDetail.metrics.messagesSent || 0,
+        sent: 0,
+        delivered: 0,
+        read: 0,
+        with_response: 0,
+        invalid_number: 0,
+        error: 0,
+      };
+      for (const bucket of this.chunkDetail.metrics.byStatus) {
+        if (Object.prototype.hasOwnProperty.call(metrics, bucket.status)) {
+          metrics[bucket.status] = bucket.count;
+        }
+      }
+      return metrics;
+    },
+    leadsStatusFilters() {
+      const leads =
+        this.chunkDetail && this.chunkDetail.leads ? this.chunkDetail.leads : [];
+      const counts = leads.reduce(
+        (acc, lead) => {
+          const key = lead.campaignStatus || "_unsent";
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        },
+        {},
+      );
+      const knownStatuses = [
+        "sent",
+        "delivered",
+        "read",
+        "with_response",
+        "invalid_number",
+        "error",
+      ];
+      const filters = [
+        { value: "all", label: "Todos", count: leads.length },
+      ];
+      for (const status of knownStatuses) {
+        if (counts[status]) {
+          filters.push({
+            value: status,
+            label: status,
+            count: counts[status],
+          });
+        }
+      }
+      if (counts._unsent) {
+        filters.push({
+          value: "_unsent",
+          label: "sin enviar",
+          count: counts._unsent,
+        });
+      }
+      return filters;
+    },
+    filteredChunkLeads() {
+      const leads =
+        this.chunkDetail && this.chunkDetail.leads ? this.chunkDetail.leads : [];
+      if (this.leadsStatusFilter === "all") return leads;
+      if (this.leadsStatusFilter === "_unsent") {
+        return leads.filter((l) => !l.campaignStatus);
+      }
+      return leads.filter((l) => l.campaignStatus === this.leadsStatusFilter);
+    },
     getUniqueBotsCount() {
       if (!this.simulationDialog.results.length) return 0;
       const uniqueBots = new Set(
@@ -1554,6 +1751,41 @@ export default {
     });
   },
   methods: {
+    getStatusIcon(status) {
+      const map = {
+        sent: "mdi-send",
+        delivered: "mdi-check",
+        read: "mdi-check-all",
+        with_response: "mdi-reply",
+        invalid_number: "mdi-phone-off",
+        error: "mdi-alert-circle",
+      };
+      return map[status] || "mdi-help-circle";
+    },
+    getStatusColor(status) {
+      const map = {
+        sent: "blue darken-1",
+        delivered: "teal darken-1",
+        read: "light-blue darken-2",
+        with_response: "green darken-2",
+        invalid_number: "orange darken-2",
+        error: "red darken-1",
+      };
+      return map[status] || "grey";
+    },
+    formatRelativeTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      const diffMs = Date.now() - date.getTime();
+      const diffMin = Math.round(diffMs / 60000);
+      if (diffMin < 1) return "ahora";
+      if (diffMin < 60) return `hace ${diffMin}m`;
+      const diffHr = Math.round(diffMin / 60);
+      if (diffHr < 24) return `hace ${diffHr}h`;
+      const diffDay = Math.round(diffHr / 24);
+      if (diffDay < 30) return `hace ${diffDay}d`;
+      return format(date, "dd/MM/yyyy", { locale: es });
+    },
     _processCampaignItem(campaign) {
       // Initialize chunksPagesSent if it doesn't exist
       if (campaign.chunksPagesSent === undefined) {
@@ -1931,6 +2163,7 @@ export default {
           this.$store.getters["authModule/getCurrentCompany"].company._id,
         ],
         includeCount: true,
+        includeMetrics: true,
       };
       this.$store.commit("loadingModule/showLoading"); // Show loading at the start
       await Promise.all([
@@ -3184,4 +3417,11 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.lead-status-mono {
+  font-family: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
+  font-size: 11.5px;
+  color: rgba(0, 0, 0, 0.78);
+  letter-spacing: 0.1px;
+}
+</style>

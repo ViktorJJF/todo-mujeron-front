@@ -12,4 +12,10 @@ export default {
   delete(id) {
     return axios.delete(`/api/marketing-segments/${id}`);
   },
+  countLeads(id) {
+    return axios.get(`/api/marketing-segments/${id}/leads-count`);
+  },
+  previewLeadsCount(payload, { signal } = {}) {
+    return axios.post(`/api/marketing-segments/preview-leads-count`, payload, { signal });
+  },
 };

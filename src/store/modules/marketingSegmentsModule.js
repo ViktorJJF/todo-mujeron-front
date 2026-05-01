@@ -1,6 +1,12 @@
 //usar esto para consultar en base de datos sin paginacion del server
+import axios from "axios";
 import api from "@/services/api/marketingSegments";
 import { buildSuccess, handleError } from "@/utils/utils.js";
+
+const axiosIsCancel = (error) =>
+  axios.isCancel?.(error) ||
+  error?.name === "CanceledError" ||
+  error?.code === "ERR_CANCELED";
 
 const module = {
   namespaced: true,
@@ -67,6 +73,36 @@ const module = {
             resolve();
           })
           .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
+    countLeads({ commit }, id) {
+      return new Promise((resolve, reject) => {
+        api
+          .countLeads(id)
+          .then((res) => {
+            const total = res.data?.payload ?? 0;
+            resolve(total);
+          })
+          .catch((error) => {
+            handleError(error, commit, reject);
+          });
+      });
+    },
+    previewLeadsCount({ commit }, { payload, signal } = {}) {
+      return new Promise((resolve, reject) => {
+        api
+          .previewLeadsCount(payload, { signal })
+          .then((res) => {
+            const total = res.data?.payload ?? 0;
+            resolve(total);
+          })
+          .catch((error) => {
+            if (axiosIsCancel(error)) {
+              reject(error);
+              return;
+            }
             handleError(error, commit, reject);
           });
       });

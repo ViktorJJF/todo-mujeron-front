@@ -5,6 +5,46 @@
       <span class="headline">{{ formTitle }}</span>
     </v-card-title>
     <v-divider></v-divider>
+    <div class="leads-count-bar">
+      <div class="leads-count-bar__info">
+        <v-icon
+          :color="leadsCountState === 'error' ? 'error' : 'primary'"
+          class="mr-2"
+          >{{ leadsCountIcon }}</v-icon
+        >
+        <div class="leads-count-bar__text">
+          <div class="leads-count-bar__title">Vista previa de leads</div>
+          <div class="leads-count-bar__subtitle">
+            <span :class="leadsCountSubtitle.className">{{
+              leadsCountSubtitle.text
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="leads-count-bar__actions">
+        <v-chip
+          v-if="leadsCountState === 'success'"
+          color="primary"
+          text-color="white"
+          class="mr-2 leads-count-bar__chip"
+        >
+          <v-icon left small>mdi-account-multiple</v-icon>
+          <strong>{{ formattedLeadsCount }}</strong>
+          <span class="ml-1">leads</span>
+        </v-chip>
+        <v-btn
+          :color="leadsCountState === 'error' ? 'error' : 'primary'"
+          :outlined="leadsCountState === 'success'"
+          :loading="leadsCountState === 'loading'"
+          :disabled="leadsCountState === 'loading'"
+          small
+          @click="fetchLeadsCount"
+        >
+          <v-icon left small>{{ leadsCountButtonIcon }}</v-icon>
+          {{ leadsCountButtonLabel }}
+        </v-btn>
+      </div>
+    </div>
     <ValidationObserver ref="obs" v-slot="{ passes }">
       <v-container v-if="!isFinalStep" class="pa-5">
         <v-row>
@@ -696,10 +736,24 @@ export default {
       ],
       cloudStorageLinks: [],
       selectedCloudStorageLink: null,
+      leadsCountState: "idle",
+      leadsCount: null,
+      leadsCountError: null,
+      leadsCountUpdatedAt: null,
+      leadsCountUpdatedAtLabel: "",
+      leadsCountSnapshot: null,
+      leadsCountAbortController: null,
     };
   },
   async mounted() {
     await this.initialize();
+    this.leadsCountTimer = setInterval(() => {
+      this.refreshLeadsCountLabel();
+    }, 30000);
+  },
+  beforeDestroy() {
+    if (this.leadsCountTimer) clearInterval(this.leadsCountTimer);
+    if (this.leadsCountAbortController) this.leadsCountAbortController.abort();
   },
   computed: {
     formTitle() {
@@ -727,6 +781,81 @@ export default {
         this.editedItem.filters.catalogFilter.type === "all"
       );
     },
+    canCountLeads() {
+      return Boolean(this.currentCompanyId);
+    },
+    currentCompanyId() {
+      return (
+        this.$store.getters["authModule/getCurrentCompany"]?.company?._id ||
+        null
+      );
+    },
+    formattedLeadsCount() {
+      if (this.leadsCount === null || this.leadsCount === undefined) return "0";
+      return this.leadsCount.toLocaleString("es-CL");
+    },
+    leadsCountIcon() {
+      if (this.leadsCountState === "loading") return "mdi-progress-clock";
+      if (this.leadsCountState === "error") return "mdi-alert-circle-outline";
+      if (this.leadsCountState === "success") return "mdi-account-group";
+      return "mdi-calculator-variant-outline";
+    },
+    leadsCountErrorMsg() {
+      return this.leadsCountError || "No se pudo calcular";
+    },
+    leadsCountButtonIcon() {
+      return this.leadsCountState === "success"
+        ? "mdi-refresh"
+        : "mdi-calculator";
+    },
+    leadsCountButtonLabel() {
+      if (this.leadsCountState === "success") return "Recalcular";
+      if (this.leadsCountState === "error") return "Reintentar";
+      return "Calcular leads";
+    },
+    leadsCountSubtitle() {
+      if (this.leadsCountState === "loading") {
+        return { text: "Calculando…", className: "" };
+      }
+      if (this.leadsCountState === "error") {
+        return { text: this.leadsCountErrorMsg, className: "error--text" };
+      }
+      if (this.leadsCountState === "success") {
+        if (this.hasUnsavedChanges) {
+          return {
+            text: "Filtros modificados — pulsa Recalcular para actualizar.",
+            className: "warning--text",
+          };
+        }
+        return {
+          text: `Calculado ${this.leadsCountUpdatedAtLabel}`,
+          className: "",
+        };
+      }
+      return {
+        text: "Calcula cuántos leads cumplen los filtros actuales (sin guardar).",
+        className: "",
+      };
+    },
+    filtersSnapshot() {
+      const item = this.editedItem;
+      if (!item) return "";
+      return JSON.stringify({
+        filters: item.filters,
+        todofullLabels: item.todofullLabels,
+        excludeTodofullLabels: item.excludeTodofullLabels,
+        todofullLabelsFilter: item.todofullLabelsFilter,
+        botIds: item.botIds,
+        type: item.type,
+      });
+    },
+    hasUnsavedChanges() {
+      return (
+        this.leadsCountState === "success" &&
+        this.leadsCountSnapshot !== null &&
+        this.filtersSnapshot !== this.leadsCountSnapshot
+      );
+    },
   },
   methods: {
     async initialize() {
@@ -738,6 +867,107 @@ export default {
       this.editedItem.botIds = this.botIds.map((bot) => bot._id);
       this.syncSelectedCloudStorageLinkFromId();
       this.initializeCatalogFilterCatalogs();
+    },
+    refreshLeadsCountLabel() {
+      if (!this.leadsCountUpdatedAt) {
+        this.leadsCountUpdatedAtLabel = "";
+        return;
+      }
+      const diffSec = Math.round((Date.now() - this.leadsCountUpdatedAt) / 1000);
+      if (diffSec < 5) {
+        this.leadsCountUpdatedAtLabel = "hace unos segundos";
+      } else if (diffSec < 60) {
+        this.leadsCountUpdatedAtLabel = `hace ${diffSec}s`;
+      } else if (diffSec < 3600) {
+        this.leadsCountUpdatedAtLabel = `hace ${Math.round(diffSec / 60)} min`;
+      } else {
+        this.leadsCountUpdatedAtLabel = `hace ${Math.round(diffSec / 3600)} h`;
+      }
+    },
+    buildPreviewPayload() {
+      const item = this.editedItem;
+      const filters = item.filters || {};
+      const idOf = (value) =>
+        typeof value === "string" ? value : value && value._id ? value._id : null;
+      const slimLabels = (labels) =>
+        Array.isArray(labels)
+          ? labels.map((label) => ({ _id: idOf(label) })).filter((label) => label._id)
+          : [];
+      const slimLabelsFilter = (labelsFilter) => {
+        if (!labelsFilter || !Array.isArray(labelsFilter.groups)) {
+          return { operator: "or", groups: [] };
+        }
+        return {
+          operator: labelsFilter.operator || "or",
+          groups: labelsFilter.groups.map((group) => ({
+            operator: group.operator || "and",
+            conditions: (group.conditions || []).map((condition) => ({
+              type: condition.type,
+              labels: slimLabels(condition.labels),
+            })),
+          })),
+        };
+      };
+      const slimFilters = { ...filters };
+      if (filters.catalogFilter && Array.isArray(filters.catalogFilter.catalogs)) {
+        slimFilters.catalogFilter = {
+          ...filters.catalogFilter,
+          catalogs: filters.catalogFilter.catalogs.map(idOf).filter(Boolean),
+        };
+      }
+      if (filters.campaignFilter && Array.isArray(filters.campaignFilter.campaigns)) {
+        slimFilters.campaignFilter = {
+          ...filters.campaignFilter,
+          campaigns: filters.campaignFilter.campaigns.map(idOf).filter(Boolean),
+        };
+      }
+      return {
+        company: this.currentCompanyId,
+        filters: slimFilters,
+        todofullLabels: slimLabels(item.todofullLabels),
+        excludeTodofullLabels: slimLabels(item.excludeTodofullLabels),
+        todofullLabelsFilter: slimLabelsFilter(item.todofullLabelsFilter),
+        target_countries: item.target_countries || [],
+      };
+    },
+    async fetchLeadsCount() {
+      if (!this.canCountLeads) return;
+      if (this.leadsCountAbortController) {
+        this.leadsCountAbortController.abort();
+      }
+      const controller = new AbortController();
+      this.leadsCountAbortController = controller;
+      this.leadsCountState = "loading";
+      this.leadsCountError = null;
+      try {
+        const payload = this.buildPreviewPayload();
+        const total = await this.$store.dispatch(
+          ENTITY + "Module/previewLeadsCount",
+          { payload, signal: controller.signal }
+        );
+        if (controller.signal.aborted) return;
+        this.leadsCount = typeof total === "number" ? total : 0;
+        this.leadsCountUpdatedAt = Date.now();
+        this.leadsCountSnapshot = this.filtersSnapshot;
+        this.leadsCountState = "success";
+        this.refreshLeadsCountLabel();
+      } catch (error) {
+        if (
+          error?.name === "CanceledError" ||
+          error?.code === "ERR_CANCELED" ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
+        this.leadsCountError =
+          (error && (error.message || error.response?.data?.errors?.msg)) ||
+          "No se pudo calcular";
+        this.leadsCountState = "error";
+      } finally {
+        if (this.leadsCountAbortController === controller) {
+          this.leadsCountAbortController = null;
+        }
+      }
     },
     onSelectTodofullLabels(selectedLabels) {
       this.editedItem.todofullLabels = selectedLabels;
@@ -1186,5 +1416,54 @@ export default {
 .caption {
   font-size: 0.75rem;
   line-height: 1.25rem;
+}
+
+.leads-count-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(25, 118, 210, 0.06) 0%,
+    rgba(25, 118, 210, 0.02) 100%
+  );
+  border-bottom: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+
+  &__info {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 220px;
+  }
+
+  &__text {
+    line-height: 1.2;
+  }
+
+  &__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  &__subtitle {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 2px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  &__chip {
+    font-weight: 600;
+  }
 }
 </style>
