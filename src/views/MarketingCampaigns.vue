@@ -2030,27 +2030,12 @@ export default {
 
             // Prepare the update for this specific chunkIndex
             newScheduledChunksUpdates[chunkIndex] = {
-              // Preserve existing UI-specific values (like user-set delayHours/Minutes) if they exist
-              // and overwrite with backend data where appropriate.
               ...(campaign.scheduledChunks[chunkIndex] || {}), // Spread existing state for this chunk first
               scheduledTime: scheduledTime,
               status: uiStatus,
               errorMessage: progChunk.errorMessage || null,
               lastRealError: progChunk.lastRealError || null,
               errorPhones: progChunk.errorPhones || null,
-              // If progChunk provides these, use them, otherwise keep existing or undefined
-              delayHours:
-                progChunk.delayHours !== undefined
-                  ? progChunk.delayHours
-                  : campaign.scheduledChunks[chunkIndex]
-                  ? campaign.scheduledChunks[chunkIndex].delayHours
-                  : undefined,
-              delayMinutes:
-                progChunk.delayMinutes !== undefined
-                  ? progChunk.delayMinutes
-                  : campaign.scheduledChunks[chunkIndex]
-                  ? campaign.scheduledChunks[chunkIndex].delayMinutes
-                  : undefined,
             };
           }
         }
