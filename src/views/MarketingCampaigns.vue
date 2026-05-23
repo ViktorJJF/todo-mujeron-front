@@ -666,34 +666,68 @@
           <div v-if="scheduleDialog.type === 'schedule'">
             <v-card outlined class="pa-4 mb-4">
               <v-card-title class="px-0 pt-0 text-subtitle-1 font-weight-bold"
-                >Configurar tiempo de espera</v-card-title
+                >Seleccionar fecha y hora de envío</v-card-title
               >
               <v-row align="center">
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="scheduleDialog.hours"
-                    label="Horas"
-                    type="number"
-                    min="0"
-                    max="23"
-                    outlined
-                    hide-details
-                    dense
-                    @input="validateScheduleInputs"
-                  ></v-text-field>
+                <v-col cols="7">
+                  <v-menu
+                    v-model="scheduleDialog.showDateMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="290px"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        :value="formatScheduleDateDisplay(scheduleDialog.scheduledDate)"
+                        label="Fecha"
+                        prepend-inner-icon="mdi-calendar"
+                        readonly
+                        outlined
+                        hide-details
+                        dense
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="scheduleDialog.scheduledDate"
+                      :min="todayDateString"
+                      locale="es"
+                      @input="scheduleDialog.showDateMenu = false"
+                    ></v-date-picker>
+                  </v-menu>
                 </v-col>
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="scheduleDialog.minutes"
-                    label="Minutos"
-                    type="number"
-                    min="0"
-                    max="59"
-                    outlined
-                    hide-details
-                    dense
-                    @input="validateScheduleInputs"
-                  ></v-text-field>
+                <v-col cols="5">
+                  <v-menu
+                    v-model="scheduleDialog.showTimeMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    max-width="290px"
+                    min-width="290px"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="scheduleDialog.scheduledTimeStr"
+                        label="Hora"
+                        prepend-inner-icon="mdi-clock-outline"
+                        readonly
+                        outlined
+                        hide-details
+                        dense
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-time-picker
+                      v-if="scheduleDialog.showTimeMenu"
+                      v-model="scheduleDialog.scheduledTimeStr"
+                      format="24hr"
+                      full-width
+                      @click:minute="scheduleDialog.showTimeMenu = false"
+                    ></v-time-picker>
+                  </v-menu>
                 </v-col>
               </v-row>
               <v-divider class="my-3"></v-divider>
@@ -701,17 +735,12 @@
                 <v-icon color="info" class="mr-2"
                   >mdi-information-outline</v-icon
                 >
-                <span>
-                  El envío se realizará en
-                  <strong>{{ scheduleDialog.hours || "0" }}</strong>
-                  {{ parseInt(scheduleDialog.hours) === 1 ? "hora" : "horas" }}
-                  y
-                  <strong>{{ scheduleDialog.minutes || "0" }}</strong>
-                  {{
-                    parseInt(scheduleDialog.minutes) === 1
-                      ? "minuto"
-                      : "minutos"
-                  }}.
+                <span v-if="isScheduleValid">
+                  Se enviará en
+                  <strong>{{ getScheduledRelativeString }}</strong>
+                </span>
+                <span v-else class="grey--text">
+                  Selecciona una fecha y hora futuras
                 </span>
               </div>
             </v-card>
@@ -903,7 +932,93 @@
           <div v-if="bulkScheduleDialog.type === 'schedule'">
             <v-card outlined class="pa-4 mb-4">
               <v-card-title class="px-0 pt-0 text-subtitle-1 font-weight-bold">
-                Configurar retraso base para programación
+                Iniciar a partir de (opcional)
+              </v-card-title>
+              <p class="caption grey--text mb-2">
+                Si lo dejas vacío, la primera tanda se programa con el intervalo
+                de abajo desde ahora.
+              </p>
+              <v-row align="center">
+                <v-col cols="7">
+                  <v-menu
+                    v-model="bulkScheduleDialog.showStartAtDateMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="290px"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        :value="formatScheduleDateDisplay(bulkScheduleDialog.startAtDate)"
+                        label="Fecha de inicio"
+                        prepend-inner-icon="mdi-calendar"
+                        readonly
+                        clearable
+                        outlined
+                        hide-details
+                        dense
+                        v-bind="attrs"
+                        v-on="on"
+                        @click:clear="bulkScheduleDialog.startAtDate = ''"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="bulkScheduleDialog.startAtDate"
+                      :min="todayDateString"
+                      locale="es"
+                      @input="bulkScheduleDialog.showStartAtDateMenu = false"
+                    ></v-date-picker>
+                  </v-menu>
+                </v-col>
+                <v-col cols="5">
+                  <v-menu
+                    v-model="bulkScheduleDialog.showStartAtTimeMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    max-width="290px"
+                    min-width="290px"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="bulkScheduleDialog.startAtTimeStr"
+                        label="Hora de inicio"
+                        prepend-inner-icon="mdi-clock-outline"
+                        readonly
+                        clearable
+                        outlined
+                        hide-details
+                        dense
+                        v-bind="attrs"
+                        v-on="on"
+                        @click:clear="bulkScheduleDialog.startAtTimeStr = ''"
+                      ></v-text-field>
+                    </template>
+                    <v-time-picker
+                      v-if="bulkScheduleDialog.showStartAtTimeMenu"
+                      v-model="bulkScheduleDialog.startAtTimeStr"
+                      format="24hr"
+                      full-width
+                      @click:minute="bulkScheduleDialog.showStartAtTimeMenu = false"
+                    ></v-time-picker>
+                  </v-menu>
+                </v-col>
+              </v-row>
+              <v-alert
+                v-if="bulkStartAtError"
+                color="warning"
+                dense
+                border="left"
+                colored-border
+                class="mt-3 mb-0"
+              >
+                {{ bulkStartAtError }}
+              </v-alert>
+            </v-card>
+
+            <v-card outlined class="pa-4 mb-4">
+              <v-card-title class="px-0 pt-0 text-subtitle-1 font-weight-bold">
+                Intervalo entre tandas
               </v-card-title>
               <v-row align="center">
                 <v-col cols="6">
@@ -1427,8 +1542,10 @@ export default {
     scheduleDialog: {
       show: false,
       type: "schedule",
-      hours: "0",
-      minutes: "15",
+      scheduledDate: "",
+      scheduledTimeStr: "",
+      showDateMenu: false,
+      showTimeMenu: false,
       chunkIndex: null,
       item: null,
       chunk: null,
@@ -1441,6 +1558,10 @@ export default {
       millisecondsBetweenChunksForBulkNow: "1000", // For 'now' type
       baseDelayHours: "0", // For 'schedule' type
       baseDelayMinutes: "15", // For 'schedule' type
+      startAtDate: "", // Optional: YYYY-MM-DD anchor for first chunk
+      startAtTimeStr: "", // Optional: HH:mm anchor for first chunk
+      showStartAtDateMenu: false,
+      showStartAtTimeMenu: false,
       item: null,
       loading: false,
       isBulkNowSending: false, // Added for bulk "now" sending UI state
@@ -1479,41 +1600,79 @@ export default {
     entity() {
       return ENTITY;
     },
+    todayDateString() {
+      return format(new Date(), "yyyy-MM-dd");
+    },
+    scheduledDateTime() {
+      const { scheduledDate, scheduledTimeStr } = this.scheduleDialog;
+      if (!scheduledDate || !scheduledTimeStr) return null;
+      const dt = new Date(`${scheduledDate}T${scheduledTimeStr}:00`);
+      return isNaN(dt.getTime()) ? null : dt;
+    },
     getScheduledTimeString() {
-      if (!this.scheduleDialog.show) return ""; // Prevent computation if not shown
-      const now = new Date();
-      const futureTime = new Date(
-        now.getTime() +
-          parseInt(this.scheduleDialog.hours || 0) * 60 * 60 * 1000 +
-          parseInt(this.scheduleDialog.minutes || 0) * 60 * 1000
-      );
-      return format(futureTime, "dd/MM/yyyy HH:mm", { locale: es });
+      if (!this.scheduleDialog.show || !this.scheduledDateTime) return "";
+      return format(this.scheduledDateTime, "dd/MM/yyyy HH:mm", { locale: es });
+    },
+    getScheduledRelativeString() {
+      if (!this.scheduledDateTime) return "";
+      const diffMs = this.scheduledDateTime.getTime() - Date.now();
+      if (diffMs <= 0) return "ya";
+      const totalMinutes = Math.floor(diffMs / 60000);
+      const days = Math.floor(totalMinutes / (60 * 24));
+      const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+      const minutes = totalMinutes % 60;
+      const parts = [];
+      if (days > 0) parts.push(`${days} ${days === 1 ? "día" : "días"}`);
+      if (hours > 0) parts.push(`${hours} ${hours === 1 ? "hora" : "horas"}`);
+      if (minutes > 0) parts.push(`${minutes} ${minutes === 1 ? "minuto" : "minutos"}`);
+      if (parts.length === 0) return "menos de 1 minuto";
+      return parts.join(" y ");
     },
     isScheduleValid() {
-      const hours = parseInt(this.scheduleDialog.hours || 0);
-      const minutes = parseInt(this.scheduleDialog.minutes || 0);
-      return hours > 0 || minutes > 0;
+      return !!this.scheduledDateTime && this.scheduledDateTime.getTime() > Date.now();
     },
     // New computed properties for bulk schedule dialog
+    bulkStartAtDateTime() {
+      const { startAtDate, startAtTimeStr } = this.bulkScheduleDialog;
+      if (!startAtDate || !startAtTimeStr) return null;
+      const dt = new Date(`${startAtDate}T${startAtTimeStr}:00`);
+      return isNaN(dt.getTime()) ? null : dt;
+    },
+    bulkStartAtError() {
+      const { startAtDate, startAtTimeStr } = this.bulkScheduleDialog;
+      if (!startAtDate && !startAtTimeStr) return "";
+      if (!startAtDate || !startAtTimeStr) {
+        return "Completa fecha y hora, o vacía ambos para usar la hora actual.";
+      }
+      if (this.bulkStartAtDateTime && this.bulkStartAtDateTime.getTime() <= Date.now()) {
+        return "La fecha de inicio debe ser futura.";
+      }
+      return "";
+    },
+    bulkBaseTime() {
+      return this.bulkStartAtDateTime || new Date();
+    },
     getBulkBaseScheduledTimeString() {
       if (
         this.bulkScheduleDialog.type !== "schedule" ||
         !this.bulkScheduleDialog.show
       )
         return "";
-      const now = new Date();
-      const futureTime = new Date(
-        now.getTime() +
-          parseInt(this.bulkScheduleDialog.baseDelayHours || 0) *
+      const base = this.bulkBaseTime;
+      // With anchor: first chunk fires AT anchor. Without anchor: first chunk fires after one interval.
+      const firstChunkDelay = this.bulkStartAtDateTime
+        ? 0
+        : parseInt(this.bulkScheduleDialog.baseDelayHours || 0) *
             60 *
             60 *
             1000 +
-          parseInt(this.bulkScheduleDialog.baseDelayMinutes || 0) * 60 * 1000
-      );
+          parseInt(this.bulkScheduleDialog.baseDelayMinutes || 0) * 60 * 1000;
+      const futureTime = new Date(base.getTime() + firstChunkDelay);
       return format(futureTime, "dd/MM/yyyy HH:mm", { locale: es });
     },
     isBulkBaseScheduleDelayValid() {
       if (this.bulkScheduleDialog.type !== "schedule") return true;
+      if (this.bulkStartAtError) return false;
       const hours = parseInt(this.bulkScheduleDialog.baseDelayHours || 0);
       const minutes = parseInt(this.bulkScheduleDialog.baseDelayMinutes || 0);
       return hours > 0 || minutes > 0;
@@ -2300,6 +2459,17 @@ export default {
       }
     },
 
+    formatScheduleDateDisplay(yyyyMmDd) {
+      if (!yyyyMmDd) return "";
+      try {
+        const [y, m, d] = yyyyMmDd.split("-").map((s) => parseInt(s, 10));
+        const dt = new Date(y, (m || 1) - 1, d || 1);
+        return format(dt, "dd/MM/yyyy", { locale: es });
+      } catch {
+        return yyyyMmDd;
+      }
+    },
+
     getCleanleadsChunks(el) {
       console.log("seleccionado: ", el);
     },
@@ -2363,25 +2533,24 @@ export default {
     },
 
     openScheduleDialog(item, chunk, chunkIndex) {
-      let hours = "0";
-      let minutes = "15";
+      let prefillDate = new Date(Date.now() + 15 * 60 * 1000);
 
       const scheduledInfo =
         item.scheduledChunks && item.scheduledChunks[chunkIndex];
-      if (scheduledInfo) {
-        if (scheduledInfo.delayHours !== undefined) {
-          hours = scheduledInfo.delayHours.toString();
-        }
-        if (scheduledInfo.delayMinutes !== undefined) {
-          minutes = scheduledInfo.delayMinutes.toString();
+      if (scheduledInfo && scheduledInfo.scheduledTime) {
+        const existing = new Date(scheduledInfo.scheduledTime);
+        if (!isNaN(existing.getTime()) && existing.getTime() > Date.now()) {
+          prefillDate = existing;
         }
       }
 
       this.scheduleDialog = {
         show: true,
         type: "now", // Default to 'now'
-        hours,
-        minutes,
+        scheduledDate: format(prefillDate, "yyyy-MM-dd"),
+        scheduledTimeStr: format(prefillDate, "HH:mm"),
+        showDateMenu: false,
+        showTimeMenu: false,
         chunkIndex,
         item,
         chunk,
@@ -2390,8 +2559,7 @@ export default {
     },
 
     confirmScheduleChunk() {
-      const { item, chunk, chunkIndex, type, hours, minutes } =
-        this.scheduleDialog;
+      const { item, chunk, chunkIndex, type } = this.scheduleDialog;
       this.scheduleDialog.loading = true;
 
       if (type === "now") {
@@ -2413,25 +2581,20 @@ export default {
         // this.refreshCampaignItem(item); // Optionally refresh to confirm backend state
       } else {
         // type === 'schedule'
-        this.validateScheduleInputs();
-        const hoursNum = parseInt(hours || 0);
-        const minutesNum = parseInt(minutes || 0);
-
-        if (!this.isScheduleValid) {
-          // Use computed prop
+        const now = new Date();
+        const scheduledTime = this.scheduledDateTime;
+        // Re-check freshly against now: the isScheduleValid computed caches Date.now()
+        // from the last reactive dependency, so a long-open dialog could pass an expired time.
+        if (!scheduledTime || scheduledTime.getTime() <= now.getTime()) {
           buildSuccess(
-            "Por favor, ingrese un tiempo de retraso válido.",
+            "La fecha y hora seleccionadas ya pasaron. Vuelve a elegir.",
             this.$store.commit,
             "warning"
           );
           this.scheduleDialog.loading = false;
           return;
         }
-
-        const now = new Date();
-        const delayMilliseconds =
-          hoursNum * 60 * 60 * 1000 + minutesNum * 60 * 1000;
-        const scheduledTime = new Date(now.getTime() + delayMilliseconds);
+        const delayMilliseconds = scheduledTime.getTime() - now.getTime();
 
         const scheduleAPIOptions = {
           isProgrammed: true,
@@ -2444,8 +2607,6 @@ export default {
         this.$set(item.scheduledChunks, chunkIndex, {
           scheduledTime: scheduledTime.toISOString(),
           status: "scheduled", // Optimistic UI update
-          delayHours: hoursNum,
-          delayMinutes: minutesNum,
         });
 
         marketingCampaignsService
@@ -2578,16 +2739,6 @@ export default {
       return "En breve";
     },
 
-    validateScheduleInputs() {
-      let hours = parseInt(this.scheduleDialog.hours || 0);
-      hours = isNaN(hours) || hours < 0 ? 0 : hours > 23 ? 23 : hours;
-      this.scheduleDialog.hours = hours.toString();
-
-      let minutes = parseInt(this.scheduleDialog.minutes || 0);
-      minutes = isNaN(minutes) || minutes < 0 ? 0 : minutes > 59 ? 59 : minutes;
-      this.scheduleDialog.minutes = minutes.toString();
-    },
-
     openBulkScheduleDialog(item) {
       // Reset any previous bulk send statuses
       if (item.chunks && item.chunks.length > 0) {
@@ -2604,6 +2755,10 @@ export default {
           : "1000";
       this.bulkScheduleDialog.baseDelayHours = "0";
       this.bulkScheduleDialog.baseDelayMinutes = "15";
+      this.bulkScheduleDialog.startAtDate = "";
+      this.bulkScheduleDialog.startAtTimeStr = "";
+      this.bulkScheduleDialog.showStartAtDateMenu = false;
+      this.bulkScheduleDialog.showStartAtTimeMenu = false;
       this.bulkScheduleDialog.loading = false;
       this.bulkScheduleDialog.isBulkNowSending = false; // Ensure it's reset
       this.bulkScheduleDialog.show = true;
@@ -2706,6 +2861,22 @@ export default {
         const baseDelayMilliseconds =
           hoursNum * 60 * 60 * 1000 + minutesNum * 60 * 1000;
         const now = new Date();
+        // Re-check freshly against now: the bulkBaseTime/bulkStartAtError computeds
+        // cache Date.now() from their last reactive dependency, so a long-open dialog
+        // could send a sendAt in the past (which the cron treats as "send immediately").
+        if (
+          this.bulkStartAtDateTime &&
+          this.bulkStartAtDateTime.getTime() <= now.getTime()
+        ) {
+          buildSuccess(
+            "La fecha de inicio ya pasó. Vuelve a elegir.",
+            this.$store.commit,
+            "warning"
+          );
+          this.bulkScheduleDialog.loading = false;
+          return;
+        }
+        const base = this.bulkStartAtDateTime || now;
         let errorOccurred = false;
         if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
 
@@ -2746,15 +2917,19 @@ export default {
 
           // This chunk is eligible for scheduling
           actuallyScheduledCountForDelayCalculation++;
-          const totalDelayForThisChunk =
-            actuallyScheduledCountForDelayCalculation * baseDelayMilliseconds; // Use the counter for actual schedulable order
+          // With an explicit anchor, the first eligible chunk fires AT the anchor;
+          // without anchor, it fires after one interval (preserves legacy behavior).
+          const stepIndex = this.bulkStartAtDateTime
+            ? actuallyScheduledCountForDelayCalculation - 1
+            : actuallyScheduledCountForDelayCalculation;
+          const totalDelayForThisChunk = stepIndex * baseDelayMilliseconds;
           const scheduledTime = new Date(
-            now.getTime() + totalDelayForThisChunk
+            base.getTime() + totalDelayForThisChunk
           );
           const scheduleAPIOptions = {
             isProgrammed: true,
             currentTime: now.toISOString(),
-            delayMilliseconds: totalDelayForThisChunk,
+            delayMilliseconds: scheduledTime.getTime() - now.getTime(),
             sendAt: scheduledTime.toISOString(),
           };
 
@@ -2905,10 +3080,14 @@ export default {
         return "No se programará (sin nueva fecha)";
       }
 
-      const now = new Date();
-      const cumulativeDelayMilliseconds =
-        schedulableChunkOrder * baseDelayMilliseconds;
-      const futureTime = new Date(now.getTime() + cumulativeDelayMilliseconds);
+      const base = this.bulkBaseTime;
+      // When an explicit start time is set, the first chunk fires AT the anchor;
+      // without anchor, the first chunk fires after one interval (preserves legacy behavior).
+      const stepIndex = this.bulkStartAtDateTime
+        ? schedulableChunkOrder - 1
+        : schedulableChunkOrder;
+      const cumulativeDelayMilliseconds = stepIndex * baseDelayMilliseconds;
+      const futureTime = new Date(base.getTime() + cumulativeDelayMilliseconds);
       return format(futureTime, "dd/MM/yyyy HH:mm:ss", { locale: es });
     },
 

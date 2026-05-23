@@ -71,6 +71,7 @@ export default {
         "carrito_abandonado_segunda_compra",
         "carrito_abandonado_3_a_5_compras",
         "carrito_abandonado_5_a_10_compras",
+        "carrito_abandonado_mas_de_10_compras",
       ],
     };
   },
@@ -103,6 +104,7 @@ export default {
             this.skuProducts,
             this.order.url,
           ],
+          carrito_abandonado_mas_de_10_compras: [this.order.url, this.skuProducts],
         };
         let response = await graphApiService.sendWhatsappMessageTemplates(
           phone,
