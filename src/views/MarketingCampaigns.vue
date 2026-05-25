@@ -156,70 +156,112 @@
                     :key="item._id + chunkIndex"
                   >
                     <v-list-item-action>
-                      <v-tooltip bottom>
-                        <template v-slot:activator="{ on }">
-                          <v-btn
-                            v-if="
-                              getTandaProgrammedStatusPackage(item, chunkIndex)
-                                .status === null ||
-                              getTandaProgrammedStatusPackage(item, chunkIndex)
-                                .status === PROGRAMMED_CHUNK_STATUSES.ERROR
-                            "
-                            @click="openScheduleDialog(item, chunk, chunkIndex)"
-                            color="info"
-                            small
-                            v-on="on"
-                            :disabled="
-                              // This disabled check might still be useful for race conditions
-                              isChunkSentOrProcessing(item, chunkIndex)
-                            "
-                          >
-                            <v-icon>mdi-send</v-icon>
-                          </v-btn>
+                      <div class="d-flex align-center">
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on }">
+                            <v-btn
+                              v-if="
+                                getTandaProgrammedStatusPackage(
+                                  item,
+                                  chunkIndex
+                                ).status === null ||
+                                getTandaProgrammedStatusPackage(
+                                  item,
+                                  chunkIndex
+                                ).status === PROGRAMMED_CHUNK_STATUSES.ERROR
+                              "
+                              @click="
+                                openScheduleDialog(item, chunk, chunkIndex)
+                              "
+                              color="info"
+                              small
+                              v-on="on"
+                              :disabled="
+                                // This disabled check might still be useful for race conditions
+                                isChunkSentOrProcessing(item, chunkIndex)
+                              "
+                            >
+                              <v-icon>mdi-send</v-icon>
+                            </v-btn>
 
-                          <v-btn
-                            v-if="
+                            <v-btn
+                              v-if="
+                                getTandaProgrammedStatusPackage(
+                                  item,
+                                  chunkIndex
+                                ).status ===
+                                  PROGRAMMED_CHUNK_STATUSES.PENDING ||
+                                getTandaProgrammedStatusPackage(
+                                  item,
+                                  chunkIndex
+                                ).status ===
+                                  PROGRAMMED_CHUNK_STATUSES.PROCESSING
+                              "
+                              @click="
+                                stopSpecificScheduledChunk(item, chunkIndex)
+                              "
+                              color="error"
+                              small
+                              v-on="on"
+                              :loading="isStoppingChunk(item, chunkIndex)"
+                            >
+                              <v-icon>mdi-stop</v-icon>
+                            </v-btn>
+                          </template>
+                          <span
+                            >{{
                               getTandaProgrammedStatusPackage(item, chunkIndex)
                                 .status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
                               getTandaProgrammedStatusPackage(item, chunkIndex)
                                 .status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
+                                ? "Detener Programación"
+                                : "Enviar/Programar"
+                            }}
+                            Tanda {{ chunkIndex + 1 }}
+                          </span>
+                          <span
+                            v-if="
+                              getTandaProgrammedStatusPackage(item, chunkIndex)
+                                .status === PROGRAMMED_CHUNK_STATUSES.PENDING
                             "
-                            @click="
-                              stopSpecificScheduledChunk(item, chunkIndex)
-                            "
-                            color="error"
-                            small
-                            v-on="on"
-                            :loading="isStoppingChunk(item, chunkIndex)"
                           >
-                            <v-icon>mdi-stop</v-icon>
-                          </v-btn>
-                        </template>
-                        <span
-                          >{{
-                            getTandaProgrammedStatusPackage(item, chunkIndex)
-                              .status === PROGRAMMED_CHUNK_STATUSES.PENDING ||
-                            getTandaProgrammedStatusPackage(item, chunkIndex)
-                              .status === PROGRAMMED_CHUNK_STATUSES.PROCESSING
-                              ? "Detener Programación"
-                              : "Enviar/Programar"
-                          }}
-                          Tanda {{ chunkIndex + 1 }}
-                        </span>
-                        <span
+                            ({{
+                              getRelativeTime(
+                                getTandaProgrammedStatusPackage(
+                                  item,
+                                  chunkIndex
+                                ).scheduledDateTime
+                              )
+                            }})
+                          </span>
+                        </v-tooltip>
+
+                        <!-- Edit schedule: only for chunks already programmed (pending) -->
+                        <v-tooltip
+                          bottom
                           v-if="
                             getTandaProgrammedStatusPackage(item, chunkIndex)
                               .status === PROGRAMMED_CHUNK_STATUSES.PENDING
                           "
                         >
-                          ({{
-                            getRelativeTime(
-                              getTandaProgrammedStatusPackage(item, chunkIndex)
-                                .scheduledDateTime
-                            )
-                          }})
-                        </span>
-                      </v-tooltip>
+                          <template v-slot:activator="{ on }">
+                            <v-btn
+                              @click="
+                                openEditScheduleDialog(item, chunk, chunkIndex)
+                              "
+                              color="primary"
+                              small
+                              icon
+                              class="ml-1"
+                              v-on="on"
+                              :disabled="isStoppingChunk(item, chunkIndex)"
+                            >
+                              <v-icon>mdi-pencil</v-icon>
+                            </v-btn>
+                          </template>
+                          <span>Editar fecha/hora Tanda {{ chunkIndex + 1 }}</span>
+                        </v-tooltip>
+                      </div>
                     </v-list-item-action>
                     <v-list-item-content>
                       <div class="d-flex align-center">
@@ -640,11 +682,11 @@
     <v-dialog v-model="scheduleDialog.show" max-width="500px" eager>
       <v-card>
         <v-card-title class="headline primary white--text">
-          Programar envío
+          {{ scheduleDialog.isEdit ? "Editar programación" : "Programar envío" }}
         </v-card-title>
         <v-card-text class="pt-4">
           <p class="mb-4 text-h6">
-            Programar envío de la
+            {{ scheduleDialog.isEdit ? "Editar programación de la" : "Programar envío de la" }}
             <strong
               >Tanda
               {{
@@ -654,7 +696,13 @@
               }}</strong
             >
           </p>
-          <v-radio-group v-model="scheduleDialog.type" row class="my-3">
+          <!-- When editing an already-programmed chunk, "send now" makes no sense: only reschedule. -->
+          <v-radio-group
+            v-if="!scheduleDialog.isEdit"
+            v-model="scheduleDialog.type"
+            row
+            class="my-3"
+          >
             <v-radio value="now" label="Enviar ahora"></v-radio>
             <v-radio
               value="schedule"
@@ -770,7 +818,11 @@
             @click="confirmScheduleChunk"
           >
             {{
-              scheduleDialog.type === "now" ? "ENVIAR AHORA" : "PROGRAMAR ENVÍO"
+              scheduleDialog.isEdit
+                ? "GUARDAR CAMBIOS"
+                : scheduleDialog.type === "now"
+                ? "ENVIAR AHORA"
+                : "PROGRAMAR ENVÍO"
             }}
           </v-btn>
         </v-card-actions>
@@ -1546,6 +1598,7 @@ export default {
       scheduledTimeStr: "",
       showDateMenu: false,
       showTimeMenu: false,
+      isEdit: false,
       chunkIndex: null,
       item: null,
       chunk: null,
@@ -2517,7 +2570,7 @@ export default {
         });
     },
 
-    openScheduleDialog(item, chunk, chunkIndex) {
+    openScheduleDialog(item, chunk, chunkIndex, isEdit = false) {
       let prefillDate = new Date(Date.now() + 15 * 60 * 1000);
 
       const scheduledInfo =
@@ -2531,11 +2584,13 @@ export default {
 
       this.scheduleDialog = {
         show: true,
-        type: "now", // Default to 'now'
+        // Editing an already-programmed chunk always means rescheduling, not "send now".
+        type: isEdit ? "schedule" : "now",
         scheduledDate: format(prefillDate, "yyyy-MM-dd"),
         scheduledTimeStr: format(prefillDate, "HH:mm"),
         showDateMenu: false,
         showTimeMenu: false,
+        isEdit,
         chunkIndex,
         item,
         chunk,
@@ -2543,8 +2598,12 @@ export default {
       };
     },
 
-    confirmScheduleChunk() {
-      const { item, chunk, chunkIndex, type } = this.scheduleDialog;
+    openEditScheduleDialog(item, chunk, chunkIndex) {
+      this.openScheduleDialog(item, chunk, chunkIndex, true);
+    },
+
+    async confirmScheduleChunk() {
+      const { item, chunk, chunkIndex, type, isEdit } = this.scheduleDialog;
       this.scheduleDialog.loading = true;
 
       if (type === "now") {
@@ -2588,45 +2647,61 @@ export default {
           sendAt: scheduledTime.toISOString(),
         };
 
-        if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
-        this.$set(item.scheduledChunks, chunkIndex, {
-          scheduledTime: scheduledTime.toISOString(),
-          status: "scheduled", // Optimistic UI update
-        });
+        // Track whether the previous schedule was already cancelled, so a failure
+        // after the stop produces an actionable message instead of a generic one.
+        let previousScheduleCancelled = false;
+        try {
+          // Editing reschedules an existing chunk. The backend always pushes a new
+          // programmedChunk (never replaces), so we must stop the current one first
+          // to avoid scheduling two timers for the same chunkPage.
+          if (isEdit) {
+            await marketingCampaignsService.stopScheduledChunk(
+              item._id,
+              chunkIndex + 1
+            );
+            previousScheduleCancelled = true;
+          }
 
-        marketingCampaignsService
-          .sendChunk(
+          if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
+          this.$set(item.scheduledChunks, chunkIndex, {
+            scheduledTime: scheduledTime.toISOString(),
+            status: "scheduled", // Optimistic UI update
+          });
+
+          await marketingCampaignsService.sendChunk(
             chunkIndex + 1,
             item.chunkSize,
             item.segment,
             item._id,
             scheduleAPIOptions
-          )
-          .then(() => {
-            buildSuccess(
-              `Tanda ${chunkIndex + 1} programada para ${format(
-                scheduledTime,
-                "dd/MM/yyyy HH:mm",
-                { locale: es }
-              )}`,
-              this.$store.commit
-            );
-            // this.refreshCampaignItem(item); // Optionally refresh
-          })
-          .catch((error) => {
-            console.error("Error al programar la tanda:", error);
-            buildSuccess(
-              `Error al programar la tanda ${chunkIndex + 1}`,
-              this.$store.commit,
-              "error"
-            );
-            if (item.scheduledChunks && item.scheduledChunks[chunkIndex]) {
-              this.$delete(item.scheduledChunks, chunkIndex); // Revert optimistic update
-            }
-          })
-          .finally(() => {
-            this.closeScheduleDialog();
-          });
+          );
+          buildSuccess(
+            `Tanda ${chunkIndex + 1} ${
+              isEdit ? "reprogramada" : "programada"
+            } para ${format(scheduledTime, "dd/MM/yyyy HH:mm", { locale: es })}`,
+            this.$store.commit
+          );
+          await this.refreshCampaignItem(item);
+        } catch (error) {
+          console.error("Error al programar la tanda:", error);
+          // If the stop succeeded but the reschedule failed, the original schedule
+          // is gone — tell the user explicitly so they re-program it.
+          buildSuccess(
+            previousScheduleCancelled
+              ? `Se canceló la programación anterior de la Tanda ${
+                  chunkIndex + 1
+                } pero la nueva falló. Vuelve a programarla.`
+              : `Error al programar la tanda ${chunkIndex + 1}`,
+            this.$store.commit,
+            "error"
+          );
+          if (item.scheduledChunks && item.scheduledChunks[chunkIndex]) {
+            this.$delete(item.scheduledChunks, chunkIndex); // Revert optimistic update
+          }
+          await this.refreshCampaignItem(item);
+        } finally {
+          this.closeScheduleDialog();
+        }
       }
     },
 
