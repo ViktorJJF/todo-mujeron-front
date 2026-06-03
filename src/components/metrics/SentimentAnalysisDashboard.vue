@@ -250,15 +250,15 @@ export default {
       VIEW_MODES,
       viewMode: VIEW_MODES.COUNTS,
       loading: false,
-      startDate: null,
-      endDate: null,
+      startDate: this.$store.state.metricsModule.dateRange.startDate,
+      endDate: this.$store.state.metricsModule.dateRange.endDate,
       dashboardData: null,
       monthlyData: null,
       salesData: null,
       metaAdsData: null,
       metaAdsAxiosCancelToken: null,
-      selectedQuickFilter: 9,
-      activeQuickFilterLabel: "Todo el tiempo",
+      selectedQuickFilter: this.$store.state.metricsModule.dateRange.quickFilterIndex,
+      activeQuickFilterLabel: this.$store.state.metricsModule.dateRange.activeFilterLabel,
       quickFilters: [
         {
           label: "Hoy",
@@ -359,7 +359,26 @@ export default {
     };
   },
 
+  watch: {
+    metricsDateRange: {
+      deep: true,
+      handler(range) {
+        if (
+          (range.startDate ?? null) === (this.startDate ?? null) &&
+          (range.endDate ?? null) === (this.endDate ?? null)
+        ) {
+          return; // change originated from this dashboard
+        }
+        this.applyExternalRange(range);
+      },
+    },
+  },
+
   computed: {
+    metricsDateRange() {
+      return this.$store.state.metricsModule.dateRange;
+    },
+
     formatDateRange() {
       if (this.viewMode === VIEW_MODES.COUNTS && this.dashboardData) {
         const { startDate, endDate } = this.dashboardData.dateRange;
@@ -764,6 +783,7 @@ export default {
       startDate,
       endDate,
       activeFilterLabel,
+      quickFilterIndex,
       forceRefresh,
     }) {
       // Store the previous date range to check if it changed
@@ -774,6 +794,10 @@ export default {
       this.startDate = startDate;
       this.endDate = endDate;
       this.activeQuickFilterLabel = activeFilterLabel;
+      if (quickFilterIndex !== undefined) {
+        this.selectedQuickFilter = quickFilterIndex;
+      }
+      this.commitDateRange(quickFilterIndex, activeFilterLabel);
 
       // If date range changed or forceRefresh is true, clear cached data to force refresh
       if (dateRangeChanged || forceRefresh) {
@@ -785,6 +809,28 @@ export default {
       }
 
       // Fetch data based on current view mode
+      this.fetchData();
+    },
+
+    commitDateRange(quickFilterIndex, activeFilterLabel) {
+      this.$store.commit("metricsModule/SET_DATE_RANGE", {
+        startDate: this.startDate ?? null,
+        endDate: this.endDate ?? null,
+        quickFilterIndex:
+          quickFilterIndex !== undefined ? quickFilterIndex : null,
+        activeFilterLabel: activeFilterLabel ?? null,
+      });
+    },
+
+    applyExternalRange(range) {
+      // Date range was changed from another metrics tab; mirror it and refetch.
+      this.startDate = range.startDate;
+      this.endDate = range.endDate;
+      this.selectedQuickFilter = range.quickFilterIndex;
+      this.activeQuickFilterLabel = range.activeFilterLabel;
+      this.dashboardData = null;
+      this.monthlyData = null;
+      this.salesData = null;
       this.fetchData();
     },
 
@@ -1089,11 +1135,9 @@ export default {
   },
 
   mounted() {
-    // Initially, fetch data based on the current view mode
-    this.fetchData();
-
-    // For better user experience, also prefetch the other view's data
-    // with lower priority (after a delay)
+    // The initial fetch is driven by UnifiedDateFilter emitting the default
+    // preset ("Últimos 30 días") on creation, so we only prefetch the other
+    // view here with lower priority.
     setTimeout(() => {
       if (this.viewMode === VIEW_MODES.COUNTS && !this.monthlyData) {
         this.fetchMonthlyData();

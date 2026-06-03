@@ -9,69 +9,41 @@
 
       <v-card-text>
         <v-row>
-          <v-col cols="12" sm="5" md="4" lg="3">
+          <v-col cols="12" sm="8" md="7" lg="5">
             <v-menu
-              v-model="startMenu"
+              v-model="dateMenu"
               :close-on-content-click="false"
               transition="scale-transition"
               offset-y
-              max-width="290px"
               min-width="auto"
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  v-model="localStartDate"
-                  :label="startLabel"
-                  prepend-icon="mdi-calendar"
+                  :value="dateRangeText"
+                  :label="rangeLabel"
+                  prepend-icon="mdi-calendar-range"
                   readonly
+                  clearable
                   v-bind="attrs"
                   v-on="on"
                   :disabled="loading"
                   outlined
                   dense
+                  @click:clear="clearRange"
                 ></v-text-field>
               </template>
               <v-date-picker
-                v-model="localStartDate"
-                @input="startMenu = false"
+                v-model="dateRange"
+                range
                 no-title
                 scrollable
+                :max="maxDate"
+                @change="onRangeChange"
               ></v-date-picker>
             </v-menu>
           </v-col>
 
-          <v-col cols="12" sm="5" md="4" lg="3">
-            <v-menu
-              v-model="endMenu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              offset-y
-              max-width="290px"
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  v-model="localEndDate"
-                  :label="endLabel"
-                  prepend-icon="mdi-calendar"
-                  readonly
-                  v-bind="attrs"
-                  v-on="on"
-                  :disabled="loading"
-                  outlined
-                  dense
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                v-model="localEndDate"
-                @input="endMenu = false"
-                no-title
-                scrollable
-              ></v-date-picker>
-            </v-menu>
-          </v-col>
-
-          <v-col cols="12" sm="2" md="2" lg="1">
+          <v-col cols="12" sm="4" md="3" lg="2">
             <v-btn
               color="primary"
               :loading="loading"
@@ -147,7 +119,7 @@ export default {
     },
     defaultSelectedFilter: {
       type: Number,
-      default: 8, // Default to 'Año 2024'
+      default: 3, // Default to 'Últimos 30 días'
     },
     startLabel: {
       type: String,
@@ -156,6 +128,10 @@ export default {
     endLabel: {
       type: String,
       default: "End Date",
+    },
+    rangeLabel: {
+      type: String,
+      default: "Rango de fechas",
     },
     applyButtonText: {
       type: String,
@@ -169,10 +145,10 @@ export default {
 
   data() {
     return {
-      localStartDate: this.startDate || "2024-01-01",
-      localEndDate: this.endDate || "2024-12-31",
-      startMenu: false,
-      endMenu: false,
+      localStartDate: this.startDate || null,
+      localEndDate: this.endDate || null,
+      dateMenu: false,
+      dateRange: this.startDate && this.endDate ? [this.startDate, this.endDate] : [],
       selectedQuickFilter: this.defaultSelectedFilter,
       filters: [
         {
@@ -302,9 +278,31 @@ export default {
   },
 
   created() {
-    // Apply the default filter when component is created
+    // Emit the initial range on creation so the parent loads data.
     setTimeout(() => {
-      this.selectQuickFilter(this.defaultSelectedFilter);
+      if (
+        this.defaultSelectedFilter != null &&
+        this.filters[this.defaultSelectedFilter]
+      ) {
+        // A quick-filter preset is active: apply it.
+        this.selectQuickFilter(this.defaultSelectedFilter);
+      } else if (this.startDate || this.endDate) {
+        // A custom range is active (no preset): reflect it and emit so the
+        // parent still fetches without relying on a preset.
+        this.localStartDate = this.startDate;
+        this.localEndDate = this.endDate;
+        this.dateRange =
+          this.startDate && this.endDate
+            ? [this.startDate, this.endDate]
+            : [];
+        this.selectedQuickFilter = null;
+        this.$emit("filter-applied", {
+          forceRefresh: true,
+          activeFilterLabel: null,
+          startDate: this.startDate,
+          endDate: this.endDate,
+        });
+      }
     }, 0);
   },
 
@@ -334,7 +332,6 @@ export default {
         payload.endDate = endDate;
       }
 
-      console.log("Manual filter applied:", payload);
       this.$emit("filter-applied", payload);
     },
 
@@ -347,6 +344,7 @@ export default {
       const { startDate, endDate } = selectedFilter.getDateRange();
       this.localStartDate = startDate;
       this.localEndDate = endDate;
+      this.dateRange = startDate && endDate ? [startDate, endDate] : [];
 
       // Create payload with filter information
       const payload = {
@@ -354,11 +352,8 @@ export default {
         quickFilterIndex: index,
       };
 
-      // For "Todo el tiempo" filter (index 12), don't include dates in the payload
-      if (index === 12) {
-        console.log("Todo el tiempo filter selected - using null dates");
-      } else {
-        // Only add date parameters for other filters and if they are not null
+      // For "Todo el tiempo" filter (index 12), keep dates out of the payload
+      if (index !== 12) {
         if (startDate !== null && startDate !== undefined) {
           payload.startDate = startDate;
         }
@@ -368,17 +363,57 @@ export default {
         }
       }
 
-      console.log("Emitting filter payload:", payload);
       this.$emit("filter-applied", payload);
+    },
+
+    onRangeChange(value) {
+      if (!value || value.length < 2) {
+        // Only the start date has been picked so far; wait for the second click.
+        return;
+      }
+
+      // v-date-picker range can return the two dates in reverse order.
+      let [startDate, endDate] = value;
+      if (startDate > endDate) {
+        [startDate, endDate] = [endDate, startDate];
+      }
+
+      this.dateRange = [startDate, endDate];
+      this.localStartDate = startDate;
+      this.localEndDate = endDate;
+      this.selectedQuickFilter = null; // custom range deselects every preset
+      this.dateMenu = false;
+
+      this.$emit("filter-applied", {
+        forceRefresh: true,
+        activeFilterLabel: null,
+        startDate,
+        endDate,
+      });
+    },
+
+    clearRange() {
+      this.dateRange = [];
+      this.localStartDate = null;
+      this.localEndDate = null;
+      this.selectedQuickFilter = null;
     },
   },
 
   watch: {
     startDate(newVal) {
       this.localStartDate = newVal;
+      this.dateRange =
+        newVal && this.localEndDate ? [newVal, this.localEndDate] : [];
     },
     endDate(newVal) {
       this.localEndDate = newVal;
+      this.dateRange =
+        this.localStartDate && newVal ? [this.localStartDate, newVal] : [];
+    },
+    // Keep the highlighted preset in sync when the range is changed from another tab.
+    defaultSelectedFilter(newVal) {
+      this.selectedQuickFilter = newVal;
     },
   },
 
@@ -389,6 +424,17 @@ export default {
 
     canApplyFilter() {
       return !this.loading;
+    },
+
+    dateRangeText() {
+      if (this.localStartDate && this.localEndDate) {
+        return `${this.localStartDate} ~ ${this.localEndDate}`;
+      }
+      return this.localStartDate || "";
+    },
+
+    maxDate() {
+      return format(new Date(), "yyyy-MM-dd");
     },
   },
 };
@@ -461,9 +507,9 @@ export default {
 }
 
 .quick-filter-pill.active {
-  background-color: var(--v-primary-base);
+  background-color: #28156c;
   color: white;
-  border: 1px solid var(--v-primary-base);
+  border: 1px solid #28156c;
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }

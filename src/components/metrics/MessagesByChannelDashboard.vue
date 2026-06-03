@@ -9,13 +9,14 @@
 
       <unified-date-filter
         @filter-applied="handleFilterApplied"
-        :selected-quick-filter="selectedQuickFilter"
+        :default-selected-filter="selectedQuickFilter"
+        :start-date="startDate"
+        :end-date="endDate"
         :title="'Filtro de fecha de mensajes'"
-        :description="'Seleccione rango de fechas'"
         :start-label="'Fecha de inicio'"
         :end-label="'Fecha de fin'"
-        :button-label="'Aplicar filtro'"
-        :quick-filter-label="'Filtros rápidos'"
+        :apply-button-text="'Aplicar filtro'"
+        :quick-filters-label="'Filtros rápidos'"
       />
 
       <!-- Loading Status Bar -->
@@ -267,11 +268,11 @@ export default {
 
   data() {
     return {
-      // Shared data
-      startDate: null,
-      endDate: null,
-      selectedQuickFilter: 8, // Default to "Año 2024"
-      activeQuickFilterLabel: "Año 2024",
+      // Shared data (seeded from the cross-tab metrics date range store)
+      startDate: this.$store.state.metricsModule.dateRange.startDate,
+      endDate: this.$store.state.metricsModule.dateRange.endDate,
+      selectedQuickFilter: this.$store.state.metricsModule.dateRange.quickFilterIndex,
+      activeQuickFilterLabel: this.$store.state.metricsModule.dateRange.activeFilterLabel,
 
       // Messages by channel data
       loadingMessages: false,
@@ -350,7 +351,26 @@ export default {
     };
   },
 
+  watch: {
+    metricsDateRange: {
+      deep: true,
+      handler(range) {
+        if (
+          (range.startDate ?? null) === (this.startDate ?? null) &&
+          (range.endDate ?? null) === (this.endDate ?? null)
+        ) {
+          return; // change originated from this dashboard
+        }
+        this.applyExternalRange(range);
+      },
+    },
+  },
+
   computed: {
+    metricsDateRange() {
+      return this.$store.state.metricsModule.dateRange;
+    },
+
     formatDateRange() {
       if (!this.monthlyData || this.monthlyData.length === 0) {
         if (!this.leadsData || this.leadsData.length === 0) {
@@ -1188,6 +1208,7 @@ export default {
       if (quickFilterIndex !== undefined) {
         this.selectedQuickFilter = quickFilterIndex;
       }
+      this.commitDateRange(quickFilterIndex, activeFilterLabel);
 
       // If date range changed or forceRefresh is true, clear cached data to force refresh
       if (dateRangeChanged || forceRefresh) {
@@ -1213,18 +1234,54 @@ export default {
         this.loadingMetaAds = true;
       }
 
-      // Log current state for debugging
-      console.log("Filter applied:", {
-        startDate: this.startDate,
-        endDate: this.endDate,
-        quickFilterIndex,
-        activeFilterLabel: this.activeQuickFilterLabel,
-      });
-
       // Cancel any existing requests
       this.cancelPendingRequests();
 
       // Fetch data independently
+      this.fetchMessagesData();
+      this.fetchLeadsData();
+      this.fetchCleanLeadsData();
+      this.fetchSalesData();
+      this.fetchMetaAdsData();
+    },
+
+    commitDateRange(quickFilterIndex, activeFilterLabel) {
+      this.$store.commit("metricsModule/SET_DATE_RANGE", {
+        startDate: this.startDate ?? null,
+        endDate: this.endDate ?? null,
+        quickFilterIndex:
+          quickFilterIndex !== undefined ? quickFilterIndex : null,
+        activeFilterLabel: activeFilterLabel ?? null,
+      });
+    },
+
+    applyExternalRange(range) {
+      // Date range was changed from another metrics tab; mirror it and refetch.
+      this.startDate = range.startDate;
+      this.endDate = range.endDate;
+      this.selectedQuickFilter = range.quickFilterIndex;
+      this.activeQuickFilterLabel = range.activeFilterLabel || "Todo el tiempo";
+
+      this.monthlyData = null;
+      this.leadsData = null;
+      this.cleanLeadsData = null;
+      this.salesData = null;
+      this.metaAdsData = null;
+
+      this.messagesLoaded = false;
+      this.leadsLoaded = false;
+      this.cleanLeadsLoaded = false;
+      this.salesLoaded = false;
+      this.metaAdsLoaded = false;
+
+      this.loadingMessages = true;
+      this.loadingLeads = true;
+      this.loadingCleanLeads = true;
+      this.loadingSales = true;
+      this.loadingMetaAds = true;
+
+      this.cancelPendingRequests();
+
       this.fetchMessagesData();
       this.fetchLeadsData();
       this.fetchCleanLeadsData();

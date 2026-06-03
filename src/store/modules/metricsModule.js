@@ -1,15 +1,25 @@
+import { format, subDays } from "date-fns";
 import metricsApi from "@/services/api/metrics";
 
 const state = {
   metricsData: [],
   loading: false,
   error: null,
+  // Shared date range so the selection persists across every metrics tab.
+  // Defaults to the last 30 days; quickFilterIndex 3 = "Últimos 30 días" preset.
+  dateRange: {
+    startDate: format(subDays(new Date(), 29), "yyyy-MM-dd"),
+    endDate: format(new Date(), "yyyy-MM-dd"),
+    quickFilterIndex: 3,
+    activeFilterLabel: "Últimos 30 días",
+  },
 };
 
 const getters = {
   getMetricsData: (state) => state.metricsData,
   isLoading: (state) => state.loading,
   getError: (state) => state.error,
+  getDateRange: (state) => state.dateRange,
 };
 
 const actions = {
@@ -43,6 +53,9 @@ const mutations = {
   },
   SET_ERROR(state, error) {
     state.error = error;
+  },
+  SET_DATE_RANGE(state, payload) {
+    state.dateRange = { ...state.dateRange, ...payload };
   },
 };
 
