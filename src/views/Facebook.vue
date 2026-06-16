@@ -394,6 +394,12 @@
                                 label="Elegible para Mensajería Masiva"
                               ></v-checkbox>
                             </v-col>
+                            <v-col cols="12" sm="6">
+                              <v-checkbox
+                                v-model="editedItem.capabilities.isLive"
+                                label="En Vivo"
+                              ></v-checkbox>
+                            </v-col>
                           </v-row>
 
                           <v-divider></v-divider>

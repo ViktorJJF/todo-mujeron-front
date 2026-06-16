@@ -20,5 +20,6 @@ export default () => ({
   capabilities: {
     isEligibleForCampaigns: true,
     isEligibleForMassiveMessaging: true,
+    isLive: false,
   },
 });
