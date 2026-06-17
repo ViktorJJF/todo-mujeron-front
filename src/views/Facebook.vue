@@ -595,6 +595,22 @@
                   }}</span
                 >
               </v-tooltip>
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    v-bind="attrs"
+                    v-on="on"
+                    :color="item.capabilities.isLive ? 'red' : 'grey'"
+                    class="ml-4"
+                  >
+                    mdi-broadcast
+                  </v-icon>
+                </template>
+                <span
+                  >En Vivo:
+                  {{ item.capabilities.isLive ? "Activado" : "Desactivado" }}</span
+                >
+              </v-tooltip>
             </div>
           </template>
           <template v-slot:[`item.status`]="{ item }">
