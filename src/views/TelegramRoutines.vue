@@ -807,6 +807,7 @@ import categoriesApi from "@/services/api/ecommercesCategories";
 import graphApiService from "@/services/api/graphApi";
 import ecommercesApi from "@/services/api/ecommerces";
 import cloudStorageLinksApi from "@/services/api/cloudStorageLinks";
+import { buildCategoryTree } from "@/utils/categoryTree";
 
 export default {
   components: {
@@ -935,17 +936,9 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nueva rutina" : "Editar rutina";
     },
-    // Create category tree structure like in catalog
+    // Create category tree structure like in catalog (all hierarchy levels)
     todofullCategoriesTree() {
-      const rootCategories = this.todofullCategories.filter(
-        (cat) => cat.parent === 0
-      );
-      return rootCategories.map((category) => ({
-        ...category,
-        children: this.todofullCategories.filter(
-          (cat) => cat.parent === category.idCategory
-        ),
-      }));
+      return buildCategoryTree(this.todofullCategories);
     },
     // Check if catalog name can be auto-generated
     canGenerateCatalogName() {

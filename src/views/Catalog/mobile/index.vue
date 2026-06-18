@@ -518,6 +518,7 @@ import EcommercesApi from "@/services/api/ecommerces";
 import Flipbook from "flipbook-vue";
 import MarqueeText from "vue-marquee-text-component";
 import BuyForm from "../BuyForm";
+import { buildCategoryTree } from "@/utils/categoryTree";
 import { downloadPdf } from "../download-pdf";
 import BottomNavigation from "./BottomNavigation";
 import PersonaR from "./persona.jpg";
@@ -657,14 +658,7 @@ export default {
       return this.productsDocs;
     },
     categoriesTree() {
-      const rootCategories = this.categories.filter((cat) => cat.parent === 0);
-
-      return rootCategories.map((category) => ({
-        ...category,
-        children: this.categories.filter(
-          (cat) => cat.parent === category.idCategory
-        ),
-      }));
+      return buildCategoryTree(this.categories);
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => {

@@ -369,6 +369,7 @@ import TallasSelect from "@/components/catalog/TallasSelect";
 import EcommercesApi from "@/services/api/ecommerces";
 import Flipbook from "flipbook-vue";
 import BuyForm from "../BuyForm.vue";
+import { buildCategoryTree } from "@/utils/categoryTree";
 import { downloadPdf } from "../download-pdf";
 
 const COUNTRIES = ["Chile", "Peru"];
@@ -484,14 +485,7 @@ export default {
       return this.productsDocs;
     },
     categoriesTree() {
-      const rootCategories = this.categories.filter((cat) => cat.parent === 0);
-
-      return rootCategories.map((category) => ({
-        ...category,
-        children: this.categories.filter(
-          (cat) => cat.parent === category.idCategory
-        ),
-      }));
+      return buildCategoryTree(this.categories);
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => {
