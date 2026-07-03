@@ -2936,6 +2936,18 @@ export default {
           this.bulkScheduleDialog.loading = false;
           return;
         }
+        // WHY: if chunks are missing/empty, item.chunks.map below throws
+        // synchronously and the spinner would never clear (nothing gets sent).
+        if (!Array.isArray(item.chunks) || item.chunks.length === 0) {
+          buildSuccess(
+            "No hay tandas para programar.",
+            this.$store.commit,
+            "warning"
+          );
+          this.bulkScheduleDialog.loading = false;
+          return;
+        }
+
         const base = this.bulkStartAtDateTime || now;
         let errorOccurred = false;
         if (!item.scheduledChunks) this.$set(item, "scheduledChunks", {});
@@ -3044,9 +3056,13 @@ export default {
             const actualScheduledCount = results.filter(
               (r) => r && !r.status
             ).length; // successful API calls
-            const skippedCount = results.filter(
+            const alreadySentCount = results.filter(
               (r) => r && r.status === "skipped_scheduling_already_sent"
             ).length;
+            const alreadyProcessingCount = results.filter(
+              (r) => r && r.status === "skipped_scheduling_processing"
+            ).length;
+            const skippedCount = alreadySentCount + alreadyProcessingCount;
             // errorOccurred is already tracked for API call failures
 
             let messages = [];
@@ -3059,7 +3075,11 @@ export default {
             }
             if (skippedCount > 0) {
               messages.push(
-                `${skippedCount} tanda(s) ya habían sido enviadas y no se reprogramaron.`
+                `${skippedCount} tanda(s) se omitieron porque ya estaban ${
+                  alreadyProcessingCount > 0
+                    ? "programadas o en proceso"
+                    : "enviadas"
+                }.`
               );
             }
             if (errorOccurred) {
@@ -3067,7 +3087,18 @@ export default {
                 "Algunas tandas no pudieron ser programadas debido a errores."
               );
             }
-            if (messages.length === 0 && item.chunks.length > 0) {
+            // WHY: when nothing new was scheduled because every tanda was already
+            // programmed, say so explicitly — otherwise the closing spinner reads
+            // to the user as "se quedó pegado y no envió".
+            if (
+              actualScheduledCount === 0 &&
+              skippedCount > 0 &&
+              !errorOccurred
+            ) {
+              messages = [
+                "Todas las tandas ya estaban programadas o enviadas. No se reprogramó ninguna.",
+              ];
+            } else if (messages.length === 0 && item.chunks.length > 0) {
               messages.push("No se programaron nuevas tandas.");
             } else if (item.chunks.length === 0) {
               messages.push("No hay tandas para programar.");
@@ -3083,6 +3114,16 @@ export default {
 
             // await this.refreshCampaignItem(item); // Refresh item instead of full initialize
             this.closeBulkScheduleDialog();
+          })
+          .catch((err) => {
+            // WHY: defensive — the per-chunk .catch already handles API failures,
+            // but never let a throw in post-processing leave the button spinning.
+            console.error("Error finalizando la programación de tandas:", err);
+            buildSuccess(
+              "Ocurrió un error al finalizar la programación. Recarga e intenta de nuevo.",
+              this.$store.commit,
+              "error"
+            );
           })
           .finally(() => {
             this.bulkScheduleDialog.loading = false;
