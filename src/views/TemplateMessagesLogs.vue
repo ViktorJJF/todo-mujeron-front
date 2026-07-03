@@ -219,21 +219,15 @@
             <v-chip>{{ getBotOrigin(item.botId) }}</v-chip>
           </template>
           <template v-slot:[`item.status`]="{ item }">
-            <v-tooltip bottom v-if="item.status === 'failed' && item.errorDetail">
-              <template v-slot:activator="{ on, attrs }">
-                <v-chip color="error" outlined v-bind="attrs" v-on="on">
-                  {{ item.status }}
-                  <v-icon right small>mdi-information-outline</v-icon>
-                </v-chip>
-              </template>
-              <span
-                >[{{ item.errorDetail.code }}] {{ item.errorDetail.title
-                }}<template v-if="item.errorDetail.details"
-                  >: {{ item.errorDetail.details }}</template
-                ></span
-              >
-            </v-tooltip>
-            <v-chip v-else>{{ item.status }}</v-chip>
+            <v-chip :color="item.status === 'failed' ? 'error' : undefined" :outlined="item.status === 'failed'">{{ item.status }}</v-chip>
+          </template>
+          <template v-slot:[`item.errorDetail`]="{ item }">
+            <span v-if="item.errorDetail && item.errorDetail.code"
+              >{{ item.errorDetail.code }} - {{ item.errorDetail.title
+              }}<template v-if="item.errorDetail.details"
+                >: {{ item.errorDetail.details }}</template
+              ></span
+            >
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -331,6 +325,12 @@ export default {
         align: "left",
         sortable: true,
         value: "status",
+      },
+      {
+        text: "Error",
+        align: "left",
+        sortable: false,
+        value: "errorDetail",
       },
     ],
     [ENTITY]: [],
