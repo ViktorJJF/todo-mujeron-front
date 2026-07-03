@@ -8,6 +8,12 @@ export const PROGRAMMED_CHUNK_STATUSES = Object.freeze({
   SENT_WITH_SOME_ERRORS: "sent_with_some_errors",
 });
 
+// WHY: persisting a PROGRAMMED chunk is a ~50-100ms DB write, so a stall means the
+// network/proxy is broken — surface it in seconds instead of hiding behind the 60s
+// global axios timeout. NOT applied to immediate sends: those legitimately run the
+// ~45-min per-lead loop before responding.
+const SCHEDULE_SEND_CHUNK_TIMEOUT_MS = 30000;
+
 export default {
   list(params) {
     return axios.get("/api/marketing-campaigns", { params });
@@ -40,7 +46,16 @@ export default {
         ...scheduleAPIOptions,
       };
     }
-    return axios.post("/api/marketing-campaigns/send_chunk", payload);
+    // Bound the wait only for the fast programmed (scheduling) path; immediate
+    // sends keep the global timeout because their server loop can take ~45 min.
+    const requestConfig = scheduleAPIOptions?.isProgrammed
+      ? { timeout: SCHEDULE_SEND_CHUNK_TIMEOUT_MS }
+      : undefined;
+    return axios.post(
+      "/api/marketing-campaigns/send_chunk",
+      payload,
+      requestConfig
+    );
   },
   chunkDetail(chunkPage, chunkSize, segment, campaign) {
     const payload = {
