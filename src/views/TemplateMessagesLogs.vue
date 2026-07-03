@@ -222,12 +222,14 @@
             <v-chip :color="item.status === 'failed' ? 'error' : undefined" :outlined="item.status === 'failed'">{{ item.status }}</v-chip>
           </template>
           <template v-slot:[`item.errorDetail`]="{ item }">
-            <span v-if="item.errorDetail && item.errorDetail.code"
-              >{{ item.errorDetail.code }} - {{ item.errorDetail.title
-              }}<template v-if="item.errorDetail.details"
-                >: {{ item.errorDetail.details }}</template
-              ></span
-            >
+            <v-tooltip v-if="item.errorDetail && item.errorDetail.code" bottom max-width="400">
+              <template v-slot:activator="{ on, attrs }">
+                <span v-bind="attrs" v-on="on">{{
+                  truncateErrorDetail(item.errorDetail)
+                }}</span>
+              </template>
+              <span>{{ formatErrorDetail(item.errorDetail) }}</span>
+            </v-tooltip>
           </template>
         </v-data-table>
         <v-col cols="12" sm="12">
@@ -468,6 +470,15 @@ export default {
         message = "Sin origen";
       }
       return message;
+    },
+    formatErrorDetail(errorDetail) {
+      const base = `${errorDetail.code} - ${errorDetail.title}`;
+      return errorDetail.details ? `${base}: ${errorDetail.details}` : base;
+    },
+    truncateErrorDetail(errorDetail) {
+      const full = this.formatErrorDetail(errorDetail);
+      const LIMIT = 40;
+      return full.length > LIMIT ? `${full.slice(0, LIMIT)}...` : full;
     },
   },
 };
