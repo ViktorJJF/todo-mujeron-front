@@ -44,7 +44,21 @@
 
         <section class="mb-6">
           <h2 class="text-h6 font-weight-bold mb-2">
-            4. Almacenamiento y seguridad
+            4. Integración con WhatsApp y Meta
+          </h2>
+          <p>
+            Los Servicios se integran con la API de WhatsApp Business (Cloud
+            API) para el envío y la recepción de mensajes en el número de
+            WhatsApp Business del cliente. Los datos de las conversaciones son
+            procesados por Meta conforme a sus propias políticas de privacidad.
+            El negocio puede desconectar su número de WhatsApp en cualquier
+            momento desde el panel.
+          </p>
+        </section>
+
+        <section class="mb-6">
+          <h2 class="text-h6 font-weight-bold mb-2">
+            5. Almacenamiento y seguridad
           </h2>
           <p>
             Aplicamos medidas técnicas y organizativas razonables para proteger
@@ -54,7 +68,7 @@
         </section>
 
         <section class="mb-6">
-          <h2 class="text-h6 font-weight-bold mb-2">5. Tus derechos</h2>
+          <h2 class="text-h6 font-weight-bold mb-2">6. Tus derechos</h2>
           <p>
             Puedes solicitar el acceso, la corrección o la eliminación de tus
             datos, así como revocar las integraciones conectadas en cualquier
@@ -63,7 +77,7 @@
         </section>
 
         <section class="mb-6">
-          <h2 class="text-h6 font-weight-bold mb-2">6. Contacto</h2>
+          <h2 class="text-h6 font-weight-bold mb-2">7. Contacto</h2>
           <p>
             Si tienes preguntas sobre esta política, escríbenos a
             <a href="mailto:contacto@todofull.club">contacto@todofull.club</a>.
