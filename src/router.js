@@ -5,12 +5,16 @@ import { localStorageGet } from "@/utils/utils";
 Vue.use(Router);
 
 let routes = [
-  // root path
+  // root path — public provisional landing (no auth)
   {
     path: "/",
     name: "LandingPage",
-    redirect: "/login",
-    component: () => import("./views/LandingPage.vue"),
+    component: () => import("./views/Landing.vue"),
+  },
+  {
+    path: "/privacy-policy",
+    name: "PrivacyPolicy",
+    component: () => import("./views/PrivacyPolicy.vue"),
   },
   {
     path: "/login",
