@@ -61,9 +61,9 @@
           hide-default-footer
           :headers="headers"
           :items="executions"
-          @page-count="pageCount = $event"
           :page.sync="page"
           :items-per-page="$store.state.itemsPerPage"
+          :server-items-length="totalItems"
         >
           <template v-slot:top>
             <v-container>
@@ -93,7 +93,7 @@
                     item-value="value"
                     v-model="statusFilter"
                     clearable
-                    @change="loadExecutions"
+                    @change="handleFilterChange"
                   ></v-select>
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
@@ -108,7 +108,7 @@
                     item-value="_id"
                     v-model="routineFilter"
                     clearable
-                    @change="loadExecutions"
+                    @change="handleFilterChange"
                   ></v-select>
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
@@ -116,7 +116,7 @@
                   <v-btn
                     color="primary"
                     block
-                    @click="loadExecutions"
+                    @click="loadExecutions(page)"
                     :loading="loading"
                   >
                     <v-icon left>mdi-refresh</v-icon>
@@ -226,11 +226,15 @@
                 ? executions.length
                 : $store.state.itemsPerPage
             }}
-            de {{ executions.length }} registros
+            de {{ totalItems }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
-          <v-pagination v-model="page" :length="pageCount"></v-pagination>
+          <v-pagination
+            v-model="page"
+            :length="totalPages"
+            @input="loadExecutions(page)"
+          ></v-pagination>
         </div>
       </material-card>
     </v-row>
@@ -375,7 +379,6 @@ export default {
   },
   data: () => ({
     page: 1,
-    pageCount: 0,
     loading: false,
     search: "",
     searchTimeout: null,
@@ -444,6 +447,12 @@ export default {
   }),
 
   computed: {
+    totalItems() {
+      return this.$store.state.routineExecutionsModule.total;
+    },
+    totalPages() {
+      return this.$store.state.routineExecutionsModule.totalPages;
+    },
     // Safe access to stats
     safeStats() {
       return this.stats || {
@@ -477,10 +486,12 @@ export default {
       this.routines = this.$store.state.telegramRoutinesModule.routines;
     },
 
-    async loadExecutions() {
+    async loadExecutions(page = 1) {
       this.loading = true;
       try {
+        this.page = page;
         const query = {
+          page,
           companies: [
             this.$store.getters["authModule/getCurrentCompany"].company._id,
           ],
@@ -525,8 +536,12 @@ export default {
         clearTimeout(this.searchTimeout);
       }
       this.searchTimeout = setTimeout(() => {
-        this.loadExecutions();
+        this.loadExecutions(1);
       }, 500);
+    },
+
+    handleFilterChange() {
+      this.loadExecutions(1);
     },
 
     viewDetails(item) {
