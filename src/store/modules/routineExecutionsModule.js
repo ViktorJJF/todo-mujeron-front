@@ -1,5 +1,9 @@
 import api from "@/services/api/routineExecutions";
-import { buildSuccess, handleError } from "@/utils/utils.js";
+import {
+  buildQueryWithPagination,
+  buildSuccess,
+  handleError,
+} from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
@@ -14,9 +18,10 @@ const module = {
   },
   actions: {
     list({ commit }, query) {
+      const finalQuery = buildQueryWithPagination(query);
       return new Promise((resolve, reject) => {
         api
-          .list(query)
+          .list(finalQuery)
           .then((response) => {
             commit("list", response.data.payload);
             commit("totalItems", response.data.totalDocs);
