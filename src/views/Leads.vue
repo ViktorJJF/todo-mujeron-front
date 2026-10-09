@@ -1010,6 +1010,7 @@ export default {
       "appName",
     ],
     todofullLabels: [],
+    todofullLabelsBeforeEdit: [],
     searchLabel: "",
     showLeadsWithoutLabel: false,
   }),
@@ -1182,6 +1183,10 @@ export default {
     editItem(item) {
       this.editedIndex = this.leads.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      // Copies the label array (Object.assign is shallow) and keeps what the dialog loaded:
+      // the backend applies only the edit, never a stale list.
+      this.editedItem.todofullLabels = [...(item.todofullLabels || [])];
+      this.todofullLabelsBeforeEdit = this.editedItem.todofullLabels.map((label) => label._id || label);
       this.dialog = true;
     },
     async doSearch() {
@@ -1232,7 +1237,11 @@ export default {
         try {
           await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
-            data: { ...this.editedItem, sendToRetailRocket: true },
+            data: {
+              ...this.editedItem,
+              todofullLabelsBeforeEdit: this.todofullLabelsBeforeEdit,
+              sendToRetailRocket: true,
+            },
           });
           Object.assign(this.leads[this.editedIndex], this.editedItem);
           this.close();
