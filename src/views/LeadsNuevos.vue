@@ -426,6 +426,7 @@ import {
   buildPayloadPagination,
   formatPhone,
   getCountryByPhone,
+  toTodofullLabelIds,
 } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
@@ -606,7 +607,7 @@ export default {
       // Copies the label array (Object.assign is shallow) and keeps what the dialog loaded:
       // the backend applies only the edit, never a stale list.
       this.editedItem.todofullLabels = [...(item.todofullLabels || [])];
-      this.todofullLabelsBeforeEdit = this.editedItem.todofullLabels.map((label) => label._id || label);
+      this.todofullLabelsBeforeEdit = toTodofullLabelIds(this.editedItem.todofullLabels);
       //agregando telefono ID si es que tiene
       this.telefonoId = item.telefonoId;
       this.dialog = true;

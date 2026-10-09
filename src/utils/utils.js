@@ -554,3 +554,7 @@ export const checkIsVideo = (url) => {
     return false; // Return false if URL parsing fails
   }
 };
+
+/** A contact's label ids, whether its labels come as ids or label objects. */
+export const toTodofullLabelIds = (todofullLabels = []) =>
+  todofullLabels.map((todofullLabel) => todofullLabel._id || todofullLabel);

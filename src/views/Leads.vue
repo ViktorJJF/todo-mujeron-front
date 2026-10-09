@@ -891,6 +891,7 @@ import {
   buildPayloadPagination,
   formatPhone,
   getCountryByPhone,
+  toTodofullLabelIds,
 } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
@@ -1186,7 +1187,7 @@ export default {
       // Copies the label array (Object.assign is shallow) and keeps what the dialog loaded:
       // the backend applies only the edit, never a stale list.
       this.editedItem.todofullLabels = [...(item.todofullLabels || [])];
-      this.todofullLabelsBeforeEdit = this.editedItem.todofullLabels.map((label) => label._id || label);
+      this.todofullLabelsBeforeEdit = toTodofullLabelIds(this.editedItem.todofullLabels);
       this.dialog = true;
     },
     async doSearch() {
@@ -1235,7 +1236,7 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this.leads[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("cleanLeadsModule/update", {
+          const savedContact = await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
             data: {
               ...this.editedItem,
@@ -1243,6 +1244,10 @@ export default {
               sendToRetailRocket: true,
             },
           });
+          // The label rules may have removed some (exclusive group): show the labels the server kept.
+          this.editedItem.todofullLabels = toTodofullLabelIds(savedContact.todofullLabels).map(
+            (labelId) => this.todofullLabels.find((label) => label._id === labelId) || labelId
+          );
           Object.assign(this.leads[this.editedIndex], this.editedItem);
           this.close();
         } finally {
