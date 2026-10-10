@@ -11,9 +11,10 @@
         <v-data-table
           no-results-text="No se encontraron resultados"
           :search="search"
+          :custom-filter="matchesLabelSearch"
           hide-default-footer
           :headers="headers"
-          :items="items"
+          :items="labelsOfSelectedType"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -22,7 +23,7 @@
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold"
-                >Filtrar por nombre: {{ search }}</span
+                >Filtrar por nombre o grupo: {{ search }}</span
               >
               <v-row>
                 <v-col cols="12" sm="6">
@@ -31,7 +32,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de la etiqueta"
+                    placeholder="Escribe el nombre o el grupo de la etiqueta"
                     single-line
                     outlined
                   ></v-text-field>
@@ -58,7 +59,8 @@
                         <v-container class="pa-5">
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12" class="mb-2">
-                              <p class="body-1 font-weight-bold">Nombre</p>
+                              <p class="body-1 font-weight-bold">Nombre interno</p>
+                              <p class="caption grey--text mb-1">El que usan Odoo, los estados y las integraciones. No se muestra a la asesora si hay nombre mostrado</p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
@@ -74,6 +76,16 @@
                                 outlined
                                 rows="3"
                               ></v-textarea>
+                            </v-col>
+                            <v-col cols="12" sm="12" md="12">
+                              <v-divider
+                                style="border: 1px solid #ddd"
+                                class="my-3"
+                              ></v-divider>
+                              <TodofullLabelRulesFields
+                                v-model="editedItem"
+                                :labels="items"
+                              />
                             </v-col>
                             <v-col cols="12" sm="12" md="12">
                               <v-divider
@@ -266,7 +278,27 @@
                   </span>
                 </v-col>
               </v-row>
+              <v-row>
+                <v-col cols="12" class="pt-0">
+                  <TodofullLabelTypeFilter
+                    v-model="selectedLabelType"
+                    :labels="items"
+                  />
+                </v-col>
+              </v-row>
             </v-container>
+          </template>
+          <template v-slot:[`item.name`]="{ item }">
+            <TodofullLabelChip :label="item" />
+            <div v-if="item.displayName" class="caption grey--text">
+              {{ item.name }}
+            </div>
+          </template>
+          <template v-slot:[`item.labelType`]="{ item }">
+            {{ labelTypeName(item.labelType) }}
+          </template>
+          <template v-slot:[`item.exclusiveGroup`]="{ item }">
+            <TodofullLabelRuleSummary :label="item" />
           </template>
           <template v-slot:[`item.is_active`]="{ item }">
             <v-checkbox
@@ -360,13 +392,17 @@
 
 <script>
 //Nota: Modifica los campos de la tabla
+// WHY: a static import; the dynamic import() returned a Promise, so the form started from a Promise.
+import CLASS_ITEMS, { findTodofullLabelType } from "@/classes/TodofullLabels";
 const ENTITY = "todofullLabels"; // nombre de la entidad en minusculas (se repite en services y modules del store)
-const CLASS_ITEMS = () =>
-  import(`@/classes/${ENTITY.charAt(0).toUpperCase() + ENTITY.slice(1)}`);
 // const ITEMS_SPANISH = 'marcas';
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import MaterialCard from "@/components/material/Card";
+import TodofullLabelRulesFields from "@/components/TodofullLabelRulesFields";
+import TodofullLabelChip from "@/components/TodofullLabelChip";
+import TodofullLabelRuleSummary from "@/components/TodofullLabelRuleSummary";
+import TodofullLabelTypeFilter from "@/components/TodofullLabelTypeFilter";
 import { sortAlphabetically, getAttributesWithValues } from "@/utils/utils";
 import { es } from "date-fns/locale";
 import auth from "@/services/api/auth";
@@ -374,6 +410,10 @@ export default {
   components: {
     MaterialCard,
     VTextFieldWithValidation,
+    TodofullLabelRulesFields,
+    TodofullLabelChip,
+    TodofullLabelRuleSummary,
+    TodofullLabelTypeFilter,
   },
   filters: {
     formatDate: function (value) {
@@ -391,6 +431,7 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
+    selectedLabelType: "all",
     dialog: false,
     headers: [
       {
@@ -404,6 +445,18 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
+      },
+      {
+        text: "Tipo",
+        align: "left",
+        sortable: false,
+        value: "labelType",
+      },
+      {
+        text: "Reglas",
+        align: "left",
+        sortable: false,
+        value: "exclusiveGroup",
       },
       {
         text: "Descripción",
@@ -443,6 +496,10 @@ export default {
     items() {
       return this[ENTITY];
     },
+    labelsOfSelectedType() {
+      if (this.selectedLabelType === "all") return this.items;
+      return this.items.filter((label) => label.labelType === this.selectedLabelType);
+    },
     entity() {
       return ENTITY;
     },
@@ -462,6 +519,17 @@ export default {
     this.rolAuth();
   },
   methods: {
+    labelTypeName(labelTypeValue) {
+      const labelType = findTodofullLabelType(labelTypeValue);
+      return labelType ? labelType.text : "Sin tipo";
+    },
+    // Search matches the internal name, the display name, the exclusive group and the description.
+    matchesLabelSearch(_columnValue, search, label) {
+      const searchText = (search || "").toLowerCase();
+      return [label.name, label.displayName, label.exclusiveGroup, label.description].some(
+        (labelText) => labelText && labelText.toLowerCase().includes(searchText)
+      );
+    },
     rolAuth() {
       auth
         .roleAuthorization({

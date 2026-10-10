@@ -426,6 +426,7 @@ import {
   buildPayloadPagination,
   formatPhone,
   getCountryByPhone,
+  toTodofullLabelIds,
 } from "@/utils/utils.js";
 import { es } from "date-fns/locale";
 export default {
@@ -486,6 +487,7 @@ export default {
     fieldsToSearch: ["nombre", "apellido", "telefono", "displayName"],
     rolPermisos: {},
     todofullLabels: [],
+    todofullLabelsBeforeEdit: [],
     searchLabel: "",
   }),
 
@@ -602,6 +604,10 @@ export default {
     editItem(item) {
       this.editedIndex = this.leads.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      // Copies the label array (Object.assign is shallow) and keeps what the dialog loaded:
+      // the backend applies only the edit, never a stale list.
+      this.editedItem.todofullLabels = [...(item.todofullLabels || [])];
+      this.todofullLabelsBeforeEdit = toTodofullLabelIds(this.editedItem.todofullLabels);
       //agregando telefono ID si es que tiene
       this.telefonoId = item.telefonoId;
       this.dialog = true;
@@ -663,7 +669,10 @@ export default {
           this.editedItem.estado = "INFORMADO AL AGENTE";
           await this.$store.dispatch("cleanLeadsModule/update", {
             id: itemId,
-            data: this.editedItem,
+            data: {
+              ...this.editedItem,
+              todofullLabelsBeforeEdit: this.todofullLabelsBeforeEdit,
+            },
           });
           Object.assign(this.leads[this.editedIndex], this.editedItem);
           //refrescando pagina
