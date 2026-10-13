@@ -517,6 +517,18 @@
             >Editar</v-btn
           >
           <v-btn
+            class="mr-3 mb-1"
+            small
+            outlined
+            color="primary"
+            @click="
+              mergeLead = item;
+              mergeDialog = true;
+            "
+            v-if="rolPermisos['Edit']"
+            ><v-icon left small>mdi-call-merge</v-icon>Fusionar</v-btn
+          >
+          <v-btn
             class="mb-1"
             small
             color="error"
@@ -825,6 +837,26 @@
           <v-toolbar-title
             >Chat en vivo con {{ selectedCleanLead.telefono }}</v-toolbar-title
           >
+          <v-btn-toggle
+            v-if="cleanLeadChats.length > 1"
+            v-model="selectedChatId"
+            mandatory
+            group
+            dense
+            class="ml-4"
+          >
+            <v-btn
+              v-for="chat in cleanLeadChats"
+              :key="chat._id"
+              :value="chat._id"
+              small
+              text
+              dark
+            >
+              <v-icon left small dark>{{ chatPlatform(chat.platform).icon }}</v-icon>
+              {{ chat.cleanLeadAppName || chatPlatform(chat.platform).name }}
+            </v-btn>
+          </v-btn-toggle>
           <v-spacer></v-spacer>
           <v-toolbar-items>
             <v-btn
@@ -865,6 +897,22 @@
         </div>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="mergeDialog"
+      max-width="900px"
+      scrollable
+      :fullscreen="$vuetify.breakpoint.xsOnly"
+    >
+      <MergeCleanLeadsDialog
+        v-if="mergeDialog"
+        :lead="mergeLead"
+        @close="mergeDialog = false"
+        @merged="onLeadsMerged"
+      />
+    </v-dialog>
+    <v-snackbar v-model="mergeSnackbar" color="primary" timeout="3000">
+      <v-icon left dark small>mdi-check</v-icon>Fichas fusionadas
+    </v-snackbar>
   </div>
 </template>
 
@@ -880,6 +928,8 @@ import odooService from "@/services/api/odoo";
 import graphApiService from "@/services/api/graphApi";
 import cleanLeadsService from "@/services/api/cleanLeads";
 import MarketingSegmentsForm from "@/components/MarketingSegmentsForm.vue";
+import MergeCleanLeadsDialog from "@/components/MergeCleanLeadsDialog.vue";
+import { chatPlatform } from "@/utils/chatPlatforms";
 import CompaniesSelector from "@/components/CompaniesSelector.vue";
 import MarketingSegments from "@/views/MarketingSegments.vue";
 import MarketingCampaignsService from "@/services/api/marketingCampaigns";
@@ -902,6 +952,7 @@ export default {
     MarketingSegmentsForm,
     CompaniesSelector,
     MarketingSegments,
+    MergeCleanLeadsDialog,
   },
   filters: {
     formatDate: function(value) {
@@ -917,6 +968,10 @@ export default {
     selectedChatId: null,
     selectedCleanLead: null,
     chatDialog: false,
+    cleanLeadChats: [],
+    mergeDialog: false,
+    mergeLead: null,
+    mergeSnackbar: false,
     updateCheckbox: 0,
     marketingCampaigns: [],
     botIds: [],
@@ -1469,9 +1524,17 @@ export default {
           console.log(error);
         });
     },
+    chatPlatform,
+    onLeadsMerged() {
+      this.mergeDialog = false;
+      this.mergeSnackbar = true;
+      this.initialize(this.buildPayloadPagination(null, this.buildSearch()));
+    },
     async getCleanLeadsChats(id) {
+      this.cleanLeadChats = [];
       try {
         const chats = (await chatService.getAllByCleanLeadId(id)).data.payload;
+        this.cleanLeadChats = chats;
         if (chats.length > 0) {
           this.selectedChatId = chats[0]._id;
         } else {
