@@ -854,7 +854,7 @@
               dark
             >
               <v-icon left small dark>{{ chatPlatform(chat.platform).icon }}</v-icon>
-              {{ chat.cleanLeadAppName || chatPlatform(chat.platform).name }}
+              {{ chatLabel(chat) }}
             </v-btn>
           </v-btn-toggle>
           <v-spacer></v-spacer>
@@ -1525,6 +1525,14 @@ export default {
         });
     },
     chatPlatform,
+    // WHY: a merged contact can hold two WhatsApp chats; the chat's own number tells them apart.
+    chatLabel(chat) {
+      const name =
+        chat.cleanLeadAppName || chat.leadAppName || chatPlatform(chat.platform).name;
+      const number =
+        chat.platform.startsWith("whatsapp") && chat.leadId && chat.leadId.contactId;
+      return number ? `${name} · ${number}` : name;
+    },
     onLeadsMerged() {
       this.mergeDialog = false;
       this.mergeSnackbar = true;
