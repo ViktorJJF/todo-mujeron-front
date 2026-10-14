@@ -25,6 +25,14 @@ export default {
   listOne(id) {
     return axios.get("/api/clean-leads/" + id);
   },
+  mergePreview(keepId, dropId) {
+    return axios.get(`/api/clean-leads/${keepId}/merge-preview`, {
+      params: { dropId },
+    });
+  },
+  merge(keepId, dropId) {
+    return axios.post(`/api/clean-leads/${keepId}/merge`, { dropId });
+  },
   getByTodofullLabels(todoFullLabels, company, audienceId, showMissingLeads) {
     return axios.get("/api/clean-leads/get-by-todofulllabels", {
       params: {
