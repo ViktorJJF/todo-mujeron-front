@@ -402,6 +402,12 @@
                             </v-col>
                           </v-row>
 
+                          <BotAutoReplySection
+                            v-if="editedIndex > -1"
+                            v-model="editedItem.autoReply"
+                            :bot-id="editedItem._id"
+                          />
+
                           <v-divider></v-divider>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
@@ -639,6 +645,7 @@
 
 <script>
 import { format } from "date-fns";
+import BotAutoReplySection from "@/components/bots/BotAutoReplySection";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import VFacebookLogin from "vue-facebook-login-component";
 import MaterialCard from "@/components/material/Card";
@@ -652,6 +659,7 @@ import companies from "@/services/api/companies";
 
 export default {
   components: {
+    BotAutoReplySection,
     MaterialCard,
     VTextFieldWithValidation,
     VFacebookLogin,
@@ -823,7 +831,15 @@ export default {
     },
     editItem(item) {
       this.editedIndex = this.bots.indexOf(item);
-      this.editedItem = Object.assign({}, item);
+      const copy = Object.assign({}, item);
+      const currentReply = item.autoReply || {};
+      copy.autoReply = {
+        mode: currentReply.mode || "normal",
+        until: currentReply.until || null,
+        reason: currentReply.reason || "",
+      };
+      delete copy.autoReplyHistory;
+      this.editedItem = copy;
       this.dialog = true;
     },
 
@@ -853,12 +869,17 @@ export default {
       }
       if (this.editedIndex > -1) {
         let itemId = this.bots[this.editedIndex]._id;
+        const data = { ...this.editedItem, autoActivateAfter };
+        delete data.autoReplyHistory;
         try {
-          await this.$store.dispatch("botsModule/update", {
+          const updated = await this.$store.dispatch("botsModule/update", {
             id: itemId,
-            data: { ...this.editedItem, autoActivateAfter },
+            data,
           });
           Object.assign(this.bots[this.editedIndex], this.editedItem);
+          if (updated && updated.autoReply) {
+            this.bots[this.editedIndex].autoReply = updated.autoReply;
+          }
           this.close();
         } finally {
           this.loadingButton = false;
