@@ -15,4 +15,7 @@ export default {
   delete(id) {
     return axios.delete(`/api/bots/${id}`);
   },
+  history(id) {
+    return axios.get(`/api/bots/${id}/auto-reply-history`);
+  },
 };
