@@ -570,6 +570,13 @@
             >
               {{ replyChip(item).text }}
             </v-chip>
+            <span
+              v-for="tag in replyTagsOf(item)"
+              :key="tag"
+              class="bot-reply-tag caption grey--text text--darken-1"
+            >
+              {{ tag }}
+            </span>
           </template>
           <template v-slot:[`item.capabilities`]="{ item }">
             <div v-if="item.capabilities">
@@ -664,7 +671,7 @@
 
 <script>
 import { format } from "date-fns";
-import { replyPresentation } from "@/utils/chileTime";
+import { autoReplyKey, replyPresentation, replyTags } from "@/utils/chileTime";
 import BotAutoReplySection from "@/components/bots/BotAutoReplySection";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import VFacebookLogin from "vue-facebook-login-component";
@@ -738,6 +745,7 @@ export default {
       { text: "Uno a Uno", value: "one_to_one" },
     ],
     editedIndex: -1,
+    openedReplyKey: "",
     editedItem: Bots(),
     defaultItem: Bots(),
     rolPermisos: {},
@@ -750,8 +758,9 @@ export default {
     visibleBots() {
       if (!this.onlyNonNormal) return this.bots;
       return this.bots.filter((bot) => {
-        const mode = bot.autoReply && bot.autoReply.mode;
-        return mode && mode !== "normal";
+        const autoReply = bot.autoReply || {};
+        // WHY: an unticked «Nodos graduados» also changes how the bot answers on that line
+        return (autoReply.mode && autoReply.mode !== "normal") || autoReply.allowGraduatedNodes === false;
       });
     },
   },
@@ -798,6 +807,9 @@ export default {
   methods: {
     replyChip(item) {
       return replyPresentation(item.autoReply);
+    },
+    replyTagsOf(item) {
+      return replyTags(item.autoReply);
     },
     replyChipColor(item) {
       const tone = this.replyChip(item).tone;
@@ -890,7 +902,9 @@ export default {
         mode: currentReply.mode || "normal",
         until: currentReply.until || null,
         reason: currentReply.reason || "",
+        allowGraduatedNodes: currentReply.allowGraduatedNodes !== false,
       };
+      this.openedReplyKey = autoReplyKey(copy.autoReply);
       delete copy.autoReplyHistory;
       this.editedItem = copy;
       this.dialog = true;
@@ -938,7 +952,10 @@ export default {
         let itemId = this.bots[this.editedIndex]._id;
         const data = { ...this.editedItem, autoActivateAfter };
         delete data.autoReplyHistory;
-        if (data.autoReply) {
+        // WHY: an untouched section is not sent, so a dialog opened earlier never reverts someone else's change
+        if (autoReplyKey(data.autoReply) === this.openedReplyKey) {
+          delete data.autoReply;
+        } else if (data.autoReply) {
           data.autoReply = { ...data.autoReply };
           delete data.autoReply.missingUntil;
         }
@@ -1032,6 +1049,12 @@ export default {
 // WHY: Vuetify green darken-4 (this theme has no CSS variables); !important beats the `success` class border-color
 .bot-reply-chip--no-end.v-chip {
   border: 2px solid #1b5e20 !important;
+}
+
+.bot-reply-tag {
+  display: block;
+  max-width: 16rem;
+  margin-top: 2px;
 }
 
 @media (max-width: 600px) {

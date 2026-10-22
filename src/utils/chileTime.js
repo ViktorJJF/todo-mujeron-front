@@ -38,8 +38,11 @@ function formatChile(value, pattern = "EEE d MMM, HH:mm") {
 const MODE_LABEL = {
   normal: "Normal",
   graduada: "Responde sola",
-  nunca_sola: "Nunca responde sola",
+  nunca_sola: "Sin respuesta sola en feriado",
 };
+
+// WHY: spec §3.2 keeps the short «Nunca sola» on the table chip; only the dialog label was renamed
+const CHIP_LABEL = { ...MODE_LABEL, nunca_sola: "Nunca sola" };
 
 /** Chip text for the bots table. An expired end date reads as «Venció», not as Normal. */
 function replyPresentation(autoReply, now = new Date()) {
@@ -49,17 +52,46 @@ function replyPresentation(autoReply, now = new Date()) {
   // WHY: the API treats an unreadable end date as normal. Formatting it would throw.
   if (autoReply.until && !until) return { text: "Normal", tone: "normal" };
   const inForce = !until || until > now;
-  const label = MODE_LABEL[mode] || mode;
+  const label = CHIP_LABEL[mode] || mode;
   if (!inForce) return { text: `Venció el ${formatChile(until)}`, tone: "expired" };
   if (!until) return { text: `${label} · sin término`, tone: mode, noEndDate: true };
   return { text: `${label} hasta ${formatChile(until)}`, tone: mode };
 }
 
+/** Grey tags next to the chip: a complaint pause in force and the «Nodos graduados» checkbox turned off. */
+function replyTags(autoReply, now = new Date()) {
+  const current = autoReply || {};
+  const pausedUntil = current.pausedUntil ? asDate(current.pausedUntil) : null;
+  // WHY: an expired mode already reads «Venció»; the API lets expiry win over a pause
+  const isExpired = replyPresentation(current, now).tone === "expired";
+  const tags = [];
+  // WHY: the API applies the pause to graduada only; a paused nunca_sola keeps its mode
+  if (current.mode === "graduada" && !isExpired && pausedUntil && pausedUntil > now) {
+    tags.push(`Pausada por quejas hasta ${formatChile(pausedUntil)}`);
+  }
+  if (current.allowGraduatedNodes === false) tags.push("Sin nodos graduados");
+  return tags;
+}
+
+/** Comparable key of the fields the panel edits, to tell whether the reply section changed. */
+function autoReplyKey(autoReply) {
+  const current = autoReply || {};
+  const until = current.until ? asDate(current.until) : null;
+  return JSON.stringify({
+    mode: current.mode || "normal",
+    until: until ? until.toISOString() : null,
+    reason: current.reason || "",
+    allowGraduatedNodes: current.allowGraduatedNodes !== false,
+  });
+}
+
 export {
   CHILE_TIME_ZONE,
   MODE_LABEL,
+  autoReplyKey,
   chileInputToUtc,
   utcToChileInput,
   formatChile,
   replyPresentation,
+  replyTags,
 };
