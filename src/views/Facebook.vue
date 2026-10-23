@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="bots"
+          :items="visibleBots"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -25,6 +25,14 @@
                 >Filtrar por nombre: {{ search }}</span
               >
               <v-row>
+                <v-col cols="12" sm="6">
+                  <v-checkbox
+                    v-model="onlyNonNormal"
+                    label="Solo las que no están en Normal"
+                    hide-details
+                    class="mt-0"
+                  />
+                </v-col>
                 <v-col cols="12" sm="6">
                   <v-text-field
                     dense
@@ -402,6 +410,12 @@
                             </v-col>
                           </v-row>
 
+                          <BotAutoReplySection
+                            v-if="editedIndex > -1"
+                            v-model="editedItem.autoReply"
+                            :bot-id="editedItem._id"
+                          />
+
                           <v-divider></v-divider>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
@@ -546,6 +560,24 @@
           <template v-slot:[`item.createdAt`]="{ item }">{{
             item.createdAt | formatDate
           }}</template>
+          <template v-slot:[`item.autoReply`]="{ item }">
+            <v-chip
+              small
+              class="bot-reply-chip"
+              :class="replyChipClass(item)"
+              :color="replyChipColor(item)"
+              :text-color="replyChipText(item)"
+            >
+              {{ replyChip(item).text }}
+            </v-chip>
+            <span
+              v-for="tag in replyTagsOf(item)"
+              :key="tag"
+              class="bot-reply-tag caption grey--text text--darken-1"
+            >
+              {{ tag }}
+            </span>
+          </template>
           <template v-slot:[`item.capabilities`]="{ item }">
             <div v-if="item.capabilities">
               <v-tooltip bottom>
@@ -622,11 +654,11 @@
           <span>
             <strong>Mostrando:</strong>
             {{
-              $store.state.itemsPerPage > bots.length
-                ? bots.length
+              $store.state.itemsPerPage > visibleBots.length
+                ? visibleBots.length
                 : $store.state.itemsPerPage
             }}
-            de {{ bots.length }} registros
+            de {{ visibleBots.length }} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -639,6 +671,8 @@
 
 <script>
 import { format } from "date-fns";
+import { autoReplyKey, replyPresentation, replyTags } from "@/utils/chileTime";
+import BotAutoReplySection from "@/components/bots/BotAutoReplySection";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import VFacebookLogin from "vue-facebook-login-component";
 import MaterialCard from "@/components/material/Card";
@@ -652,6 +686,7 @@ import companies from "@/services/api/companies";
 
 export default {
   components: {
+    BotAutoReplySection,
     MaterialCard,
     VTextFieldWithValidation,
     VFacebookLogin,
@@ -667,6 +702,7 @@ export default {
     pageCount: 0,
     loadingButton: false,
     search: "",
+    onlyNonNormal: false,
     dialog: false,
     chatGroupDialog: false,
     newChatGroup: {
@@ -698,6 +734,7 @@ export default {
         value: "createdAt",
       },
       { text: "Capacidades", value: "capabilities", sortable: false },
+      { text: "Respuesta", value: "autoReply", sortable: false },
       { text: "Acciones", value: "action", sortable: false },
     ],
     bots: [],
@@ -708,6 +745,7 @@ export default {
       { text: "Uno a Uno", value: "one_to_one" },
     ],
     editedIndex: -1,
+    openedReplyKey: "",
     editedItem: Bots(),
     defaultItem: Bots(),
     rolPermisos: {},
@@ -717,11 +755,22 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo bot" : "Editar bot";
     },
+    visibleBots() {
+      if (!this.onlyNonNormal) return this.bots;
+      return this.bots.filter((bot) => {
+        const autoReply = bot.autoReply || {};
+        // WHY: an unticked «Nodos graduados» also changes how the bot answers on that line
+        return (autoReply.mode && autoReply.mode !== "normal") || autoReply.allowGraduatedNodes === false;
+      });
+    },
   },
 
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    onlyNonNormal() {
+      this.page = 1;
     },
     "editedItem.conversationType"(newVal) {
       // Clear previous selections when conversation type changes
@@ -756,6 +805,30 @@ export default {
   },
 
   methods: {
+    replyChip(item) {
+      return replyPresentation(item.autoReply);
+    },
+    replyTagsOf(item) {
+      return replyTags(item.autoReply);
+    },
+    replyChipColor(item) {
+      const tone = this.replyChip(item).tone;
+      if (tone === "graduada") return "success";
+      if (tone === "nunca_sola") return "error";
+      return "grey lighten-2";
+    },
+    replyChipClass(item) {
+      const chip = this.replyChip(item);
+      // WHY: spec §3.2 — an expired mode is struck through; «Responde sola» without end date gets a border
+      return {
+        "bot-reply-chip--expired": chip.tone === "expired",
+        "bot-reply-chip--no-end": chip.tone === "graduada" && chip.noEndDate,
+      };
+    },
+    replyChipText(item) {
+      const tone = this.replyChip(item).tone;
+      return tone === "graduada" || tone === "nunca_sola" ? "white" : "black";
+    },
     rolAuth() {
       auth
         .roleAuthorization({
@@ -823,7 +896,17 @@ export default {
     },
     editItem(item) {
       this.editedIndex = this.bots.indexOf(item);
-      this.editedItem = Object.assign({}, item);
+      const copy = this.$deepCopy(item);
+      const currentReply = item.autoReply || {};
+      copy.autoReply = {
+        mode: currentReply.mode || "normal",
+        until: currentReply.until || null,
+        reason: currentReply.reason || "",
+        allowGraduatedNodes: currentReply.allowGraduatedNodes !== false,
+      };
+      this.openedReplyKey = autoReplyKey(copy.autoReply);
+      delete copy.autoReplyHistory;
+      this.editedItem = copy;
       this.dialog = true;
     },
 
@@ -846,6 +929,20 @@ export default {
 
     async save() {
       this.loadingButton = true;
+      const reply = this.editedItem.autoReply;
+      if (this.editedIndex > -1 && reply && reply.missingUntil) {
+        // WHY: ErrorMessage only paints the toast if the message arrives after a clear, same as handleError.
+        this.$store.commit("errorModule/error", null, { root: true });
+        setTimeout(() => {
+          this.$store.commit(
+            "errorModule/error",
+            "Elige la fecha de término o marca Sin fecha de término",
+            { root: true }
+          );
+        }, 0);
+        this.loadingButton = false;
+        return;
+      }
       let autoActivateAfter;
       if (this.editedItem.autoActivateAfter) {
         let [hours, minutes] = this.editedItem.autoActivateAfter.split(":"); // 10:30
@@ -853,12 +950,24 @@ export default {
       }
       if (this.editedIndex > -1) {
         let itemId = this.bots[this.editedIndex]._id;
+        const data = { ...this.editedItem, autoActivateAfter };
+        delete data.autoReplyHistory;
+        // WHY: an untouched section is not sent, so a dialog opened earlier never reverts someone else's change
+        if (autoReplyKey(data.autoReply) === this.openedReplyKey) {
+          delete data.autoReply;
+        } else if (data.autoReply) {
+          data.autoReply = { ...data.autoReply };
+          delete data.autoReply.missingUntil;
+        }
         try {
-          await this.$store.dispatch("botsModule/update", {
+          const updated = await this.$store.dispatch("botsModule/update", {
             id: itemId,
-            data: { ...this.editedItem, autoActivateAfter },
+            data,
           });
           Object.assign(this.bots[this.editedIndex], this.editedItem);
+          if (updated && updated.autoReply) {
+            this.bots[this.editedIndex].autoReply = updated.autoReply;
+          }
           this.close();
         } finally {
           this.loadingButton = false;
@@ -926,4 +1035,31 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.bot-reply-chip.v-chip {
+  height: auto;
+  white-space: normal;
+  max-width: 16rem;
+}
+
+.bot-reply-chip--expired {
+  text-decoration: line-through;
+}
+
+// WHY: Vuetify green darken-4 (this theme has no CSS variables); !important beats the `success` class border-color
+.bot-reply-chip--no-end.v-chip {
+  border: 2px solid #1b5e20 !important;
+}
+
+.bot-reply-tag {
+  display: block;
+  max-width: 16rem;
+  margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+  .bot-reply-chip.v-chip {
+    max-width: 10.5rem;
+  }
+}
+</style>
